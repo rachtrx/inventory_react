@@ -1,0 +1,84 @@
+services:
+  backend:
+    build: ./services/backend
+    ports:
+      - "3001:3001"
+    expose:
+      - 3001
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./services/backend/logs:/usr/src/app/logs
+    networks:
+      - inventory_app
+  # web:
+  #   build: 
+  #     context: ./services/web
+  #     dockerfile: Dockerfile.prod
+  #   command: gunicorn --bind 0.0.0.0:5000 --reload manage:app
+  #   volumes:
+  #     - static_volume:/home/app/web/project/static
+  #     - uploads_volume:/home/app/web/project/uploads
+  #     - ./services/web/logs:/var/log/
+  #   ports:
+  #     - "5000:5000"
+  #   env_file:
+  #     - ./.env.prod
+  #   environment:
+  #     - LIVE=1
+  #     - PYTHONUNBUFFER=1
+  #     - FLASK_ENV=development
+  #     - FLASK_DEBUG=1
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - inventory_app
+  db:
+    build: 
+      context: ./services/db
+      dockerfile: Dockerfile
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.prod.db
+    ports:
+      - "5432:5432"
+    networks:
+      - inventory_app
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    # volumes:
+    #   - ./services/frontend:/workspace
+    environment:
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+      - WATCHPACK_POLLING=true
+    networks:
+      - inventory_app
+  nginx:
+    build: 
+      context: ./services/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - inventory_app
+
+volumes:
+  postgres_data_prod:
+  static_volume:
+  uploads_volume:
+
+networks:
+  inventory_app:
+    name: inventory_app
+    driver: bridge
