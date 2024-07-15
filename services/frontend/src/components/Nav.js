@@ -26,11 +26,11 @@ function Nav() {
       </Menu>
 
       <Menu>
-        <NavButton next={() => navigate("/assets/page/1")} icon={<IconNav name="icon-laptop"/>} label="Devices" />
+        <NavButton next={() => navigate("/assets")} icon={<IconNav name="icon-laptop"/>} label="Devices" />
       </Menu>
 
       <Menu>
-        <NavButton next={() => navigate("/users/page/1")} icon={<IconNav name="icon-user"/>} label="Users" />
+        <NavButton next={() => navigate("/users")} icon={<IconNav name="icon-user"/>} label="Users" />
       </Menu>
 
       <Menu>

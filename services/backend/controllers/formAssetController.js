@@ -174,13 +174,13 @@ exports.registerAsset = async (req, res) => {
     }
 }
 
-exports.deleteAsset = async (req, res) => {
-    const assets = req.body.assets; // Array of asset details
+exports.condemnAsset = async (req, res) => {
+    const data = req.body.data; // Array of asset details
 
     try {
         const assetIds = new Set();
         await sequelize.transaction(async (t) => {
-            for (const { assetId, assetTag, remarks } of assets) {
+            for (const { assetId, assetTag, remarks } of data) {
                 if (assetIds.has(assetId)) {
                     throw new Error("Can't delete the same device!");
                 }

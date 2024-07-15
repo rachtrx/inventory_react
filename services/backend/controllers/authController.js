@@ -39,7 +39,7 @@ exports.checkAuth = async (req, res) => {
 		console.log(req.auth);
 		const user = await Admin.findByPk(req.auth.id); // Accessing user id set in JWT
 		if (user) {
-			res.json({ userName: user.adminName });
+			res.json({ userName:user.adminName });
 		} else {
 			res.status(401).json({ userName: null });
 		}

@@ -8,6 +8,6 @@ router.post('/create', formAssetController.createAsset); // create a variant
 router.post('/register', formAssetController.registerAsset); // register an asset
 
 // router.patch("/update/:id", formAssetController.updateAsset);  
-router.delete("/:id/delete", formAssetController.deleteAsset);
+router.delete("/condemn", formAssetController.condemnAsset);
 
 module.exports = router;

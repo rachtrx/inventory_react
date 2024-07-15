@@ -16,24 +16,22 @@ const corsOptions = {
     maxAge: 600  // Set the maximum time (in seconds) the results of a preflight request can be cached
 };
 
-// Import and use routes
-const assetRoutes = require('./routes/assetRoutes');
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
-const searchRoutes = require('./routes/searchRoutes')
-const formRoutes = require('./routes/formRoutes')
-const dashboardRoutes = require('./routes/dashboardRoutes')
-
-app.use(cors(corsOptions));
-app.use(cookieParser()); // Extracts the JWT from the cookie.
-app.use(express.json());
-app.use(express.static('public'));
-
 app.use((req, res, next) => {
     console.log(req.path);
     next();
 });
 
+// CORS middleware
+app.use(cors(corsOptions));
+
+// Cookie parser middleware
+app.use(cookieParser());
+
+// Body parser middleware
+app.use(express.json());
+
+// Static file middleware
+app.use(express.static('public'));
 
 app.use(jwt({
 	secret: process.env.JWT_SECRET,
@@ -47,6 +45,14 @@ app.use(jwt({
 		'/api/auth/logout'
 	]
 }));
+
+// Import and use routes
+const assetRoutes = require('./routes/assetRoutes');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const searchRoutes = require('./routes/searchRoutes')
+const formRoutes = require('./routes/formRoutes')
+const dashboardRoutes = require('./routes/dashboardRoutes')
 
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
@@ -62,11 +68,11 @@ app.use(function (err, req, res, next) {
 	console.log('Middleware Error: ' + err.stack);
 	logger.error('Middleware Error: ' + err.stack);
 	if (err.name === 'UnauthorizedError') {
-			// This error is thrown by the JWT middleware when a token is invalid
-			res.status(401).json({ error: 'Invalid Token' });
+		// This error is thrown by the JWT middleware when a token is invalid
+		res.status(401).json({ error: 'Invalid Token' });
 	} else {
-			// Pass any other types of errors to the next error handler (if there is one)
-			next(err);
+		// Pass any other types of errors to the next error handler (if there is one)
+		next(err);
 	}
 });
 
