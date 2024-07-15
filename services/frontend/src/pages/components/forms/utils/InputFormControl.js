@@ -4,15 +4,16 @@ import { FormControl, FormLabel, Input, Textarea } from '@chakra-ui/react';
 
 
 
-export default function InputFormControl({ name, label, placeholder }) {
+export default function InputFormControl({ name, label, placeholder, disabled=false }) {
 
   return (
     <FormControl id={name}>
-      <FormLabel htmlFor={name}>{label}</FormLabel>
+      {label ? <FormLabel htmlFor={name}>{label}</FormLabel> : ''}
       <Field 
         name={name} 
         as={name === 'remarks' ? Textarea : Input } 
-        placeholder={placeholder} 
+        placeholder={placeholder}
+        disabled={disabled}
       />
     </FormControl>
   );

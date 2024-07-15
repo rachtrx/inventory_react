@@ -1,19 +1,23 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
 import { Outlet } from 'react-router-dom'; // Outlet for nested routes
-import Layout from './Layout'; // Assuming Layout is a component
+import Nav from './Nav';
 
-export const PrivateRoute = () => {
-  const { checkAuth, user } = useAuth();
+export const PrivateLayout = () => {
+  const { checkAuth } = useAuth();
+
+  console.log('Rendering Private Route');
 
   useEffect(() => {
-		console.log("performing check in private route");
-		console.log(`User: ${user}`);
+
+    console.log('useEffect triggered');
+
     const performCheck = async () => {
-			await checkAuth() // will logout automatically through axios
+      console.log("Performing Check");
+      await checkAuth();
     };
 
-    performCheck(); // Run immediately on component mount
+    // performCheck(); // Run immediately on component mount
 
     const interval = setInterval(() => {
       console.log("Periodic auth check");
@@ -23,12 +27,15 @@ export const PrivateRoute = () => {
     return () => {
       clearInterval(interval); // Cleanup the interval on component unmount
     };
-  }, [checkAuth, user]); // Dependency on checkAuth to avoid re-creating interval unnecessarily
+  }, [checkAuth]);
 
   return (
-    <>
-      <Layout />
-      <Outlet />
-    </>
+    <div>
+      <Nav/>
+
+      <main>
+        <Outlet />
+      </main>
+    </div>
   );
 };

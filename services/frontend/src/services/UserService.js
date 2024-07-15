@@ -1,17 +1,32 @@
-import axios from 'axios';
 import { API_URL } from '../config';
+import { axiosInstance } from '../context/AuthProvider';
 
-export default class UserService {
+class UserService {
+    constructor(axiosInstance) {
+        this.axios = axiosInstance;
+    }
+
+    async loadUsers() {
+        return await this.axios.get(`${API_URL}/users`);
+    }
+
+    async loadUserFilters() {
+        return await this.axios.get(`${API_URL}/users/filters`);
+    }
+
     static loadFullUserDetails(assetId) {
-        return axios.get(`${API_URL}/users/complete/${assetId}`);
+        return this.axios.get(`${API_URL}/users/complete/${assetId}`);
     }
 
     
     static bookmarkUser(assetId) {
-        return axios.post(`${API_URL}/users/bookmark/${assetId}`);
+        return this.axios.post(`${API_URL}/users/bookmark/${assetId}`);
     }
 
     static loadAllUsers() {
-        return axios.get(`${API_URL}/users/`);
+        return this.axios.get(`${API_URL}/users/`);
     }
 }
+
+const userService = new UserService(axiosInstance);
+export default userService;

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Spinner } from '@chakra-ui/react';
-import { useLoading } from '../context/LoadingProvider';
+import { useUI } from '../context/UIProvider';
 
 const LoadingSpinner = () => {
     
-	const { loading } = useLoading();
+	const { loading } = useUI();
 
   if (!loading) return null;
 

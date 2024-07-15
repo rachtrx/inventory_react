@@ -25,7 +25,7 @@ export default function FileUploadButton({ fileInputRef, setFileName, onFileProc
 
   return (
   <>
-    <Button onClick={handleButtonClick} colorScheme="blue" height="32px">
+    <Button onClick={handleButtonClick} bg="white" height="32px">
       <Icon as={FaUpload} />
         &nbsp;Upload
     </Button>

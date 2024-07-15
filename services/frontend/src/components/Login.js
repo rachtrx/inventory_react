@@ -18,7 +18,6 @@ import {
   VStack
 } from '@chakra-ui/react';
 
-
 const validationSchema = Yup.object().shape({
   email: Yup.string().required("Email is required"),
   password: Yup.string().required("Password is required"),
@@ -32,13 +31,12 @@ export default function Login() {
     const performCheck = async () => {
       console.log("Performing check in Login");
       if (!user) {
-        const { userName } = await checkAuth();
-        setUser(userName);
+        await checkAuth();
       }
       if (user) {
         console.log(`user found after login check! ${user}`);
         // Assuming setUser expects just the user name
-        navigate('/dashboard', { replace: true }); // login will call this too
+        navigate('/dashboard', { replace: true }); // go to dashboard and back button wont return to loginx
       }
     };
   
@@ -58,7 +56,7 @@ export default function Login() {
     } catch (err) {
       console.error('Login failed:', err.response ? err.response.data : err);
       setSubmitting(false);
-      navigate('/dashboard', { replace: true });
+      // navigate('/dashboard', { replace: true });
     }
   };
 

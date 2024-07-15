@@ -3,7 +3,7 @@ import chroma from "chroma-js";
 export const TIMEOUT_SEC = 300;
 export const PREVIEW_TIMEOUT_BLUR = 100;
 export const RES_PER_PAGE = 30;
-export const API_URL = 'http://localhost:3001/api';
+export const API_URL = 'http://127.0.0.1:3001/api';
 // export const API_URL = `${process.env.REACT_APP_API_BASE_URL}`;
 // console.log(API_URL);
 
@@ -18,15 +18,6 @@ export const API_URL = 'http://localhost:3001/api';
 // const c9 = 'rgb(102, 102, 0)'
 // const c10 = 'rgb(128, 0, 128)'
 // export const BACKGROUND_COLORS = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10];
-
-export const dateTimeObject = {
-    weekday: 'short',
-    hour: 'numeric' || '',
-    minute: 'numeric' || '',
-    day: 'numeric',
-    month: 'short',
-    year: '2-digit'
-}
 
 const baseColors = ['#FF6384', '#19C4A6', '#36A2EB', '#FFA53F', '#FFF58F', '#B582D3']
 

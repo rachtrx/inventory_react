@@ -1,30 +1,31 @@
 import Chart from 'chart.js/auto';
 import ChartjsPluginScrollBar from 'chartjs-plugin-scroll-bar';
-import DoughnutLabel from "chartjs-plugin-doughnutlabel-v3";
+// import DoughnutLabel from "chartjs-plugin-doughnutlabel-v3";
 import DoughnutChart from './charts/DoughnutChart';
 import BarChart from './charts/BarChart';
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthProvider';
+import { axiosInstance } from '../context/AuthProvider';
 import { API_URL } from '../config';
 import { Container, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './charts/config';
 
-Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
+// Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
+Chart.register(ChartjsPluginScrollBar);
 
 export default function Dashboard() {
-
-    const { axios } = useAuth()
 
     const [doughnuts, setDoughnuts] = useState([])
     const [barCharts, setBarCharts] = useState([])
     const [isLoading, setLoading] = useState(true);
 
     useEffect(() => {
+
         setLoading(true);
         const fetchData = async () => {
             try {
                 console.log("Fetching data for dashboard");
-                const response = await axios.get(`${API_URL}/dashboard`, { withCredentials: true });
+                const response = await axiosInstance.get(`${API_URL}/dashboard`, { withCredentials: true });
+                console.log("Axios response received", response);
                 const data = response.data;
     
                 const newDoughnuts = [];
@@ -57,7 +58,7 @@ export default function Dashboard() {
         };
     
         fetchData();
-    }, [axios]);
+    }, []);
 
     return (
         <VStack spacing={8}> {/* Vertical Stack with spacing between children */}

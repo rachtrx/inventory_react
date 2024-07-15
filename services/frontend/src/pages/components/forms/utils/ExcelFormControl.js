@@ -9,9 +9,11 @@ import {
 import { FaDownload } from 'react-icons/fa';
 import FileUploadButton from './FileUploadButton';
 import FileNameDisplay from './FileNameDisplay';
+import { useFormikContext } from 'formik';
 
-const ExcelFormControl = ({setFieldValue, expectedKeys}) => {
+const ExcelFormControl = ({ expectedKeys }) => {
 
+  const { values, setFieldValue } = useFormikContext();
   const fileInputRef = useRef(null);
   const toast = useToast();
   const [fileName, setFileName] = useState('');
@@ -59,7 +61,7 @@ const ExcelFormControl = ({setFieldValue, expectedKeys}) => {
           }
         }}
       />
-      <Button size="md" colorScheme="blue" h="32px" onClick={handleDownloadTemplate}>
+      <Button size="md" bg="white" h="32px" onClick={handleDownloadTemplate}>
         <Icon as={FaDownload} />
           &nbsp;Template
       </Button>

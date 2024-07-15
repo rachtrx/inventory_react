@@ -1,6 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
-	const AssetType = require('./AssetType');
 	class AssetTypeVariant extends Model {}
 
 	AssetTypeVariant.init({
