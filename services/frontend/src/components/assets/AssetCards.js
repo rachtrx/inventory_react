@@ -1,25 +1,22 @@
-import React from 'react';
 import { API_URL, eventToStatus } from '../../config';
 
 import { 
-    VStack,
     Card,
     CardBody,
     Link,
     Text,
-    IconButton,
+    Button,
 } from "@chakra-ui/react";
+import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
+import Cards from '../Cards';
 
-import IconBookmark from '../components/icons/IconBookmark';
-
-function Cards({assets}) {
-
+function AssetCards({items}) {
     return (
-        <VStack spacing={4}>
-        {assets.map((asset) => (
-            <Card key={asset.assetId} data-asset-id={asset.assetId}>
+        <Cards>
+        {items.map((asset) => (
+            <Card key={asset.id} data-asset-id={asset.id}>
             <CardBody>
-                <Link href={`${API_URL}views/show_device#${asset.assetId}`} isExternal>
+                <Link href={`${API_URL}views/show_device#${asset.id}`} isExternal>
                 <Text fontSize="xl" fontWeight="bold">{asset.assetTag}</Text>
                 <Text fontSize="md">{asset.serialNumber}</Text>
                 <Text fontSize="md">{asset.modelName}</Text>
@@ -40,20 +37,15 @@ function Cards({assets}) {
                 )}
             </CardBody>
 
-            <IconButton
-                aria-label="Bookmark"
-                icon={asset.bookmarked === 1 ? <IconBookmark fill={true} /> : <IconBookmark />}
-                variant="ghost"
-                position="absolute"
-                top={2}
-                right={2}
-            />
+            <Button variant="ghost" position="absolute" top={2} right={2} aria-label="Bookmark">
+                {asset.bookmarked === 1 ? <BookmarkFilledIcon /> : <BookmarkIcon />}
+            </Button>
             </Card>
         ))}
-        </VStack>
+        </Cards>
     );
 }
 
 
 
-export default Cards
+export default AssetCards

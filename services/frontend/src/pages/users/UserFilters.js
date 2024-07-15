@@ -40,12 +40,10 @@ const UserFilters = ({ filters }) => {
               label="Username"
               placeholder="All"
           />
-
           <BookmarkFilter/>
         </Grid>
       </Form>
     </Formik>
-
   );
 };
 

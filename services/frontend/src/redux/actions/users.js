@@ -68,8 +68,8 @@ export const loadAllUsers = () => async (dispatch) => {
     try {
         dispatch({ type: USERS_FETCH_START });
         const [result, depts] = await UserService.loadAllUsers();
-        if (!result) return
-        const users = combinedUsers(result.map(user => createUserObject(user)))
+        if (!result) return;
+        const users = combinedUsers(result.map(user => createUserObject(user)));
         const deviceCounts = [...new Set(users.map((user) => user.deviceCount))].sort((a, b) => a - b);
         dispatch({
             type: USERS_FETCH_SUCCESS,

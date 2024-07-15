@@ -1,23 +1,43 @@
 import { API_URL } from '../config';
+import { axiosInstance } from '../context/AuthProvider';
 
-export default class AssetService {
+class AssetService {
     constructor(axiosInstance) {
         this.axios = axiosInstance;
     }
 
-    async loadAssets(filters) {
-        return await this.axios.post(`${API_URL}/assets/`, filters);
+    async loadAssets() {
+        return await this.axios.get(`${API_URL}/assets`);
     }
 
     async loadAssetFilters() {
         return await this.axios.get(`${API_URL}/assets/filters`);
     }
 
-    loadFullDeviceDetails(assetId) {
-        return this.axios.get(`${API_URL}/assets/${assetId}`);
+    async loadFullDeviceDetails(assetId) {
+        return await this.axios.get(`${API_URL}/assets/${assetId}`);
     }
 
-    bookmarkAsset(assetId) {
-        return this.axios.post(`${API_URL}/assets/bookmark/${assetId}`);
+    async bookmarkAsset(assetId) {
+        return await this.axios.post(`${API_URL}/assets/bookmark/${assetId}`);
+    }
+
+    async condemnAsset(assetIds) {
+        return await this.axios.delete(`${API_URL}/assets/condemn`, assetIds);;
+    }
+
+    async addAsset(asset) {
+        return await this.axios.delete(`${API_URL}/assets/add`, asset);;
+    }
+
+    async loanAsset(assetId, userId) {
+        return await this.axios.delete(`${API_URL}/assets/loan`, [assetId, userId]);;
+    }
+
+    async returnAsset(assetId) {
+        return await this.axios.delete(`${API_URL}/assets/return`, assetId);;
     }
 }
+
+const assetService = new AssetService(axiosInstance);
+export default assetService;

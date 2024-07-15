@@ -1,49 +1,101 @@
-const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User } = require('../models');
-const { Op } = require('sequelize');
+const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, sequelize, Sequelize} = require('../models');
+const { Op } = Sequelize;
 
-exports.getFilters = async (req, res) => {
-    try {
+const logger = require('../logging')
 
-        const [deviceTypes, modelNames, vendors, locations, ages] = await Promise.all([
-            AssetType.findAll({
-                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('assetType')), 'assetType']],
-                raw: true
-            }),
-            AssetTypeVariant.findAll({
-                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('variantName')), 'variantName']],
-                raw: true
-            }),
-            Vendor.findAll({
-                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('vendorName')), 'vendorName']],
-                raw: true
-            }),
-            Asset.findAll({
-                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('location')), 'location']],
-                raw: true
-            }),
-            Asset.findAll({
-                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('age')), 'age']],
-                raw: true
-            })
-        ]);
+// exports.getFilters = async (req, res) => {
+
+//     try {
+
+//         const [assetTypes, variantNames, vendors, locations, ages] = await Promise.all([
+//             AssetType.findAll({
+//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('asset_type')), 'assetType']],
+//               raw: true
+//             }),
+//             AssetTypeVariant.findAll({
+//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('variant_name')), 'variantName']],
+//               raw: true
+//             }),
+//             Vendor.findAll({
+//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('vendor_name')), 'vendorName']],
+//               raw: true
+//             }),
+//             Asset.findAll({
+//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('location')), 'location']],
+//               raw: true
+//             }),
+//             Asset.findAll({
+//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('registered_date')), 'registeredDate']],
+//               raw: true,
+//             }).then(assets => {
+//               // Calculate age for each asset and include it in the results
+//               return assets.reduce((ages, asset) => {
+//                 const now = new Date();
+//                 const created = new Date(asset.registeredDate);
+//                 const age = Math.floor((now - created) / (365.25 * 24 * 60 * 60 * 1000));
+              
+//                 // Check if age already exists in the ages array
+//                 if (!ages.some(existingAge => existingAge.age === age)) {
+//                   ages.push({ age });
+//                 }
+              
+//                 return ages;
+//               }, []);
+//             })
+//         ]);
         
-        const filters = {
-            assetTypes: deviceTypes.map(type => type.assetType),
-            AssetTypeVariants: modelNames.map(model => model.variantName),
-            vendors: vendors.map(vendor => vendor.vendorName),
-            locations: locations.map(location => location.location),
-            ages: ages.map(age => age.age)
-        };
+//         const filters = {
+//             assetTypes: assetTypes.map(type => type.assetType),
+//             AssetTypeVariants: variantNames.map(model => model.variantName),
+//             vendors: vendors.map(vendor => vendor.vendorName),
+//             locations: locations.map(location => location.location),
+//             ages: ages.map(age => age.age)
+//         };
 
-        res.json(filters);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-        throw error;
+//         res.json(filters);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error' });
+//         throw error;
+//     }
+// }
+
+const dateTimeObject = {
+    weekday: 'short',
+    hour: 'numeric' || '',
+    minute: 'numeric' || '',
+    day: 'numeric',
+    month: 'short',
+    year: '2-digit'
+}
+
+const createAssetObject = function(asset) {
+    return {
+        id: asset.id,
+        serialNumber: asset.serialNumber,
+        assetTag: asset.assetTag,
+        assetType: asset.AssetTypeVariant.AssetType.assetType,
+        variant: asset.AssetTypeVariant.variantName,
+        bookmarked: asset.bookmarked || 0,
+        status: asset.status,
+        vendor: asset.Vendor.vendorName,
+        modelValue: String(parseFloat(asset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
+        ...(asset.location && {location: asset.location}),
+        ...(asset.AssetTypeVariant.AssetType.assetType && {deviceType: asset.AssetTypeVariant.AssetType.assetType}),
+        ...(asset.registeredDate && {registeredDate: Intl.DateTimeFormat('en-sg', dateTimeObject).format(new Date(asset.registeredDate))}),
+        ...(asset.User?.userName && {userName: asset.User.userName}),
+        ...(asset.User?.id && {userId: asset.User.id}),
+        ...((asset.User?.bookmarked && {userBookmarked: asset.User.bookmarked}) || (asset.User && {userBookmarked: 0})),
+        ...(asset.age && {age: asset.age}),
     }
 }
 
 exports.getAssets = async (req, res) => { // TODO Add filters
+
+    const assetsExist = await Asset.count();
+    if (assetsExist === 0) {
+        return res.json([]);
+    }
 
     try {
         const query = await Asset.findAll({
@@ -54,21 +106,21 @@ exports.getAssets = async (req, res) => { // TODO Add filters
                 'status',
                 'registeredDate',
                 'location',
-                'age',
                 'bookmarked',
+                'value'
             ],
             include: [
                 {
-                    model:AssetTypeVariant,
-                    attributes:['variantName']
+                    model: AssetTypeVariant,
+                    attributes:['variantName'],
+                    include: {
+                        model: AssetType,
+                        attributes: ['assetType']
+                    }
                 },
                 {
                     model:Vendor,
                     attributes:['vendorName']
-                },
-                {
-                    model: AssetType,
-                    attributes:['assetType']
                 },
                 {
                     model: User,
@@ -79,9 +131,22 @@ exports.getAssets = async (req, res) => { // TODO Add filters
             where: {
                 status: { [Op.ne]: 'condemned' }
             }
-        });
-        res.json(query);
+        }).then(assets => {
+            // Calculate age for each asset and include it in the results
+            return assets.map(asset => {
+                const plainAsset = asset.get({ plain: true });
+                const now = new Date();
+                const created = new Date(asset.registeredDate);
+                const age = Math.floor((now - created) / (365.25 * 24 * 60 * 60 * 1000));
+                return { ...plainAsset, age };
+            });
+        })
+        logger.info(query.slice(100, 110));
+        const assets = query.map(asset => createAssetObject(asset));
+        logger.info(assets.slice(100, 110));
+        res.json(assets);
     } catch (error) {
+        logger.error(error)
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
         throw error;
