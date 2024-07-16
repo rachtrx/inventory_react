@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { dateTimeObject } from '../config';
 import { useContext, useMemo } from 'react';
 import assetService from '../services/AssetService';
+import { useUI } from './UIProvider';
 
 // Create a context for assets
 const AssetContext = createContext();
@@ -17,10 +18,10 @@ const initialFilters = {
 // Devices Provider component
 export const AssetProvider = ({ children }) => {
   const [assets, setAssets] = useState([]);
+  const [currentAsset, setCurrentAsset] = useState([])
   const [filters, setFilters] = useState(initialFilters);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, totalItems: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { loading, setLoading, error, setError } = useUI()
 
   useEffect(() => {
     const fetchAssets = async () => {

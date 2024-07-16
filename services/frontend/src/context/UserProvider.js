@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import userService from '../services/UserService';
+import { useUI } from './UIProvider';
 
 // Create a context for assets
 const UserContext = createContext();
@@ -14,8 +15,7 @@ export const UserProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [filters, setFilters] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, totalItems: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { loading, setLoading, error, setError } = useUI()
 
   useEffect(() => {
     const fetchUsers = async () => {

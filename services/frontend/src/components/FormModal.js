@@ -31,18 +31,18 @@ const headerMap = {
     'condemnAsset': "Condemn Asset",
 }
 
-export default function FormDrawer() { 
+export default function FormModal() { 
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit } = useForm();
 
     useEffect(() => {
         if (formType) {
-            onOpen();
+            onModalOpen();
         } else {
-            onClose();
+            onModalClose();
         }
-    }, [formType, onOpen, onClose]);
+    }, [formType, onModalOpen, onModalClose]);
 
     const handleClose = () => {
         setFormType(null);
@@ -51,7 +51,7 @@ export default function FormDrawer() {
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} size="xl">
+        <Modal isOpen={isModalOpen} onClose={handleClose} size="xl">
             <ModalOverlay />
             <ModalContent>
                 <Formik
@@ -68,7 +68,7 @@ export default function FormDrawer() {
                         </ModalBody>
     
                         <ModalFooter>
-                            <Button variant='outline' mr={3} onClick={onClose}>
+                            <Button variant='outline' mr={3} onClick={onModalClose}>
                                 Cancel
                             </Button>
                             <Button colorScheme='blue' type="submit">Submit</Button>

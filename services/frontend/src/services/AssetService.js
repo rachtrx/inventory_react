@@ -6,6 +6,10 @@ class AssetService {
         this.axios = axiosInstance;
     }
 
+    async loadAsset(assetId) {
+        return await this.axios.get(`${API_URL}/assets/${assetId}`);
+    }
+
     async loadAssets() {
         return await this.axios.get(`${API_URL}/assets`);
     }

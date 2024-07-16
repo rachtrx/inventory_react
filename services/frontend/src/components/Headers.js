@@ -8,7 +8,7 @@ import {
     
 } from '@chakra-ui/react';
 
-import FormDrawer from './FormDrawer';
+import FormModal from './FormModal';
 
 export default function Headers({header, filters, subfilters, actions}) {
 	

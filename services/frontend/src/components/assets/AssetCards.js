@@ -9,8 +9,11 @@ import {
 } from "@chakra-ui/react";
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import Cards from '../Cards';
+import { useAsset } from '../../context/AssetProvider';
 
 function AssetCards({items}) {
+    const { setCurrentAsset } = useAsset()
+    
     return (
         <Cards>
         {items.map((asset) => (
@@ -28,12 +31,9 @@ function AssetCards({items}) {
                 </Text>
                 
                 {asset.status === 'loaned' && (
-                <>
-                    <Text fontSize="md" fontWeight="semibold">User</Text>
-                    <Link href={`views/show_user#${asset.userId}`} isExternal>
-                    <Text>{asset.userName}</Text>
-                    </Link>
-                </>
+                    <Button onClick={() => setCurrentAsset(asset.id)} colorScheme="blue">
+                        {asset.userName}
+                    </Button>
                 )}
             </CardBody>
 

@@ -3,63 +3,6 @@ const { Op } = Sequelize;
 
 const logger = require('../logging')
 
-// exports.getFilters = async (req, res) => {
-
-//     try {
-
-//         const [assetTypes, variantNames, vendors, locations, ages] = await Promise.all([
-//             AssetType.findAll({
-//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('asset_type')), 'assetType']],
-//               raw: true
-//             }),
-//             AssetTypeVariant.findAll({
-//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('variant_name')), 'variantName']],
-//               raw: true
-//             }),
-//             Vendor.findAll({
-//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('vendor_name')), 'vendorName']],
-//               raw: true
-//             }),
-//             Asset.findAll({
-//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('location')), 'location']],
-//               raw: true
-//             }),
-//             Asset.findAll({
-//               attributes: [[sequelize.fn('DISTINCT', sequelize.col('registered_date')), 'registeredDate']],
-//               raw: true,
-//             }).then(assets => {
-//               // Calculate age for each asset and include it in the results
-//               return assets.reduce((ages, asset) => {
-//                 const now = new Date();
-//                 const created = new Date(asset.registeredDate);
-//                 const age = Math.floor((now - created) / (365.25 * 24 * 60 * 60 * 1000));
-              
-//                 // Check if age already exists in the ages array
-//                 if (!ages.some(existingAge => existingAge.age === age)) {
-//                   ages.push({ age });
-//                 }
-              
-//                 return ages;
-//               }, []);
-//             })
-//         ]);
-        
-//         const filters = {
-//             assetTypes: assetTypes.map(type => type.assetType),
-//             AssetTypeVariants: variantNames.map(model => model.variantName),
-//             vendors: vendors.map(vendor => vendor.vendorName),
-//             locations: locations.map(location => location.location),
-//             ages: ages.map(age => age.age)
-//         };
-
-//         res.json(filters);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal Server Error' });
-//         throw error;
-//     }
-// }
-
 const dateTimeObject = {
     weekday: 'short',
     hour: 'numeric' || '',
