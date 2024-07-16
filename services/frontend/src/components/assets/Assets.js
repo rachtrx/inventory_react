@@ -4,6 +4,8 @@ import AssetCards from './AssetCards';
 import AssetTable from "./AssetTable";
 import RecordsLayout from '../RecordsLayout';
 import { AssetProvider, useAsset } from "../../context/AssetProvider";
+import Asset from "./Asset";
+import AssetDrawer from "../ItemDrawer";
 
 function AssetsContent() {
 
@@ -24,6 +26,7 @@ function AssetsContent() {
 }
 
 export default function AssetsPage() {
+  
   return (
     <AssetProvider>
       <AssetsContent />

@@ -6,14 +6,14 @@ import NoDataBox from '../pages/components/NoDataBox';
 import CardSkeleton from '../pages/components/CardSkeleton';
 import usePagination from '../hooks/usePagination';
 import PaginationControls from '../pages/components/Pagination';
-import { FormProvider } from '../context/FormProvider';
 import CapsuleToggleButton from './buttons/CapsuleToggleButton';
 import { useSearchParams } from 'react-router-dom';
 import { FaDownload } from 'react-icons/fa';
 import { useResponsive } from '../context/ResponsiveProvider';
 
-import FormDrawer from './FormDrawer';
+import FormModal from './FormModal';
 import ToggleButton from './buttons/ToggleButton';
+import ItemDrawer from './ItemDrawer';
 
 export default function RecordsLayout({ header, data, loading, error, Filters, Actions, Cards, Table }) {
 
@@ -48,10 +48,7 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
             gap={{ base: "1rem", md: "2rem", lg: "3rem" }}
           >
             <Heading as="h1" size={headerSize}>{header}</Heading>
-            <FormProvider>
-              <Actions/>
-              <FormDrawer />
-            </FormProvider>
+            <Actions/>
             { isIpad ? (<Button colorScheme="blue" iconSpacing={0}>
               <FaDownload/>
             </Button>) : (
@@ -69,6 +66,8 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
         </Flex>
         {!currentData || currentData.length === 0 ? <NoDataBox /> : isGridView ? <Cards items={currentData} /> : <Table items={currentData}/>}
         <PaginationControls currentPage={currentPage} maxPage={maxPage} next={next} prev={prev}/>
+        <FormModal />
+        <ItemDrawer />
       </>
       
   );

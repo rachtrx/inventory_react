@@ -10,6 +10,9 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { UIProvider } from './context/UIProvider';
 import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
+import { ItemProvider } from './context/ItemProvider';
+import { FormProvider } from './context/FormProvider';
+import ItemDrawer from './components/ItemDrawer';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -19,9 +22,13 @@ root.render(
     <ChakraProvider>
       <ResponsiveProvider>
         <UIProvider>
-          <LoadingSpinner/>
-          <RouterProvider router={App}/>
-          {/* Insert footer here? */}
+          {/* <ItemProvider> */}
+            <FormProvider>
+              <LoadingSpinner/>
+              <RouterProvider router={App}/>
+            {/* Insert footer here? */}
+            </FormProvider>
+          {/* </ItemProvider> */}
         </UIProvider>
       </ResponsiveProvider>
     </ChakraProvider>

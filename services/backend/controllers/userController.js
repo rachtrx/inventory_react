@@ -1,56 +1,6 @@
 const { sequelize, Sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models');
-const { Op } = Sequelize;
 
 const logger = require('../logging')
-
-// exports.getFilters = async (req, res) => {
-//     try {
-
-//         const [depts, assetCounts] = await Promise.all([
-//             Dept.findAll({
-//                 attributes: [[sequelize.fn('DISTINCT', sequelize.col('dept_name')), 'deptName']],
-//                 raw: true
-//             }),
-//             User.findAll({
-//                 include: [{
-//                     model: Asset,
-//                     attributes: [],
-//                     where: { 
-//                         status: { [Op.ne]: 'condemned' } 
-//                     }
-//                 }],
-//                 attributes: [
-//                     'id',
-//                     [sequelize.fn('COUNT', sequelize.col('Assets.id')), 'assetCount']
-//                 ],
-//                 group: ['User.id']
-//             }).then(users => {
-//                 // Calculate age for each asset and include it in the results
-//                 return users.reduce((assetCounts, user) => {
-
-//                     const assetCount = user.assetCount;
-                  
-//                   // Check if age already exists in the ages array
-//                   if (!assetCounts.some(existingAssetCount => existingAssetCount.assetCount === assetCount)) {
-//                     assetCounts.push({ assetCount });
-//                   }
-                
-//                   return assetCounts;
-//                 }, []);
-//             })
-//         ])
-
-//         const filters = {
-//             depts: depts.map(dept => dept.deptName),
-//             assetCount: assetCounts.map(assetCount => assetCount.count)
-//         }
-//         logger.info(`User Filters: ${filters}`);
-//         res.json(filters);
-//     } catch (error) {
-//         console.error('Error fetching filters:', error);
-//         res.status(500).send('Internal Server Error');
-//     }
-// };
 
 const createUserObject = function(user) {
     return {
@@ -187,30 +137,3 @@ exports.showUser = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
-
-// // function takes an array of users and filters them based on whether they already have a device
-// const combinedUsers = function(usersArray) {
-//     return usersArray.reduce((users, user) => {
-//         // existingUser will return the user if found
-//         const existingUser = users.find((filteredUser) => filteredUser.userId === user.userId);
-//         if (existingUser) {
-//             // User already exists, add the device details to the existing user's users array
-//             existingUser.devices.push(user.device);
-//             existingUser.deviceCount = user.device ? existingUser.deviceCount++ : existingUser.deviceCount
-//         } else {
-//             // TODO check on the count
-//             // Create a new user object with the device details
-//             const newUser = {
-//                 userId: user.userId,
-//                 userName: user.userName,
-//                 deptName: user.deptName,
-//                 bookmarked: user.bookmarked || 0,
-//                 hasResigned: user.hasResigned || 0,
-//                 ...(user.device && {devices: [user.device]}),
-//                 deviceCount: user.device ? 1 : 0,
-//             }
-//             users.push(newUser);
-//         }
-//         return users;
-//     }, []);
-// }

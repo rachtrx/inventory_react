@@ -1,8 +1,12 @@
-import { Table, Thead, Tbody, Tr, Th, Td, Link, IconButton } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Link, IconButton, Button } from '@chakra-ui/react';
 import IconBookmark from '../../pages/components/icons/IconBookmark';
 import { API_URL, eventToStatus } from '../../config';
+import { useAsset } from '../../context/AssetProvider';
 
 const AssetTable = ({ items }) => {
+
+	const { setCurrentAsset } = useAsset()
+
   return (
     <Table variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg="gray.200">
@@ -25,16 +29,14 @@ const AssetTable = ({ items }) => {
             </Td>
             <Td>{asset.serialNumber}</Td>
             <Td>{asset.modelName}</Td>
-            <Td className={asset.status === 'loaned' ? 'unavailable' : 'available'}>
+            <Td>
               {eventToStatus(asset.status)}
             </Td>
             <Td>
-              {asset.status === 'loaned' ? (
-                <Link href={`views/show_user#${asset.userId}`} isExternal>
-                  {asset.userName}
-                </Link>
-              ) : (
-                '-'
+              {asset.status === 'loaned' && (
+								<Button onClick={() => setCurrentAsset(asset.id)} colorScheme="blue">
+									{asset.userName}
+								</Button>
               )}
             </Td>
             <Td>
