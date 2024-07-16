@@ -6,6 +6,10 @@ class UserService {
         this.axios = axiosInstance;
     }
 
+    async loadUser(userId) {
+        return await this.axios.get(`${API_URL}/users/${userId}`);
+    }
+
     async loadUsers() {
         return await this.axios.get(`${API_URL}/users`);
     }
