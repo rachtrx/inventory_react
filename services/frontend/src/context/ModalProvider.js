@@ -2,8 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Outlet } from 'react-router-dom';
 import { useUI } from './UIProvider';
 import assetService from '../services/AssetService';
+import FormModal from '../components/FormModal';
 
-const FormContext = createContext(null);
+const ModalContext = createContext(null);
 
 // TODO
 
@@ -78,7 +79,7 @@ const runValidationChecks = function(values) {
 	return values && (!values.hasOwnProperty('assetTag') || values.assetTag !== '')
 }
 
-export const FormProvider = ({children}) => {
+export const ModalProvider = ({children}) => {
 
 	const [formType, setFormType] = useState(null);
 	const [isExcel, setIsExcel] = useState(false);
@@ -106,10 +107,10 @@ export const FormProvider = ({children}) => {
 	}, [formType, setLoading]);
 
 	return (
-		<FormContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit, isExcel, setIsExcel }}>
+		<ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit, isExcel, setIsExcel }}>
 			{children}
-		</FormContext.Provider>
+		</ModalContext.Provider>
 	);
 }
 
-export const useForm = () => useContext(FormContext);
+export const useModal = () => useContext(ModalContext);

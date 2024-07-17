@@ -2,7 +2,7 @@ import { Box, Flex } from "@chakra-ui/react";
 import InputFormControl from '../utils/InputFormControl';
 import ExcelToggle from "../utils/ExcelToggle";
 import ExcelFormControl from '../utils/ExcelFormControl';
-import { useForm } from "../../../../context/FormProvider";
+import { useModal } from "../../../../context/ModalProvider";
 import SelectFormControl from "../utils/SelectFormControl";
 import { useAsset } from "../../../../context/AssetProvider";
 import DateInputControl from "../utils/DateInputControl";
@@ -10,7 +10,7 @@ import FormToggle from "../utils/FormToggle";
 
 const ReturnAsset = () => {
 
-    const { isExcel } = useForm()
+    const { isExcel } = useModal()
     const { filters } = useAsset()
 
   return (

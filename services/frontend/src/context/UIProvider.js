@@ -4,7 +4,7 @@ const UIContext = createContext(false);
 
 export const UIProvider = ({ children }) => {
   console.log("Rendering UI Provider");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   // TODO toaster
 

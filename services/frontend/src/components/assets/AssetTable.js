@@ -1,11 +1,11 @@
-import { Table, Thead, Tbody, Tr, Th, Td, Link, IconButton, Button } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button } from '@chakra-ui/react';
 import IconBookmark from '../../pages/components/icons/IconBookmark';
-import { API_URL, eventToStatus } from '../../config';
-import { useAsset } from '../../context/AssetProvider';
+import { eventToStatus } from '../../config';
+import { useDrawer } from '../../context/DrawerProvider';
 
 const AssetTable = ({ items }) => {
 
-	const { setCurrentAsset } = useAsset()
+	const { handleItemClick } = useDrawer()
 
   return (
     <Table variant="simple">
@@ -23,9 +23,9 @@ const AssetTable = ({ items }) => {
         {items.map((asset) => (
           <Tr key={asset.id}>
             <Td>
-              <Link href={`${API_URL}views/show_device#${asset.id}`} isExternal>
-                {asset.assetTag}
-              </Link>
+            <Button onClick={() => handleItemClick(asset)} colorScheme="blue">
+              {asset.assetTag}
+            </Button>
             </Td>
             <Td>{asset.serialNumber}</Td>
             <Td>{asset.modelName}</Td>
@@ -34,7 +34,7 @@ const AssetTable = ({ items }) => {
             </Td>
             <Td>
               {asset.status === 'loaned' && (
-								<Button onClick={() => setCurrentAsset(asset.id)} colorScheme="blue">
+								<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
 									{asset.userName}
 								</Button>
               )}

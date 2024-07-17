@@ -2,13 +2,13 @@ import { Box, Button, Flex, FormControl, FormLabel, Input, Textarea } from "@cha
 import InputFormControl from '../utils/InputFormControl';
 import ExcelFormControl from '../utils/ExcelFormControl';
 import ExcelToggle from "../utils/ExcelToggle";
-import { useForm } from "../../../../context/FormProvider";
+import { useModal } from "../../../../context/ModalProvider";
 import FormToggle from "../utils/FormToggle";
 import DateInputControl from "../utils/DateInputControl";
 
 const CondemnAsset = () => {
 
-  const { isExcel } = useForm()
+  const { isExcel } = useModal()
 
   return (
     <Box width="100%" maxWidth="500px" mx="auto" p={4}>

@@ -3,44 +3,51 @@ import { API_URL, eventToStatus } from '../../config';
 import { 
     Card,
     CardBody,
-    Link,
     Text,
     Button,
+    Box,
 } from "@chakra-ui/react";
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import Cards from '../Cards';
-import { useAsset } from '../../context/AssetProvider';
+import { useDrawer } from '../../context/DrawerProvider';
 
 function AssetCards({items}) {
-    const { setCurrentAsset } = useAsset()
+    const { handleItemClick } = useDrawer()
     
     return (
         <Cards>
-        {items.map((asset) => (
-            <Card key={asset.id} data-asset-id={asset.id}>
-            <CardBody>
-                <Link href={`${API_URL}views/show_device#${asset.id}`} isExternal>
-                <Text fontSize="xl" fontWeight="bold">{asset.assetTag}</Text>
-                <Text fontSize="md">{asset.serialNumber}</Text>
-                <Text fontSize="md">{asset.modelName}</Text>
-                </Link>
+            {items.map((asset) => (
+            <Box key={asset.id}>
+                <Card 
+                    h="100%" 
+                    w="100%" 
+                    bg="transparent" 
+                    _hover={{ bg: "blue.100", cursor: "pointer" }} 
+                    _active={{ bg: "blue.200" }}
+                >
+                    <CardBody onClick={() => handleItemClick(asset)}>
+                        <Text fontSize="lg" fontWeight="bold" color="blue.500">
+                            {asset.assetTag}
+                        </Text>
+                        <Text fontSize="sm" fontWeight="semibold">{asset.serialNumber}</Text>
+                        <Text fontSize="sm" fontWeight="semibold">{asset.variant}</Text>
+                        <Text fontSize="lg" fontWeight="semibold">Status</Text>
+                        <Text className={asset.status === 'loaned' ? 'unavailable' : 'available'}>
+                            {eventToStatus(asset.status)}
+                        </Text>
+                        
+                        {asset.status === 'loaned' && (
+                            <Text fontSize="sm" color="blue.500">
+                                {asset.userName}
+                            </Text>
+                        )}
+                    </CardBody>
 
-                <Text fontSize="lg" fontWeight="semibold">Status</Text>
-                <Text className={asset.status === 'loaned' ? 'unavailable' : 'available'}>
-                {eventToStatus(asset.status)}
-                </Text>
-                
-                {asset.status === 'loaned' && (
-                    <Button onClick={() => setCurrentAsset(asset.id)} colorScheme="blue">
-                        {asset.userName}
+                    <Button variant="ghost" position="absolute" top={2} right={2} aria-label="Bookmark">
+                        {asset.bookmarked === 1 ? <BookmarkFilledIcon /> : <BookmarkIcon />}
                     </Button>
-                )}
-            </CardBody>
-
-            <Button variant="ghost" position="absolute" top={2} right={2} aria-label="Bookmark">
-                {asset.bookmarked === 1 ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-            </Button>
-            </Card>
+                </Card>
+            </Box>
         ))}
         </Cards>
     );

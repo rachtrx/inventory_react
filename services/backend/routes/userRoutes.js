@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 
 router.get('/', userController.getUsers);
+router.get("/:id", userController.showUser);
 router.post('/bookmark/:id', userController.bookmarkUser);
-router.patch("/show/:id", userController.showUser);
 
 module.exports = router;

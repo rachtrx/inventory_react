@@ -12,7 +12,6 @@ import { FaDownload } from 'react-icons/fa';
 import { useResponsive } from '../context/ResponsiveProvider';
 
 import FormModal from './FormModal';
-import ToggleButton from './buttons/ToggleButton';
 import ItemDrawer from './ItemDrawer';
 
 export default function RecordsLayout({ header, data, loading, error, Filters, Actions, Cards, Table }) {
@@ -35,6 +34,7 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
     initialPage,
     updateUrl
   );
+
 
   if (loading) return <CardSkeleton />;
   if (error) return <Box>Error: {error.message}</Box>;
