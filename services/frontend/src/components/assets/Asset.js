@@ -1,82 +1,122 @@
-import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure } from '@chakra-ui/react';
-import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid } from '@chakra-ui/react';
+import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { eventToStatus } from '../../config';
-import { useDrawer } from '../../context/ItemProvider';
-import { useForm } from '../../context/FormProvider';
+import { useDrawer } from '../../context/DrawerProvider';
+import { useModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
 import Timeline from '../Timeline';
+import EditableField from '../utils/EditableField';
 
 const Asset = ({ asset }) => {
-  const { handleItemClick } = useDrawer()
-  const { setFormType } = useForm()
+  const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
+  const { setFormType } = useModal()
 
-  return (
-    <Box className="show-device-overview">
-        <Box className="show-device-container">
-            <Heading as="h1" size="lg" mb="4">Asset Tag: {asset.assetTag}</Heading>
-            <Box className="show-device-asset">
-                <Text fontSize="lg">Serial Number: {asset.serialNumber}</Text>
-                <Text fontSize="lg">Model: {asset.variant}</Text>
-                <Text fontSize="lg">Type: {asset.assetType}</Text>
-                <Text fontSize="lg">Vendor: {asset.vendor}</Text>
-                <Box className="location-edit-component">
-                    <Text fontSize="lg">Value: </Text>
-                    <Text fontSize="lg" className="edit-el">{asset.value}</Text>
-                    <Button leftIcon={<EditIcon />}>Edit</Button>
-                    <Button leftIcon={<CheckIcon />} className="hidden-visibility" data-model-value={asset.id}>Save</Button>
-                </Box>
-                <Box className="location-edit-component">
-                    <Text fontSize="lg">Location: </Text>
-                    <Text fontSize="lg" className="edit-el">{asset.location}</Text>
-                    <Button leftIcon={<EditIcon />}>Edit</Button>
-                    <Button leftIcon={<CheckIcon />} className="hidden-visibility" data-location-name={asset.id}>Save</Button>
-                </Box>
-            </Box>
-        </Box>
+	return (
+		<Box p={4}>
+      <Box mb={4}>
+        <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
+				<Heading as="h2" size="md" mb="2">STATUS</Heading>
+				<Text>{eventToStatus(asset.status)}</Text>	
 
-        <Box className="show-device-users--past">
-            <Heading as="h2" size="md" mb="2">PAST USERS</Heading>
-            {asset.pastUsers.map((user) => (
-                <Button onClick={() => handleItemClick(user)} colorScheme="blue">
-                  {user.userName}
-                </Button>
-            ))}
-        </Box>
+        <Grid
+					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
+					gap={1}  // This is the spacing between columns
+					p={4}
+					alignItems='center'
+				>
+					{/* IMPT: field key must be the same as value */}
+          <EditableField 
+						label="Serial Number"
+            fieldKey="serialNumber"
+            value={asset.serialNumber}
+            handleSave={handleSave}
+					/>
+					<EditableField 
+						label="Model"
+            fieldKey="variant"
+            value={asset.variant}
+            handleSave={handleSave}
+					/>
+					<EditableField 
+						label="Asset Type"
+            fieldKey="assetType"
+            value={asset.assetType}
+            handleSave={handleSave}
+					/>
+					<EditableField 
+						label="Vendor"
+            fieldKey="vendor"
+            value={asset.vendor}
+            handleSave={handleSave}
+					/>
+          <EditableField
+            label="Value"
+            fieldKey="value"
+            value={asset.value}
+            handleSave={handleSave}
+          />
+          <EditableField
+            label="Location"
+            fieldKey="location"
+            value={asset.location}
+            handleSave={handleSave}
+          />
+        </Grid>
+      </Box>
 
-        <Box className="show-device-users--current">
-            <Heading as="h2" size="md" mb="2">STATUS</Heading>
-            <Text>
-                {eventToStatus(asset.status)}
-            </Text>
-            {asset.status === 'loaned' && (
-                <Flex alignItems="center">
-                    <Text mr="2">USER:</Text>
-                    <Button onClick={() => handleItemClick(asset.currentUser)} colorScheme="blue">
-                      {asset.currentUser.userName}
-                    </Button>
-                    <ActionButton bg="orange.100" onClick={() => setFormType('returnAsset')}>
-                        Return
-                    </ActionButton>
-                </Flex>
-            )}
-        </Box>
-        <Box className="show-device-actions">
-            <IconButton
-                icon={<InfoOutlineIcon />}
-                isRound
-                aria-label="Bookmark"
-            />
-            {asset.status !== 'condemned' && asset.status !== 'loaned' && (
-                <Flex>
-                    <Button data-asset-id={asset.id}>CONDEMN</Button>
-                    <Button data-asset-id={asset.id}>LOAN</Button>
-                </Flex>
-            )}
-        </Box>
+      <Box mb={4}>
+        <Heading as="h2" size="md" mb="2">PAST USERS</Heading>
+        <SimpleGrid columns={3} spacing={4}>
+          {asset.pastUsers?.map((user) => (
+            <Button key={user.id} onClick={() => handleItemClick(user)} colorScheme="blue">
+              {user.name}
+            </Button>
+          ))}
+        </SimpleGrid>
+      </Box>
 
-        <Timeline events={asset.events}/>
-    </Box>
-  );
+      <Box mb={4}>
+        <SimpleGrid columns={2} spacing={10} alignItems="center">
+          {asset.status === 'loaned' && (
+            <Flex gridGap="2">
+              <Text>USER:</Text>
+              <Button onClick={() => handleItemClick(asset.user)} colorScheme="blue">
+                {asset.user.name}
+              </Button>
+              <ActionButton bg="orange.100" onClick={() => setFormType('returnAsset')}>
+                Return
+              </ActionButton>
+            </Flex>
+          )}
+        </SimpleGrid>
+      </Box>
+
+      <Box>
+        <IconButton
+          icon={<InfoOutlineIcon />}
+          isRound
+          aria-label="Bookmark"
+          mb={4}
+        />
+        {asset.status !== 'condemned' && asset.status !== 'loaned' && (
+          <Flex gridGap="2">
+            <Button onClick={() => setFormType('condemn')} data-asset-id={asset.id} colorScheme="red">
+              CONDEMN
+            </Button>
+            <Button onClick={() => setFormType('loan')} data-asset-id={asset.id} colorScheme="green">
+              LOAN
+            </Button>
+          </Flex>
+        )}
+      </Box>
+
+			{asset.events && 
+				<Timeline 
+					events={asset.events} 
+				/>
+			}
+		</Box>
+	);
 }
 
 export default Asset;

@@ -17,7 +17,7 @@ export const PrivateLayout = () => {
       await checkAuth();
     };
 
-    // performCheck(); // Run immediately on component mount
+    performCheck(); // Run immediately on component mount
 
     const interval = setInterval(() => {
       console.log("Periodic auth check");

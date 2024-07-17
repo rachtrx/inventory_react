@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { useForm } from '../context/FormProvider';
+import { useModal } from '../context/ModalProvider';
 import CondemnAsset from '../pages/components/forms/main/CondemnAsset';
 import AddAsset from '../pages/components/forms/main/AddAsset';
 import LoanAsset from '../pages/components/forms/main/LoanAsset';
@@ -34,7 +34,7 @@ const headerMap = {
 export default function FormModal() { 
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
-    const { formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit } = useForm();
+    const { formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit } = useModal();
 
     useEffect(() => {
         if (formType) {

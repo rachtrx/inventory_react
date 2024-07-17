@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import axios from 'axios';
-import { API_URL } from '../config';
-
-export const axiosInstance = axios.create({
-  baseURL: API_URL,
-  withCredentials: true
-});
+import { axiosInstance } from '../config';
+import { ModalProvider } from './ModalProvider';
+import { DrawerProvider } from './DrawerProvider';
 
 const AuthContext = createContext(null);
 
@@ -80,7 +76,11 @@ export const AuthProvider = () => {
   
   return (
     <AuthContext.Provider value={{ user, setUser, register, login, logout, checkAuth }}>
-      <Outlet />
+      <DrawerProvider>
+        <ModalProvider>
+          <Outlet />
+        </ModalProvider>
+      </DrawerProvider>
     </AuthContext.Provider>
   );
 };

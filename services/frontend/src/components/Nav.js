@@ -26,7 +26,7 @@ function Nav() {
       </Menu>
 
       <Menu>
-        <NavButton next={() => navigate("/assets")} icon={<IconNav name="icon-laptop"/>} label="Devices" />
+        <NavButton next={() => navigate("/assets")} icon={<IconNav name="icon-laptop"/>} label="Assets" />
       </Menu>
 
       <Menu>

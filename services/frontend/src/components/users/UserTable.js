@@ -1,8 +1,18 @@
-import { Table, Thead, Tbody, Tr, Th, Td, Link, IconButton, Button, useColorModeValue, VStack, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, useColorModeValue, VStack, Box, Flex } from '@chakra-ui/react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import IconBookmark from '../../pages/components/icons/IconBookmark';
+import ActionButton from '../buttons/ActionButton';
+import { useDrawer } from '../../context/DrawerProvider';
+import { useModal } from '../../context/ModalProvider';
+import { SplitReturnButton } from '../buttons/SplitReturnButton';
+import { useResponsive } from '../../context/ResponsiveProvider';
+import { ResponsiveText } from '../utils/ResponsiveText';
 
 const UserTable = ({ items }) => {
+
+  const { handleItemClick } = useDrawer()
+  const { textSize } = useResponsive()
+
   return (
     <Table variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
@@ -10,18 +20,19 @@ const UserTable = ({ items }) => {
           <Th>User Name</Th>
           <Th>Department</Th>
           <Th>Assets</Th>
-          <Th>Actions</Th>
         </Tr>
       </Thead>
       <Tbody>
         {items.map((user) => (
           <Tr key={user.id}>
             <Td>
-              <Link href={`views/show_user#${user.id}`} isExternal>
+            <Button onClick={() => handleItemClick(user)} colorScheme="blue" maxWidth="200px" overflow="hidden">
+              <ResponsiveText fontSize={textSize} fontWeight="bold" isTruncated>
                 {user.name}
-              </Link>
+              </ResponsiveText>
+            </Button>
             </Td>
-            <Td>{user.department}</Td>
+            <Td><ResponsiveText fontSize={textSize}>{user.department}</ResponsiveText></Td>
             <Td>
             {user.assets ? (
             <VStack
@@ -32,27 +43,22 @@ const UserTable = ({ items }) => {
                 className="scroll-window"
             >
                 {user.assets.map((asset) => (
-                <Box key={asset.id}>
-                    <Link href={`views/show_asset#${asset.id}`} isExternal>
-                    {asset.assetTag} - {asset.variant}
-                    </Link>
-                    <Button ml={2} as={Link} href={`forms/returned_asset?asset-tag=${asset.id}`} variant="link" colorScheme="blue" rightIcon={<ExternalLinkIcon />}>
-                    Return
-                    </Button>
-                </Box>
+                <Flex key={asset.id} gap={2}>
+                    <SplitReturnButton
+                      item={asset}
+                    />
+                </Flex>
                 ))}
             </VStack>
             ) : (
-            'No assets assigned'
+              <ResponsiveText fontSize={textSize}>'No assets assigned'</ResponsiveText>
             )}
             </Td>
-            <Td>
-              <IconButton
-                aria-label="Bookmark"
-                icon={user.bookmarked === 1 ? <IconBookmark fill={true} /> : <IconBookmark />}
-                variant="ghost"
-              />
-            </Td>
+            <IconButton
+              aria-label="Bookmark"
+              icon={user.bookmarked === 1 ? <IconBookmark fill={true} /> : <IconBookmark />}
+              // variant="ghost"
+            />
           </Tr>
         ))}
       </Tbody>

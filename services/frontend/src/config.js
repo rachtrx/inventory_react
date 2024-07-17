@@ -1,9 +1,16 @@
 import chroma from "chroma-js";
+import axios from 'axios';
 
 export const TIMEOUT_SEC = 300;
 export const PREVIEW_TIMEOUT_BLUR = 100;
 export const RES_PER_PAGE = 30;
 export const API_URL = 'http://127.0.0.1:3001/api';
+
+export const axiosInstance = axios.create({
+  baseURL: API_URL,
+  withCredentials: true
+});
+
 // export const API_URL = `${process.env.REACT_APP_API_BASE_URL}`;
 // console.log(API_URL);
 
