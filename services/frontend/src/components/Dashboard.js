@@ -4,7 +4,7 @@ import ChartjsPluginScrollBar from 'chartjs-plugin-scroll-bar';
 import DoughnutChart from './charts/DoughnutChart';
 import BarChart from './charts/BarChart';
 import { useEffect, useState } from 'react';
-import { axiosInstance } from '../context/AuthProvider';
+import { axiosInstance } from '../config';
 import { API_URL } from '../config';
 import { Container, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './charts/config';

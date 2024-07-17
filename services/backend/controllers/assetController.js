@@ -1,4 +1,4 @@
-const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, sequelize, Sequelize} = require('../models');
+const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Event, sequelize, Sequelize} = require('../models');
 const { Op } = Sequelize;
 
 const logger = require('../logging')
@@ -13,23 +13,41 @@ const dateTimeObject = {
 }
 
 const createAssetObject = function(asset) {
+    const pastUsers = asset.Events
+        .filter(event => event.eventType === 'returned')  // Filter to get only 'returned' events
+        .map(event => {
+            // Map each filtered event to an object containing the user details
+            return {
+            id: event.User.id,
+            name: event.User.userName,
+            bookmarked: event.User.bookmarked
+            };
+        });
+
     return {
         id: asset.id,
         serialNumber: asset.serialNumber,
         assetTag: asset.assetTag,
-        assetType: asset.AssetTypeVariant.AssetType.assetType,
-        variant: asset.AssetTypeVariant.variantName,
+        status: asset.Events[0].eventType,
+        value: String(parseFloat(asset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
         bookmarked: asset.bookmarked || 0,
-        status: asset.status,
+        variant: asset.AssetTypeVariant.variantName,
+        assetType: asset.AssetTypeVariant.AssetType.assetType,
         vendor: asset.Vendor.vendorName,
-        modelValue: String(parseFloat(asset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
         ...(asset.location && {location: asset.location}),
-        ...(asset.AssetTypeVariant.AssetType.assetType && {deviceType: asset.AssetTypeVariant.AssetType.assetType}),
-        ...(asset.registeredDate && {registeredDate: Intl.DateTimeFormat('en-sg', dateTimeObject).format(new Date(asset.registeredDate))}),
-        ...(asset.User?.userName && {userName: asset.User.userName}),
-        ...(asset.User?.id && {userId: asset.User.id}),
-        ...((asset.User?.bookmarked && {userBookmarked: asset.User.bookmarked}) || (asset.User && {userBookmarked: 0})),
+        ...(asset.Events[0].eventType == 'loaned' && {
+            user: {
+                id: asset.Events[0].User.id,
+                name: asset.Events[0].User.userName,
+                bookmarked: asset.Events[0].User.bookmarked
+            }
+        }),
+        // For ALL Assets
         ...(asset.age && {age: asset.age}),
+
+        // For SINGLE Asset
+        ...(pastUsers.length > 0 && { pastUsers }),
+        ...(asset.Events.length > 0 && {events: asset.Events}),
     }
 }
 
@@ -50,7 +68,7 @@ exports.getAssets = async (req, res) => { // TODO Add filters
                 'registeredDate',
                 'location',
                 'bookmarked',
-                'value'
+                'value',
             ],
             include: [
                 {
@@ -62,13 +80,24 @@ exports.getAssets = async (req, res) => { // TODO Add filters
                     }
                 },
                 {
-                    model:Vendor,
+                    model: Vendor,
                     attributes:['vendorName']
                 },
                 {
-                    model: User,
+                    model: Event,
+                    attributes: ['eventDate', 'eventType'],  // You might want to fetch specific fields from Event
                     required: false,
-                    attributes: ['id', 'userName', 'bookmarked']
+                    where: {
+                        [Op.and]: [
+                            sequelize.where(sequelize.col('Events.event_date'), Op.eq, sequelize.literal(
+                                `(SELECT MAX(event_date) FROM Events AS e WHERE e.asset_id = "Asset"."id")`
+                            ))
+                        ]
+                    },
+                    include: {
+                        model: User,
+                        attributes: ['id', 'userName', 'bookmarked']
+                    }
                 }
             ],
             where: {
@@ -78,9 +107,10 @@ exports.getAssets = async (req, res) => { // TODO Add filters
             // Calculate age for each asset and include it in the results
             return assets.map(asset => {
                 const plainAsset = asset.get({ plain: true });
-                const now = new Date();
-                const created = new Date(asset.registeredDate);
+                const now = Intl.DateTimeFormat('en-sg', dateTimeObject).format(new Date());
+                const created = new Date(asset.registeredDate); // Convert registeredDate string to Date object
                 const age = Math.floor((now - created) / (365.25 * 24 * 60 * 60 * 1000));
+                // const nowSG = new Intl.DateTimeFormat('en-SG', dateTimeOptions).format(nowUTC); // IMPT JUST FYI
                 return { ...plainAsset, age };
             });
         })
@@ -100,7 +130,7 @@ exports.showAsset = async (req, res) => { // TODO Promise.all?
     try {
         const assetId = req.params.id;
         // Fetching asset details
-        const details = await Asset.findOne({
+        const query = await Asset.findOne({
             attributes: [
                 'id',
                 'serialNumber',
@@ -112,63 +142,39 @@ exports.showAsset = async (req, res) => { // TODO Promise.all?
             ],
             include: [
                 {
-
                     model: AssetTypeVariant,
-                    attributes: ['variantName']
-                },
-                {
-                    model: AssetType,
-                    attributes: ['assetType']
+                    attributes: ['variantName'],
+                    include: {
+                        model: AssetType,
+                        attributes: ['assetType']
+                    }
                 },
                 {
                     model: Vendor,
                     attributes: ['vendorName']
                 },
                 {
-                    model: User,
-                    attributes: ['id', 'userName, bookmarked'],
-                    required: false
+                    model: Event,
+                    attributes: ['id', 'eventType', 'eventDate', 'remarks', 'filepath'],
+                    include: { 
+                        model: User, 
+                        attributes: ['id', 'userName', 'bookmarked'] 
+                    },
+                    order: [['eventDate', 'DESC']]
                 }
             ],
             where: {
                 id: assetId
             }
-        });
+        })
 
-        // Fetch all events related to the asset
-        const events = await Event.findAll({
-            attributes: [
-                ['id', 'eventId'],
-                'eventType',
-                'eventDate',
-                'remarks',
-                'filepath',
-                // [sequelize.col('User.id'), 'userId'],
-                // [sequelize.col('User.userName'), 'userName'],
-                // [sequelize.col('User.bookmarked'), 'userBookmarked']
-            ],
-            include: [
-                {
-                    model: User,
-                    attributes: ['id', 'userName', 'bookmarked']
-                }
-            ],
-            where: {
-                asset_id: assetId
-            },
-            order: [['eventDate', 'DESC']]
-        });
+        if (!query) return res.error()
+            
+        const details = query.get({ plain: true });
 
-        // Extract past users from the returned events
-        const pastUsers = events
-            .filter(event => event.eventType === 'returned')
-            .map(event => ({
-                id: event.userId,
-                user_name: event.userName,
-                bookmarked: event.userBookmarked
-            }));
+        logger.info(createAssetObject(details));
 
-        res.json({ details, events, pastUsers });
+        res.json(createAssetObject(details));
     } catch (error) {
         console.error("Error fetching device details:", error);
         throw error;

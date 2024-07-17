@@ -1,5 +1,5 @@
 import { API_URL } from '../config';
-import { axiosInstance } from '../context/AuthProvider';
+import { axiosInstance } from '../config';
 
 class UserService {
     constructor(axiosInstance) {

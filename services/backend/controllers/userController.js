@@ -2,23 +2,60 @@ const { sequelize, Sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, A
 
 const logger = require('../logging')
 
+function processAssets(events) {
+    let returned = [];
+    let onLoan = [];
+
+    if (events) {
+        events.forEach(event => {
+            if (!event.asset) return;  // Skip events without an associated asset
+    
+            const asset = {
+                id: event.asset.id,
+                assetTag: event.asset.assetTag,
+                serialNumber: event.asset.serialNumber,
+                bookmarked: event.asset.bookmarked,
+                ...(event.asset.variant && {variant: event.asset.variant}),
+                ...(event.asset.assetType && {assetType: event.asset.assetType})
+            };
+    
+            if (event.eventType === 'loaned') {
+                // Only add or update if there isn't an existing 'returned' entry
+                if (!returned.some(a => a.id === asset.id) && !onLoan.some(a => a.id === asset.id)) {
+                    onLoan.push(asset)
+                } else return;
+    
+            if (event.eventType === 'returned') {
+                returned.push(asset); // Add or update returned list
+            }
+            }
+        });
+    }
+    return { returned, onLoan };
+}
+
 const createUserObject = function(user) {
+
     return {
         id: user.id,
         name: user.userName,
-        department: user.Dept.deptName,
-        bookmarked: user.bookmarked,
+        bookmarked: user.bookmarked || 0,
         hasResigned: user.has_resigned || 0,
-				registeredDate: user.registeredDate,
-				assetCount: user.Assets.length,
-        ...(user.Assets.length > 0 && {
-					assets: user.Assets.map((asset) => ({
-						assetTag: asset.assetTag,
-						variant: asset.AssetTypeVariant.variantName,
-						id: asset.id,
-						bookmarked: asset.bookmarked || 0,
-					}))
-				}),
+        registeredDate: user.registeredDate,
+        department: user.Dept.deptName,
+        events: user.Events?.map(event => ({
+            id: event.id,
+            eventType: event.eventType,
+            eventDate: event.eventDate,
+            asset: event.Asset ? {
+                id: event.Asset.id,
+                assetTag: event.Asset.assetTag,
+                serialNumber: event.Asset.serialNumber,
+                bookmarked: event.Asset.bookmarked,
+                variant: event.Asset.AssetTypeVariant?.variantName,
+                assetType: event.Asset.AssetTypeVariant?.AssetType?.assetType,
+            } : undefined
+        }))
     }
 }
 
@@ -30,33 +67,71 @@ exports.getUsers = async (req, res) => {
             return res.json([]);
         }
 
-        const query = await User.findAll({
-					include: [{
-						model: Asset,
-						attributes: ['id', 'assetTag', 'bookmarked'],
-						include: [{
-							model: AssetTypeVariant,
-							attributes: ['variantName']
-						}]
-					}, {
-						model: Dept,
-						required: true,
-						attributes: ['deptName']
-					}],
-					where: {
-						hasResigned: { [Sequelize.Op.ne]: 1 }
-					},
-					order: [['registeredDate', 'DESC']],
-					attributes: ['id', 'userName', 'bookmarked', 'hasResigned', 'registeredDate']
-				});
-				
-				// Mapping over the result to modify each user object
-				const result = query.map(user => {
-					let plainUser = user.get({ plain: true });
-					plainUser = createUserObject(plainUser);
-					return plainUser;
-				});
+        // GET ALL THE DEVICES ON LOAN
+        const subquery = sequelize.literal(`(
+            SELECT e.asset_id
+            FROM Events e
+            INNER JOIN (
+                SELECT asset_id, MAX(event_date) as max_date
+                FROM events
+                GROUP BY asset_id
+            ) maxEvents ON e.asset_id = maxEvents.asset_id AND e.event_date = maxEvents.max_date
+            WHERE e.event_type = 'loaned'
+        )`);
 
+        const query = await User.findAll({
+            include: [{
+                model: Event,
+                attributes: ['eventDate', 'eventType'],  // You might want to fetch specific fields from Event
+                required: false,
+                order: [['eventDate', 'DESC']],
+                include: {
+                    model: Asset,
+                    required: true,
+                    attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                    where: {
+                        id: { [Sequelize.Op.in]: subquery }
+                    },
+                    include: {
+                        model: AssetTypeVariant,
+                        attributes: ['variantName']
+                    }
+                }
+            }, 
+            {
+                model: Dept,
+                required: true,
+                attributes: ['deptName']
+            }],
+            // TODO
+            // where: {
+            //     hasResigned: { [Sequelize.Op.ne]: 1 }
+            // },
+            order: [['registeredDate', 'DESC']],
+            attributes: ['id', 'userName', 'bookmarked', 'hasResigned', 'registeredDate']
+        });
+        
+        // Mapping over the result to modify each user object
+        const result = query.map(user => {
+            let plainUser = user.get({ plain: true });
+
+            plainUser = createUserObject(plainUser);
+            plainUser.assets = plainUser.events
+            .map(event => ({
+                id: event.asset.id,
+                assetTag: event.asset.assetTag,
+                serialNumber: event.asset.serialNumber,
+                bookmarked: event.asset.bookmarked,
+                variant: event.asset.variant,
+                assetType: event.asset.assetType
+            }));
+            plainUser.assetCount = plainUser.assets.length
+            delete plainUser.events;
+
+            return plainUser;
+        });
+
+        logger.info(query.map(user => user.get({ plain: true })).slice(10, 20));
         logger.info(result.slice(10, 20));
         res.json(result);
     } catch (error) {
@@ -64,6 +139,51 @@ exports.getUsers = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
+exports.showUser = async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+        const query = await User.findByPk(userId, {
+            include: [{
+                model: Dept,
+                attributes: ['deptName']
+            },
+            {
+                model: Event,
+                attributes: ['id', 'eventType', 'eventDate', 'remarks', 'filepath'],
+                include: { 
+                    model: Asset, 
+                    attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'] ,
+                    include: [{
+                        model: AssetTypeVariant,
+                        attributes: ['variantName'],
+                        include: [{
+                            model: AssetType,
+                            attributes: ['assetType']
+                        }],
+                    }],
+                },
+                where: {
+                    eventType: { [Sequelize.Op.in]: ['loaned', 'returned'] }
+                },
+                order: [['eventDate', 'DESC']]
+            }],
+            attributes: ['id', 'userName', 'bookmarked', 'hasResigned']
+        });
+
+        if (!query) return res.error()
+
+        const user = createUserObject(query.get({ plain: true }));
+        const { returned: pastAssets, onLoan: currentAssets } = processAssets(user.events)
+        res.json({ ...user, pastAssets, currentAssets })
+
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 
 exports.bookmarkUser = async (req, res) => {
     const { userId, action } = req.body;
@@ -82,58 +202,3 @@ exports.bookmarkUser = async (req, res) => {
     }
 };
 
-exports.showUser = async (req, res) => {
-    const userId = req.params.userId;
-    try {
-        const details = await User.findByPk(userId, {
-            include: [{
-                model: Dept,
-                attributes: ['deptName']
-            }],
-            attributes: ['id', 'userName', 'bookmarked', 'hasResigned']
-        });
-
-        const events = await Event.findAll({
-            where: { userId: userId },
-            include: [{
-                model: Asset,
-                attributes: ['assetTag']
-            }],
-            attributes: ['id', 'eventType', 'assetId', 'eventDate', 'remarks', 'filepath'],
-            order: [['eventDate', 'DESC']]
-        });
-
-        const pastDevices = await Asset.findAll({ // TODO SPLIT ENDPOINTS?
-            include: [{
-                model: Event,
-                where: { userId: userId, eventType: 'returned' },
-                attributes: []
-            }, {
-                model: AssetTypeVariant,
-                attributes: ['variantName']
-            }],
-            where: { userId: userId }, 
-            order: [[sequelize.col('Event.eventDate'), 'DESC']],
-            attributes: ['id', 'serial_number', 'assetTag', 'bookmarked']
-        });
-
-        const currentDevices = await Asset.findAll({
-            include: [{
-                model: AssetTypeVariant,
-                attributes: ['variantName']
-            }],
-            where: { userId: userId, status: 'loaned' },
-            attributes: ['id', 'serial_number', 'assetTag', 'bookmarked']
-        });
-
-        res.json({
-            details: details ? details.get({ plain: true }) : null,
-            events: events.map(event => event.get({ plain: true })),
-            pastDevices: pastDevices.map(device => device.get({ plain: true })),
-            currentDevices: currentDevices.map(device => device.get({ plain: true }))
-        });
-    } catch (error) {
-        console.error('Error fetching user details:', error);
-        res.status(500).send('Internal Server Error');
-    }
-};

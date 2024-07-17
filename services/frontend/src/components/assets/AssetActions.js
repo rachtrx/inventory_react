@@ -1,11 +1,11 @@
 import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useForm } from '../../context/FormProvider';
+import { useModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
 
 export default function AssetActions() {
 
-  const { setFormType } = useForm()
+  const { setFormType } = useModal()
   const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
   const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });
 

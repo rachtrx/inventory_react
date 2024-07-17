@@ -18,9 +18,7 @@ const initialFilters = {
 // Devices Provider component
 export const AssetProvider = ({ children }) => {
   const [assets, setAssets] = useState([]);
-  const [currentAsset, setCurrentAsset] = useState([])
   const [filters, setFilters] = useState(initialFilters);
-  const [pagination, setPagination] = useState({ page: 1, pageSize: 10, totalItems: 0 });
   const { loading, setLoading, error, setError } = useUI()
 
   useEffect(() => {
@@ -30,7 +28,6 @@ export const AssetProvider = ({ children }) => {
         const response = await assetService.loadAssets();
         const assets = response.data;
         setAssets(assets);
-        setPagination(prev => ({ ...prev, totalItems: assets.length }));
       } catch (err) {
         setError(err);
         console.error(err);
@@ -40,10 +37,9 @@ export const AssetProvider = ({ children }) => {
     };
 
     fetchAssets();
-  }, []); // Run this effect only once on mount
+  }, [setError, setLoading]); // Run this effect only once on mount
 
   useEffect(() => {
-    console.log(assets.splice(1, 10));
     const newFilters = initialFilters;
     // Populate the new filters with unique values from assets
     assets.forEach(asset => {

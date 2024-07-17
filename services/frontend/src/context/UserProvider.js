@@ -38,7 +38,6 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const newFilters = initialFilters;
-    console.log(users.splice(1, 10));
 
     users.forEach(user => {
       Object.keys(newFilters).forEach(key => {

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { FormLabel, HStack, Switch } from '@chakra-ui/react';
 import { useFormikContext } from 'formik';
 import Toggle from './Toggle';
-import { useForm } from '../../../../context/FormProvider';
+import { useModal } from '../../../../context/ModalProvider';
 import { useCallback } from 'react';
 
 export default function ExcelToggle({fieldsToReset}) {
 
-    const { setIsExcel } = useForm()
+    const { setIsExcel } = useModal()
     const { setFieldValue } = useFormikContext();
   
       // Pass the toggle state and handleChange as props to the wrapped component

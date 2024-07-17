@@ -16,9 +16,7 @@ function usePagination(data, itemsPerPage, initialPage, updateUrl) {
   }, [data, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    if (updateUrl) {
-      updateUrl(currentPage);
-    }
+    updateUrl(currentPage);
   }, [currentPage, updateUrl]);
 
   const next = useCallback(() => {

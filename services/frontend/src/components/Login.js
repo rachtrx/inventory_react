@@ -28,8 +28,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Performing check in Login");
     const performCheck = async () => {
-      console.log("Performing check in Login");
       if (!user) {
         await checkAuth();
       }
