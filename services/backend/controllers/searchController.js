@@ -31,73 +31,7 @@ exports.searchVariants = async (req, res) => {
     }
 };
 
-exports.searchAssets = async (req, res) => {
-    const { data, first } = req.body;
-    const assetTag = '%' + data + '%';
-    try {
-        const results = await Asset.findAll({
-            include: [{
-                model: AssetTypeVariant,
-                required: true,
-                attributes: ['variantName']
-            }],
-            where: {
-                assetTag: {
-                    [sequelize.Op.iLike]: assetTag
-                }
-            },
-            order: [
-                sequelize.literal(`status = ${first} DESC`)
-            ],
-            limit: 20,
-            attributes: ['assetTag', 'serialNumber', 'id', 'status']
-        });
-        const assets = results.map(asset => asset.get({ plain: true }));
-        res.json(assets);
-    } catch (error) {
-        console.error('Error fetching assets:', error);
-        res.status(500).send('Internal Server Error');
-    }
-};
 
-exports.searchUsers = async (req, res) => {
-    const { data, isAsc } = req.body;
-    const userName = '%' + data + '%';
-    try {
-        const results = await User.findAll({
-            include: [{
-                model: Asset,
-                attributes: ['id', 'assetTag', 'bookmarked'],
-                include: [{
-                    model: AssetTypeVariant,
-                    attributes: ['variantName']
-                }]
-            }, {
-                model: Dept,
-                required: true,
-                attributes: ['deptName']
-            }],
-            where: {
-                userName: {
-                    [sequelize.Op.iLike]: userName
-                }
-            },
-            order: [
-                ['hasResigned', 'ASC'],
-                [sequelize.fn('count', sequelize.col('Device.assetTag')), 'ASC'],
-                [isAsc ? 'created_date' : 'created_date', isAsc ? 'ASC' : 'DESC']
-            ],
-            group: ['User.id', 'Dept.deptName', 'Device.id', 'AssetTypeVariant.variantName'],
-            attributes: ['id', 'userName', 'bookmarked', 'hasResigned'],
-            limit: 20
-        });
-        const users = results.map(user => user.get({ plain: true }));
-        res.json(users);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).send('Internal Server Error');
-    }
-};
 
 exports.searchUser = async (req, res) => {
     const { assetId } = req.body;

@@ -6,24 +6,16 @@ class AssetService {
         this.axios = axiosInstance;
     }
 
-    async loadAsset(assetId) {
-        return await this.axios.get(`${API_URL}/assets/${assetId}`);
+    async loadAsset(id) {
+        return await this.axios.get(`${API_URL}/assets/${id}`);
     }
 
     async loadAssets() {
         return await this.axios.get(`${API_URL}/assets`);
     }
 
-    async loadAssetFilters() {
-        return await this.axios.get(`${API_URL}/assets/filters`);
-    }
-
-    async loadFullDeviceDetails(assetId) {
-        return await this.axios.get(`${API_URL}/assets/${assetId}`);
-    }
-
-    async bookmarkAsset(assetId) {
-        return await this.axios.post(`${API_URL}/assets/bookmark/${assetId}`);
+    async bookmark(id, bookmarked) {
+        return await this.axios.post(`${API_URL}/assets/bookmark`, {id, bookmarked});
     }
 
     async condemnAsset(assetIds) {
@@ -34,12 +26,16 @@ class AssetService {
         return await this.axios.delete(`${API_URL}/assets/add`, asset);;
     }
 
-    async loanAsset(assetId, userId) {
-        return await this.axios.delete(`${API_URL}/assets/loan`, [assetId, userId]);;
+    async loanAsset(id, userId) {
+        return await this.axios.delete(`${API_URL}/assets/loan`, [id, userId]);;
     }
 
-    async returnAsset(assetId) {
-        return await this.axios.delete(`${API_URL}/assets/return`, assetId);;
+    async returnAsset(id) {
+        return await this.axios.delete(`${API_URL}/assets/return`, id);
+    }
+
+    async searchAssets(value, formType) {
+        return await this.axios.post(`${API_URL}/assets/search`, { value, formType });
     }
 }
 

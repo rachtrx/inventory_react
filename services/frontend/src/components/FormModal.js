@@ -11,11 +11,11 @@ import {
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { useModal } from '../context/ModalProvider';
-import CondemnAsset from '../pages/components/forms/main/CondemnAsset';
-import AddAsset from '../pages/components/forms/main/AddAsset';
-import LoanAsset from '../pages/components/forms/main/LoanAsset';
-import ReturnAsset from '../pages/components/forms/main/ReturnAsset';
+import { actionTypes, useModal } from '../context/ModalProvider';
+import AddAsset from './forms/AddAsset';
+import LoanAsset from './forms/LoanAsset';
+import ReturnAsset from './forms/ReturnAsset';
+import CondemnAsset from './forms/CondemnAsset';
 
 const formMap = {
     'addAsset': <AddAsset/>,
@@ -26,15 +26,15 @@ const formMap = {
 
 const headerMap = {
     'addAsset': "Add Asset",
-    // 'loanAsset':.
-    // 'returnAsset': ,
+    'loanAsset': 'Loan Asset',
+    'returnAsset': 'Return Asset',
     'condemnAsset': "Condemn Asset",
 }
 
 export default function FormModal() { 
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
-    const { formType, setFormType, initialValues, setInitialValues, onSubmit, setOnSubmit } = useModal();
+    const { dispatch, formType, initialValues, onSubmit } = useModal();
 
     useEffect(() => {
         if (formType) {
@@ -45,9 +45,7 @@ export default function FormModal() {
     }, [formType, onModalOpen, onModalClose]);
 
     const handleClose = () => {
-        setFormType(null);
-        setInitialValues({});
-        setOnSubmit(() => null);
+        dispatch({ type: actionTypes.SET_FORM_TYPE, payload: null });
     };
 
     return (
@@ -63,7 +61,7 @@ export default function FormModal() {
                         <ModalCloseButton />
                         <ModalHeader>{headerMap[formType]}</ModalHeader>
     
-                        <ModalBody style={{ display: "grid", height: "100%", gridTemplateRows: "repeat(auto-fill, 1fr)" }}>
+                        <ModalBody style={{ overflowY: "auto", maxHeight: "70vh" }}>
                             {formMap[formType]}
                         </ModalBody>
     

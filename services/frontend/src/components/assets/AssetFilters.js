@@ -1,14 +1,15 @@
 import React from 'react';
 import { Form, Formik } from 'formik';
-import { useAsset } from '../../context/AssetProvider';
-import FilterContainer from '../FilterContainer';
-import InputFormControl from '../../pages/components/forms/utils/InputFormControl';
-import SelectFormControl from '../../pages/components/forms/utils/SelectFormControl';
+import { useGlobal } from '../../context/GlobalProvider';
+import FilterContainer from '../utils/FilterContainer';
+import InputFormControl from '../forms/utils/InputFormControl';
+import SelectFormControl from '../forms/utils/SelectFormControl';
 import ToggleButton from '../buttons/ToggleButton';
+import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 
 export default function AssetFilters() { // TODO can have external filters from Dashboard
 
-	const { filters, setFilters, setPagination } = useAsset()
+	const { assetFilters, setFilters, setPagination } = useGlobal()
 
 	const handleSetFilters = (newFilters) => {
 		setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
@@ -35,20 +36,18 @@ export default function AssetFilters() { // TODO can have external filters from 
     <Formik initialValues={initialValues} onSubmit={onSubmit}>
         <Form>
             <FilterContainer>
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="asset-type"
                     // label="Asset Type"
                     placeholder="Asset Type"
-                    options={filters?.assetType?.map(type => ({ label: type, value: type })) ?? []}
+                    options={assetFilters.assetType}
                 />
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="status"
                     // label="Status"
                     placeholder="Status"
-                    options={[
-                        { label: "Available", value: "available" },
-                        { label: "On Loan", value: "loaned" }
-                    ]}
+                    options={assetFilters.status}
+                    isMulti={true}
                 />
                 <InputFormControl
                     name="asset-tag"
@@ -60,28 +59,30 @@ export default function AssetFilters() { // TODO can have external filters from 
                     // label="Serial Number"
                     placeholder="Serial Number"
                 />
-                <InputFormControl
+                <MultiSelectFormControl
                     name="model-name"
                     // label="Specific Model"
                     placeholder="Specific Model"
+                    isMulti={true}
                 />
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="vendor"
                     // label="Vendor"
                     placeholder="Vendor"
-                    options={filters?.vendor?.map(vendor => ({ label: vendor, value: vendor })) ?? []}
+                    options={assetFilters.vendor}
+                    isMulti={true}
                 />
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="location"
                     // label="Location"
                     placeholder="Location"
-                    options={filters?.location?.map(location => ({ label: location, value: location })) ?? []}
+                    options={assetFilters.location}
                 />
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="asset-age"
                     // label="Asset Age"
                     placeholder="Asset Age"
-                    options={filters?.age?.map(age => ({ label: age, value: age })) ?? []}
+                    options={assetFilters.age}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

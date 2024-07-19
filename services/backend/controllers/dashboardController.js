@@ -1,6 +1,7 @@
-const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize } = require('../models');
+const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize, Event } = require('../models');
 const { Op } = require('sequelize')
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController')
+const { getLatestEventIds } = require('./utils')
 
 exports.dashboard = async(req, res, next) => {
 	try {
@@ -15,8 +16,14 @@ exports.dashboard = async(req, res, next) => {
 				attributes: [],  // Include only the 'asset_type' from AssetType
 			},{
 				model: Asset,
-				where: { status: { [Op.ne]: 'condemned' } },
 				attributes: [],  // Include only the 'asset_type' from AssetType
+				include: [{
+					model: Event,
+					attributes: [], 
+					where: {
+						eventType: { [Op.ne]: 'condemned' }
+					},
+				}],
 			}],
 			// where: {
 			// 	'$Assets.status$': { [Op.ne]: 'condemned' }  // Accessing status from the associated Asset model
@@ -37,7 +44,13 @@ exports.dashboard = async(req, res, next) => {
 				{
 					model: Asset,
 					attributes: [],
-					where: { status: { [Op.ne]: 'condemned' } },
+					include: [{
+						model: Event,
+						attributes: [], 
+						where: {
+							eventType: { [Op.ne]: 'condemned' }
+						},
+					}]
 					// required: true  // Ensures an inner join, excluding AssetTypeVariants without valid Assets
 				},
 				{
@@ -51,21 +64,28 @@ exports.dashboard = async(req, res, next) => {
 			raw: true
 		});
 		
-		// Status of assets
-		const devicesStatus = await Asset.findAll({
-			attributes: [
-				['status', 'label'],
-				[Sequelize.fn('COUNT', Sequelize.col('status')), 'data']
-			],
-			where: {
-				status: {
-					[Op.ne]: 'condemned'
-				}
-			},
-			group: 'label',
-			order: [[Sequelize.fn('COUNT', Sequelize.col('status')), 'ASC']],
-			raw: true
-		});
+		async function getDevicesStatus() {
+			const latestEventIds = await getLatestEventIds(includeEvents=['loaned', 'registered', 'returned']);
+		
+			const devicesStatus = await Asset.findAll({
+				attributes: [
+					[Sequelize.col('Events.event_type'), 'label'],
+					[Sequelize.fn('COUNT', Sequelize.col('Asset.id')), 'data']
+				],
+				include: [{
+					model: Event,
+					attributes: [],
+					where: {
+						id: { [Op.in]: latestEventIds }
+					}
+				}],
+				group: ['label'],
+				raw: true
+			});
+		
+			return devicesStatus;
+		}
+		const devicesStatus = await getDevicesStatus()
 
 		// Users by department
 		const users = await User.findAll({
@@ -114,10 +134,11 @@ exports.dashboard = async(req, res, next) => {
 		const devicesAgeQuery = `SELECT 
 			FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25) AS label,
 			COUNT(*) AS "data"
-			FROM "assets"
-			WHERE "status" != 'condemned'
-			GROUP BY FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25)
-			ORDER BY FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25) DESC;
+		FROM "assets"
+		JOIN "events" ON "assets"."last_event_id" = "events"."id"
+		WHERE "events"."event_type" != 'condemned'
+		GROUP BY FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25)
+		ORDER BY label DESC;
 		`;
 		const devicesAge = await sequelize.query(devicesAgeQuery, {
 			type: Sequelize.QueryTypes.SELECT
@@ -133,10 +154,14 @@ exports.dashboard = async(req, res, next) => {
 			include: [{
 					model: Asset,
 					attributes: [],  // No attributes are needed from the Asset model directly
-					where: {
-							status: { [Op.ne]: 'condemned' }
-					},
-					// required: true  // Ensures INNER JOIN, meaning only AssetTypeVariants with non-condemned Assets are included
+					include: [{
+						model: Event,
+						attributes: [], 
+						where: {
+							eventType: { [Op.ne]: 'condemned' }
+						},
+						// required: true  // Ensures INNER JOIN, meaning only AssetTypeVariants with non-condemned Assets are included
+					}]
 			}, {
 					model: AssetType,
 					attributes: []  // Including AssetType but not selecting attributes directly here, used in the top-level attributes instead
@@ -156,9 +181,15 @@ exports.dashboard = async(req, res, next) => {
 					model: Asset,
 					as: 'Assets',
 					attributes: [],
+					include: [{
+						model: Event,
+						attributes: [], 
+						where: {
+							eventType: { [Op.ne]: 'condemned' }
+						},
+					}],
 					where: {
-							status: { [Op.ne]: 'condemned'},
-							value: { [Op.ne]: 0 }
+						value: { [Op.ne]: 0 }
 					}
 			}, {
 					model: AssetType,
@@ -177,7 +208,8 @@ exports.dashboard = async(req, res, next) => {
 			FROM assets
 			JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
 			JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
-			WHERE assets.status != 'condemned'
+			JOIN "events" ON "assets"."last_event_id" = "events"."id"
+			WHERE "events"."event_type" != 'condemned'
 			GROUP BY registered_date, asset_types.asset_type
 			ORDER BY registered_date ASC, asset_types.asset_type ASC
 		`;

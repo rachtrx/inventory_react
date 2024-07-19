@@ -26,7 +26,7 @@ exports.getAssetTypeVariants = async (req, res) => {
     }
 };
 
-exports.createAsset = async (req, res) => {
+exports.addAsset = async (req, res) => {
     const { assetType, isNewAssetType, variants } = req.body;
 
     try {

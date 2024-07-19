@@ -6,29 +6,24 @@ class UserService {
         this.axios = axiosInstance;
     }
 
-    async loadUser(userId) {
-        return await this.axios.get(`${API_URL}/users/${userId}`);
+    async loadUser(id) {
+        return await this.axios.get(`${API_URL}/users/${id}`);
     }
 
     async loadUsers() {
         return await this.axios.get(`${API_URL}/users`);
     }
-
-    async loadUserFilters() {
-        return await this.axios.get(`${API_URL}/users/filters`);
-    }
-
-    static loadFullUserDetails(assetId) {
-        return this.axios.get(`${API_URL}/users/complete/${assetId}`);
-    }
-
     
-    static bookmarkUser(assetId) {
-        return this.axios.post(`${API_URL}/users/bookmark/${assetId}`);
+    async bookmark(id, bookmarked) {
+        return await this.axios.post(`${API_URL}/users/bookmark`, {id, bookmarked});
     }
 
-    static loadAllUsers() {
-        return this.axios.get(`${API_URL}/users/`);
+    async loadAllUsers() {
+        return await this.axios.get(`${API_URL}/users/`);
+    }
+
+    async searchUsers() {
+        return await this.axios.get(`${API_URL}/users/search`);
     }
 }
 

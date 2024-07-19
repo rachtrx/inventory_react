@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { axiosInstance } from '../config';
 import { ModalProvider } from './ModalProvider';
 import { DrawerProvider } from './DrawerProvider';
+import { GlobalProvider } from './GlobalProvider';
 
 const AuthContext = createContext(null);
 
@@ -76,11 +77,13 @@ export const AuthProvider = () => {
   
   return (
     <AuthContext.Provider value={{ user, setUser, register, login, logout, checkAuth }}>
-      <DrawerProvider>
-        <ModalProvider>
-          <Outlet />
-        </ModalProvider>
-      </DrawerProvider>
+      <GlobalProvider>
+        <DrawerProvider>
+          <ModalProvider>
+            <Outlet />
+          </ModalProvider>
+        </DrawerProvider>
+      </GlobalProvider>
     </AuthContext.Provider>
   );
 };

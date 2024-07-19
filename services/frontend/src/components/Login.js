@@ -17,6 +17,7 @@ import {
   useColorModeValue,
   VStack
 } from '@chakra-ui/react';
+import { useUI } from '../context/UIProvider';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required("Email is required"),
@@ -25,6 +26,7 @@ const validationSchema = Yup.object().shape({
 
 export default function Login() {
   const { setUser, user, login, checkAuth } = useAuth();
+  const { loading, setLoading } = useUI()
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,13 +52,15 @@ export default function Login() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
+      setLoading(true)
       console.log(values.email);
       await login(values.email, values.password); // user will log in through the other useeffect
-      setSubmitting(false);
     } catch (err) {
       console.error('Login failed:', err.response ? err.response.data : err);
-      setSubmitting(false);
       // navigate('/dashboard', { replace: true });
+    } finally {
+      setSubmitting(false);
+      setLoading(false)
     }
   };
 
