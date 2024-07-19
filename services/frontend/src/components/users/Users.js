@@ -3,11 +3,11 @@ import UserActions from './UserActions';
 import UserCards from './UserCards';
 import UserTable from './UserTable'
 import RecordsLayout from '../RecordsLayout';
-import { UserProvider, useUser } from "../../context/UserProvider";
+import { useGlobal } from "../../context/GlobalProvider";
 
-function UsersContent() {
+export const UsersPage = () => {
 
-  const { users, loading, error } = useUser();
+  const { users, loading, error } = useGlobal();
 
   return (
     <RecordsLayout
@@ -20,14 +20,6 @@ function UsersContent() {
       Cards={UserCards}
       Table={UserTable}
     />
-  );
-}
-
-export default function UsersPage() {
-  return (
-    <UserProvider>
-      <UsersContent />
-    </UserProvider>
   );
 }
 

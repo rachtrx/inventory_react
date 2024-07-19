@@ -40,7 +40,10 @@ export const SplitReturnButton = ({ item, onMouseEnterFn = () => null, onMouseLe
 			</Box>
 			<Box
 				as="button"
-				onClick={() => setFormType('returnAsset')}
+				onClick={(e) => {
+					e.stopPropagation();
+					setFormType('returnAsset')}
+				}
 				bg="orange.100"
 				borderLeft="1px solid white"
 				p={2}

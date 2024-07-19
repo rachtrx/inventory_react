@@ -1,15 +1,16 @@
 import React from 'react';
 import { Form, Formik } from 'formik';
 import { useContext } from 'react';
-import FilterContainer from '../FilterContainer';
-import InputFormControl from '../../pages/components/forms/utils/InputFormControl';
-import SelectFormControl from '../../pages/components/forms/utils/SelectFormControl';
+import FilterContainer from '../utils/FilterContainer';
+import InputFormControl from '../forms/utils/InputFormControl';
+import SelectFormControl from '../forms/utils/SelectFormControl';
 import ToggleButton from '../buttons/ToggleButton';
-import { useUser } from '../../context/UserProvider';
+import { useGlobal } from '../../context/GlobalProvider';
+import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 
 export default function UserFilters() { // TODO can have external filters from Dashboard
 
-	const { filters, setFilters, setPagination } = useUser()
+	const { filters, setFilters, setPagination } = useGlobal()
 
 	const handleSetFilters = (newFilters) => {
 		setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
@@ -31,13 +32,13 @@ export default function UserFilters() { // TODO can have external filters from D
     <Formik initialValues={initialValues} onSubmit={onSubmit}>
         <Form>
             <FilterContainer>
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="department"
                     // label="Department"
                     placeholder="Department"
                     options={filters?.department?.map(dept => ({ label: dept, value: dept })) ?? []}
                 />
-                <SelectFormControl
+                <MultiSelectFormControl
                     name="asset-count"
                     // label="Number of Assets"
                     placeholder="Number of Assets"

@@ -3,12 +3,11 @@ import AssetActions from './AssetActions';
 import AssetCards from './AssetCards';
 import AssetTable from "./AssetTable";
 import RecordsLayout from '../RecordsLayout';
-import { AssetProvider, useAsset } from "../../context/AssetProvider";
-import { useEffect } from "react";
+import { useGlobal } from "../../context/GlobalProvider";
 
-function AssetsContent() {
+export const AssetsPage = () => {
 
-  const { assets, loading, error } = useAsset();
+  const { assets, loading, error } = useGlobal();
 
   return (
     <RecordsLayout
@@ -23,13 +22,3 @@ function AssetsContent() {
     />
   );
 }
-
-export default function AssetsPage() {
-  
-  return (
-    <AssetProvider>
-      <AssetsContent />
-    </AssetProvider>
-  );
-}
-

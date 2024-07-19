@@ -39,7 +39,7 @@ const createUserObject = function(user) {
     return {
         id: user.id,
         name: user.userName,
-        bookmarked: user.bookmarked || 0,
+        bookmarked: user.bookmarked && true || false,
         hasResigned: user.has_resigned || 0,
         registeredDate: user.registeredDate,
         department: user.Dept.deptName,
@@ -104,11 +104,8 @@ exports.getUsers = async (req, res) => {
                 attributes: ['deptName']
             }],
             // TODO
-            // where: {
-            //     hasResigned: { [Sequelize.Op.ne]: 1 }
-            // },
             order: [['registeredDate', 'DESC']],
-            attributes: ['id', 'userName', 'bookmarked', 'hasResigned', 'registeredDate']
+            attributes: ['id', 'userName', 'bookmarked', 'registeredDate']
         });
         
         // Mapping over the result to modify each user object
@@ -184,13 +181,105 @@ exports.showUser = async (req, res) => {
     }
 };
 
+exports.searchUsers = async (req, res) => {
+    const { value, formType } = req.body;
+
+    validMap = {
+        'loanAsset': ['added', 'removed'],
+        'returnAsset': ['loaned'],
+        'adduser': ['returned', 'registered'],
+        'removeUser': ['added']
+    }
+
+    const validStatuses = validMap[formType];
+    if (!validStatuses) {
+        return res.status(400).send('Invalid form type provided.');
+    }
+
+    try {
+        const query = `
+            SELECT assets.*, asset_type_variants.variant_name, events.event_type,
+            CASE WHEN events.event_type IN (${validStatuses.map(status => `'${status}'`).join(', ')}) THEN 0 ELSE 1 END AS order_status
+            FROM assets
+            JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
+            LEFT JOIN events ON events.asset_id = assets.id AND events.event_date = (
+                SELECT MAX(event_date) FROM events AS e WHERE e.asset_id = assets.id
+            )
+            WHERE assets.asset_tag ILIKE :assetTag
+            ORDER BY order_status, assets.id
+            LIMIT 20;
+        `;
+
+        const results = await sequelize.query(query, {
+            replacements: { assetTag: `%${value}%` },
+            type: sequelize.QueryTypes.SELECT
+        });
+    
+        const assets = results.map(asset => {
+            logger.info(asset);
+            const eventType = asset.event_type; // Directly access the property
+            const disabled = !validStatuses.includes(eventType)
+        
+            return {
+                value: asset.id,
+                label: `${asset.asset_tag} - ${asset.serial_number} ${disabled ? `(${asset.event_type})` : ''}`, // Capitalize the first letter
+                isDisabled: disabled // Disable if not in validStatuses
+            };
+        });
+
+        res.json(assets);
+    } catch (error) {
+        logger.error('Error fetching assets:', error)
+        console.error('Error fetching assets:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+exports.searchUsers = async (req, res) => {
+    const { data, isAsc } = req.body;
+    const userName = '%' + data + '%';
+    try {
+        const results = await User.findAll({
+            include: [{
+                model: Asset,
+                attributes: ['id', 'assetTag', 'bookmarked'],
+                include: [{
+                    model: AssetTypeVariant,
+                    attributes: ['variantName']
+                }]
+            }, {
+                model: Dept,
+                required: true,
+                attributes: ['deptName']
+            }],
+            where: {
+                userName: {
+                    [sequelize.Op.iLike]: userName
+                }
+            },
+            order: [
+                ['hasResigned', 'ASC'],
+                [sequelize.fn('count', sequelize.col('Device.assetTag')), 'ASC'],
+                [isAsc ? 'created_date' : 'created_date', isAsc ? 'ASC' : 'DESC']
+            ],
+            group: ['User.id', 'Dept.deptName', 'Device.id', 'AssetTypeVariant.variantName'],
+            attributes: ['id', 'userName', 'bookmarked', 'hasResigned'],
+            limit: 20
+        });
+        const users = results.map(user => user.get({ plain: true }));
+        res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
 
 exports.bookmarkUser = async (req, res) => {
-    const { userId, action } = req.body;
+    const { id, bookmarked } = req.body;
     try {
-        const user = await User.findByPk(userId);
+        const user = await User.findByPk(id);
         if (user) {
-            user.bookmarked = action === 'add' ? 1 : 0;
+            user.bookmarked = bookmarked === true ? 1 : 0;
             await user.save();
             res.json({ message: "Bookmark updated successfully" });
         } else {

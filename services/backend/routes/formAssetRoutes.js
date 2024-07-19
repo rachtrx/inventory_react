@@ -4,8 +4,7 @@ const formAssetController = require('../controllers/formAssetController');
 
 router.get('/types', formAssetController.getAssetTypes);
 router.get('/typeVariants', formAssetController.getAssetTypeVariants);
-router.post('/create', formAssetController.createAsset); // create a variant
-router.post('/register', formAssetController.registerAsset); // register an asset
+router.post('/add', formAssetController.addAsset); // create a variant
 
 // router.patch("/update/:id", formAssetController.updateAsset);  
 router.delete("/condemn", formAssetController.condemnAsset);
