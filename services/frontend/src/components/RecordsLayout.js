@@ -1,11 +1,11 @@
 // RecordsLayout.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Button, Collapse, Flex, Heading, useBreakpointValue } from '@chakra-ui/react';
-import InfoBar from '../pages/components/InfoBar';
-import NoDataBox from '../pages/components/NoDataBox';
-import CardSkeleton from '../pages/components/CardSkeleton';
+import InfoBar from './utils/InfoBar';
+import NoDataBox from './utils/NoDataBox';
+import CardSkeleton from './utils/CardSkeleton';
 import usePagination from '../hooks/usePagination';
-import PaginationControls from '../pages/components/Pagination';
+import PaginationControls from './Pagination';
 import CapsuleToggleButton from './buttons/CapsuleToggleButton';
 import { useSearchParams } from 'react-router-dom';
 import { FaDownload } from 'react-icons/fa';

@@ -8,11 +8,14 @@ import {
     Box,
 } from "@chakra-ui/react";
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
-import Cards from '../Cards';
+import Cards from '../utils/Cards';
 import { useDrawer } from '../../context/DrawerProvider';
+import StarToggle from '../utils/StarToggle';
+import { useGlobal } from '../../context/GlobalProvider';
 
 function AssetCards({items}) {
     const { handleItemClick } = useDrawer()
+    const { handleAssetToggle } = useGlobal()
     
     return (
         <Cards>
@@ -43,9 +46,12 @@ function AssetCards({items}) {
                         )}
                     </CardBody>
 
-                    <Button variant="ghost" position="absolute" top={2} right={2} aria-label="Bookmark">
-                        {asset.bookmarked === 1 ? <BookmarkFilledIcon /> : <BookmarkIcon />}
-                    </Button>
+                    <StarToggle
+                        position="absolute" top={2} right={2}
+                        id={asset.id}
+                        isBookmarked={asset.bookmarked}
+                        onToggle={handleAssetToggle}
+                    />
                 </Card>
             </Box>
         ))}

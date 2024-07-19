@@ -29,9 +29,13 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.INTEGER,
 			allowNull: false
 		},
-		status: {
+		lastEventId: {
 			type: DataTypes.STRING,
-			allowNull: false
+			allowNull: false,
+			references: {
+				model: 'events',
+				key: 'id'
+			}
 		},
 		location: {
 			type: DataTypes.STRING

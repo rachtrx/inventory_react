@@ -27,5 +27,6 @@ services/web/project/uploads
 services/web/project/inventory.db
 
 notes.txt
+note.txt
 
 *config.json

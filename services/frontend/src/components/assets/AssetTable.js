@@ -1,11 +1,17 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button } from '@chakra-ui/react';
-import IconBookmark from '../../pages/components/icons/IconBookmark';
+import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
 import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
+import { useGlobal } from '../../context/GlobalProvider';
+import StarToggle from '../utils/StarToggle';
+import { ResponsiveText } from '../utils/ResponsiveText';
+import { SplitReturnButton } from '../buttons/SplitReturnButton';
+import { useState } from 'react';
 
 const AssetTable = ({ items }) => {
 
 	const { handleItemClick } = useDrawer()
+  const [ hoveredAssetId, setHoveredAssetId ] = useState(null);
+  const { handleAssetToggle } = useGlobal()
 
   return (
     <Table variant="simple">
@@ -13,38 +19,48 @@ const AssetTable = ({ items }) => {
         <Tr>
           <Th>Asset Tag</Th>
           <Th>Serial Number</Th>
-          <Th>Model Name</Th>
+          <Th>Model</Th>
           <Th>Status</Th>
           <Th>User</Th>
-          <Th>Actions</Th>
         </Tr>
       </Thead>
       <Tbody>
         {items.map((asset) => (
-          <Tr key={asset.id}>
+          <Tr 
+            key={asset.id}
+            _hover={{
+              bg: hoveredAssetId === asset.id ? 'blue.50' : 'blue.100',
+              cursor: 'pointer',
+            }}
+            _active={{ bg: hoveredAssetId === asset.id ? 'blue.50' : 'blue.200', }}
+            onClick={() => handleItemClick(asset)}
+          >
             <Td>
-            <Button onClick={() => handleItemClick(asset)} colorScheme="blue">
-              {asset.assetTag}
-            </Button>
+              <ResponsiveText>
+                <StarToggle
+                  position="absolute" top={2} right={2}
+                  id={asset.id}
+                  isBookmarked={asset.bookmarked}
+                  onToggle={handleAssetToggle}
+                />
+                {asset.assetTag}
+              </ResponsiveText>
             </Td>
-            <Td>{asset.serialNumber}</Td>
-            <Td>{asset.modelName}</Td>
+            <Td><ResponsiveText>{asset.serialNumber}</ResponsiveText></Td>
+            <Td><ResponsiveText>{asset.variant}</ResponsiveText></Td>
             <Td>
               {eventToStatus(asset.status)}
             </Td>
             <Td>
-              {asset.status === 'loaned' && (
-								<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
-									{asset.userName}
-								</Button>
+              {asset.user && (
+								<Flex key={asset.id} gap={2}>
+                  <SplitReturnButton
+                    item={asset.user}
+                    onMouseEnterFn={() => setHoveredAssetId(asset.id)}
+                    onMouseLeaveFn={() => setHoveredAssetId(null)}
+                  />
+              </Flex>
               )}
-            </Td>
-            <Td>
-              <IconButton
-                aria-label="Bookmark"
-                icon={asset.bookmarked === 1 ? <IconBookmark fill={true} /> : <IconBookmark />}
-                variant="ghost"
-              />
             </Td>
           </Tr>
         ))}
