@@ -2,10 +2,13 @@ import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chak
 import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
 import { useGlobal } from '../../context/GlobalProvider';
-import StarToggle from '../utils/StarToggle';
+import StarButton from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';
-import { SplitReturnButton } from '../buttons/SplitReturnButton';
+import { AssetActionButton, SplitButton } from '../buttons/SplitButton';
 import { useState } from 'react';
+import ActionButton from '../buttons/ActionButton';
+import { formTypes } from '../../context/ModalProvider';
+import { ItemLink } from '../buttons/ItemLink';
 
 const AssetTable = ({ items }) => {
 
@@ -14,13 +17,14 @@ const AssetTable = ({ items }) => {
   const { handleAssetToggle } = useGlobal()
 
   return (
-    <Table variant="simple">
+    <Table size="sm" variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg="gray.200">
         <Tr>
-          <Th>Asset Tag</Th>
-          <Th>Serial Number</Th>
+          <Th></Th>
+          <Th>Device Type</Th>
           <Th>Model</Th>
-          <Th>Status</Th>
+          <Th>Asset Tag</Th>
+          <Th>Options</Th>
           <Th>User</Th>
         </Tr>
       </Thead>
@@ -29,39 +33,29 @@ const AssetTable = ({ items }) => {
           <Tr 
             key={asset.id}
             _hover={{
-              bg: hoveredAssetId === asset.id ? 'blue.50' : 'blue.100',
-              cursor: 'pointer',
+              bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.100',
             }}
-            _active={{ bg: hoveredAssetId === asset.id ? 'blue.50' : 'blue.200', }}
+            _active={{ bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.200', }}
             onClick={() => handleItemClick(asset)}
           >
             <Td>
-              <ResponsiveText>
-                <StarToggle
-                  position="absolute" top={2} right={2}
-                  id={asset.id}
-                  isBookmarked={asset.bookmarked}
-                  onToggle={handleAssetToggle}
-                />
-                {asset.assetTag}
-              </ResponsiveText>
+              <StarButton
+                id={asset.id}
+                isBookmarked={asset.bookmarked}
+                onToggle={handleAssetToggle}
+              />
             </Td>
-            <Td><ResponsiveText>{asset.serialNumber}</ResponsiveText></Td>
+            <Td><ResponsiveText>{asset.assetType}</ResponsiveText></Td>
             <Td><ResponsiveText>{asset.variant}</ResponsiveText></Td>
             <Td>
-              {eventToStatus(asset.status)}
+              <ResponsiveText>
+                <ItemLink item={asset} setHoveredFn={setHoveredAssetId}/>
+              </ResponsiveText>
             </Td>
             <Td>
-              {asset.user && (
-								<Flex key={asset.id} gap={2}>
-                  <SplitReturnButton
-                    item={asset.user}
-                    onMouseEnterFn={() => setHoveredAssetId(asset.id)}
-                    onMouseLeaveFn={() => setHoveredAssetId(null)}
-                  />
-              </Flex>
-              )}
+              <ActionButton formType={asset.user ? formTypes.RETURN : asset.deletedDate ? formTypes.RESTORE_ASSET : formTypes.LOAN} item={asset} />
             </Td>
+            <Td>{asset.user && <ItemLink item={asset.user}/>}</Td>
           </Tr>
         ))}
       </Tbody>

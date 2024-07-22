@@ -6,8 +6,8 @@ const Sequelize = require('sequelize');
 const process = require('process');
 // const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
-const logger = require('../logging')
+const config = require(__dirname + '/../../config/config.json')[env];
+const logger = require('../../logging')
 
 let sequelize;
 if (config.use_env_variable) {
@@ -23,7 +23,6 @@ const AssetTypeModel = require('./AssetType')(sequelize, Sequelize.DataTypes);
 const AssetTypeVariantModel = require('./AssetTypeVariant')(sequelize, Sequelize.DataTypes);
 const VendorModel = require('./Vendor')(sequelize, Sequelize.DataTypes);
 const AssetModel = require('./Asset')(sequelize, Sequelize.DataTypes);
-const EventModel = require('./Event')(sequelize, Sequelize.DataTypes);
 
 const db = {
   Admin: AdminModel,
@@ -33,7 +32,6 @@ const db = {
   AssetTypeVariant: AssetTypeVariantModel,
   Vendor: VendorModel,
   Asset: AssetModel,
-  Event: EventModel
 }
 
 db.User.belongsTo(db.Dept, { foreignKey: 'deptId', targetKey: 'id' }); // IMPT JAVASCRIPT NAME
@@ -50,12 +48,6 @@ db.User.hasMany(db.Asset, { foreignKey: 'userId' });
 
 db.Asset.belongsTo(db.Vendor, { foreignKey: 'vendorId', targetKey: 'id' });
 db.Vendor.hasMany(db.Asset, { foreignKey: 'vendorId' });
-
-db.Event.belongsTo(db.Asset, { foreignKey: 'assetId', targetKey: 'id' });
-db.Asset.hasMany(db.Event, { foreignKey: 'assetId' });
-
-db.Event.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
-db.User.hasMany(db.Event, { foreignKey: 'userId' });
 
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {

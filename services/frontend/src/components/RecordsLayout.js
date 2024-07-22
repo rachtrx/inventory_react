@@ -66,8 +66,8 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
         </Flex>
         {!currentData || currentData.length === 0 ? <NoDataBox /> : isGridView ? <Cards items={currentData} /> : <Table items={currentData}/>}
         <PaginationControls currentPage={currentPage} maxPage={maxPage} next={next} prev={prev}/>
-        <FormModal />
-        <ItemDrawer />
+        {/* <FormModal />
+        <ItemDrawer /> */}
       </>
       
   );

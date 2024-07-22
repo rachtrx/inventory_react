@@ -12,24 +12,32 @@ export function useResponsive() {
 }
 
 export const ResponsiveProvider = ({ children }) => {
-
-	const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
+  const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
   const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });
 
-  const headerSize = useBreakpointValue({
+  const lg = useBreakpointValue({
     base: 'md',
     md: 'lg',
-    lg: 'xl'
+    lg: 'lg',
+    xl: 'xl'
   });
 
-  const textSize = useBreakpointValue({
+  const md = useBreakpointValue({
+    base: 'sm',
+    md: 'md',
+    lg: 'lg',
+    xl: 'xl'
+  });
+
+  const sm = useBreakpointValue({
     base: 'xs',
     md: 'sm',
-    lg: 'md'
+    lg: 'sm',
+    xl: 'md'
   });
 
   return (
-    <ResponsiveContext.Provider value={{ isIpad, isMobile, headerSize, textSize }}>
+    <ResponsiveContext.Provider value={{ isIpad, isMobile, sm, md, lg }}>
       {children}
     </ResponsiveContext.Provider>
   );

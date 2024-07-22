@@ -2,14 +2,19 @@ import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure, Grid
 import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
-import { useModal } from '../../context/ModalProvider';
+import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
 import Timeline from '../Timeline';
 import EditableField from '../utils/EditableField';
+import { useEffect } from 'react';
 
 const User = ({ user }) => {
 	const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
-  const { setFormType } = useModal()
+  	const { dispatch } = useFormModal()
+
+	useEffect(() => {
+		console.log(user);
+	}, [user])
     
     return (
 			<Box p={4}>
@@ -54,7 +59,7 @@ const User = ({ user }) => {
 						<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
 							{asset.assetTag} - {asset.variant}
 						</Button>
-						<ActionButton bg="orange.100" onClick={() => setFormType('returnAsset')}>
+						<ActionButton bg="orange.100" onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.RETURN })}>
 							Return
 						</ActionButton>
 					</Flex>
@@ -69,10 +74,10 @@ const User = ({ user }) => {
 					mb={4}
 				/>
 				<Flex gridGap="2">
-					<Button onClick={() => setFormType('resign')} data-user-id={user.id} colorScheme="red">
+					<Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.DEL_USER })} colorScheme="red">
 						Resign
 					</Button>
-					<Button onClick={() => setFormType('loanDevice')} data-user-id={user.id} colorScheme="green">
+					<Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.LOAN })} colorScheme="green">
 						Loan Device
 					</Button>
 				</Flex>

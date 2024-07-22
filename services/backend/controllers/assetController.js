@@ -1,8 +1,8 @@
-const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Event, sequelize, Sequelize} = require('../models');
+const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, sequelize, Sequelize} = require('../models/postgres');
 const { Op } = Sequelize;
 
 const logger = require('../logging');
-const { getLatestEventIds } = require('./utils');
+const mongodb = require('../models/mongo');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -13,45 +13,6 @@ const dateTimeObject = {
     year: '2-digit'
 }
 
-const createAssetObject = function(asset) {
-    const pastUsers = asset.Events
-        .filter(event => event.eventType === 'returned')  // Filter to get only 'returned' events
-        .map(event => {
-            // Map each filtered event to an object containing the user details
-            return {
-            id: event.User.id,
-            name: event.User.userName,
-            bookmarked: event.User.bookmarked
-            };
-        });
-
-    return {
-        id: asset.id,
-        serialNumber: asset.serialNumber,
-        assetTag: asset.assetTag,
-        status: asset.Events[0].eventType,
-        value: String(parseFloat(asset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
-        bookmarked: asset.bookmarked && true || false,
-        variant: asset.AssetTypeVariant.variantName,
-        assetType: asset.AssetTypeVariant.AssetType.assetType,
-        vendor: asset.Vendor.vendorName,
-        ...(asset.location && {location: asset.location}),
-        ...(asset.Events[0].eventType === 'loaned' && {
-            user: {
-                id: asset.Events[0].User.id,
-                name: asset.Events[0].User.userName,
-                bookmarked: asset.Events[0].User.bookmarked
-            }
-        }),
-        // For ALL Assets
-        ...(asset.age && {age: asset.age}),
-
-        // For SINGLE Asset
-        ...(pastUsers.length > 0 && { pastUsers }),
-        ...(asset.Events.length > 0 && {events: asset.Events}),
-    }
-}
-
 exports.getAssets = async (req, res) => { // TODO Add filters
 
     const assetsExist = await Asset.count();
@@ -60,17 +21,16 @@ exports.getAssets = async (req, res) => { // TODO Add filters
     }
 
     try {
-        const latestEventIds = await getLatestEventIds();
-
         const query = await Asset.findAll({
             attributes: [
                 'id',
                 'serialNumber',
                 'assetTag',
-                'registeredDate',
+                'addedDate',
                 'location',
                 'bookmarked',
                 'value',
+                'deletedDate',
             ],
             include: [
                 {
@@ -86,33 +46,18 @@ exports.getAssets = async (req, res) => { // TODO Add filters
                     attributes:['vendorName']
                 },
                 {
-                    model: Event,
-                    attributes: ['eventDate', 'eventType'],  // You might want to fetch specific fields from Event
-                    required: false,
-                    where: {
-                        id: { [Op.in]: latestEventIds }
-                    },
-                    include: {
-                        model: User,
-                        attributes: ['id', 'userName', 'bookmarked']
-                    }
+                    model: User,
+                    attributes: ['id', 'userName', 'bookmarked']
                 }
             ],
-        }).then(assets => {
-            // Calculate age for each asset and include it in the results
-            return assets.map(asset => {
-                const plainAsset = asset.get({ plain: true });
-                const now = new Date()
-                const created = new Date(asset.registeredDate); // Convert registeredDate string to Date object
-                const age = Math.floor((now - created) / (365.25 * 24 * 60 * 60 * 1000));
-                // const nowSG = new Intl.DateTimeFormat('en-SG', dateTimeOptions).format(nowUTC); // IMPT JUST FYI
-                return { ...plainAsset, age };
-            });
         })
-        logger.info(query.slice(100, 110));
-        const assets = query.map(asset => createAssetObject(asset));
-        logger.info(assets.slice(100, 110));
-        res.json(assets);
+
+        const result = query.map(asset => {
+            return asset.createAssetObject(getAge=true);
+        });
+
+        // logger.info(result.slice(100, 110));
+        res.json(result);
     } catch (error) {
         logger.error(error)
         console.error(error);
@@ -124,47 +69,64 @@ exports.getAssets = async (req, res) => { // TODO Add filters
 exports.searchAssets = async (req, res) => {
     const { value, formType } = req.body;
 
-    validMap = {
-        'loanAsset': ['returned', 'registered'],
-        'returnAsset': ['loaned'],
-        'condemnAsset': ['returned', 'registered']
+    const validMap = {
+        [formTypes.DEL_ASSET]: ['Available'],
+        [formTypes.LOAN]: ['Available'],
+        [formTypes.RETURN]: ['On Loan']
     }
 
     const validStatuses = validMap[formType];
     if (!validStatuses) {
         return res.status(400).send('Invalid form type provided.');
     }
-
     try {
-        // Map the validStatuses array to create a safe list of strings for SQL IN condition
-        const statusConditions = validStatuses.map(status => `'${status.replace(/'/g, "''")}'`).join(', ');
-
-        const query = `
-            SELECT assets.asset_tag, assets.serial_number, asset_type_variants.variant_name, events.event_date, events.event_type, 
-            CASE WHEN events.event_type IN (${statusConditions}) THEN 1 ELSE 0 END AS order_status
-            FROM assets
-            JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
-            LEFT JOIN events ON events.asset_id = assets.id AND events.event_date = (
-                SELECT MAX(event_date) FROM events AS e WHERE e.asset_id = assets.id
-            )
-            WHERE assets.asset_tag ILIKE :assetTag
-            ORDER BY order_status DESC, events.event_date, assets.id
-            LIMIT 20;
-        `;
-
-        const results = await sequelize.query(query, {
-            replacements: { assetTag: `%${value}%` },
-            type: sequelize.QueryTypes.SELECT
-        });
+        const query = await Asset.findAll({
+            attributes: [
+                'id',
+                'serialNumber',
+                'assetTag',
+                'bookmarked',
+                'deletedDate'
+            ],
+            include: [
+                {
+                    model: AssetTypeVariant,
+                    attributes:['variantName'],
+                    include: {
+                        model: AssetType,
+                        attributes: ['assetType']
+                    }
+                },
+                {
+                    model: Vendor,
+                    attributes:['vendorName']
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'userName', 'bookmarked']
+                }
+            ],
+            where: {
+                assetTag: {
+                    [Op.like]: `%${value}%`
+                }
+            }
+        }).then(assets => {
+            // Calculate age for each asset and include it in the results
+            // const plainAsset = asset.get({ plain: true });
+            return assets.map(asset => asset.createAssetObject());
+        })
+        
+        // Convert plain objects to model instances if mapToModel was set to false
+        const assets = query.map(data => {
     
-        const assets = results.map(asset => {
-            logger.info(asset);
-            const eventType = asset.event_type; // Directly access the property
-            const disabled = !validStatuses.includes(eventType)
+            logger.info(data);
+            const { id, assetTag, serialNumber, status } = data;
+            const disabled = !validStatuses.includes(status)
         
             return {
-                value: asset.id,
-                label: `${asset.asset_tag} - ${asset.serial_number} ${disabled ? `(${asset.event_type})` : ''}`, // Capitalize the first letter
+                value: id,
+                label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
                 isDisabled: disabled // Disable if not in validStatuses
             };
         });
@@ -177,11 +139,12 @@ exports.searchAssets = async (req, res) => {
     }
 };
 
-exports.showAsset = async (req, res) => { // TODO Promise.all?
+exports.getAsset = async (req, res) => {
+    const assetId = req.params.id;
+    const { Event } = mongodb;
+
     try {
-        const assetId = req.params.id;
-        // Fetching asset details
-        const query = await Asset.findOne({
+        const assetDetailsPromise = Asset.findOne({
             attributes: [
                 'id',
                 'serialNumber',
@@ -204,32 +167,31 @@ exports.showAsset = async (req, res) => { // TODO Promise.all?
                     attributes: ['vendorName']
                 },
                 {
-                    model: Event,
-                    attributes: ['id', 'eventType', 'eventDate', 'remarks', 'filepath'],
-                    include: { 
-                        model: User, 
-                        attributes: ['id', 'userName', 'bookmarked'] 
-                    },
-                    order: [['eventDate', 'DESC']]
+                    model: User,
+                    attributes: ['id', 'userName', 'bookmarked']
                 }
             ],
-            where: {
-                id: assetId
-            }
-        })
+            where: { id: assetId }
+        });
 
-        if (!query) return res.error()
+        const assetEventsPromise = Event.find({ assetId }).sort({ eventDate: -1 });
 
-        const details = query.get({ plain: true });
+        const [assetDetails, assetEvents] = await Promise.all([assetDetailsPromise, assetEventsPromise]);
 
-        logger.info(createAssetObject(details));
+        if (!assetDetails) return res.status(404).send({ error: "Asset not found" });
 
-        res.json(createAssetObject(details));
+        const asset = assetDetails.createAssetObject()
+
+        asset.events = assetEvents;
+
+        logger.info('Details for Asset:', asset);
+
+        res.json(assetDetails);
     } catch (error) {
-        console.error("Error fetching device details:", error);
-        throw error;
+        logger.error("Error fetching asset details:", error);
+        res.status(500).send({ error: "Internal server error" });
     }
-}
+};
 
 exports.bookmarkAsset = async (req, res) => {
     const { id, bookmarked } = req.body;

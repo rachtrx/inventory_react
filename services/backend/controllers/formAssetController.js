@@ -1,7 +1,8 @@
-const { Event, Asset, AssetType, AssetTypeVariant, Vendor } = require('../models');
+const { Asset, AssetType, AssetTypeVariant, Vendor } = require('../models/postgres');
 const { Op } = require('sequelize');
 const uuid = require('uuid');
-const FormHelpers = require('./formHelperController')
+const FormHelpers = require('./formHelperController');
+const { eventTypes } = require('./utils');
 
 exports.getAssetTypes = async (req, res) => {
     const assetTypes = await AssetType.findAll({
@@ -159,7 +160,7 @@ exports.registerAsset = async (req, res) => {
                     value: value,
                     vendorId: vendorId
                 }, { transaction: t });
-                await FormHelpers.insertAssetEvent(uuid.v4(), assetId, 'registered', remarks, t);
+                await FormHelpers.insertAssetEvent(uuid.v4(), assetId, eventTypes.ADD_ASSET, remarks, t);
                 assetTags.add(assetTag.toUpperCase());
                 serialNums.add(serialNumber.toUpperCase())
             }

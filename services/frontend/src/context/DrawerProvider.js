@@ -15,9 +15,9 @@ const initialState = {
 
 // Provider component
 export const DrawerProvider = ({ children }) => {
-	console.log("In item provider");
+	console.log("In drawer provider");
 
-  const [state, setState] = useState(initialState);
+  	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
 	const [editedValue, setEditedValue] = useState(null);
 
@@ -49,8 +49,7 @@ export const DrawerProvider = ({ children }) => {
 			// Item not in history, fetch new data
 			setState(prev => ({ ...prev, loading: true }));
 			try {
-				const response = await (item.assetTag ? assetService.loadAsset(item.id) : userService.loadUser(item.id));
-				console.log(response.data);
+				const response = await (item.assetTag ? assetService.getAsset(item.id) : userService.getUser(item.id));
 				setState(prev => ({
 					...prev,
 					currentItem: response.data,
@@ -88,12 +87,29 @@ export const DrawerProvider = ({ children }) => {
 		updateState(updatedCurrentItem)
 	};
 
-	const handleRemarksSave = () => {
-		const updatedEvents = state.currentItem.events.map(event =>
-			event.id === editKey ? { ...event, remarks: editedValue } : event
-		);
+	const handleAddRemark = (id, remark, dateTime) => {
+		const eventIndex = state.currentItem.events.findIndex(event => event.id === id);
+		if (eventIndex === -1) {
+			console.error('Event not found');
+			return; // Optionally handle error more gracefully
+		}
+		
+		const updatedEvent = { ...state.currentItem.events[eventIndex] };
+
+		// Append the new remark to the remarks array of the cloned event
+		updatedEvent.remarks = [...updatedEvent.remarks, {
+			text: remark,
+			authorisedUserId: 'Admin', // TODO
+			remarkedAt: dateTime
+		}];
+
+		// Clone the events array and replace the updated event
+		const updatedEvents = [...state.currentItem.events];
+		updatedEvents[eventIndex] = updatedEvent;
+
+		// Set the updated events array back to the state
 		const updatedCurrentItem = { ...state.currentItem, events: updatedEvents };
-		updateState(updatedCurrentItem)
+		updateState(updatedCurrentItem);
 	}
 
 	const handleEdit = (key, value) => {
@@ -112,7 +128,7 @@ export const DrawerProvider = ({ children }) => {
   };
 
   return (
-    <DrawerContext.Provider value={{ ...state, setState, editKey, editedValue, handleItemClick, handleSave, handleRemarksSave, handleEdit, handleChange, handleClose, isDrawerOpen }}>
+    <DrawerContext.Provider value={{ ...state, setState, editKey, editedValue, handleItemClick, handleSave, handleAddRemark, handleEdit, handleChange, handleClose, isDrawerOpen }}>
 				{ children }
     </DrawerContext.Provider>
   );

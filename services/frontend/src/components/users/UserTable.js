@@ -2,12 +2,12 @@ import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack,
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import ActionButton from '../buttons/ActionButton';
 import { useDrawer } from '../../context/DrawerProvider';
-import { useModal } from '../../context/ModalProvider';
-import { SplitReturnButton } from '../buttons/SplitReturnButton';
+import { useFormModal } from '../../context/ModalProvider';
+import { SplitButton, UserActionButton } from '../buttons/SplitButton';
 import { useResponsive } from '../../context/ResponsiveProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
-import { StarToggle } from '../utils/StarToggle';
+import StarButton from '../buttons/StarButton';
 import userService from '../../services/UserService';
 import { useUI } from '../../context/UIProvider';
 import { useGlobal } from '../../context/GlobalProvider';
@@ -33,41 +33,21 @@ const UserTable = ({ items }) => {
           <Tr 
             key={user.id} 
             _hover={{
-              bg: hoveredUserId === user.id ? 'blue.50' : 'blue.100',
+              bg: hoveredUserId === user.id ? 'gray.50' : 'gray.100',
               cursor: 'pointer',
             }}
-            _active={{ bg: hoveredUserId === user.id ? 'blue.50' : 'blue.200', }}
+            _active={{ bg: hoveredUserId === user.id ? 'gray.50' : 'gray.200', }}
             onClick={() => handleItemClick(user)}
           >
             <Td>
               <ResponsiveText fontWeight="bold" isTruncated>
-                <StarToggle id={user.id} isBookmarked={user.bookmarked} onToggle={handleUserToggle}/>
+                <StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleUserToggle}/>
                 {user.name}
               </ResponsiveText>
             </Td>
             <Td><ResponsiveText>{user.department}</ResponsiveText></Td>
             <Td>
-              {user.assets ? (
-              <VStack
-                  align="stretch"
-                  spacing={2}
-                  overflowY="auto"
-                  maxH="80px" 
-                  className="scroll-window"
-              >
-                  {user.assets.map((asset) => (
-                  <Flex key={asset.id} gap={2}>
-                      <SplitReturnButton
-                        item={asset}
-                        onMouseEnterFn={() => setHoveredUserId(user.id)}
-                        onMouseLeaveFn={() => setHoveredUserId(null)}
-                      />
-                  </Flex>
-                  ))}
-              </VStack>
-              ) : (
-                <ResponsiveText>'No assets assigned'</ResponsiveText>
-              )}
+              <UserActionButton user={user} setHoveredUserId={setHoveredUserId}/>
             </Td>
           </Tr>
         ))}

@@ -5,14 +5,14 @@ import ExcelFormControl from './utils/ExcelFormControl';
 import SelectFormControl from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
-import { useModal, actionTypes } from "../../context/ModalProvider";
+import { useFormModal, actionTypes } from "../../context/ModalProvider";
 import { useGlobal } from "../../context/GlobalProvider";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
 import { useMemo } from "react";
 
 const LoanAsset = () => {
 
-    const { isExcel, assets, handleAssetInputChange, users, handleUserInputChange } = useModal()
+    const { isExcel, assets, handleAssetInputChange, users, handleUserInputChange } = useFormModal()
 
     const fieldsToReset = useMemo(() => ['asset-tag', 'user-name', 'remarks'], []);
 
@@ -31,20 +31,14 @@ const LoanAsset = () => {
               label="Asset Tag"
               options={assets}
               placeholder="Asset Tag"
-              onInputChange={(value) => {
-                console.log('Asset Input changed');
-                handleAssetInputChange(value);
-              }}
+              onInputChange={(value) => {handleAssetInputChange(value)}}
             />
             <SingleSelectFormControl
               name="user-name"
               label="User Name"
               options={users}
               placeholder="User Name"
-              onInputChange={(value) => {
-                console.log('User Input changed');
-                handleUserInputChange(value);
-              }}
+              onInputChange={(value) => {handleUserInputChange(value)}}
             />
             <DateInputControl label="Loaned Date" name="loaned-date" />
             <FormToggle

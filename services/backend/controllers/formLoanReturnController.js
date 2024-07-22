@@ -1,6 +1,7 @@
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models');
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
 const FormHelpers = require('./formHelperController')
 const uuid = require('uuid');
+const { Event } = require('../models/mongo')
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -9,82 +10,85 @@ const uuid = require('uuid');
 
 exports.loan = async (req, res) => {
     const filePath = req.file ? req.file.path : null;
-    const userId = req.body.userId
-    const assetId = req.body.assetId
+    const userId = req.body.userId;
+    const assetId = req.body.assetId;
 
     // TODO i think not needed bc filefilter alr checks...
     if (!filePath && req.fileValidationError) {
         return res.status(400).json({ error: 'Only PDF files are allowed!' });
     }
 
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        await sequelize.transaction(async (transaction) => {
-            const asset = await Asset.findByPk(assetId, { 
-                attributes: ['status'],
-                transaction: transaction
-            });                
-            if (!asset) {
-                throw new Error(`Asset ${asset.assetId} not found!`);
-            }
-            if (asset.status === 'loaned') {
-                throw new Error("Asset is still on loan!");
-            }
-            if (asset.status === 'condemned') {
-                throw new Error("Asset tag is already condemned!");
-            }
-            await FormHelpers.insertAssetEvent(uuid.v4(), assetId, 'loaned', remarks, userId, null, filePath, transaction);
-            await FormHelpers.updateStatus(assetId, 'loaned', userId, transaction);
-        })
-    
+        const asset = await Asset.findById(assetId).session(session);
+        if (!asset) {
+            throw new Error(`Asset ${assetId} not found!`);
+        }
+        if (asset.status === 'loaned') {
+            throw new Error("Asset is still on loan!");
+        }
+        if (asset.status === 'condemned') {
+            throw new Error("Asset tag is already condemned!");
+        }
+        await FormHelpers.insertAssetEvent(uuid.v4(), assetId, 'loaned', req.body.remarks, userId, null, filePath, session);
+        await FormHelpers.updateStatus(assetId, 'loaned', userId, session);
+
+        await session.commitTransaction();
+        session.endSession();
+
         return res.json({ message: 'All assets processed successfully.' });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
         console.error("Transaction failed:", error);
         return res.status(500).json({ error: error.message });
     }
-}
+};
 
 exports.return = async (req, res) => {
     const filePath = req.file ? req.file.path : null;
-    const userId = req.body.userId
-    const assetId = req.body.assetId
+    const userId = req.body.userId;
+    const assetId = req.body.assetId;
 
     // TODO i think not needed bc filefilter alr checks...
     if (!filePath && req.fileValidationError) {
         return res.status(400).json({ error: 'Only PDF files are allowed!' });
     }
 
-    const assets = req.body.assets; // TODO SET AS DICT
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    console.log(assets);
     try {
-        await sequelize.transaction(async (transaction) => {
-            const asset = await Asset.findByPk(assetId, { 
-                attributes: ['status'],
-                transaction: transaction
-            });                
-            if (!asset) {
-                return res.status(400).json({ error: "Asset not found!" });
-            }
-            if (asset.status !== "loaned") {
-                return res.status(400).json({ error: "Asset is not on loan!" });
-            }
-            await FormHelpers.insertAssetEvent(uuid.v4(), assetId, 'returned', remarks, userId, null, filePath, transaction);
-            await FormHelpers.updateStatus(assetId, 'available', transaction);
-            processedIds.add(assetId);
-        })
+        const asset = await Asset.findById(assetId).session(session);
+        if (!asset) {
+            return res.status(400).json({ error: "Asset not found!" });
+        }
+        if (asset.status !== "loaned") {
+            return res.status(400).json({ error: "Asset is not on loan!" });
+        }
+        await FormHelpers.insertAssetEvent(uuid.v4(), assetId, 'returned', req.body.remarks, userId, null, filePath, session);
+        await FormHelpers.updateStatus(assetId, 'available', userId, session);
 
-        return res.json({ message: 'All assets processed successfully.' });
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.json({ message: 'All assets processed successfully.' }); 
         // res.json({ lastProcessedAssetId: assets[assets.length - 1].assetId }); // TODO IMPT did i just submit a single device as an array itself?
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        await session.abortTransaction();
+        session.endSession();
+        console.error("Transaction failed:", error);
+        return res.status(500).json({ error: error.message });
     }
-}
+};
 
 exports.downloadEvent = async (req, res) => {
     const eventId = req.body.eventId;
 
     try {
-        const event = await Event.findByPk(eventId);
+        const event = await Event.findById(eventId);
         if (!event) {
             return res.status(404).send('File not found.');
         }
@@ -94,6 +98,7 @@ exports.downloadEvent = async (req, res) => {
 
         res.download(filePath, event.filePath, { headers: { 'Content-Type': 'application/pdf' } });
     } catch (error) {
+        console.error("Error downloading file:", error);
         res.status(500).send('Internal Server Error');
     }
 };

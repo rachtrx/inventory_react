@@ -4,6 +4,8 @@ import { axiosInstance } from '../config';
 import { ModalProvider } from './ModalProvider';
 import { DrawerProvider } from './DrawerProvider';
 import { GlobalProvider } from './GlobalProvider';
+import FormModal from '../components/FormModal';
+import ItemDrawer from '../components/ItemDrawer';
 
 const AuthContext = createContext(null);
 
@@ -77,13 +79,15 @@ export const AuthProvider = () => {
   
   return (
     <AuthContext.Provider value={{ user, setUser, register, login, logout, checkAuth }}>
-      <GlobalProvider>
+      <ModalProvider>
         <DrawerProvider>
-          <ModalProvider>
+          <GlobalProvider>
             <Outlet />
-          </ModalProvider>
+            <FormModal />
+            <ItemDrawer />
+          </GlobalProvider>
         </DrawerProvider>
-      </GlobalProvider>
+      </ModalProvider>
     </AuthContext.Provider>
   );
 };
