@@ -11,30 +11,35 @@ import {
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { actionTypes, useModal } from '../context/ModalProvider';
+import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
 import AddAsset from './forms/AddAsset';
 import LoanAsset from './forms/LoanAsset';
 import ReturnAsset from './forms/ReturnAsset';
 import CondemnAsset from './forms/CondemnAsset';
+import AddUser from './forms/AddUser';
+import RemoveUser from './forms/RemoveUser';
 
 const formMap = {
-    'addAsset': <AddAsset/>,
-    'loanAsset': <LoanAsset/>,
-    'returnAsset': <ReturnAsset/>,
-    'condemnAsset': <CondemnAsset/>,
+    [formTypes.ADD_ASSET]: <AddAsset/>,
+    [formTypes.LOAN]: <LoanAsset/>,
+    [formTypes.RETURN]: <ReturnAsset/>,
+    [formTypes.DEL_ASSET]: <CondemnAsset/>,
+    [formTypes.ADD_USER]: <AddUser/>,
+    [formTypes.DEL_USER]: <RemoveUser/>,
 }
 
 const headerMap = {
-    'addAsset': "Add Asset",
-    'loanAsset': 'Loan Asset',
-    'returnAsset': 'Return Asset',
-    'condemnAsset': "Condemn Asset",
+    [formTypes.ADD_ASSET]: "Add Asset",
+    [formTypes.LOAN]: 'Loan Asset',
+    [formTypes.RETURN]: 'Return Asset',
+    [formTypes.DEL_ASSET]: "Condemn Asset",
+    [formTypes.ADD_USER]: "Add User",
+    [formTypes.DEL_USER]: "Remove User",
 }
 
 export default function FormModal() { 
 
-    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
-    const { dispatch, formType, initialValues, onSubmit } = useModal();
+    const { dispatch, formType, initialValues, onSubmit, isModalOpen, onModalOpen, onModalClose } = useFormModal();
 
     useEffect(() => {
         if (formType) {

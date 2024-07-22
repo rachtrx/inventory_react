@@ -3,10 +3,10 @@ import { FormLabel, HStack, Switch } from '@chakra-ui/react';
 import { useFormikContext } from 'formik';
 import { useCallback } from 'react';
 import Toggle from './Toggle';
-import { useModal, actionTypes } from '../../../context/ModalProvider';
+import { useFormModal, actionTypes } from '../../../context/ModalProvider';
 
 export default function ExcelToggle({ fieldsToReset }) {
-  const { dispatch } = useModal();
+  const { dispatch } = useFormModal();
   const { setFieldValue } = useFormikContext();
 
   const check_fn = useCallback(() => {

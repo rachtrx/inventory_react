@@ -1,8 +1,8 @@
-const db = require("../models");
+const db = require("../models/postgres");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const logger = require('../logging')
-const { sequelize, Admin, User } = require('../models');
+const { sequelize, Admin, User } = require('../models/postgres');
 const uuid = require('uuid');
 
 exports.login = async (req, res) => {

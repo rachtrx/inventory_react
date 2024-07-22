@@ -1,7 +1,28 @@
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
 	const Dept = require('./Dept');
-	class User extends Model {}
+	class User extends Model {
+
+		createUserObject = function() {
+			const plainUser = this.get({ plain: true })
+			return {
+				id: plainUser.id,
+				name: plainUser.userName,
+				bookmarked: plainUser.bookmarked && true || false,
+				deletedDate: plainUser.deletedDate || null,
+				addedDate: plainUser.addedDate,
+				department: plainUser.Dept.deptName,
+				...plainUser.Assets && { 
+					assets: plainUser.Assets.map(asset => ({
+						id: asset.id,
+						bookmarked: asset.bookmarked,
+						assetTag: asset.assetTag,
+						variant: asset.AssetTypeVariant?.variantName
+					}))
+				}
+			}
+		}
+	}
 
 	User.init({
 		id: {
@@ -29,14 +50,15 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.INTEGER,
 			allowNull: false
 		},
-		registeredDate: {
+		addedDate: {
 			type: DataTypes.DATE,
 			defaultValue: DataTypes.NOW
 		},
-		hasResigned: {
-			type: DataTypes.INTEGER,
-			allowNull: false
-		}
+		deletedDate: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			defaultValue: null
+		},
 	}, {
 		sequelize,
 		modelName: 'User',

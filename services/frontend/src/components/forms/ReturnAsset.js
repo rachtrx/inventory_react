@@ -5,14 +5,14 @@ import InputFormControl from './utils/InputFormControl';
 import SelectFormControl from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
-import { useModal } from "../../context/ModalProvider";
+import { useFormModal } from "../../context/ModalProvider";
 import { useGlobal } from "../../context/GlobalProvider";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
 import { useMemo } from "react";
 
 const ReturnAsset = () => {
 
-    const { isExcel } = useModal()
+    const { isExcel, handleAssetInputChange, assets } = useFormModal()
     const { assetFilters } = useGlobal()
 
     const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
@@ -31,6 +31,8 @@ const ReturnAsset = () => {
               name="asset-tag"
               label="Asset Tag"
               placeholder="Asset Tag"
+              options={assets}
+              onInputChange={(value) => {handleAssetInputChange(value)}}
             />
             <SingleSelectFormControl
               name="user-name"

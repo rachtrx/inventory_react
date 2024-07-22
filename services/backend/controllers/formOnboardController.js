@@ -1,8 +1,9 @@
 const express = require('express');
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models');
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { FormHelpers } = require('./formHelperController')
 const uuid = require('uuid');
+const { eventTypes } = require('./utils');
 
 const pythonTime = (isoString) => {
     return new Date(isoString).toISOString().slice(0, 10); // YYYY-MM-DD format
@@ -49,7 +50,7 @@ exports.onboardDevice = async (req, res) => {
                             id: uuid.v4(),
                             userName,
                             deptId: dept.id,
-                            hasResigned: 0,
+                            deletedDate: null,
                             bookmarked: 0
                         }, { transaction });
                         newUserIds.push(newUser.id);
@@ -85,7 +86,7 @@ exports.onboardDevice = async (req, res) => {
             }
 
             for (const asset of assetArr) {
-                const { serialNumber, assetTag, variantName, userName, vendorName, registeredDate, registeredRemarks, loanedDate, loanedRemarks, modelValue, bookmarked, location } = asset;
+                const { serialNumber, assetTag, variantName, userName, vendorName, addedDate, registeredRemarks, loanedDate, loanedRemarks, modelValue, bookmarked, location } = asset;
             
                 // Check for unique serial number
                 const existingSerial = await Asset.findOne({
@@ -105,12 +106,12 @@ exports.onboardDevice = async (req, res) => {
                     throw new Error(`Asset Tag ${assetTag} already exists!`);
                 }
             
-                if (!registeredDate) {
+                if (!addedDate) {
                     throw new Error(`Asset Tag ${assetTag} has no registered date!`);
                 }
             
                 // Convert registered date from ISO string to Date object
-                const formattedRegisteredDate = new Date(registeredDate);
+                const formattedAddedDate = new Date(addedDate);
             
                 // Fetch variant ID based on the model name
                 const variant = await AssetTypeVariant.findOne({
@@ -156,7 +157,7 @@ exports.onboardDevice = async (req, res) => {
                     location,
                     vendorId: vendor.id,
                     userId,
-                    registeredDate: formattedRegisteredDate,
+                    addedDate: formattedAddedDate,
                     value: modelValue,
                 }, { transaction });
             
@@ -164,10 +165,10 @@ exports.onboardDevice = async (req, res) => {
                 await FormHelpers.insertAssetEvent(
                     uuid.v4(),
                     assetId,
-                    'registered',
+                    eventTypes.ADD_ASSET,
                     registeredRemarks,
                     null,
-                    formattedRegisteredDate,
+                    formattedAddedDate,
                     transaction
                 );
             

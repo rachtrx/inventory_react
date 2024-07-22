@@ -4,6 +4,7 @@ import assetService from '../services/AssetService';
 import userService from '../services/UserService';
 import useDebouncedCallback from '../hooks/useDebounce';
 import useDebounce from '../hooks/useDebounce';
+import { useDisclosure } from '@chakra-ui/react';
 
 const ModalContext = createContext();
 
@@ -15,6 +16,17 @@ const initialState = {
 	assets: [],
 	users: []
 };
+
+export const formTypes = {
+  ADD_ASSET: 'ADD_ASSET',
+  DEL_ASSET: 'DEL_ASSET',
+  LOAN: 'LOAN',
+  RETURN: 'RETURN',
+  ADD_USER: 'ADD_USER',
+  DEL_USER: 'DEL_USER',
+  RESTORE_ASSET: 'RESTORE_ASSET',
+  RESTORE_USER: 'RESTORE_USER'
+}
 
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
@@ -38,7 +50,7 @@ const reducer = (state, action) => {
 		case actionTypes.SET_ASSETS:
 			return { ...state, assets: action.payload };
 		case actionTypes.SET_USERS:
-      return { ...state, isExcel: action.payload };
+      return { ...state, users: action.payload };
     default:
       return state;
   }
@@ -46,7 +58,7 @@ const reducer = (state, action) => {
 
 const getInitialValues = (formType) => {
   switch (formType) {
-    case 'addAsset':
+    case formTypes.ADD_ASSET:
       return {
         model: '',
         vendor: '',
@@ -54,35 +66,52 @@ const getInitialValues = (formType) => {
         'asset-tag': '',
         value: '',
         remarks: '',
-        'bookmark-asset': false,
         'registered-date': new Date(),
+        'bookmark-asset': false,
         'user-name': '',
         'loaned-date': new Date(),
         'bookmark-user': false,
       };
-    case 'loanAsset':
+    case formTypes.LOAN:
       return {
-        'asset-tag': '',
-        username: '',
+        'asset-id': '',
+        'user-id': '',
         'loaned-date': new Date(),
         'bookmark-asset': false,
         'bookmark-user': false,
         remarks: '',
       };
-    case 'returnAsset':
+    case formTypes.RETURN:
       return {
-        'asset-tag': '',
+        'asset-id': '',
         'returned-date': new Date(),
         'bookmark-asset': false,
         'bookmark-user': false,
         remarks: '',
       };
-    case 'condemnAsset':
+    case formTypes.DEL_ASSET:
       return {
-        'asset-tag': '',
+        'asset-id': '',
+        'user-id': '',
+        'condemned-date': new Date(),
         'bookmark-asset': false,
         'bookmark-user': false,
-        'condemned-date': new Date(),
+        remarks: '',
+      };
+    case formTypes.ADD_USER:
+      return {
+        'dept': '',
+        'new-dept': '',
+        'user-name': '',
+        'added-date': new Date(),
+        'bookmark-user': false,
+        remarks: '',
+      };
+    case formTypes.DEL_USER:
+      return {
+        'user-id': '',
+        'removed-date': new Date(),
+        'bookmark-user': false,
         remarks: '',
       };
     default:
@@ -95,6 +124,8 @@ const runValidationChecks = (values) => {
 };
 
 export const ModalProvider = ({ children }) => {
+
+  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [state, dispatch] = useReducer(reducer, initialState);
   const { setLoading } = useUI();
 
@@ -106,7 +137,7 @@ export const ModalProvider = ({ children }) => {
       try {
         if (runValidationChecks(values)) {
           switch (state.formType) {
-            case 'addAsset':
+            case 'AddAsset':
               await assetService.addAsset(values);
               break;
             case 'loanAsset':
@@ -117,6 +148,12 @@ export const ModalProvider = ({ children }) => {
               break;
             case 'condemnAsset':
               await assetService.condemnAsset(values);
+              break;
+            case 'AddUser':
+              await userService.addUser(values);
+              break;
+            case 'removeUser':
+              await userService.removeUser(values);
               break;
             default:
               break; // TODO NEED ERROR?
@@ -142,6 +179,7 @@ export const ModalProvider = ({ children }) => {
 
   const handleUserSearch = async (value) => {
     const response = await userService.searchUsers(value, state.formType);
+    console.log(response.data);
     dispatch({ type: actionTypes.SET_USERS, payload: response.data });
   };
 
@@ -157,10 +195,10 @@ export const ModalProvider = ({ children }) => {
   };
 
   return (
-    <ModalContext.Provider value={{ ...state, dispatch, handleAssetInputChange, handleUserInputChange }}>
+    <ModalContext.Provider value={{ ...state, dispatch, handleAssetInputChange, handleUserInputChange, isModalOpen, onModalOpen, onModalClose }}>
       {children}
     </ModalContext.Provider>
   );
 };
 
-export const useModal = () => useContext(ModalContext);
+export const useFormModal = () => useContext(ModalContext);

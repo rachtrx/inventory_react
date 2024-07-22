@@ -6,7 +6,7 @@ class UserService {
         this.axios = axiosInstance;
     }
 
-    async loadUser(id) {
+    async getUser(id) {
         return await this.axios.get(`${API_URL}/users/${id}`);
     }
 
@@ -22,8 +22,16 @@ class UserService {
         return await this.axios.get(`${API_URL}/users/`);
     }
 
-    async searchUsers() {
-        return await this.axios.get(`${API_URL}/users/search`);
+    async searchUsers(value, formType) {
+        return await this.axios.post(`${API_URL}/users/search`, {value, formType});
+    }
+
+    async addUser(data) {
+        return await this.axios.get(`${API_URL}/users/add`, data);
+    }
+
+    async removeUser(id) {
+        return await this.axios.get(`${API_URL}/users/remove`, id);
     }
 }
 

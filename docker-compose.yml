@@ -1,21 +1,21 @@
 # NEW FILE AS OF JUL 2024
 
 services:
-  backend:
-    build: ./services/backend
-    ports:
-      - "3001:3001"
-    expose:
-      - 3001
-    depends_on:
-      - db
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - JWT_SECRET=${JWT_SECRET}
-    volumes:
-      - ./services/backend/logs:/usr/src/app/logs
-    networks:
-      - inventory_app
+  # backend:
+  #   build: ./services/backend
+  #   ports:
+  #     - "3001:3001"
+  #   expose:
+  #     - 3001
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     - NODE_ENV=${NODE_ENV}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #   volumes:
+  #     - ./services/backend/logs:/usr/src/app/logs
+  #   networks:
+  #     - inventory_app
   # web:
   #   build: 
   #     context: ./services/web
@@ -50,35 +50,47 @@ services:
       - "5432:5432"
     networks:
       - inventory_app
-  frontend:
-    build:
-      context: ./services/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    # volumes:
-    #   - ./services/frontend:/workspace
-    environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-      - WATCHPACK_POLLING=true
-    networks:
-      - inventory_app
-  nginx:
+  mongodb:
     build: 
-      context: ./services/nginx
+      context: ./services/mongo
       dockerfile: Dockerfile
+    container_name: mongodb
     ports:
-      - "80:80"
-    depends_on:
-      - backend
-      - frontend
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
     networks:
       - inventory_app
+  # frontend:
+  #   build:
+  #     context: ./services/frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   # volumes:
+  #   #   - ./services/frontend:/workspace
+  #   environment:
+  #     - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+  #     - WATCHPACK_POLLING=true
+  #   networks:
+  #     - inventory_app
+  # nginx:
+  #   build: 
+  #     context: ./services/nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #     - frontend
+  #   networks:
+  #     - inventory_app
 
 volumes:
   postgres_data_prod:
-  static_volume:
-  uploads_volume:
+  mongo-data:
+  # static_volume:
+  # uploads_volume:
 
 networks:
   inventory_app:
