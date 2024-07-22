@@ -2,16 +2,16 @@ import { Box, Flex } from "@chakra-ui/react";
 import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import SelectFormControl from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
 import { useGlobal } from "../../context/GlobalProvider";
 import { useFormModal } from "../../context/ModalProvider";
 import { MultiSelectFormControl } from "./utils/SelectFormControl";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import Toggle from "./utils/Toggle";
 
-const AddAsset = () => {
+const RemoveUser = () => {
 
     const { isExcel } = useFormModal()
     const { assetFilters, userFilters } = useGlobal()
@@ -29,44 +29,12 @@ const AddAsset = () => {
           <ExcelFormControl expectedKeys={null}/>
         ) : (
           <>
-            <SingleSelectFormControl
-              name="model"
-              label="Model Name"
-              placeholder="Model Name"
-            />
             <SingleSelectFormControl 
-                name="vendor"
-                label="Vendor"
-                placeholder="Vendor"
-                options={assetFilters.vendors}
+                name="user-id"
+                label="Name"
+                placeholder="Name"
             />
-            <InputFormControl
-              name="serial-number"
-              label="Serial Number"
-              placeholder="Serial Number"
-            />
-            <InputFormControl
-              name="asset-tag"
-              label="Asset Tag"
-              placeholder="Asset Tag"
-            />
-            <InputFormControl
-              name="value"
-              label="Value"
-              placeholder="Value"
-            />
-            <DateInputControl label="Added Date" name="registered-date" />
-            <SingleSelectFormControl
-              name="user-name"
-              label="User Name"
-              placeholder="User Name"
-            />
-            <DateInputControl label="Loan Date" name="loaned-date" />
-            <FormToggle
-              label="Bookmark Asset"
-              name="bookmark-asset"
-              value={true}
-            />
+            <DateInputControl label="Removed Date" name="removed-date" />
             <FormToggle
               label="Bookmark User"
               name="bookmark-user"
@@ -84,4 +52,4 @@ const AddAsset = () => {
   );
 };
 
-export default AddAsset;
+export default RemoveUser;

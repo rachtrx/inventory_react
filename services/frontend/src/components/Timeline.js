@@ -3,10 +3,11 @@ import { EditIcon, DownloadIcon, CheckIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { useDrawer } from '../context/DrawerProvider';
 import EditableField from './utils/EditableField';
+import { Field, Form, Formik } from 'formik';
 
 const Timeline = ({ events }) => {
 
-    const { handleRemarksSave } = useDrawer()
+    const { handleAddRemark } = useDrawer()
 
     return (
         <VStack align="stretch" position="relative" before={{
@@ -29,12 +30,32 @@ const Timeline = ({ events }) => {
                         {new Date(ev.eventDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}
                     </Text>
                     <Text fontSize="sm">{ev.eventType}</Text>
-                    <EditableField
-                        label="Remarks"
-                        fieldKey={ev.id}
-                        value={ev.remarks}
-                        handleSave={handleRemarksSave}
-                    />
+                    <VStack spacing={4} align="stretch">
+                        {ev.remarks.map((remark, index) => (
+                            <Text key={index} fontSize="xs">
+                                {remark.text} - <i>remarked by {remark.authorisedUserId} on {new Date(remark.remarkedAt).toLocaleDateString()}</i>
+                            </Text>
+                        ))}
+                    </VStack>
+                    <Formik
+                        initialValues={{ remark: '' }}
+                        onSubmit={(values, { setSubmitting, resetForm }) => {
+                            if (values.remark.trim()) {
+                                handleAddRemark(ev.id, values.remark, Date.now());
+                                resetForm();
+                            }
+                            setSubmitting(false);
+                        }}
+                    >
+                        {({ isSubmitting }) => (
+                        <Form>
+                            <Field as={Input} name="remark" placeholder="Add a remark..." size="sm" />
+                            <Button mt="2" size="sm" type="submit" isLoading={isSubmitting}>
+                                Add Remark
+                            </Button>
+                        </Form>
+                        )}
+                    </Formik>
                     {ev.filePath && (
                         <Button size="sm" leftIcon={<DownloadIcon />} data-event-id={ev.id} mr="2">
                             Download PDF

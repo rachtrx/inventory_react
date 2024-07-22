@@ -1,6 +1,6 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models');
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const uuid = require('uuid');
 const FormHelpers = require('./formHelperController');
 
@@ -74,7 +74,7 @@ exports.createUser = async (req, res) => {
                     userName: userName,
                     deptId: deptId,
                     bookmarked: false,
-                    hasResigned: false
+                    deletedDate: null
                 }, { transaction: t });
 
                 const eventId = uuid.v4();
@@ -102,14 +102,14 @@ exports.deleteUser = async (req, res) => {
                     throw new Error("Can't delete the same user!");
                 }
                 const user = await User.findByPk(userId, { 
-                    attributes: ['hasResigned'],
+                    attributes: ['deletedDate'],
                     transaction: transaction
                 });
     
                 if (!user) {
                   throw new Error(`User Name ${userName} doesn't exist!`);
                 }
-                if (user.hasResigned) {
+                if (user.deletedDate) {
                     throw new Error("User has already been removed!");
                 }
                 const userDevice = await Asset.findOne({
@@ -122,7 +122,7 @@ exports.deleteUser = async (req, res) => {
                 userIds.add(userId);
         
                 await insertUserEvent(uuid.v4(), 'removed', userId, remarks, t);
-                await User.update({ hasResigned: 1 }, {
+                await User.update({ deletedDate: 1 }, { // TODO UPDATE!
                     where: { id: userId },
                     transaction: t
                 });

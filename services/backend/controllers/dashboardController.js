@@ -1,7 +1,6 @@
-const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize, Event } = require('../models');
+const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize } = require('../models/postgres');
 const { Op } = require('sequelize')
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController')
-const { getLatestEventIds } = require('./utils')
 
 exports.dashboard = async(req, res, next) => {
 	try {
@@ -17,13 +16,9 @@ exports.dashboard = async(req, res, next) => {
 			},{
 				model: Asset,
 				attributes: [],  // Include only the 'asset_type' from AssetType
-				include: [{
-					model: Event,
-					attributes: [], 
-					where: {
-						eventType: { [Op.ne]: 'condemned' }
-					},
-				}],
+				where: {
+					deletedDate: { [Op.eq]: null }
+				},
 			}],
 			// where: {
 			// 	'$Assets.status$': { [Op.ne]: 'condemned' }  // Accessing status from the associated Asset model
@@ -44,13 +39,9 @@ exports.dashboard = async(req, res, next) => {
 				{
 					model: Asset,
 					attributes: [],
-					include: [{
-						model: Event,
-						attributes: [], 
-						where: {
-							eventType: { [Op.ne]: 'condemned' }
-						},
-					}]
+					where: {
+						deletedDate: { [Op.eq]: null }
+					},
 					// required: true  // Ensures an inner join, excluding AssetTypeVariants without valid Assets
 				},
 				{
@@ -63,29 +54,18 @@ exports.dashboard = async(req, res, next) => {
 			order: [[Sequelize.fn('SUM', Sequelize.cast(Sequelize.col('Assets.value'), 'FLOAT')), 'DESC']],
 			raw: true
 		});
-		
-		async function getDevicesStatus() {
-			const latestEventIds = await getLatestEventIds(includeEvents=['loaned', 'registered', 'returned']);
-		
-			const devicesStatus = await Asset.findAll({
-				attributes: [
-					[Sequelize.col('Events.event_type'), 'label'],
-					[Sequelize.fn('COUNT', Sequelize.col('Asset.id')), 'data']
-				],
-				include: [{
-					model: Event,
-					attributes: [],
-					where: {
-						id: { [Op.in]: latestEventIds }
-					}
-				}],
-				group: ['label'],
-				raw: true
-			});
-		
-			return devicesStatus;
-		}
-		const devicesStatus = await getDevicesStatus()
+			
+		const devicesStatus = await Asset.findAll({
+			attributes: [
+				[Sequelize.fn('COUNT', Sequelize.col('Asset.id')), 'data'],
+				[Sequelize.literal(`CASE WHEN "user_id" IS NOT NULL THEN 'Unavailable' ELSE 'Available' END`), 'label']
+			],
+			where: {
+				deletedDate: { [Op.eq]: null }
+			},
+			group: ['label'],  // Make sure to include all grouped fields
+			raw: true
+		});
 
 		// Users by department
 		const users = await User.findAll({
@@ -98,8 +78,8 @@ exports.dashboard = async(req, res, next) => {
 				attributes: []
 			}],
 			where: {
-				has_resigned: {
-					[Op.ne]: 1
+				deletedDate: {
+					[Op.eq]: null
 				}
 			},
 			group: 'label',
@@ -121,9 +101,7 @@ exports.dashboard = async(req, res, next) => {
 				required: true
 			}],
 			where: {
-				has_resigned: {
-					[Op.ne]: 1
-				}
+				deletedDate: { [Op.eq]: null }
 			},
 			group: ['label'],  // Grouping by department name
 			order: [['data', 'ASC']],  // Order by the count of assets
@@ -132,12 +110,11 @@ exports.dashboard = async(req, res, next) => {
 		
 		// Age of assets
 		const devicesAgeQuery = `SELECT 
-			FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25) AS label,
+			FLOOR(DATE_PART('day', NOW() - added_date) / 365.25) AS label,
 			COUNT(*) AS "data"
 		FROM "assets"
-		JOIN "events" ON "assets"."last_event_id" = "events"."id"
-		WHERE "events"."event_type" != 'condemned'
-		GROUP BY FLOOR(DATE_PART('day', NOW() - registered_date) / 365.25)
+		WHERE "deleted_date" IS NULL
+		GROUP BY FLOOR(DATE_PART('day', NOW() - added_date) / 365.25)
 		ORDER BY label DESC;
 		`;
 		const devicesAge = await sequelize.query(devicesAgeQuery, {
@@ -154,14 +131,9 @@ exports.dashboard = async(req, res, next) => {
 			include: [{
 					model: Asset,
 					attributes: [],  // No attributes are needed from the Asset model directly
-					include: [{
-						model: Event,
-						attributes: [], 
-						where: {
-							eventType: { [Op.ne]: 'condemned' }
-						},
-						// required: true  // Ensures INNER JOIN, meaning only AssetTypeVariants with non-condemned Assets are included
-					}]
+					where: {
+						deletedDate: { [Op.eq]: null }
+					},
 			}, {
 					model: AssetType,
 					attributes: []  // Including AssetType but not selecting attributes directly here, used in the top-level attributes instead
@@ -181,13 +153,9 @@ exports.dashboard = async(req, res, next) => {
 					model: Asset,
 					as: 'Assets',
 					attributes: [],
-					include: [{
-						model: Event,
-						attributes: [], 
-						where: {
-							eventType: { [Op.ne]: 'condemned' }
-						},
-					}],
+					where: {
+						deletedDate: { [Op.eq]: null }
+					},
 					where: {
 						value: { [Op.ne]: 0 }
 					}
@@ -202,16 +170,15 @@ exports.dashboard = async(req, res, next) => {
 		
 		// Cost per year
 		const costPerYearByAssetQuery = `SELECT 
-			EXTRACT(YEAR FROM registered_date) AS group,
+			EXTRACT(YEAR FROM added_date) AS group,
 			SUM(value) AS data,
 			asset_types.asset_type as label
 			FROM assets
 			JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
 			JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
-			JOIN "events" ON "assets"."last_event_id" = "events"."id"
-			WHERE "events"."event_type" != 'condemned'
-			GROUP BY registered_date, asset_types.asset_type
-			ORDER BY registered_date ASC, asset_types.asset_type ASC
+			WHERE deleted_date IS NULL
+			GROUP BY added_date, asset_types.asset_type
+			ORDER BY added_date ASC, asset_types.asset_type ASC
 		`;
 		const costPerYearByAsset = await sequelize.query(costPerYearByAssetQuery, {
 			type: Sequelize.QueryTypes.SELECT

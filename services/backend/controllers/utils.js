@@ -1,30 +1,17 @@
-const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize, Event } = require('../models');
-const { Op } = require('sequelize')
-
-async function getLatestEventIds(forUsers=false, includeEvents=null, asset_id=null, user_id=null) {
-    const whereCondition = {};
-	if (includeEvents) {
-		whereCondition.event_type = { [Op.in]: includeEvents };
-	}
-	if (asset_id) {
-		whereCondition.asset_id = asset_id;
-	}
-	if (user_id) {
-		whereCondition.user_id = user_id;
-	}
-
-    const events = await Event.findAll({
-        attributes: [
-            // forUsers ? 'user_id' : 'asset_id',
-            [Sequelize.fn('MAX', Sequelize.col('id')), 'max_id']
-        ],
-        where: whereCondition,
-        group: forUsers ? ['user_id'] : ['asset_id'],
-        raw: true
-    });
-
-    // Map to get only max_id which is the latest event id for each asset
-    return events.map(event => event.max_id);
+const formTypes = {
+    ADD_ASSET: 'ADD_ASSET',
+    DEL_ASSET: 'DEL_ASSET',
+    LOAN: 'LOAN',
+    RETURN: 'RETURN',
+    ADD_USER: 'ADD_USER',
+    DEL_USER: 'DEL_USER',
 }
 
-module.exports = { getLatestEventIds };
+const formToEventMap = {
+    [formTypes.ADD_ASSET]: 'ADD',
+    [formTypes.DEL_ASSET]: 'DEL',
+    [formTypes.LOAN]: 'LOAN',
+    [formTypes.RETURN]: 'RETURN',
+    [formTypes.ADD_USER]: 'ADD',
+    [formTypes.DEL_USER]: 'DEL',
+}

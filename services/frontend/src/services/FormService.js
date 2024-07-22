@@ -10,11 +10,11 @@ export default class FormService {
         return axios.get(`${API_URL}/forms/return/${id}`);
     }
 
-    static addAsset(data) { // device type and model
+    static AddAsset(data) { // device type and model
         return axios.post(`${API_URL}/forms/add/`, data);
     }
 
-    static registerAsset(data) {
+    static AddAsset(data) {
         return axios.post(`${API_URL}/forms/register/`, data);
     }
 
@@ -30,8 +30,8 @@ export default class FormService {
         return axios.post(`${API_URL}/forms/condemn/`, id);
     }
 
-    static addUser(data) { // dept and user
-        return axios.post(`${API_URL}forms/adduser/`, data);
+    static AddUser(data) { // dept and user
+        return axios.post(`${API_URL}forms/AddUser/`, data);
     }
 
     static removeUser(id) {

@@ -1,4 +1,4 @@
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models');
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const uuid = require('uuid');
 
 exports.searchVariants = async (req, res) => {
@@ -30,8 +30,6 @@ exports.searchVariants = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
-
-
 
 exports.searchUser = async (req, res) => {
     const { assetId } = req.body;

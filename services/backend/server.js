@@ -1,6 +1,7 @@
 require('dotenv').config();
 const app = require('./app'); // Import the express app we defined
-const db = require('./models'); // Import your Sequelize setup from index.js
+const db = require('./models/postgres'); // Import your Sequelize setup from index.js
+const { connectDB } = require('./models/mongo'); 
 
 const printRoutes = (app) => {
 	console.log('Registered routes:');
@@ -27,6 +28,7 @@ const startServer = async () => {
   try {
     // Sync database
     await db.syncAll({ force: false }); // Change to { force: true } only if you understand the consequences
+    await connectDB()
     console.log('Database synchronized successfully.');
 
     // Start listening for requests

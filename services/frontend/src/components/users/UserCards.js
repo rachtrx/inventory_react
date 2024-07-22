@@ -12,65 +12,44 @@ import { ExternalLinkIcon } from '@chakra-ui/icons';
 import Cards from '../utils/Cards';
 import { useDrawer } from "../../context/DrawerProvider";
 import ActionButton from "../buttons/ActionButton";
-import { useModal } from "../../context/ModalProvider";
+import { formTypes, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
-import { SplitReturnButton } from "../buttons/SplitReturnButton";
-import { StarToggle } from "../utils/StarToggle";
+import { SplitButton, UserActionButton } from "../buttons/SplitButton";
+import StarButton from "../buttons/StarButton";
 import { useGlobal } from "../../context/GlobalProvider";
+import { ItemLink } from "../buttons/ItemLink";
 
 function UserCards({ items }) {
 
   const [hoveredUserId, setHoveredUserId] = useState(null);
 
-    const { handleItemClick } = useDrawer()
-    const { handleUserToggle } = useGlobal()
-    const { setFormType } = useModal()
+  const { handleItemClick } = useDrawer()
+  const { handleUserToggle } = useGlobal()
 
-    return (
-        <Cards>
-        {items.map((user) => (
-        <Box key={user.id}>
+  return (
+    <Cards>
+    {items.map((user) => (
+      <Box key={user.id}>
         <Card 
           h="100%" 
           w="100%" 
           _hover={{
-            bg: hoveredUserId === user.id ? 'blue.50' : 'blue.100',
-            cursor: 'pointer',
+            bg: hoveredUserId === user.id ? 'gray.50' : 'gray.100',
           }}
-          _active={{ bg: hoveredUserId === user.id ? 'blue.50' : 'blue.200', }}
+          _active={{ bg: hoveredUserId === user.id ? 'gray.50' : 'gray.200', }}
         >
           <CardBody onClick={() => handleItemClick(user)}>
-            <Text fontSize="xl" fontWeight="bold" color="blue.500">
-              {user.name}
-            </Text>
+          <VStack align="start">
+          <ItemLink item={user} size={'lg'} fontWeight="bold" setHoveredFn={setHoveredUserId}/>
             <Text fontSize="md" fontWeight="semibold">
               {user.department}
             </Text>
             
-            {user.assets && (
-              <>
-                <Text fontSize="lg" fontWeight="semibold">Assets</Text>
-                <VStack
-                  align="stretch"
-                  spacing={2}
-                  overflowY="auto"
-                  maxH="50px"
-                >
-                  {user.assets.map((asset) => (
-                    <Box key={asset.id} w="100%">
-                    <SplitReturnButton
-                      item={asset}
-                      onMouseEnterFn={() => setHoveredUserId(user.id)}
-                      onMouseLeaveFn={() => setHoveredUserId(null)}
-                    />
-                  </Box>
-                  ))}
-                </VStack>
-              </>
-            )}
+            <UserActionButton user={user} setHoveredUserId={setHoveredUserId}/>
+            </VStack>
           </CardBody>
           
-          <StarToggle
+          <StarButton
             position="absolute" top={2} right={2}
             id={user.id}
             isBookmarked={user.bookmarked}
@@ -79,8 +58,8 @@ function UserCards({ items }) {
         </Card>
       </Box>
       ))}
-        </Cards>
-    );
+    </Cards>
+  );
 }
 
 export default UserCards

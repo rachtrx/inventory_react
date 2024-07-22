@@ -2,14 +2,14 @@ import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid } from '
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
-import { useModal } from '../../context/ModalProvider';
+import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
 import Timeline from '../Timeline';
 import EditableField from '../utils/EditableField';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
-  const { setFormType } = useModal()
+  const { dispatch } = useFormModal()
 
 	return (
 		<Box p={4}>
@@ -83,7 +83,7 @@ const Asset = ({ asset }) => {
               <Button onClick={() => handleItemClick(asset.user)} colorScheme="blue">
                 {asset.user.name}
               </Button>
-              <ActionButton bg="orange.100" onClick={() => setFormType('returnAsset')}>
+              <ActionButton bg="orange.100" onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.RETURN })}>
                 Return
               </ActionButton>
             </Flex>
@@ -100,10 +100,10 @@ const Asset = ({ asset }) => {
         />
         {asset.status !== 'condemned' && asset.status !== 'loaned' && (
           <Flex gridGap="2">
-            <Button onClick={() => setFormType('condemn')} data-asset-id={asset.id} colorScheme="red">
+            <Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.DEL_ASSET })} colorScheme="red">
               CONDEMN
             </Button>
-            <Button onClick={() => setFormType('loan')} data-asset-id={asset.id} colorScheme="green">
+            <Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.LOAN })} data-asset-id={asset.id} colorScheme="green">
               LOAN
             </Button>
           </Flex>

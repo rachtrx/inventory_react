@@ -1,13 +1,13 @@
 import { Heading } from '@chakra-ui/react';
 import { useResponsive } from '../../context/ResponsiveProvider';
+import { ResponsiveText } from './ResponsiveText';
 
 function InfoBar({count}) {
-    const { headerSize, textSize } = useResponsive()
 
     return (
-        <Heading as="h5" size={textSize}>
+        <ResponsiveText size={'lg'}>
             {count} Results Found
-        </Heading>
+        </ResponsiveText>
     )
 }
 
