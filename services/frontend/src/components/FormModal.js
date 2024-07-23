@@ -57,27 +57,9 @@ export default function FormModal() {
         <Modal isOpen={isModalOpen} onClose={handleClose} size="xl">
             <ModalOverlay />
             <ModalContent>
-                <Formik
-                    initialValues={initialValues}
-                    onSubmit={onSubmit}
-                    enableReinitialize={true}
-                >
-                    <Form style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                        <ModalCloseButton />
-                        <ModalHeader>{headerMap[formType]}</ModalHeader>
-    
-                        <ModalBody style={{ overflowY: "auto", maxHeight: "70vh" }}>
-                            {formMap[formType]}
-                        </ModalBody>
-    
-                        <ModalFooter>
-                            <Button variant='outline' mr={3} onClick={onModalClose}>
-                                Cancel
-                            </Button>
-                            <Button colorScheme='blue' type="submit">Submit</Button>
-                        </ModalFooter>
-                    </Form>
-                </Formik>
+                <ModalCloseButton />
+                <ModalHeader>{headerMap[formType]}</ModalHeader>
+                {formMap[formType]}
             </ModalContent>
         </Modal>
     );

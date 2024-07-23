@@ -23,8 +23,39 @@ export const UIProvider = ({ children }) => {
   };
 
   const handleError = (error) => {
-    setError(error);
-    showToast(error, 'error');
+    let errorMessage = 'An unexpected error occurred. Please try again later.';
+
+    if (error.response) {
+      const status = error.response.status;
+      switch (status) {
+        case 400:
+          errorMessage = 'There was a problem with your request. Please check your data and try again.';
+          break;
+        case 401:
+          errorMessage = 'You are not authorized. Please login and try again.';
+          break;
+        case 403:
+          errorMessage = 'Access denied. You do not have permission to perform this action.';
+          break;
+        case 404:
+          errorMessage = 'The requested resource was not found.';
+          break;
+        case 500:
+          errorMessage = 'An issue with the server has occured. Please try again later.';
+          break;
+        default:
+          errorMessage = `Received unexpected response from the server: ${status}`;
+      }
+    } else if (error.request) {
+      errorMessage = 'No response was received from the server. Please check your network connection.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = error
+    }
+
+    setError(errorMessage); // Assuming setError updates your component's state
+    showToast(errorMessage, 'error'); // Show toast notification with the error message
   };
 
   return (

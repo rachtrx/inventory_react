@@ -17,9 +17,11 @@ module.exports = (sequelize, DataTypes) => {
 						id: asset.id,
 						bookmarked: asset.bookmarked,
 						assetTag: asset.assetTag,
-						variant: asset.AssetTypeVariant?.variantName
-					}))
-				}
+						variant: asset.AssetTypeVariant?.variantName,
+						assetType: asset.AssetTypeVariant?.AssetType?.assetType,
+					})),
+				},
+				status: plainUser.deletedDate ? 'Deleted' : plainUser.Assets.length === 1 ? '1 Asset' : plainUser.Assets.length > 1 ? `${plainUser.Assets.length} Assets` : 'Available',
 			}
 		}
 	}

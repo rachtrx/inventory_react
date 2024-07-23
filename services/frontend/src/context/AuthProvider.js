@@ -1,11 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { axiosInstance } from '../config';
-import { ModalProvider } from './ModalProvider';
-import { DrawerProvider } from './DrawerProvider';
-import { GlobalProvider } from './GlobalProvider';
-import FormModal from '../components/FormModal';
-import ItemDrawer from '../components/ItemDrawer';
+import { useUI } from './UIProvider';
 
 const AuthContext = createContext(null);
 
@@ -14,80 +10,35 @@ export const AuthProvider = () => {
   console.log("Rendering Auth Provider");
 
   const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation()
-
-  const logout = useCallback(async () => {
-    console.log("Logging out!");
-    if (location.pathname === '/login') return;
-
-    try {
-        await axiosInstance.post('/auth/logout'); // Call to backend to clear the cookie
-        setUser(null);
-        navigate('/login', { replace: true });
-    } catch (error) {
-        console.error("Failed to log out:", error);
-    }
-  }, [navigate, location]);
-
-  const login = useCallback(async (email, password) => {
-    try {
-      const response = await axiosInstance.post('/auth/login', { email, password });
-      const { userName } = response.data;
-      console.log(userName);
-      setUser(userName);
-    } catch (error) {
-      throw error;
-    }
-  }, []);
-
-  const register = useCallback(async (adminName, email, password) => {
-    try {
-      await axiosInstance.post('/auth/register', { adminName, email, password });
-    } catch (error) {
-      console.error('Registration failed:', error.response ? error.response.data : error);
-      throw error;
-    }
-  }, []);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get('auth/checkAuth');
-      console.log(response);
-      const { userName } = response.data;
-      setUser(userName);
-    } catch (error) {
-      console.error("Not authorized:", error);
-      logout();
-    }
-  }, [logout]); // Add dependencies as needed
+  const { handleError } = useUI()
 
   useEffect(() => {
     const interceptorId = axiosInstance.interceptors.response.use(
       response => response,
       error => {
+        if (error.config.headers['Skip-Interceptor']) {
+          console.log("From interceptor");
+          return Promise.reject(error); // Bypass interceptor processing
+        }
+
         console.log(`User in authprovider axios: ${user}`);
-        if (!user) logout();
+        if (error.response && error.response.status === 401 && user) {
+          handleError("Your session has timed out, please login again");
+          setUser(null);
+        }
+
         return Promise.reject(error);
       }
     );
-  
+
     return () => {
       axiosInstance.interceptors.response.eject(interceptorId);
     };
-  }, [user, logout]);
+  }, [user, handleError]);
   
   return (
-    <AuthContext.Provider value={{ user, setUser, register, login, logout, checkAuth }}>
-      <ModalProvider>
-        <DrawerProvider>
-          <GlobalProvider>
-            <Outlet />
-            <FormModal />
-            <ItemDrawer />
-          </GlobalProvider>
-        </DrawerProvider>
-      </ModalProvider>
+    <AuthContext.Provider value={{ user, setUser }}>
+      <Outlet />
     </AuthContext.Provider>
   );
 };

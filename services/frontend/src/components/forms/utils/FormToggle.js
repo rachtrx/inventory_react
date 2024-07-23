@@ -3,7 +3,7 @@ import { useFormikContext } from 'formik';
 import Toggle from './Toggle';
 import { useCallback } from 'react';
 
-export default function FormToggle({label, name, value}) {
+export default function FormToggle({label, name}) {
 
     const { setFieldValue } = useFormikContext();
   
@@ -12,11 +12,11 @@ export default function FormToggle({label, name, value}) {
         <Toggle 
           label={label}
           check_fn={useCallback(() => {
-            setFieldValue(name, value)
-          }, [setFieldValue, name, value])}
+            setFieldValue(name, true)
+          }, [setFieldValue, name])}
           uncheck_fn={useCallback(() => {
-            setFieldValue(name, value)
-          }, [setFieldValue, name, value])}
+            setFieldValue(name, false)
+          }, [setFieldValue, name])}
         />
     );    
 };

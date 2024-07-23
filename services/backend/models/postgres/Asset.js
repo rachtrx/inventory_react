@@ -102,5 +102,28 @@ module.exports = (sequelize, DataTypes) => {
 		sequelize,
 		modelName: 'Asset'
 	});
+
+	Asset.beforeUpdate((instance, options) => {
+		if (instance.changed('userId')) {
+			const previousUserId = instance.previous('userId');
+		
+			if (previousUserId !== null) {
+				// console.log(`Clearing userId from ${previousUserId} to null`);
+				User.update({}, { where: { id: previousUserId } });
+		  	}
+		}
+	});
+	  
+	Asset.afterUpdate((instance, options) => {
+		if (instance.changed('userId')) {
+			const newUserId = instance.get('userId');
+		
+			if (newUserId) {
+				User.update({}, { where: { id: newUserId } });
+			}
+		}
+	});
+
+
 	return Asset;
 }

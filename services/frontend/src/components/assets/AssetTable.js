@@ -4,7 +4,7 @@ import { useDrawer } from '../../context/DrawerProvider';
 import { useGlobal } from '../../context/GlobalProvider';
 import StarButton from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';
-import { AssetActionButton, SplitButton } from '../buttons/SplitButton';
+import { AssetActionButton, SplitButton } from '../users/AssetList';
 import { useState } from 'react';
 import ActionButton from '../buttons/ActionButton';
 import { formTypes } from '../../context/ModalProvider';
@@ -12,8 +12,6 @@ import { ItemLink } from '../buttons/ItemLink';
 
 const AssetTable = ({ items }) => {
 
-	const { handleItemClick } = useDrawer()
-  const [ hoveredAssetId, setHoveredAssetId ] = useState(null);
   const { handleAssetToggle } = useGlobal()
 
   return (
@@ -32,11 +30,8 @@ const AssetTable = ({ items }) => {
         {items.map((asset) => (
           <Tr 
             key={asset.id}
-            _hover={{
-              bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.100',
-            }}
-            _active={{ bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.200', }}
-            onClick={() => handleItemClick(asset)}
+            _hover={{ bg: 'gray.100' }}
+            // onClick={() => handleItemClick(asset)}
           >
             <Td>
               <StarButton
@@ -47,11 +42,7 @@ const AssetTable = ({ items }) => {
             </Td>
             <Td><ResponsiveText>{asset.assetType}</ResponsiveText></Td>
             <Td><ResponsiveText>{asset.variant}</ResponsiveText></Td>
-            <Td>
-              <ResponsiveText>
-                <ItemLink item={asset} setHoveredFn={setHoveredAssetId}/>
-              </ResponsiveText>
-            </Td>
+            <Td><ItemLink item={asset} fontWeight="bold"/></Td>
             <Td>
               <ActionButton formType={asset.user ? formTypes.RETURN : asset.deletedDate ? formTypes.RESTORE_ASSET : formTypes.LOAN} item={asset} />
             </Td>

@@ -14,7 +14,7 @@ import Cards from '../utils/Cards';
 import { useDrawer } from '../../context/DrawerProvider';
 import StarButton from '../buttons/StarButton';
 import { useGlobal } from '../../context/GlobalProvider';
-import { AssetActionButton, SplitButton } from '../buttons/SplitButton';
+import { AssetActionButton, SplitButton } from '../users/AssetList';
 import { useState } from 'react';
 import ActionButton from '../buttons/ActionButton';
 import { formTypes } from '../../context/ModalProvider';
@@ -24,10 +24,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 
 
 function AssetCards({items}) {
-    const { handleItemClick } = useDrawer()
     const { handleAssetToggle } = useGlobal()
-
-    const [hoveredAssetId, setHoveredAssetId] = useState(null);
     
     return (
         <Cards>
@@ -37,14 +34,11 @@ function AssetCards({items}) {
                     h="100%" 
                     w="100%" 
                     bg="transparent" 
-                    _hover={{
-                        bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.100',
-                    }}
-                    _active={{ bg: hoveredAssetId === asset.id ? 'gray.50' : 'gray.200', }}
+                    _hover={{ bg:  'gray.100' }}
                 >
-                    <CardBody onClick={() => handleItemClick(asset)}>
+                    <CardBody>  {/*onClick={() => handleItemClick(asset)} */}
                         <VStack align="start">
-                            <ItemLink item={asset} size={'lg'} fontWeight="bold" setHoveredFn={setHoveredAssetId}/>
+                            <ItemLink item={asset} size={'lg'} fontWeight="bold"/>
                             <Flex height="100%" width={"100%"} justifyContent={'space-between'}>
                                 <VStack align="start">
                                     <Box>

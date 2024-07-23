@@ -6,6 +6,7 @@ import {
     useColorModeValue,
     CardBody,
     Card,
+    Flex,
 } from "@chakra-ui/react";
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -14,16 +15,13 @@ import { useDrawer } from "../../context/DrawerProvider";
 import ActionButton from "../buttons/ActionButton";
 import { formTypes, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
-import { SplitButton, UserActionButton } from "../buttons/SplitButton";
+import { AssetList } from "./AssetList";
 import StarButton from "../buttons/StarButton";
 import { useGlobal } from "../../context/GlobalProvider";
 import { ItemLink } from "../buttons/ItemLink";
 
 function UserCards({ items }) {
 
-  const [hoveredUserId, setHoveredUserId] = useState(null);
-
-  const { handleItemClick } = useDrawer()
   const { handleUserToggle } = useGlobal()
 
   return (
@@ -33,20 +31,20 @@ function UserCards({ items }) {
         <Card 
           h="100%" 
           w="100%" 
-          _hover={{
-            bg: hoveredUserId === user.id ? 'gray.50' : 'gray.100',
-          }}
-          _active={{ bg: hoveredUserId === user.id ? 'gray.50' : 'gray.200', }}
+          _hover={{bg: 'gray.100',}}
         >
-          <CardBody onClick={() => handleItemClick(user)}>
+          <CardBody> {/*onClick={() => handleItemClick(user)}*/}
           <VStack align="start">
-          <ItemLink item={user} size={'lg'} fontWeight="bold" setHoveredFn={setHoveredUserId}/>
+            <ItemLink item={user} size={'lg'} fontWeight="bold"/>
             <Text fontSize="md" fontWeight="semibold">
               {user.department}
             </Text>
-            
-            <UserActionButton user={user} setHoveredUserId={setHoveredUserId}/>
-            </VStack>
+            {user.assets?.length > 0 ? <AssetList user={user}/> : 
+              <Flex>
+                <ActionButton formType={user.deletedDate ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
+              </Flex>
+            }
+          </VStack>
           </CardBody>
           
           <StarButton

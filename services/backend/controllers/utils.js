@@ -15,3 +15,5 @@ const formToEventMap = {
     [formTypes.ADD_USER]: 'ADD',
     [formTypes.DEL_USER]: 'DEL',
 }
+
+module.exports = {formTypes}

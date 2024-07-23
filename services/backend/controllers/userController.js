@@ -1,7 +1,9 @@
 const { sequelize, Sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+const { Op } = Sequelize;
 const mongodb = require('../models/mongo');
 
 const logger = require('../logging');
+const { formTypes } = require('./utils');
 
 exports.getUsers = async (req, res) => {
     try {
@@ -18,7 +20,11 @@ exports.getUsers = async (req, res) => {
                 attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
                 include: {
                     model: AssetTypeVariant,
-                    attributes: ['variantName']
+                    attributes: ['variantName'],
+                    include: {
+                        model: AssetType,
+                        attributes: ['assetType']
+                    }
                 }
             },
             {
@@ -88,35 +94,79 @@ exports.getUser = async (req, res) => {
 
 exports.searchUsers = async (req, res) => {
     const { value, formType } = req.body;
-
-    validMap = {
-        [eventTypes.REMOVE_USER]: [eventTypes.ADD_USER] // TODO
-    }
-
-    const validStatuses = validMap[formType];
-    if (!validStatuses) {
-        return res.status(400).send('Invalid form type provided.');
+    
+    let orderConditions;
+    switch (formType) {
+        case formTypes.LOAN:
+            // For loan, order by User association being null, then by recent updates
+            orderConditions = [
+                [Sequelize.literal('"User"."deleted_date" IS NOT NULL'), 'ASC'],
+                [Sequelize.literal('"User"."updated_at"'), 'DESC'],
+            ];
+            break;
+            case formTypes.DEL_USER:
+                // For return, order by User association being not null, then by recent updates
+            orderConditions = [
+                [Sequelize.literal('"User"."deleted_date" IS NOT NULL'), 'ASC'],
+                [sequelize.literal('"Assets.assetCount"'), 'ASC'],
+                [Sequelize.literal('"User"."updated_at"'), 'DESC'],
+            ];
+            break;
+        default:
+            return res.status(400).send('Invalid form type provided.');
     }
 
     try {
-
-        const results = await sequelize.query(query, {
-            type: sequelize.QueryTypes.SELECT,
-            replacements: {
-                value: `%${value}%`,
-                validStatuses: validStatuses,
-                latestEventIds: [1]
+        const query = await User.findAll({
+            attributes: [
+                'id',
+                'userName',
+                'bookmarked',
+                sequelize.col('User.deleted_date'),
+                sequelize.col('User.updated_at')
+            ],
+            include: [
+                {
+                    model: Asset,
+                    attributes: [[sequelize.fn('COUNT', sequelize.col('Assets.id')), 'assetCount']],
+                    duplicating: false // TODO reuqired?
+                },
+                {
+                    model: Dept,
+                    attributes: ['deptName'],
+                    duplicating: false // TODO reuqired?
+                },
+            ],
+            where: {
+                userName: {
+                    [Op.iLike]: `%${value}%`
+                }
             },
-        });
+            group: ['User.id', 'Assets.id', 'Dept.id'],
+            order: orderConditions,
+            limit: 20
+        }).then(users => {
+            // Calculate age for each asset and include it in the results
+            // const plainAsset = asset.get({ plain: true });
+            return users.map(user => user.createUserObject());
+        })
     
-        const users = results.map(user => {
+        const users = query.map(user => {
             logger.info(user);
-            const { name, deptName, status } = user;
-            const disabled = !validStatuses.includes(status)
+            const { name, department, status } = user;
+            let disabled; 
+            switch(formType) {
+                case formTypes.LOAN:
+                    disabled = status === 'Deleted'
+                    break;
+                case formTypes.DEL_USER:
+                    disabled = status !== 'Available'
+                    break;
+            }
         
             return {
                 value: user.id,
-                label: `${name} - ${deptName} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
+                label: `${name} - ${department} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
                 isDisabled: disabled // Disable if not in validStatuses
             };
         });

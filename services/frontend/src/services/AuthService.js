@@ -1,34 +1,32 @@
-import axios from "axios";
-
+import { axiosInstance } from '../config';
 import { API_URL } from "../config";
 
-export default class AuthService {
-  static async login(email, password) {
-    try {
-        console.log(API_URL + "/auth/login")
-        await axios.post(API_URL + "/auth/login", { email, password })
-    } catch(err) {
-      console.log(err);
-      throw err;
-    }
+class AuthService {
+  constructor(axiosInstance) {
+    this.axios = axiosInstance;
   }
 
-  static async logout() {
-    try {
-      await axios.post(API_URL + "/auth/logout", {}, { withCredentials: true })
-    } catch(err) {
-      console.log(err);
-      throw err;
-    }
+  async login(email, password) {
+    return await this.axios.post(API_URL + "/auth/login", { email, password })
   }
 
-  static async checkAuthStatus() {
-    try {    
-      const response = await axios.get(API_URL + "/auth/check-auth", { withCredentials: true })
-      return response
-    } catch(err) {
-      console.log(err);
-      throw err;
-    }
+  async logout() {
+    return await this.axios.post(API_URL + "/auth/logout")
   }
+
+  async checkAuth() {
+    return await this.axios.get('auth/checkAuth', { headers: { 'Skip-Interceptor': true } })
+  }
+
+  // const register = useCallback(async (adminName, email, password) => {
+  //   try {
+  //     await axiosInstance.post('/auth/register', { adminName, email, password });
+  //   } catch (error) {
+  //     console.error('Registration failed:', error.response ? error.response.data : error);
+  //     throw error;
+  //   }
+  // }, []);
 }
+
+const authService = new AuthService(axiosInstance);
+export default authService;

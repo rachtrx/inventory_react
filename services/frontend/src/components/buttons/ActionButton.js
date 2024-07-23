@@ -3,7 +3,7 @@ import { buttonConfigs } from './constants';
 import { actionTypes, useFormModal } from '../../context/ModalProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 
-const ActionButton = ({ formType, item = null }) => {
+const ActionButton = ({ formType, borderRadius="md", item = null }) => {
 	const { bg, text } = buttonConfigs[formType];
 	const { dispatch } = useFormModal();
 
@@ -11,11 +11,10 @@ const ActionButton = ({ formType, item = null }) => {
 		<Box
 			as="button"
 			onClick={(e) => {
-				e.stopPropagation();
 				dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formType })
 			}}
 			bg={bg}
-			borderRadius="md"
+			borderRadius={borderRadius}
 			p={2}
 			_hover={{
 				bg: `${bg.split('.')[0]}.200`,
@@ -23,7 +22,7 @@ const ActionButton = ({ formType, item = null }) => {
 			}}
 			_active={{ bg: `${bg.split('.')[0]}.250` }}
 		>
-			<ResponsiveText>{text}</ResponsiveText>
+			<ResponsiveText>{text}{Array.isArray(item) && ' All'}</ResponsiveText>
 		</Box>
 	);
 };

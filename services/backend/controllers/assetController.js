@@ -1,5 +1,6 @@
 const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, sequelize, Sequelize} = require('../models/postgres');
 const { Op } = Sequelize;
+const { formTypes } = require('./utils')
 
 const logger = require('../logging');
 const mongodb = require('../models/mongo');
@@ -68,17 +69,33 @@ exports.getAssets = async (req, res) => { // TODO Add filters
 
 exports.searchAssets = async (req, res) => {
     const { value, formType } = req.body;
-
-    const validMap = {
-        [formTypes.DEL_ASSET]: ['Available'],
-        [formTypes.LOAN]: ['Available'],
-        [formTypes.RETURN]: ['On Loan']
+    
+    let orderConditions;
+    let validStatuses;
+    switch (formType) {
+        case formTypes.LOAN:
+        case formTypes.CONDEMN:
+            // For loan and condemn, order by User association being null, then by recent updates
+            orderConditions = [
+                [Sequelize.literal('"Asset"."deleted_date" IS NOT NULL'), 'ASC'],
+                [Sequelize.literal('"User"."id" IS NOT NULL'), 'ASC'], // Corrected for PostgreSQL
+                ['updatedAt', 'DESC']
+            ];
+            validStatuses = ['Available']
+            break;
+        case formTypes.RETURN:
+            // For return, order by User association being not null, then by recent updates
+            orderConditions = [
+                [Sequelize.literal('"Asset"."deleted_date" IS NOT NULL'), 'ASC'],
+                [Sequelize.literal('"User"."id" IS NOT NULL'), 'DESC'], // Corrected for PostgreSQL
+                ['updatedAt', 'DESC']
+            ];
+            validStatuses = ['On Loan']
+            break;
+        default:
+            return res.status(400).send('Invalid form type provided.');
     }
 
-    const validStatuses = validMap[formType];
-    if (!validStatuses) {
-        return res.status(400).send('Invalid form type provided.');
-    }
     try {
         const query = await Asset.findAll({
             attributes: [
@@ -86,7 +103,7 @@ exports.searchAssets = async (req, res) => {
                 'serialNumber',
                 'assetTag',
                 'bookmarked',
-                'deletedDate'
+                'deletedDate',
             ],
             include: [
                 {
@@ -108,9 +125,11 @@ exports.searchAssets = async (req, res) => {
             ],
             where: {
                 assetTag: {
-                    [Op.like]: `%${value}%`
+                    [Op.iLike]: `%${value}%`
                 }
-            }
+            },
+            order: orderConditions,
+            limit: 20
         }).then(assets => {
             // Calculate age for each asset and include it in the results
             // const plainAsset = asset.get({ plain: true });
@@ -119,15 +138,15 @@ exports.searchAssets = async (req, res) => {
         
         // Convert plain objects to model instances if mapToModel was set to false
         const assets = query.map(data => {
-    
             logger.info(data);
-            const { id, assetTag, serialNumber, status } = data;
-            const disabled = !validStatuses.includes(status)
+            const { id, assetTag, serialNumber, status, assetType } = data;
+            const disabled = !validStatuses.includes(status);
         
             return {
                 value: id,
-                label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
-                isDisabled: disabled // Disable if not in validStatuses
+                assetType: assetType,
+                label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Append status if disabled
+                isDisabled: disabled // Disable if not in valid statuses or already included
             };
         });
 
