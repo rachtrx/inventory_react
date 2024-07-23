@@ -13,7 +13,6 @@ const StarButton = ({ isBookmarked, onToggle, id, ...props }) => {
       {isBookmarked || isHovered ? (
         <AiFillStar 
           onClick={(e) => {
-            e.stopPropagation();
             onToggle(id, isBookmarked);
           }}
           onMouseEnter={() => setIsHovered(true)}
@@ -22,7 +21,6 @@ const StarButton = ({ isBookmarked, onToggle, id, ...props }) => {
       ) : (
         <AiOutlineStar 
           onClick={(e) => {
-            e.stopPropagation();
             onToggle(id, isBookmarked);
           }}
           onMouseEnter={() => setIsHovered(true)}

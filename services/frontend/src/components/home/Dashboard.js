@@ -53,7 +53,6 @@ export default function Dashboard() {
                 setBarCharts(newBarCharts);
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
-                // Handle error state if necessary
             }
             setLoading(false);
         };

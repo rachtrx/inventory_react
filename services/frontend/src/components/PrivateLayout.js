@@ -1,41 +1,63 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import { Outlet } from 'react-router-dom'; // Outlet for nested routes
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'; // Outlet for nested routes
 import Nav from './Nav';
+import { ModalProvider } from '../context/ModalProvider';
+import { DrawerProvider } from '../context/DrawerProvider';
+import { GlobalProvider } from '../context/GlobalProvider';
+import FormModal from './FormModal';
+import ItemDrawer from './ItemDrawer';
+import authService from '../services/AuthService';
+import { useUI } from '../context/UIProvider';
 
 export const PrivateLayout = () => {
-  const { checkAuth } = useAuth();
+  const { setUser,  user } = useAuth();
+  const { handleError } = useUI()
+
+  const navigate = useNavigate()
 
   console.log('Rendering Private Route');
 
   useEffect(() => {
 
-    console.log('useEffect triggered');
-
-    const performCheck = async () => {
-      console.log("Performing Check");
-      await checkAuth();
-    };
-
-    performCheck(); // Run immediately on component mount
+    const performAuthCheck = async () => {
+      try {
+        const response = await authService.checkAuth();
+        const { userName } = response.data;
+        setUser(userName);
+      } catch (error) {
+        handleError("Your session has timed out, please login again");
+        setUser(null);
+        navigate('/login', { replace: true });
+      };
+    }
+    performAuthCheck();
 
     const interval = setInterval(() => {
       console.log("Periodic auth check");
-      performCheck();
-    }, 300000); // Every 5 minutes
+      performAuthCheck();
+    }, 300000);
 
     return () => {
-      clearInterval(interval); // Cleanup the interval on component unmount
+      clearInterval(interval);
     };
-  }, [checkAuth]);
+  }, [navigate, user, setUser, handleError]);
 
   return (
-    <div>
+    user &&
+    (<div>
       <Nav/>
-
       <main>
-        <Outlet />
+        <ModalProvider>
+          <DrawerProvider>
+            <GlobalProvider>
+              <Outlet />
+              <FormModal />
+              <ItemDrawer />
+            </GlobalProvider>
+          </DrawerProvider>
+        </ModalProvider>
       </main>
-    </div>
+    </div>)
   );
 };

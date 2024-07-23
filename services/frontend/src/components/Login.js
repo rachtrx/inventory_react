@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { useState } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from "yup";
+import authService from '../services/AuthService';
 
 import {
   Box,
@@ -25,25 +26,29 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Login() {
-  const { setUser, user, login, checkAuth } = useAuth();
+  const { user, setUser } = useAuth();
   const { loading, setLoading } = useUI()
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+
+  const handleLogin = useCallback((response) => {
+    setUser(response.data.userName);
+    navigate('/dashboard', { replace: true });
+  }, [setUser, navigate]);
 
   useEffect(() => {
-    console.log("Performing check in Login");
     const performCheck = async () => {
       if (!user) {
-        await checkAuth();
-      }
-      if (user) {
-        console.log(`user found after login check! ${user}`);
-        // Assuming setUser expects just the user name
-        navigate('/dashboard', { replace: true }); // go to dashboard and back button wont return to loginx
+        try {
+          const response = await authService.checkAuth();
+          handleLogin(response);
+        } catch (error) {
+          console.error('Failed to check authentication:', error);
+        }
       }
     };
   
     performCheck();
-  }, [navigate, user, setUser, checkAuth]);
+  }, [user, handleLogin]);
 
   const initialValues = {
     email: "", // Changed from username to email
@@ -52,15 +57,15 @@ export default function Login() {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      setLoading(true)
-      console.log(values.email);
-      await login(values.email, values.password); // user will log in through the other useeffect
+      setLoading(true); // Assuming setLoading is defined elsewhere in your component
+      console.log('Attempting to login with:', values.email);
+      const response = await authService.login(values.email, values.password);
+      handleLogin(response);
     } catch (err) {
       console.error('Login failed:', err.response ? err.response.data : err);
-      // navigate('/dashboard', { replace: true });
     } finally {
       setSubmitting(false);
-      setLoading(false)
+      setLoading(false); // Ensure this doesn't cause an additional rerender if it's not necessary
     }
   };
 

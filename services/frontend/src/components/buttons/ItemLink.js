@@ -4,12 +4,11 @@ import { ResponsiveText } from "../utils/ResponsiveText";
 import { IoCopyOutline } from "react-icons/io5";
 import { useUI } from "../../context/UIProvider";
 
-export const ItemLink = ({ item, setHoveredFn, isCopy=true, ...props }) => {
+export const ItemLink = ({ item, isCopy=true, ...props }) => {
     const { handleItemClick } = useDrawer();
     const { showToast, handleError } = useUI()
 
     const handleCopyClick = async (e) => {
-        e.stopPropagation();
         try {
             await navigator.clipboard.writeText(item.assetTag || item.name);
             showToast(item.assetTag ? 'Asset copied!' : 'User copied!', 'success', 500);
@@ -24,13 +23,11 @@ export const ItemLink = ({ item, setHoveredFn, isCopy=true, ...props }) => {
             alignItems="center" 
             gap={1} 
             cursor="pointer" 
-            onMouseEnter={() => setHoveredFn && setHoveredFn(item.id)}
-            onMouseLeave={() => setHoveredFn && setHoveredFn(null)}
+            width='100%'
             {...props}
         >
             <ResponsiveText
                 onClick={(e) => {
-                    e.stopPropagation();
                     handleItemClick(item);
                 }}
                 _hover={{

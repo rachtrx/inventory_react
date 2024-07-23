@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, useContext, useState } from 'react';
+import React, { createContext, useReducer, useEffect, useContext, useState, useCallback } from 'react';
 import { useUI } from './UIProvider';
 import assetService from '../services/AssetService';
 import userService from '../services/UserService';
@@ -8,11 +8,41 @@ import { useDisclosure } from '@chakra-ui/react';
 
 const ModalContext = createContext();
 
+export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
+  setOptionsState(prevOptions => {
+    // Get the current items for the specified fieldName and key
+    const existingItems = prevOptions[fieldName]?.[key] || [];
+
+    console.log(newValues);
+
+    // Create a set from the existing items to avoid duplicates easily
+    const updatedItemsSet = new Set(existingItems);
+
+    // Add new values to the set (automatically handles duplicates)
+    newValues.forEach(value => {
+      updatedItemsSet.add(value);
+    });
+
+    // Return the updated options state only if new items were added
+    if (updatedItemsSet.size !== existingItems.length) {
+      return {
+        ...prevOptions,
+        [fieldName]: {
+          ...prevOptions[fieldName],
+          [key]: Array.from(updatedItemsSet)
+        }
+      };
+    }
+
+    // Return previous state if no new items were added
+    return prevOptions;
+  });
+};
+
 const initialState = {
   formType: null,
-  isExcel: false,
-  initialValues: {},
-  onSubmit: () => null,
+  pendingAssets: [],
+  pendingUsers: [],
 	assets: [],
 	users: []
 };
@@ -30,27 +60,22 @@ export const formTypes = {
 
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
-  SET_INITIAL_VALUES: 'SET_INITIAL_VALUES',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',
-  SET_IS_EXCEL: 'SET_IS_EXCEL',
   SET_ASSETS: 'SET_ASSETS',
-  SET_USERS: 'SET_USERS'
+  SET_USERS: 'SET_USERS',
+  SET_NEW_STATE: 'SET_NEW_STATE'
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
     case actionTypes.SET_FORM_TYPE:
       return { ...state, formType: action.payload };
-    case actionTypes.SET_INITIAL_VALUES:
-      return { ...state, initialValues: action.payload };
-    case actionTypes.SET_ON_SUBMIT:
-      return { ...state, onSubmit: action.payload };
-    case actionTypes.SET_IS_EXCEL:
-      return { ...state, isExcel: action.payload };
 		case actionTypes.SET_ASSETS:
 			return { ...state, assets: action.payload };
 		case actionTypes.SET_USERS:
       return { ...state, users: action.payload };
+    case actionTypes.RESET_STATE:
+      return initialState;
     default:
       return state;
   }
@@ -71,15 +96,6 @@ const getInitialValues = (formType) => {
         'user-name': '',
         'loaned-date': new Date(),
         'bookmark-user': false,
-      };
-    case formTypes.LOAN:
-      return {
-        'asset-id': '',
-        'user-id': '',
-        'loaned-date': new Date(),
-        'bookmark-asset': false,
-        'bookmark-user': false,
-        remarks: '',
       };
     case formTypes.RETURN:
       return {
@@ -119,65 +135,67 @@ const getInitialValues = (formType) => {
   }
 };
 
-const runValidationChecks = (values) => {
-  return values && (!values.hasOwnProperty('assetTag') || values.assetTag !== '');
-};
-
 export const ModalProvider = ({ children }) => {
 
-  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose } = useDisclosure();
+  const [ state, dispatch ] = useReducer(reducer, initialState);
+  const [ isExcel, setIsExcel ] = useState(false) 
   const { setLoading } = useUI();
 
-  useEffect(() => {
-    const initialValues = getInitialValues(state.formType);
+  console.log("Modal rendered");
 
-    const onSubmit = async (values) => {
-      setLoading(true);
-      try {
-        if (runValidationChecks(values)) {
-          switch (state.formType) {
-            case 'AddAsset':
-              await assetService.addAsset(values);
-              break;
-            case 'loanAsset':
-              await assetService.loanAsset(values);
-              break;
-            case 'returnAsset':
-              await assetService.returnAsset(values);
-              break;
-            case 'condemnAsset':
-              await assetService.condemnAsset(values);
-              break;
-            case 'AddUser':
-              await userService.addUser(values);
-              break;
-            case 'removeUser':
-              await userService.removeUser(values);
-              break;
-            default:
-              break; // TODO NEED ERROR?
-          }
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
-        throw err;
-      }
-    };
+  const onModalClose = () => {
+    dispatch({ type: 'RESET_STATE' });
+    onClose();  // This calls the Chakra UI's useDisclosure() onClose method
+  }
 
-    dispatch({ type: actionTypes.SET_INITIAL_VALUES, payload: initialValues });
-    dispatch({ type: actionTypes.SET_ON_SUBMIT, payload: onSubmit });
-  }, [state.formType, setLoading]);
+  // useEffect(() => {
+
+  //   const onSubmit = async (values) => {
+  //     setLoading(true);
+  //     try {
+  //       switch (state.formType) {
+  //         case 'AddAsset':
+  //           await assetService.addAsset(values);
+  //           break;
+  //         case 'loanAsset':
+  //           await assetService.loanAsset(values);
+  //           break;
+  //         case 'returnAsset':
+  //           await assetService.returnAsset(values);
+  //           break;
+  //         case 'condemnAsset':
+  //           await assetService.condemnAsset(values);
+  //           break;
+  //         case 'AddUser':
+  //           await userService.addUser(values);
+  //           break;
+  //         case 'removeUser':
+  //           await userService.removeUser(values);
+  //           break;
+  //         default:
+  //           break; // TODO NEED ERROR?
+  //       }
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.error(err);
+  //       setLoading(false);
+  //       throw err;
+  //     }
+  //   };
+
+  //   dispatch({ type: actionTypes.SET_ON_SUBMIT, payload: onSubmit });
+  // }, [state.formType, setLoading]);
 
   const handleAssetSearch = async (value) => {
+    console.log(`Asset Search Called: ${value}`);
     const response = await assetService.searchAssets(value, state.formType);
     console.log(response.data);
     dispatch({ type: actionTypes.SET_ASSETS, payload: response.data });
   };
 
   const handleUserSearch = async (value) => {
+    console.log(`User Search Called: ${value}`);
     const response = await userService.searchUsers(value, state.formType);
     console.log(response.data);
     dispatch({ type: actionTypes.SET_USERS, payload: response.data });
@@ -195,7 +213,7 @@ export const ModalProvider = ({ children }) => {
   };
 
   return (
-    <ModalContext.Provider value={{ ...state, dispatch, handleAssetInputChange, handleUserInputChange, isModalOpen, onModalOpen, onModalClose }}>
+    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetInputChange, handleUserInputChange, isModalOpen, onModalOpen, onModalClose }}>
       {children}
     </ModalContext.Provider>
   );

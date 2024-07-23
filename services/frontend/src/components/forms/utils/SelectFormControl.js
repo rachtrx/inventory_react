@@ -1,49 +1,55 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Field, useField } from 'formik';
 import Select, { components } from 'react-select';
-import { FormControl, FormLabel } from '@chakra-ui/react';
+import { FormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
+import { actionTypes, updateOptions, useFormModal } from '../../../context/ModalProvider';
+import CreatableSelect from 'react-select/creatable';
 
-const withSelect = (Component) => ({ name, label, options = [], placeholder, isMulti = false, disabled = false, ...props }) => {
-  const [, , { setValue }] = useField(name);
+const withSelect = (Component) => ({ name, label, options = [], isMulti = false, updateChangeFn=null, hideSelectedOptions=false, ...props }) => {
+  const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const selectRef = useRef();
 
-  const handleChange = (value) => {
-    if (isMulti) {
-      setValue(value ? value.map(v => v.value) : []);
-    } else {
-      setValue(value ? value.value : '');
+  const handleChange = useCallback((value, actionMeta) => {
+    console.log("Action: ", actionMeta.action);
+    console.log("Value: ", value);
+    if (updateChangeFn) {
+      console.log(value);
+      updateChangeFn(value);
     }
-  };
 
-  const getValue = (value) => {
+    const newValue = isMulti ? (value || []).map(v => v.value) : value?.value || '';
+    console.log("New value set:", newValue);
+    setValue(newValue);
+    setTouched(true);
+  }, [setValue, setTouched, isMulti, updateChangeFn]);
+
+  const getValue = useCallback(() => {
     if (isMulti) {
-      return options ? options.filter(option => value.includes(option.value)) : [];
-    } else {
-      return options ? options.find(option => option.value === value) : null;
+      const selectedOptions = new Set(value);
+      return options ? options.filter(option => selectedOptions.has(option.value)) : [];
     }
-  };
+
+    console.log(options.find(option => option.value === value));
+    return options ? options.find(option => option.value === value) : null;
+  }, [value, options, isMulti]);
+
 
   return (
-    <FormControl id={name}>
+    <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
       {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
-      <Field name={name}>
-        {({ field }) => (
-          <Component
-            ref={selectRef}
-            classNamePrefix="react-select"
-            name={name}
-            options={options}
-            placeholder={placeholder}
-            isMulti={isMulti}
-            isDisabled={disabled}
-            onChange={handleChange}
-            value={getValue(field.value)}
-            hideSelectedOptions={false}
-            isSearchable
-            {...props}
-          />
-        )}
-      </Field>
+      <Component
+        ref={selectRef}
+        classNamePrefix="react-select"
+        name={name}
+        options={options}
+        isMulti={isMulti}
+        onChange={handleChange}
+        value={getValue()} // Calling the function directly here
+        hideSelectedOptions={hideSelectedOptions}
+        isSearchable
+        {...props}
+      />
+      <FormErrorMessage>{meta.error}</FormErrorMessage>
     </FormControl>
   );
 };
@@ -74,6 +80,22 @@ export const MultiSelectFormControl = (props) => {
     <MultiSelect 
       {...props}
       isMulti={true}
+    />
+  );
+};
+
+const CustomSelect = withSelect(CreatableSelect);
+export const CustomMultiSelectFormControl = ({updateChangeFn=null, name, options, setOptions, ...props}) => {
+
+  return (
+    <CustomSelect 
+      {...props}
+      name={name}
+      isMulti={true}
+      hideSelectedOptions={true}
+      options={options}
+      setOptions={setOptions}
+      updateChangeFn={updateChangeFn}
     />
   );
 };

@@ -19,6 +19,7 @@ class AssetService {
     }
 
     async loanAsset(id, userId) {
+        console.log('loaning asset');
         return await this.axios.post(`${API_URL}/assets/loan`, [id, userId]);;
     }
     
