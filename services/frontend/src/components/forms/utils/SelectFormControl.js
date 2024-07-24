@@ -6,33 +6,23 @@ import { actionTypes, updateOptions, useFormModal } from '../../../context/Modal
 import CreatableSelect from 'react-select/creatable';
 
 const withSelect = (Component) => ({ name, label, options = [], isMulti = false, updateChangeFn=null, hideSelectedOptions=false, ...props }) => {
-  const [{ value }, meta, { setValue, setTouched }] = useField(name);
+  const [, meta, { setValue, setTouched }] = useField(name);
   const selectRef = useRef();
 
-  const handleChange = useCallback((value, actionMeta) => {
-    console.log("Action: ", actionMeta.action);
-    console.log("Value: ", value);
+  // Formik does not set the entire option as a value but rather strings/numbers. React-Select expects it to be null, Object, or [Objects]
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const handleChange = useCallback((value) => {
+    console.log(value);
     if (updateChangeFn) {
-      console.log(value);
       updateChangeFn(value);
     }
-
     const newValue = isMulti ? (value || []).map(v => v.value) : value?.value || '';
     console.log("New value set:", newValue);
     setValue(newValue);
+    setSelectedOption(value);
     setTouched(true);
-  }, [setValue, setTouched, isMulti, updateChangeFn]);
-
-  const getValue = useCallback(() => {
-    if (isMulti) {
-      const selectedOptions = new Set(value);
-      return options ? options.filter(option => selectedOptions.has(option.value)) : [];
-    }
-
-    console.log(options.find(option => option.value === value));
-    return options ? options.find(option => option.value === value) : null;
-  }, [value, options, isMulti]);
-
+  }, [setTouched, setValue, isMulti, updateChangeFn]);
 
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
@@ -44,7 +34,7 @@ const withSelect = (Component) => ({ name, label, options = [], isMulti = false,
         options={options}
         isMulti={isMulti}
         onChange={handleChange}
-        value={getValue()} // Calling the function directly here
+        value={selectedOption}
         hideSelectedOptions={hideSelectedOptions}
         isSearchable
         {...props}
