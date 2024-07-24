@@ -1,4 +1,4 @@
-import { Box, Button, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
@@ -15,6 +15,10 @@ import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
 import { LoanSingleAsset } from "./LoanSingleAsset";
 import { FormikSignatureField } from "./utils/SignatureField";
+import { ResponsiveText } from "../utils/ResponsiveText";
+import { SectionDivider } from "./utils/SectionDivider";
+
+const colorPalette = ['white', 'gray.100']
 
 const tags = {
   'IPad': [{
@@ -43,21 +47,11 @@ const LoanAsset = () => {
 
   console.log('loan form rendered');
 
-  const { isExcel, setIsExcel, users, handleUserInputChange, onModalClose } = useFormModal()
+  const { isExcel, users, handleUserInputChange, onModalClose } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
   const [options, setOptions] = useState({
     tags: tags, // set to [] at the start
   });
-
-  console.log(options.tags['Laptop'])
-
-  const checkFn = useCallback(() => {
-    setIsExcel(true);
-  }, [setIsExcel]); // Dependencies array includes setIsExcel
-
-  const uncheckFn = useCallback(() => {
-      setIsExcel(false);
-  }, [setIsExcel]); // Dependencies array includes setIsExcel
 
   const initialValuesManual = {
     users: [addNewUser()],
@@ -152,34 +146,30 @@ const LoanAsset = () => {
   };
 
   return (
-    <div>
-      <Toggle 
-        label="Use Excel"
-        check_fn={checkFn}
-        uncheck_fn={uncheckFn}
-      />
+    <Box>
 
       {!isExcel ? (
         <Formik
           initialValues={initialValuesManual}
           onSubmit={handleSubmitManual}
-          // validate={validate}
+          validate={validate}
           // validateOnChange={true}
           // validateOnBlur={true}
         >
         {formikProps => (
           <Form>
             <ModalBody>
+            <Divider borderColor="black" borderWidth="2px" my={2} />
               <FieldArray name="users">
                 {({ remove, push }) => (
                   <Box>
-                    {formikProps.values.users.map((user, userIndex) => (
+                    {formikProps.values.users.map((user, userIndex, array) => (
                       <Box key={userIndex}>
                         <Flex direction="column" gap={4}>
                           <SingleSelectFormControl 
                             name={`users.${userIndex}.user-id`}
                             onInputChange={handleUserInputChange}
-                            label="User Name" 
+                            label={`User #${userIndex + 1}`} 
                             options={users} 
                             placeholder="Select a user" 
                           />
@@ -194,25 +184,30 @@ const LoanAsset = () => {
                               />
                             )}
                           </FieldArray>
-                          <FormToggle label="Bookmark User" name={`users.${userIndex}.bookmark-user`} />
-                          {formikProps.values.users.length > 1 && (
-                            <Button type="button" onClick={() => remove(userIndex)}>
-                              Remove User
-                            </Button>
-                          )}
                           <FormikSignatureField
                             name={`users.${userIndex}.signature`}
                             label="Signature"
                           />
+                          <FormToggle label="Bookmark User" name={`users.${userIndex}.bookmark-user`} />
+                          <Flex justifyContent="flex-start" gap={4}>
+                            {formikProps.values.users.length > 1 && (
+                              <Button type="button" onClick={() => remove(userIndex)} alignSelf='flex-start'>
+                                <ResponsiveText>Remove User</ResponsiveText>
+                              </Button>
+                            )}
+                            {userIndex === array.length - 1 && (
+                              <Button
+                                type="button"
+                                onClick={() => push(addNewUser())}
+                              >
+                                <ResponsiveText>Add Another User</ResponsiveText>
+                              </Button>
+                            )}
+                          </Flex>
                         </Flex>
+                        <Divider borderColor="black" borderWidth="2px" my={4} />
                       </Box>
                     ))}
-                    <Button
-                      type="button"
-                      onClick={() => push(addNewUser())}
-                    >
-                      Add Another User
-                    </Button>
                   </Box>
                 )}
               </FieldArray>
@@ -248,7 +243,7 @@ const LoanAsset = () => {
           </Form>
         </Formik>
       )}
-    </div>
+    </Box>
   );
 };
 

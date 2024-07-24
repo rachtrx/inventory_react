@@ -1,9 +1,10 @@
-import { Box, Button } from "@chakra-ui/react"
+import { Box, Button, Flex } from "@chakra-ui/react"
 import { CustomMultiSelectFormControl, SingleSelectFormControl } from "./utils/SelectFormControl"
 import { updateOptions, useFormModal } from "../../context/ModalProvider"
 import FormToggle from "./utils/FormToggle"
 import InputFormControl from "./utils/InputFormControl"
 import { useCallback, useState } from "react"
+import { ResponsiveText } from "../utils/ResponsiveText"
 
 export const LoanSingleAsset = ({user, assetHelpers, userIndex, options, setOptions}) => {
 
@@ -20,17 +21,16 @@ export const LoanSingleAsset = ({user, assetHelpers, userIndex, options, setOpti
 
 	return (
 		<Box>
-			{user.assets.map((_, assetIndex) => (
-				<Box key={assetIndex}>
+			{user.assets.map((_, assetIndex, array) => (
+				<Flex direction="column" key={assetIndex} gap={4} p={2} _hover={{ bg: "blue.50" }}>
 					<SingleSelectFormControl 
 						name={`users.${userIndex}.assets.${assetIndex}.asset-id`} 
 						onInputChange={handleAssetInputChange}
 						updateChangeFn={updateChangeFn}
-						label="Asset Tag" 
+						label={`Asset Tag #${assetIndex + 1}`}
 						options={assets} 
 						placeholder="Asset Tag"
 					/>
-					<FormToggle label="Bookmark Asset" name={`users.${userIndex}.assets.${assetIndex}.bookmarked`}/>
 					<CustomMultiSelectFormControl 
 						name={`users.${userIndex}.assets.${assetIndex}.tags`} 
 						label="Add Tags" 
@@ -39,24 +39,28 @@ export const LoanSingleAsset = ({user, assetHelpers, userIndex, options, setOpti
 						placeholder="Select tags"
 					/>
 					<InputFormControl name={`users.${userIndex}.assets.${assetIndex}.remarks`} label="Remarks" placeholder="Add remarks" />
-					{user.assets.length > 1 && (
-						<Button type="button" onClick={() => assetHelpers.remove(assetIndex)} style={{ marginTop: '10px' }}>
-						Remove Asset
-						</Button>
-					)}
-				</Box>
+					<FormToggle label="Bookmark Asset" name={`users.${userIndex}.assets.${assetIndex}.bookmarked`}/>
+					<Flex justifyContent="flex-start" gap={2} marginBottom={4}>
+						{user.assets.length > 1 && (
+							<Button type="button" onClick={() => assetHelpers.remove(assetIndex)}>
+								<ResponsiveText>Remove Asset</ResponsiveText>
+							</Button>
+						)}
+						{assetIndex === array.length - 1 && (
+							<Button
+								type="button"
+								onClick={() => assetHelpers.push({
+								'asset-id': '',
+								'bookmarked': false,
+								'tags': []
+								})}
+							>
+								<ResponsiveText>Add Asset</ResponsiveText>
+							</Button>
+						)}
+					</Flex>
+				</Flex>
 			))}
-			<Button
-				type="button"
-				onClick={() => assetHelpers.push({
-				'asset-id': '',
-				'bookmarked': false,
-				'tags': []
-				})}
-				style={{ marginTop: '10px' }}
-			>
-				Add Asset
-			</Button>
 		</Box>
 	)
 }

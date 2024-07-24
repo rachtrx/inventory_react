@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useField } from 'formik';
 import SignatureCanvas from 'react-signature-canvas';
 import { FormControl, FormLabel, Button, Box, Flex } from '@chakra-ui/react';
+import { ResponsiveText } from '../../utils/ResponsiveText';
 
 export const FormikSignatureField = ({ name, label, ...props }) => {
   const [, , helpers] = useField(name);
@@ -54,13 +55,12 @@ export const FormikSignatureField = ({ name, label, ...props }) => {
         </Box>
         <Flex justify="flex-end" mt={2}>
           <Button
-            colorScheme="blue"
             onClick={() => {
               sigPadRef.current.clear();
               helpers.setValue('');
             }}
           >
-            Clear Signature
+            <ResponsiveText>Clear Signature</ResponsiveText>
           </Button>
         </Flex>
       </Flex>
