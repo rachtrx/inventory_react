@@ -3,6 +3,8 @@ import assetService from '../services/AssetService';
 import userService from '../services/UserService';
 import { Drawer, useDisclosure } from '@chakra-ui/react';
 import ItemDrawer from '../components/ItemDrawer';
+import peripheralService from '../services/PeripheralService';
+import { getDisplayValue } from '../config';
 
 const DrawerContext = createContext();
 
@@ -27,14 +29,16 @@ export const DrawerProvider = ({ children }) => {
 		setState(prev => ({ ...prev, currentItem: null, itemsHistory: [] }));
 	};
 
-  const handleItemClick = async (item) => {
+  	const handleItemClick = async (item) => {
 		console.log("Item clicked");
 		console.log(item);
+
 		// Check if the item is already in the history and set as the current item
 		if (!isDrawerOpen) onDrawerOpen();
 
 		const itemInHistory = state.itemsHistory.find(historyItem => historyItem.id === item.id);
 		if (itemInHistory && state.currentItem && state.currentItem.id === item.id) {
+			console.log("Item is the current item!");
 			// The item is already the current item, perform some refresh logic?
 			return;
 		} else if (itemInHistory) {
@@ -49,7 +53,16 @@ export const DrawerProvider = ({ children }) => {
 			// Item not in history, fetch new data
 			setState(prev => ({ ...prev, loading: true }));
 			try {
-				const response = await (item.assetTag ? assetService.getAsset(item.id) : userService.getUser(item.id));
+				let service;
+				
+				const key = getDisplayValue(item, true);
+
+				if (key === 'assetTag') service = assetService;
+				else if (key === 'userName') service = userService;
+				else if (key === 'peripheralName') service = peripheralService;
+				else throw new Error();
+
+				const response = await service.getItem(item.id);
 				setState(prev => ({
 					...prev,
 					currentItem: response.data,
@@ -129,7 +142,7 @@ export const DrawerProvider = ({ children }) => {
 
   return (
     <DrawerContext.Provider value={{ ...state, setState, editKey, editedValue, handleItemClick, handleSave, handleAddRemark, handleEdit, handleChange, handleClose, isDrawerOpen }}>
-				{ children }
+		{ children }
     </DrawerContext.Provider>
   );
 }

@@ -1,11 +1,11 @@
-import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid } from '@chakra-ui/react';
+import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
-import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
 import Timeline from '../Timeline';
 import EditableField from '../utils/EditableField';
+import { ResponsiveText } from '../utils/ResponsiveText';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
@@ -15,8 +15,20 @@ const Asset = ({ asset }) => {
 		<Box p={4}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
-				<Heading as="h2" size="md" mb="2">STATUS</Heading>
-				<Text>{eventToStatus(asset.status)}</Text>	
+				<Heading as="h2" size="md" mb="2">Status: {asset.status}</Heading>	
+
+        <Flex justifyContent='space-between'>
+        <ResponsiveText size='lg'>Peripherals</ResponsiveText>
+          <HStack>
+          {asset.peripherals?.map((peripheral) => (
+            <ResponsiveText>{peripheral.name}</ResponsiveText>
+          ))}
+          </HStack>
+        <ActionButton
+          formType={formTypes.TAG}
+          item={asset}
+        />
+        </Flex>
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary

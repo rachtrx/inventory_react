@@ -17,15 +17,27 @@ const corsOptions = {
 };
 
 app.use((req, res, next) => {
-    console.log(req.path);
+	console.log(req.path);
     next();
 });
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 // CORS middleware
 app.use(cors(corsOptions));
 
-// Cookie parser middleware
-app.use(cookieParser());
+app.use((req, res, next) => {
+    if (!req.path.startsWith('/auth') || req.path === '/auth/checkAuth') {
+        jwt({
+            secret: process.env.JWT_SECRET,
+            algorithms: ['HS256'],
+            getToken: req => req.cookies.INVENTORY
+        })(req, res, next);
+    } else {
+        next();
+    }
+});
 
 // Body parser middleware
 app.use(express.json());
@@ -33,47 +45,35 @@ app.use(express.json());
 // Static file middleware
 app.use(express.static('public'));
 
-app.use(jwt({
-	secret: process.env.JWT_SECRET,
-	algorithms: ['HS256'],
-	getToken: req => req.cookies.token, // Function to obtain the JWT from request cookies
-	// requestProperty: 'auth' // default is auth i think
-}).unless({
-	path: [
-		'/api/auth/login',
-		'/api/auth/register',
-		'/api/auth/logout'
-	]
-}));
-
-// Import and use routes
+const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
-const searchRoutes = require('./routes/searchRoutes')
-const formRoutes = require('./routes/formRoutes')
-const dashboardRoutes = require('./routes/dashboardRoutes')
+const peripheralRoutes = require('./routes/peripheralRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const formRoutes = require('./routes/formRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/forms', formRoutes);
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/peripherals', peripheralRoutes)
 
 // Setup global error handling middleware to catch authentication errors
 
 app.use(function (err, req, res, next) {
-	console.log(req.cookies.token);
-	console.log('Middleware Error: ' + err.stack);
-	logger.error('Middleware Error: ' + err.stack);
-	if (err.name === 'UnauthorizedError') {
-		// This error is thrown by the JWT middleware when a token is invalid
-		res.status(401).json({ error: 'Invalid Token' });
-	} else {
-		// Pass any other types of errors to the next error handler (if there is one)
-		next(err);
-	}
+    console.log(req.cookies.token);
+    console.log('Middleware Error: ' + err.stack);
+    logger.error('Middleware Error: ' + err.stack);
+    if (err.name === 'UnauthorizedError') {
+        // This error is thrown by the JWT middleware when a token is invalid
+        res.status(401).json({ error: 'Invalid Token' });
+    } else {
+        // For other errors, you can return a generic error message or use the error's message
+        res.status(500).json({ error: err.message || 'Internal Server Error' });
+    }
 });
 
 module.exports = app;

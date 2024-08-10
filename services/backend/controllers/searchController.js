@@ -1,4 +1,4 @@
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const uuid = require('uuid');
 
 exports.searchVariants = async (req, res) => {
@@ -41,7 +41,7 @@ exports.searchUser = async (req, res) => {
                 attributes: ['id'],
                 where: { id: assetId }
             }, {
-                model: Dept,
+                model: Department,
                 required: true,
                 attributes: ['deptName']
             }],

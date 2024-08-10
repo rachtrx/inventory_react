@@ -1,7 +1,6 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
-import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
-import { useGlobal } from '../../context/GlobalProvider';
+import { useItems } from '../../context/ItemsProvider';
 import StarButton from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { AssetActionButton, SplitButton } from '../users/AssetList';
@@ -12,7 +11,7 @@ import { ItemLink } from '../buttons/ItemLink';
 
 const AssetTable = ({ items }) => {
 
-  const { handleAssetToggle } = useGlobal()
+  const { handleToggle } = useItems()
 
   return (
     <Table size="sm" variant="simple">
@@ -37,7 +36,7 @@ const AssetTable = ({ items }) => {
               <StarButton
                 id={asset.id}
                 isBookmarked={asset.bookmarked}
-                onToggle={handleAssetToggle}
+                onToggle={handleToggle}
               />
             </Td>
             <Td><ResponsiveText>{asset.assetType}</ResponsiveText></Td>

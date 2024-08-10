@@ -1,5 +1,5 @@
 const express = require('express');
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { FormHelpers } = require('./formHelperController')
 const uuid = require('uuid');
@@ -29,12 +29,12 @@ exports.onboardDevice = async (req, res) => {
             }
 
             for (const deptName in usersObj) {
-                let dept = await Dept.findOne({
+                let dept = await Department.findOne({
                     where: { deptName: { [Op.iLike]: deptName } },
                     transaction
                 });
                 if (!dept) {
-                    dept = await Dept.create({
+                    dept = await Department.create({
                         id: uuid.v4(),
                         deptName
                     }, { transaction });
@@ -283,7 +283,7 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
 
         // Check for existing departments
         for (let dept of deptArr) {
-            let exists = await Dept.findOne({
+            let exists = await Department.findOne({
                 where: {
                     deptName: {
                         [sequelize.Op.iLike]: dept  // Using ILIKE
@@ -301,7 +301,7 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
             for (let userName of userNames) {
                 let foundUser = await User.findOne({
                     include: [{
-                        model: Dept,
+                        model: Department,
                         attributes: ['deptName']
                     }],
                     where: {
@@ -311,8 +311,8 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
                     },
                     raw: true
                 });
-                if (foundUser && dept.toLowerCase() !== foundUser['Dept.deptName'].toLowerCase()) {
-                    return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Dept.deptName']}` });
+                if (foundUser && dept.toLowerCase() !== foundUser['Department.deptName'].toLowerCase()) {
+                    return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Department.deptName']}` });
                 } else if (foundUser) {
                     curUserArr.push(userName);
                 }

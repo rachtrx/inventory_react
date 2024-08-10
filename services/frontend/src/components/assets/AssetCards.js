@@ -1,4 +1,4 @@
-import { API_URL, eventToStatus } from '../../config';
+import { API_URL } from '../../config';
 
 import { 
     Card,
@@ -13,7 +13,7 @@ import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 
 import Cards from '../utils/Cards';
 import { useDrawer } from '../../context/DrawerProvider';
 import StarButton from '../buttons/StarButton';
-import { useGlobal } from '../../context/GlobalProvider';
+import { useItems } from '../../context/ItemsProvider';
 import { AssetActionButton, SplitButton } from '../users/AssetList';
 import { useState } from 'react';
 import ActionButton from '../buttons/ActionButton';
@@ -24,7 +24,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 
 
 function AssetCards({items}) {
-    const { handleAssetToggle } = useGlobal()
+    const { handleToggle } = useItems()
     
     return (
         <Cards>
@@ -59,7 +59,7 @@ function AssetCards({items}) {
                         position="absolute" top={2} right={2}
                         id={asset.id}
                         isBookmarked={asset.bookmarked}
-                        onToggle={handleAssetToggle}
+                        onToggle={handleToggle}
                     />
                 </Card>
             </Box>

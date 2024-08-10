@@ -1,5 +1,5 @@
 import { useToast } from '@chakra-ui/react';
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 const UIContext = createContext(false);
 
@@ -11,7 +11,7 @@ export const UIProvider = ({ children }) => {
 
   const toast = useToast();
 
-  const showToast = (description, status = 'error', duration=5000) => {
+  const showToast = useCallback((description, status = 'error', duration = 5000) => {
     toast({
       title: status.charAt(0).toUpperCase() + status.slice(1),
       description: description,
@@ -20,9 +20,9 @@ export const UIProvider = ({ children }) => {
       isClosable: true,
       position: "bottom"
     });
-  };
+  }, [toast]);
 
-  const handleError = (error) => {
+  const handleError = useCallback((error) => {
     let errorMessage = 'An unexpected error occurred. Please try again later.';
 
     if (error.response) {
@@ -41,7 +41,7 @@ export const UIProvider = ({ children }) => {
           errorMessage = 'The requested resource was not found.';
           break;
         case 500:
-          errorMessage = 'An issue with the server has occured. Please try again later.';
+          errorMessage = 'An issue with the server has occurred. Please try again later.';
           break;
         default:
           errorMessage = `Received unexpected response from the server: ${status}`;
@@ -51,12 +51,12 @@ export const UIProvider = ({ children }) => {
     } else if (error.message) {
       errorMessage = error.message;
     } else {
-      errorMessage = error
+      errorMessage = error;
     }
 
-    setError(errorMessage); // Assuming setError updates your component's state
-    showToast(errorMessage, 'error'); // Show toast notification with the error message
-  };
+    setError(errorMessage);
+    showToast(errorMessage, 'error');
+  }, [showToast])
 
   return (
     <UIContext.Provider value={{ loading, setLoading, error, setError, showToast, handleError }}>

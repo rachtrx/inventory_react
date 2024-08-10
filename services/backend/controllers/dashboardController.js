@@ -1,4 +1,4 @@
-const { Sequelize, Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, Dept, sequelize } = require('../models/postgres');
+const { Sequelize, Asset, AssetType, AssetTypeVariant, Loan, AssetLoan, User, Department, sequelize } = require('../models/postgres');
 const { Op } = require('sequelize')
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController')
 
@@ -55,26 +55,34 @@ exports.dashboard = async(req, res, next) => {
 			raw: true
 		});
 			
-		const devicesStatus = await Asset.findAll({
-			attributes: [
-				[Sequelize.fn('COUNT', Sequelize.col('Asset.id')), 'data'],
-				[Sequelize.literal(`CASE WHEN "user_id" IS NOT NULL THEN 'Unavailable' ELSE 'Available' END`), 'label']
-			],
-			where: {
-				deletedDate: { [Op.eq]: null }
-			},
-			group: ['label'],  // Make sure to include all grouped fields
-			raw: true
+		const sql = `
+			SELECT 
+			COUNT(assets.id) AS "data",
+			CASE 
+				WHEN loans.status = 'COMPLETED' THEN 'Unavailable' 
+				WHEN loans.status = 'RESERVED' THEN 'Reserved' 
+				WHEN loans.status IS NULL THEN 'Available' 
+				ELSE 'UNKNOWN'
+			END AS "label"
+			FROM assets
+			LEFT JOIN asset_loans ON assets.id = asset_loans.asset_id
+			LEFT JOIN loans ON asset_loans.event_id = loans.event_id
+			WHERE assets.deleted_date IS NULL
+			GROUP BY "label";
+		`;
+
+		const devicesStatus = await sequelize.query(sql, {
+			type: sequelize.QueryTypes.SELECT
 		});
 
 		// Users by department
 		const users = await User.findAll({
 			attributes: [
-				[Sequelize.col('Dept.dept_name'), 'label'],
-				[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'data']
+				[Sequelize.col('Department.dept_name'), 'label'],
+				[Sequelize.fn('COUNT', Sequelize.col('Department.dept_name')), 'data']
 			],
 			include: [{
-				model: Dept,
+				model: Department,
 				attributes: []
 			}],
 			where: {
@@ -83,29 +91,25 @@ exports.dashboard = async(req, res, next) => {
 				}
 			},
 			group: 'label',
-			order: [[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'ASC']],
+			order: [[Sequelize.fn('COUNT', Sequelize.col('Department.dept_name')), 'ASC']],
 			raw: true
 		});
-		
-		const usersLoan = await User.findAll({
-			attributes: [
-				[Sequelize.col('Dept.dept_name'), 'label'],
-				[Sequelize.fn('COUNT', Sequelize.col('Assets.id')), 'data']  // Counting assets associated with the users
-			],
-			include: [{
-				model: Dept,
-				attributes: [],  // No attributes needed directly, but needed for grouping
-			}, {
-				model: Asset,
-				attributes: [],  // Including Assets to count them, but not fetching any attributes directly
-				required: true
-			}],
-			where: {
-				deletedDate: { [Op.eq]: null }
-			},
-			group: ['label'],  // Grouping by department name
-			order: [['data', 'ASC']],  // Order by the count of assets
-			raw: true
+
+		const usersLoanSQL = `
+			SELECT 
+				depts.dept_name AS "label", 
+				COUNT(asset_loans.asset_id) AS "data"
+			FROM users
+			LEFT OUTER JOIN depts ON users.dept_id = depts.id
+			INNER JOIN loans ON users.id = loans.user_id AND loans.status = 'COMPLETED'
+			INNER JOIN asset_loans ON loans.event_id = asset_loans.event_id
+			WHERE users.deleted_date IS NULL
+			GROUP BY depts.dept_name
+			ORDER BY "data" ASC;
+		`
+
+		const usersLoan = await sequelize.query(usersLoanSQL, {
+			type: sequelize.QueryTypes.SELECT
 		});
 		
 		// Age of assets

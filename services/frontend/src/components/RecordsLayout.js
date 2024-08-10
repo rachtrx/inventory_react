@@ -11,12 +11,13 @@ import { useSearchParams } from 'react-router-dom';
 import { FaDownload } from 'react-icons/fa';
 import { useResponsive } from '../context/ResponsiveProvider';
 
-import FormModal from './FormModal';
-import ItemDrawer from './ItemDrawer';
+import { useItems } from '../context/ItemsProvider';
 
-export default function RecordsLayout({ header, data, loading, error, Filters, Actions, Cards, Table }) {
+export default function RecordsLayout({ header, Filters, Actions, Cards, Table }) {
 
   const { headerSize, isIpad, isMobile } = useResponsive()
+
+  const { items, loading, error } = useItems();
 
   const [isGridView, setIsGridView] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,7 +30,7 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
   }, [searchParams, setSearchParams]);
 
   const { currentData, next, prev, currentPage, maxPage } = usePagination(
-    data,
+    items,
     itemsPerPage,
     initialPage,
     updateUrl
@@ -61,7 +62,7 @@ export default function RecordsLayout({ header, data, loading, error, Filters, A
           <Filters/>
         </Box>
         <Flex p={4} justifyContent="space-around">
-          <InfoBar count={data.length} />
+          <InfoBar count={items.length} />
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />
         </Flex>
         {!currentData || currentData.length === 0 ? <NoDataBox /> : isGridView ? <Cards items={currentData} /> : <Table items={currentData}/>}

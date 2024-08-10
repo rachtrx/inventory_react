@@ -15,32 +15,36 @@ import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
 import AddAsset from './forms/AddAsset';
-import LoanAsset from './forms/LoanAsset';
-import ReturnAsset from './forms/ReturnAsset';
+import Loan from './forms/Loan';
+import Return from './forms/Return';
 import CondemnAsset from './forms/CondemnAsset';
 import AddUser from './forms/AddUser';
 import RemoveUser from './forms/RemoveUser';
 import Toggle from './forms/utils/Toggle';
 import { ResponsiveText } from './utils/ResponsiveText';
-import { SectionDivider } from './forms/utils/SectionDivider';
-import { buttonConfigs } from './buttons/constants';
+import AddPeripheral from './forms/AddPeripheral';
+import Reserve from './forms/Reserve';
 
 const formMap = {
     [formTypes.ADD_ASSET]: <AddAsset/>,
-    [formTypes.LOAN]: <LoanAsset/>,
-    [formTypes.RETURN]: <ReturnAsset/>,
+    [formTypes.LOAN]: <Loan/>,
+    [formTypes.RETURN]: <Return/>,
     [formTypes.DEL_ASSET]: <CondemnAsset/>,
     [formTypes.ADD_USER]: <AddUser/>,
     [formTypes.DEL_USER]: <RemoveUser/>,
+    [formTypes.ADD_PERIPHERAL]: <AddPeripheral/>,
+    [formTypes.RESERVE]: <Reserve/>,
 }
 
 const headerMap = {
     [formTypes.ADD_ASSET]: "Add Asset",
-    [formTypes.LOAN]: 'Loan Asset',
-    [formTypes.RETURN]: 'Return Asset',
+    [formTypes.LOAN]: 'Loan',
+    [formTypes.RETURN]: 'Return',
     [formTypes.DEL_ASSET]: "Condemn Asset",
     [formTypes.ADD_USER]: "Add User",
     [formTypes.DEL_USER]: "Remove User",
+    [formTypes.ADD_PERIPHERAL]: "Add Peripheral",
+    [formTypes.RESERVE]: "Reserve Items",
 }
 
 export default function FormModal() { 
@@ -68,9 +72,14 @@ export default function FormModal() {
       }, [setIsExcel]); // Dependencies array includes setIsExcel
 
     return (
-        <Modal isOpen={isModalOpen} onClose={handleClose} size="xl" >
+        <Modal 
+            isOpen={isModalOpen} 
+            onClose={handleClose} 
+            scrollBehavior='inside' 
+            size="xl" 
+        >
             <ModalOverlay />
-            <ModalContent>
+            <ModalContent overflowY='scroll'>
                 <ModalCloseButton />
                 <ModalHeader display="flex" alignItems="center" gap={4}>
                     <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>

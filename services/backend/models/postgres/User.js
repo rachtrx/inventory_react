@@ -1,36 +1,49 @@
+const logger = require('../../logging');
+const { v4: uuidv4 } = require('uuid');
+
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
-	const Dept = require('./Dept');
+	const Department = require('./Department');
 	class User extends Model {
 
 		createUserObject = function() {
 			const plainUser = this.get({ plain: true })
+			// logger.info(plainUser);
+
 			return {
 				id: plainUser.id,
-				name: plainUser.userName,
+				userName: plainUser.userName,
 				bookmarked: plainUser.bookmarked && true || false,
 				deletedDate: plainUser.deletedDate || null,
 				addedDate: plainUser.addedDate,
-				department: plainUser.Dept.deptName,
-				...plainUser.Assets && { 
-					assets: plainUser.Assets.map(asset => ({
-						id: asset.id,
-						bookmarked: asset.bookmarked,
-						assetTag: asset.assetTag,
-						variant: asset.AssetTypeVariant?.variantName,
-						assetType: asset.AssetTypeVariant?.AssetType?.assetType,
-					})),
-				},
-				status: plainUser.deletedDate ? 'Deleted' : plainUser.Assets.length === 1 ? '1 Asset' : plainUser.Assets.length > 1 ? `${plainUser.Assets.length} Assets` : 'Available',
+				department: plainUser.Department.deptName,
+				...plainUser.LoanDetails && {loans: (plainUser.LoanDetails.map((loanDetails) => ({ 
+					id: loanDetails.Loan.id,
+					status: loanDetails.status,
+					startDate: loanDetails.startDate,
+					expectedReturnDate: loanDetails.expectedReturnDate,
+					...loanDetails.Loan.Asset && {asset: {
+						id: loanDetails.Loan.Asset.id,
+						bookmarked: loanDetails.Loan.Asset.bookmarked,
+						assetTag: loanDetails.Loan.Asset.assetTag,
+						variant: loanDetails.Loan.Asset.AssetTypeVariant?.variantName,
+						assetType: loanDetails.Loan.Asset.AssetTypeVariant?.AssetType?.assetType,
+					}},
+					...loanDetails.Loan.Peripherals && {peripherals: (loanDetails.Loan.Peripherals.map((peripheral) => ({
+						id: peripheral.peripheralType?.id,
+						peripheralName: peripheral.peripheralType?.peripheralName,
+						count: peripheral.count
+					})))}
+				})))},
 			}
 		}
 	}
 
 	User.init({
 		id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-			primaryKey: true
+			type: DataTypes.UUID,
+			primaryKey: true,
+  			defaultValue: DataTypes.UUIDV4
 		},
 		userName: {
 			type: DataTypes.STRING,
@@ -41,10 +54,10 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: true
 		},
 		deptId: {
-			type: DataTypes.STRING,
+			type: DataTypes.UUID,
 			allowNull: false,
 			references: {
-				model: 'depts',
+				model: 'departments',
 				key: 'id'
 			}
 		},

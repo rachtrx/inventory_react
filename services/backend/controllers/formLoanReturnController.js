@@ -1,4 +1,4 @@
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
 const FormHelpers = require('./formHelperController')
 const uuid = require('uuid');
 const { Event } = require('../models/mongo')
@@ -85,10 +85,10 @@ exports.return = async (req, res) => {
 };
 
 exports.downloadEvent = async (req, res) => {
-    const eventId = req.body.eventId;
+    const id = req.body.id;
 
     try {
-        const event = await Event.findById(eventId);
+        const event = await Event.findById(id);
         if (!event) {
             return res.status(404).send('File not found.');
         }

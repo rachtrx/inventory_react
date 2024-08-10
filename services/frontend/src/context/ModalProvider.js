@@ -5,6 +5,7 @@ import userService from '../services/UserService';
 import useDebouncedCallback from '../hooks/useDebounce';
 import useDebounce from '../hooks/useDebounce';
 import { useDisclosure } from '@chakra-ui/react';
+import peripheralService from '../services/PeripheralService';
 
 const ModalContext = createContext();
 
@@ -41,10 +42,9 @@ export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
 
 const initialState = {
   formType: null,
-  pendingAssets: [],
-  pendingUsers: [],
-	assets: [],
-	users: []
+	assetOptions: [],
+	userOptions: [],
+  peripheralOptions: [],
 };
 
 export const formTypes = {
@@ -55,25 +55,30 @@ export const formTypes = {
   ADD_USER: 'ADD_USER',
   DEL_USER: 'DEL_USER',
   RESTORE_ASSET: 'RESTORE_ASSET',
-  RESTORE_USER: 'RESTORE_USER'
+  RESTORE_USER: 'RESTORE_USER',
+  ADD_PERIPHERAL: 'ADD_PERIPHERAL',
+  RESERVE: 'RESERVE',
 }
 
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',
-  SET_ASSETS: 'SET_ASSETS',
-  SET_USERS: 'SET_USERS',
-  SET_NEW_STATE: 'SET_NEW_STATE'
+  SET_ASSET_OPTIONS: 'SET_ASSET_OPTIONS',
+  SET_USER_OPTIONS: 'SET_USER_OPTIONS',
+  SET_PERIPHERAL_OPTIONS: 'SET_PERIPHERAL_OPTIONS',
+  RESET_STATE: 'RESET_STATE',
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
     case actionTypes.SET_FORM_TYPE:
       return { ...state, formType: action.payload };
-		case actionTypes.SET_ASSETS:
-			return { ...state, assets: action.payload };
-		case actionTypes.SET_USERS:
-      return { ...state, users: action.payload };
+		case actionTypes.SET_ASSET_OPTIONS:
+			return { ...state, assetOptions: action.payload };
+		case actionTypes.SET_USER_OPTIONS:
+      return { ...state, userOptions: action.payload };
+    case actionTypes.SET_PERIPHERAL_OPTIONS:
+      return { ...state, peripheralOptions: action.payload };
     case actionTypes.RESET_STATE:
       return initialState;
     default:
@@ -144,10 +149,10 @@ export const ModalProvider = ({ children }) => {
 
   console.log("Modal rendered");
 
-  const onModalClose = () => {
+  const onModalClose = useCallback(() => {
     dispatch({ type: 'RESET_STATE' });
-    onClose();  // This calls the Chakra UI's useDisclosure() onClose method
-  }
+    onClose(); 
+  }, [dispatch, onClose]);
 
   // useEffect(() => {
 
@@ -191,18 +196,26 @@ export const ModalProvider = ({ children }) => {
     console.log(`Asset Search Called: ${value}`);
     const response = await assetService.searchAssets(value, state.formType);
     console.log(response.data);
-    dispatch({ type: actionTypes.SET_ASSETS, payload: response.data });
+    dispatch({ type: actionTypes.SET_ASSET_OPTIONS, payload: response.data });
   };
 
   const handleUserSearch = async (value) => {
     console.log(`User Search Called: ${value}`);
     const response = await userService.searchUsers(value, state.formType);
     console.log(response.data);
-    dispatch({ type: actionTypes.SET_USERS, payload: response.data });
+    dispatch({ type: actionTypes.SET_USER_OPTIONS, payload: response.data });
+  };
+
+  const handlePeripheralSearch = async (value) => {
+    console.log(`Peripheral Search Called: ${value}`);
+    const response = await peripheralService.searchPeripherals(value);
+    console.log(response.data);
+    dispatch({ type: actionTypes.SET_PERIPHERAL_OPTIONS, payload: response.data });
   };
 
   const debouncedAssetSearch = useDebounce(handleAssetSearch, 500);
   const debouncedUserSearch = useDebounce(handleUserSearch, 500);
+  const debouncedPeripheralSearch = useDebounce(handlePeripheralSearch, 500)
 
   const handleAssetInputChange = (value) => {
     debouncedAssetSearch(value);
@@ -212,8 +225,12 @@ export const ModalProvider = ({ children }) => {
     debouncedUserSearch(value);
   };
 
+  const handlePeripheralInputChange = (value) => {
+    debouncedPeripheralSearch(value);
+  };
+
   return (
-    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetInputChange, handleUserInputChange, isModalOpen, onModalOpen, onModalClose }}>
+    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetInputChange, handleUserInputChange, handlePeripheralInputChange, isModalOpen, onModalOpen, onModalClose }}>
       {children}
     </ModalContext.Provider>
   );

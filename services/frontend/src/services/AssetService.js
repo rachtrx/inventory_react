@@ -6,12 +6,27 @@ class AssetService {
         this.axios = axiosInstance;
     }
 
-    async getAsset(id) {
+    defaultFilters = {
+        "assetType": [],
+        "variantName": [],
+        "vendor": [],
+        "status": [],
+        "location": [],
+        "age": [],
+        "serialNumber": '',
+        "assetTag": ''
+    }
+
+    async getItem(id) {
         return await this.axios.get(`${API_URL}/assets/${id}`);
     }
 
-    async loadAssets() {
-        return await this.axios.get(`${API_URL}/assets`);
+    async getFilters(field) {
+        return await this.axios.post(`${API_URL}/assets/filters`, {field});
+    }
+
+    async loadItems(filters = this.defaultFilters) {
+        return await this.axios.post(`${API_URL}/assets`, {filters});
     }
 
     async bookmark(id, bookmarked) {
