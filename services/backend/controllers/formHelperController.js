@@ -2,10 +2,10 @@ const { Asset } = require('../models/postgres'); // Adjust the path to your mode
 const { Event } = require('../models/mongo')
 
 // Function to insert a device event
-exports.insertAssetEvent = async (eventId, assetId, eventType, remarks, userId = null, eventDate = null, filePath = null, session = null) => {
+exports.insertAssetEvent = async (id, assetId, eventType, remarks, userId = null, eventDate = null, filePath = null, session = null) => {
     try {
         const event = new Event({
-            _id: eventId,
+            _id: id,
             assetId: assetId,
             eventType: eventType,
             remarks: remarks,
@@ -22,10 +22,10 @@ exports.insertAssetEvent = async (eventId, assetId, eventType, remarks, userId =
 };
 
 // Function to insert a user event
-exports.insertUserEvent = async (eventId, eventType, userId, remarks, eventDate = null, session = null) => {
+exports.insertUserEvent = async (id, eventType, userId, remarks, eventDate = null, session = null) => {
     try {
         const event = new Event({
-            _id: eventId,
+            _id: id,
             eventType: eventType,
             userId: userId,
             remarks: remarks,

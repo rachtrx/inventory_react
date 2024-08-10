@@ -4,7 +4,7 @@ import {
     useColorModeValue,
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
-import { MdDashboard, MdHistory, MdWork, MdPeople, MdLogout } from 'react-icons/md'; // react-icons
+import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb } from 'react-icons/md'; // react-icons
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { useCallback } from 'react';
@@ -13,19 +13,6 @@ import authService from '../services/AuthService';
 const Nav = () => {
   const navigate = useNavigate();
   const linkHoverColor = useColorModeValue('gray.800', 'white');
-  const { user, setUser } = useAuth();
-
-  const logout = useCallback(async () => {
-    console.log(`Logging out ${user}!`);
-
-    try {
-      await authService.logout();
-      if (user) setUser(null);
-      navigate('/login', { replace: true });
-    } catch (error) {
-      console.error("Failed to log out:", error);
-    }
-  }, [navigate, user, setUser]);
 
   return (
     <Flex
@@ -49,14 +36,19 @@ const Nav = () => {
       <Menu>
         <NavButton next={() => navigate('/assets')} icon={<MdWork />} label="Assets" />
       </Menu>
+      
+      <Menu>
+        <NavButton next={() => navigate('/peripherals')} icon={<MdUsb />} label="Peripherals" />
+      </Menu>
 
       <Menu>
         <NavButton next={() => navigate('/users')} icon={<MdPeople />} label="Users" />
       </Menu>
 
       <Menu>
-        <NavButton next={logout} icon={<MdLogout />} label="Logout" />
+        <NavButton next={() => navigate('/profile')} icon={<MdAccountCircle />} label="Profile" />
       </Menu>
+
     </Flex>
   );
 };

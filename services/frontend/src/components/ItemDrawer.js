@@ -17,6 +17,7 @@ import { useEffect } from 'react';
 import Asset from './assets/Asset';
 import User from './users/User';
 import { useDrawer } from '../context/DrawerProvider';
+import { getDisplayValue, itemKeys } from '../config';
 
 
 const ItemDrawer = () => {
@@ -37,7 +38,7 @@ const ItemDrawer = () => {
           {itemsHistory.map((item, index) => (
             <BreadcrumbItem key={index} isCurrentPage={item.id === (currentItem?.id)}>
               <BreadcrumbLink onClick={() => handleItemClick(item)}>
-                <Text fontSize="sm">{item.assetTag || item.name}</Text>
+                <Text fontSize="sm">{getDisplayValue(item)}</Text>
               </BreadcrumbLink>
             </BreadcrumbItem>
           ))}

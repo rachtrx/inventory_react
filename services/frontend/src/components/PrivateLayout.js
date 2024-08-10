@@ -4,30 +4,35 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'; // Outlet f
 import Nav from './Nav';
 import { ModalProvider } from '../context/ModalProvider';
 import { DrawerProvider } from '../context/DrawerProvider';
-import { GlobalProvider } from '../context/GlobalProvider';
+import { ItemsProvider } from '../context/ItemsProvider';
 import FormModal from './FormModal';
 import ItemDrawer from './ItemDrawer';
 import authService from '../services/AuthService';
 import { useUI } from '../context/UIProvider';
+import { useMsal } from '@azure/msal-react';
 
 export const PrivateLayout = () => {
-  const { setUser,  user } = useAuth();
+  const { setAdmin,  admin } = useAuth();
   const { handleError } = useUI()
-
   const navigate = useNavigate()
 
   console.log('Rendering Private Route');
+
+  const { instance } = useMsal()
+  useEffect(() => {
+    const account = instance.getActiveAccount();
+    console.log(account);
+  })
 
   useEffect(() => {
 
     const performAuthCheck = async () => {
       try {
         const response = await authService.checkAuth();
-        const { userName } = response.data;
-        setUser(userName);
+        if (!admin) setAdmin(response.data)
       } catch (error) {
-        handleError("Your session has timed out, please login again");
-        setUser(null);
+        if (admin) handleError("Your session has timed out, please login again");
+        setAdmin(null);
         navigate('/login', { replace: true });
       };
     }
@@ -41,20 +46,18 @@ export const PrivateLayout = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [navigate, user, setUser, handleError]);
+  }, [navigate, admin, setAdmin, handleError]);
 
   return (
-    user &&
+    admin &&
     (<div>
       <Nav/>
       <main>
         <ModalProvider>
           <DrawerProvider>
-            <GlobalProvider>
               <Outlet />
               <FormModal />
               <ItemDrawer />
-            </GlobalProvider>
           </DrawerProvider>
         </ModalProvider>
       </main>

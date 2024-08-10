@@ -1,41 +1,122 @@
-const { sequelize, Sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+const { sequelize, Sequelize, Loan, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, LoanDetail, Peripheral, PeripheralType } = require('../models/postgres');
 const { Op } = Sequelize;
 const mongodb = require('../models/mongo');
 
 const logger = require('../logging');
-const { formTypes } = require('./utils');
+const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils')
+
+exports.getFilters = async (req, res) => {
+    const { field } = req.body;
+
+    let options;
+    try {
+        if (field === 'department') {
+            meta = [Department, 'id', 'deptName'];
+            logger.info(meta)
+            options = await getAllOptions(meta)
+            
+        } else if (field === 'assetCount') {
+            const result = await LoanDetail.findAll({
+                attributes: [
+                    'userId',
+                    [Sequelize.fn('COUNT', Sequelize.col('"Loan->Asset"."id"')), 'assetCount']
+                ],
+                include: {
+                    model: Loan,
+                    attributes: [],
+                    required: true,
+                    include: {
+                        model: Asset,
+                        attributes: [],
+                        required: true,
+                    }
+                },
+                where: { status: 'COMPLETED' },
+                group: ['"LoanDetail.user_id"'], // TODO
+                raw: true
+            });
+            const counts = result.map(item => item.assetCount);
+            const distinctCounts = [...new Set(counts)];
+            options = distinctCounts.map((count) => ({
+                label: count,
+                value: count,
+            }))
+        }
+        console.log(options);
+        return res.json(options || []);
+    } catch (error) {
+        logger.error(error)
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
 
 exports.getUsers = async (req, res) => {
     try {
+        const { filters } = req.body
+        logger.info(filters)
+
         const usersExist = await User.count();
         
         if (usersExist === 0) {
             return res.json([]);
         }
 
-        const query = await User.findAll({
+        const whereClause = {
+            ...(filters.name && { userName: { [Op.iLike]: filters.name } }),
+        };
+
+        let query = await User.findAll({
             include: [{
-                model: Asset,
-                required: false,
-                attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                model: LoanDetail,
+                attributes: ['status', 'startDate', 'expectedReturnDate'],
+                where: { status: 'COMPLETED' },
                 include: {
-                    model: AssetTypeVariant,
-                    attributes: ['variantName'],
-                    include: {
-                        model: AssetType,
-                        attributes: ['assetType']
-                    }
+                    model: Loan,
+                    attributes: ['id'],
+                    required: false,
+                    include: [
+                        {
+                            model: Asset,
+                            attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                            include: {
+                                model: AssetTypeVariant,
+                                attributes: ['variantName'],
+                                include: {
+                                    model: AssetType,
+                                    attributes: ['assetType']
+                                }
+                            }
+                        },
+                        {
+                            model: Peripheral,
+                            attributes: ['count'],
+                            include: {
+                                model: PeripheralType,
+                                attributes: ['id', 'peripheralName'],
+                            }
+                        }
+                    ]
                 }
             },
             {
-                model: Dept,
+                model: Department,
                 required: true,
-                attributes: ['deptName']
+                attributes: ['deptName'],
+                ...(filters.department.length > 0 && { where: { id: { [Op.in]: filters.department } } }),
             }],
+            where: whereClause,
             // TODO
             order: [['addedDate', 'DESC']],
             attributes: ['id', 'userName', 'bookmarked', 'addedDate']
         });
+
+        if (filters.assetCount.length > 0) {
+            filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
+            query = query.filter(user => {
+                return filters.assetCount.includes(user.Loans.length);
+            });
+        }
         
         // Mapping over the result to modify each user object
         const result = query.map(user => {
@@ -57,16 +138,24 @@ exports.getUser = async (req, res) => {
     try {
         const userDetailsPromise = User.findByPk(userId, {
             include: [{
-                model: Dept,
+                model: Department,
                 attributes: ['deptName']
             },
             {
-                model: Asset,
-                attributes: ['id', 'assetTag', 'bookmarked'],
+                model: LoanDetail,
+                attributes: ['status', 'startDate', 'expectedReturnDate'],
                 include: {
-                    model: AssetTypeVariant,
-                    attributes: ['variantName']
-                },
+                    model: Loan,
+                    attributes: ['id'],
+                    include: {
+                        model: Asset,
+                        attributes: ['id', 'assetTag', 'bookmarked'],
+                        include: {
+                            model: AssetTypeVariant,
+                            attributes: ['variantName']
+                        }
+                    },
+                }
             }],
             attributes: ['id', 'userName', 'bookmarked', 'addedDate', 'deletedDate']
         });
@@ -94,67 +183,73 @@ exports.getUser = async (req, res) => {
 
 exports.searchUsers = async (req, res) => {
     const { value, formType } = req.body;
-    
-    let orderConditions;
-    switch (formType) {
-        case formTypes.LOAN:
-            // For loan, order by User association being null, then by recent updates
-            orderConditions = [
-                [Sequelize.literal('"User"."deleted_date" IS NOT NULL'), 'ASC'],
-                [Sequelize.literal('"User"."updated_at"'), 'DESC'],
-            ];
-            break;
-            case formTypes.DEL_USER:
-                // For return, order by User association being not null, then by recent updates
-            orderConditions = [
-                [Sequelize.literal('"User"."deleted_date" IS NOT NULL'), 'ASC'],
-                [sequelize.literal('"Assets.assetCount"'), 'ASC'],
-                [Sequelize.literal('"User"."updated_at"'), 'DESC'],
-            ];
-            break;
-        default:
-            return res.status(400).send('Invalid form type provided.');
+
+    let orderByClause;
+
+    if (formType === 'LOAN') {
+        orderByClause = `
+            ORDER BY 
+                "deletedDate" IS NOT NULL ASC,
+                "updatedAt" DESC
+        `;
+    } else if (formType === 'DEL_USER') {
+        orderByClause = `
+            ORDER BY 
+                "deletedDate" IS NOT NULL ASC,
+                ("reserveCount" = 0 AND "loanCount" = 0) ASC,
+                "reserveCount" = 0 ASC,
+                "loanCount" = 0 ASC,
+                "updatedAt" DESC
+        `;
+    } else {
+        throw new Error('Invalid form type provided.');
     }
+    
+    const sql = `
+        WITH UserLoanCounts AS (
+            SELECT 
+                users.id, 
+                users.user_name AS name, 
+                users.bookmarked, 
+                users.deleted_date AS "deletedDate", 
+                departments.dept_name AS department,
+                CAST(COUNT(CASE WHEN loan_details.status = 'COMPLETED' AND assets.id IS NOT NULL THEN 1 END) AS INTEGER) AS "loanCount",
+                CAST(COUNT(CASE WHEN loan_details.status = 'RESERVED' AND assets.id IS NOT NULL THEN 1 END) AS INTEGER) AS "reserveCount",
+                users.updated_at AS "updatedAt"
+            FROM users
+            LEFT JOIN loan_details ON users.id = loan_details.user_id
+            LEFT JOIN loans ON loan_details.loan_id = loans.id
+            LEFT JOIN assets ON loans.id = assets.loan_id
+            LEFT JOIN departments ON users.dept_id = departments.id
+            WHERE users.user_name ILIKE :userName
+            GROUP BY users.id, departments.dept_name
+        )
+        SELECT *
+        FROM UserLoanCounts
+        ${orderByClause}
+        LIMIT 20;
+    `;
 
     try {
-        const query = await User.findAll({
-            attributes: [
-                'id',
-                'userName',
-                'bookmarked',
-                sequelize.col('User.deleted_date'),
-                sequelize.col('User.updated_at')
-            ],
-            include: [
-                {
-                    model: Asset,
-                    attributes: [[sequelize.fn('COUNT', sequelize.col('Assets.id')), 'assetCount']],
-                    duplicating: false // TODO reuqired?
-                },
-                {
-                    model: Dept,
-                    attributes: ['deptName'],
-                    duplicating: false // TODO reuqired?
-                },
-            ],
-            where: {
-                userName: {
-                    [Op.iLike]: `%${value}%`
-                }
-            },
-            group: ['User.id', 'Assets.id', 'Dept.id'],
-            order: orderConditions,
-            limit: 20
-        }).then(users => {
-            // Calculate age for each asset and include it in the results
-            // const plainAsset = asset.get({ plain: true });
-            return users.map(user => user.createUserObject());
-        })
-    
-        const users = query.map(user => {
-            logger.info(user);
+        const users = await sequelize.query(sql, {
+            replacements: { userName: `%${value}%` },
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        response = users.map(user => {
+            logger.info(user)
+            if (user.deletedDate) {
+                user.status = 'Deleted';
+            } else if (user.loanCount === 0 && user.reserveCount === 0) {
+                user.status = 'Available';
+            } else {
+                user.status = `${user.loanCount} Loaned, ${user.reserveCount} Reserved`;
+            }
+
+            
             const { name, department, status } = user;
-            let disabled; 
+            logger.info(status)
+            let disabled;
             switch(formType) {
                 case formTypes.LOAN:
                     disabled = status === 'Deleted'
@@ -171,7 +266,7 @@ exports.searchUsers = async (req, res) => {
             };
         });
 
-        res.json(users);
+        res.json(response)
     } catch (error) {
         logger.error('Error fetching users:', error)
         console.error('Error fetching users:', error);

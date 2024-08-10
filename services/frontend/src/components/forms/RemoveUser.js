@@ -4,7 +4,7 @@ import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { useFormModal } from "../../context/ModalProvider";
 import { MultiSelectFormControl } from "./utils/SelectFormControl";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
@@ -14,7 +14,7 @@ import Toggle from "./utils/Toggle";
 const RemoveUser = () => {
 
     const { isExcel } = useFormModal()
-    const { assetFilters, userFilters } = useGlobal()
+    const { assetFilters, userFilters } = useItems()
 
     const fieldsToReset = useMemo(() => [
       'model', 'vendor', 'serial-number', 'asset-tag', 'value', 'remarks'

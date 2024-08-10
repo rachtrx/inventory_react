@@ -1,30 +1,36 @@
+const logger = require('../../logging');
+const { v4: uuidv4 } = require('uuid');
+
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
-	class Peripherals extends Model {}
+	class Peripheral extends Model { }
 
-	Peripherals.init({
-		id: {
-			type: DataTypes.STRING,
-			primaryKey: true
-		},
-        userId: {
-            allowNull: false,
+	Peripheral.init({
+		loanId: {
+			type: DataTypes.UUID,
+			primaryKey: true,
 			references: {
-				model: 'admin',
+				model: 'loans',
 				key: 'id'
 			}
-        },
-		name: {
-			type: DataTypes.STRING,
-			allowNull: false
 		},
-        favourite: {
-            type: DataTypes.INTEGER,
+		peripheralTypeId: {
+			type: DataTypes.UUID,
+			references: {
+				model: 'peripheral_types',
+				key: 'id'
+			}
+		},
+		count: {
+			type: DataTypes.INTEGER,
 			allowNull: false
-        }
+		}
 	}, {
 		sequelize,
 		modelName: 'Peripheral'
 	});
-	return Peripherals;
+	return Peripheral;
 }
+
+// untag the asset id to be able to stock transfer
+  

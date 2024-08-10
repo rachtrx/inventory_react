@@ -6,20 +6,26 @@ class UserService {
         this.axios = axiosInstance;
     }
 
-    async getUser(id) {
+    defaultFilters = {
+        department: [],
+        name: '',
+        assetCount: [],
+    }
+
+    async getItem(id) {
         return await this.axios.get(`${API_URL}/users/${id}`);
     }
 
-    async loadUsers() {
-        return await this.axios.get(`${API_URL}/users`);
+    async getFilters(field) {
+        return await this.axios.post(`${API_URL}/users/filters`, {field});
+    }
+
+    async loadItems(filters = this.defaultFilters) {
+        return await this.axios.post(`${API_URL}/users`, {filters});
     }
     
     async bookmark(id, bookmarked) {
         return await this.axios.post(`${API_URL}/users/bookmark`, {id, bookmarked});
-    }
-
-    async loadAllUsers() {
-        return await this.axios.get(`${API_URL}/users/`);
     }
 
     async searchUsers(value, formType) {

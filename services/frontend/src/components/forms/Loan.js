@@ -2,18 +2,18 @@ import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/r
 import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import SelectFormControl, { CustomMultiSelectFormControl, MultiSelectFormControl } from "./utils/SelectFormControl";
+import SelectFormControl, { CreatableMultiSelectFormControl, MultiSelectFormControl } from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
 import { useFormModal, actionTypes } from "../../context/ModalProvider";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
 import { useCallback, useMemo, useState } from "react";
 import { FieldArray, Form, Formik } from "formik";
 import Toggle from "./utils/Toggle";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
-import { LoanSingleAsset } from "./LoanSingleAsset";
+import { LoanAssetsArray } from "./LoanAssetsArray";
 import { FormikSignatureField } from "./utils/SignatureField";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { SectionDivider } from "./utils/SectionDivider";
@@ -38,16 +38,17 @@ const addNewUser = () => ({
     'bookmarked': false,
     'tags': [],
     'remarks': '',
+    'peripherals': []
   }],
   'bookmark-user': false,
   'signature': ''
 })
 
-const LoanAsset = () => {
+const Loan = () => {
 
   console.log('loan form rendered');
 
-  const { isExcel, users, handleUserInputChange, onModalClose } = useFormModal()
+  const { isExcel, userOptions, handleUserInputChange, onModalClose } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
   const [options, setOptions] = useState({
     tags: tags, // set to [] at the start
@@ -170,20 +171,20 @@ const LoanAsset = () => {
                             name={`users.${userIndex}.user-id`}
                             onInputChange={handleUserInputChange}
                             label={`User #${userIndex + 1}`} 
-                            options={users} 
+                            options={userOptions} 
                             placeholder="Select a user" 
                           />
-                          <FieldArray name={`users.${userIndex}.assets`}>
-                            {assetHelpers => (
-                              <LoanSingleAsset 
-                                user={user}
-                                assetHelpers={assetHelpers} 
-                                userIndex={userIndex}
-                                options={options}
-                                setOptions={setOptions}
-                              />
-                            )}
-                          </FieldArray>
+                          <LoanAssetsArray 
+                            fieldArrayName={`users.${userIndex}.assets`}
+                            assets={user.assets}
+                            options={options}
+                            setOptions={setOptions}
+                            newAssetFields={{
+                              'asset-id': '',
+                              'bookmarked': false,
+                              'tags': []
+                              }}
+                          />
                           <FormikSignatureField
                             name={`users.${userIndex}.signature`}
                             label="Signature"
@@ -247,4 +248,4 @@ const LoanAsset = () => {
   );
 };
 
-export default LoanAsset;
+export default Loan;

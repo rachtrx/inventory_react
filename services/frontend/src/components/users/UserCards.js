@@ -17,12 +17,12 @@ import { formTypes, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
 import { AssetList } from "./AssetList";
 import StarButton from "../buttons/StarButton";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { ItemLink } from "../buttons/ItemLink";
 
 function UserCards({ items }) {
 
-  const { handleUserToggle } = useGlobal()
+  const { handleToggle } = useItems()
 
   return (
     <Cards>
@@ -39,7 +39,7 @@ function UserCards({ items }) {
             <Text fontSize="md" fontWeight="semibold">
               {user.department}
             </Text>
-            {user.assets?.length > 0 ? <AssetList user={user}/> : 
+            {user.loans?.length > 0 ? <AssetList user={user}/> : 
               <Flex>
                 <ActionButton formType={user.deletedDate ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
               </Flex>
@@ -51,7 +51,7 @@ function UserCards({ items }) {
             position="absolute" top={2} right={2}
             id={user.id}
             isBookmarked={user.bookmarked}
-            onToggle={handleUserToggle}
+            onToggle={handleToggle}
           />
         </Card>
       </Box>

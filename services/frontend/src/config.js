@@ -4,12 +4,35 @@ import axios from 'axios';
 export const TIMEOUT_SEC = 300;
 export const PREVIEW_TIMEOUT_BLUR = 100;
 export const RES_PER_PAGE = 30;
-export const API_URL = 'http://127.0.0.1:3001/api';
+export const AUTH_URL = 'http://localhost:3001/auth';
+export const API_URL = 'http://localhost:3001/api';
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true
 });
+
+export const itemKeys = {
+  ASSET_TAG: 'assetTag',
+  USER_NAME: 'userName',
+  PERIPHERAL_NAME: 'peripheralName'
+}
+
+export const getDisplayValue = (item, raw=false) => {
+  let attr;
+  if (item.hasOwnProperty(itemKeys.ASSET_TAG)) {
+    attr = itemKeys.ASSET_TAG;
+  } else if (item.hasOwnProperty(itemKeys.USER_NAME)) {
+    attr = itemKeys.USER_NAME;
+  } else if (item.hasOwnProperty(itemKeys.PERIPHERAL_NAME)) {
+    attr = itemKeys.PERIPHERAL_NAME;
+  } else {
+    return '';
+  }
+
+  if (raw) return attr;
+  return item[attr];
+};
 
 // export const API_URL = `${process.env.REACT_APP_API_BASE_URL}`;
 // console.log(API_URL);
@@ -30,31 +53,3 @@ const baseColors = ['#FF6384', '#19C4A6', '#36A2EB', '#FFA53F', '#FFF58F', '#B58
 
 const numberOfAdditionalColors = 5;
 export const COLORSCALE = chroma.scale(baseColors).colors(numberOfAdditionalColors);
-
-export const eventToStatus = function(event) {
-    let status;
-  
-    switch(event) {
-  
-      case 'registered':
-        status = 'REGISTERED'
-        break;
-  
-      case 'loaned':
-        status = 'ON LOAN'
-        break;
-  
-      case 'available':
-        status = 'AVAILABLE'
-        break;
-  
-      case 'condemned':
-        status = 'CONDEMNED'
-        break;
-
-      default:
-        break
-    }
-  
-    return status;
-  }

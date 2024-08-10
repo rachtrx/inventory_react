@@ -1,24 +1,20 @@
 const logger = require('../../logging');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
 	class Asset extends Model {
 
-		createAssetObject = function(getAge=false) {
-			// console.log(this.get({ plain: true }));
-			const plainAsset = this.get({ plain: true })
+		createAssetObject = function() {
+			const plainAsset = this.get({ plain: true });
 
 			logger.info(plainAsset);
-
-			const age = getAge ? 
-				Math.floor((new Date() - new Date(plainAsset.addedDate)) / (365.25 * 24 * 60 * 60 * 1000)) :
-				null;
 		
 			return {
 				id: plainAsset.id,
 				serialNumber: plainAsset.serialNumber,
 				assetTag: plainAsset.assetTag,
-				status: plainAsset.User ? 'On Loan' : plainAsset.deletedDate ? 'Condemned' : 'Available',
+				status: plainAsset.deletedDate ? 'Condemned' : !plainAsset.Loan ? 'Available' : plainAsset.Loan.status === 'COMPLETED' ? 'On Loan' : 'Reserved',
 				value: String(parseFloat(plainAsset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
 				bookmarked: plainAsset.bookmarked && true || false,
 				variant: plainAsset.AssetTypeVariant?.variantName,
@@ -27,23 +23,30 @@ module.exports = (sequelize, DataTypes) => {
 				...(plainAsset.addedDate && {addedDate: plainAsset.addedDate}),
 				...(plainAsset.deletedDate && {deletedDate: plainAsset.deletedDate}),
 				...(plainAsset.location && {location: plainAsset.location}),
-				...(plainAsset.User && {
-					user: {
-						id: plainAsset.User.id,
-						name: plainAsset.User.userName,
-						bookmarked: plainAsset.User.bookmarked
-					}
+				...(plainAsset.Loan && {loanId: plainAsset.Loan.id}),
+				...(plainAsset.Loan?.LoanDetails && {users: (plainAsset.Loan.LoanDetails.map((loanDetails) => ({
+					id: loanDetails.User.id,
+					name: loanDetails.User.userName,
+					bookmarked: loanDetails.User.bookmarked,
+					status: loanDetails.status,
+					startDate: loanDetails.startDate,
+					expectedReturnDate: loanDetails.expectedReturnDate,
+				})))}),
+				...(plainAsset.Loan?.Peripheral && {
+					peripherals: plainAsset.Loan.PeripheralLoans.map((peripheralLoan) => ({
+						type: peripheralLoan.peripheralType?.peripheralName,
+						count: peripheralLoan.count
+					}))
 				}),
-				// For ALL Assets
-				...(age && { age }),
 			}
 		}
 	}
 
 	Asset.init({
 		id: {
-			type: DataTypes.STRING,
-			primaryKey: true
+			type: DataTypes.UUID,
+			primaryKey: true,
+  			defaultValue: DataTypes.UUIDV4
 		},
 		serialNumber: {
 			type: DataTypes.STRING,
@@ -56,24 +59,20 @@ module.exports = (sequelize, DataTypes) => {
 			unique: true
 		},
 		variantId: {
-			type: DataTypes.STRING,
+			type: DataTypes.UUID,
 			allowNull: false,
 			references: {
 				model: 'asset_type_variants',
 				key: 'id'
 			}
 		},
+		shared: {
+			type: DataTypes.INTEGER,
+			defaultValue: 0
+		},
 		bookmarked: {
 			type: DataTypes.INTEGER,
 			allowNull: false
-		},
-		userId: {
-			type: DataTypes.STRING,
-			allowNull: true,
-			references: {
-				model: 'users',
-				key: 'id'
-			}	
 		},
 		location: {
 			type: DataTypes.STRING
@@ -82,8 +81,12 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.DATE,
 			defaultValue: DataTypes.NOW
 		},
+		expiryDate: {
+			type: DataTypes.DATE,
+			allowNull: true,
+		},
 		vendorId: {
-			type: DataTypes.STRING,
+			type: DataTypes.UUID,
 			allowNull: false,
 			references: {
 				model: 'vendors',

@@ -9,13 +9,13 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
 import StarButton from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
-import { useGlobal } from '../../context/GlobalProvider';
+import { useItems } from '../../context/ItemsProvider';
 import { ItemLink } from '../buttons/ItemLink';
 
 const UserTable = ({ items }) => {
 
   const { loading, setLoading, error, setError }  = useUI();
-  const { handleUserToggle } = useGlobal()
+  const { handleToggle } = useItems()
 
   return (
     <Table size='sm' variant="simple">
@@ -34,7 +34,7 @@ const UserTable = ({ items }) => {
             _hover={{ bg: 'gray.100' }}
             // onClick={() => handleItemClick(user)}
           >
-            <Td><StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleUserToggle}/></Td>
+            <Td><StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleToggle}/></Td>
             <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
             <Td><ResponsiveText>{user.department}</ResponsiveText></Td><Td>
               {user.assets?.length > 0 ? 

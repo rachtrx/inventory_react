@@ -1,12 +1,12 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
-const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
 const uuid = require('uuid');
 const FormHelpers = require('./formHelperController');
 
 exports.getDepts = async (req, res) => {
     try {
-        const depts = await Dept.findAll({
+        const depts = await Department.findAll({
             order: [['deptName', 'ASC']],
             attributes: ['deptName']
         });
@@ -26,7 +26,7 @@ exports.createUser = async (req, res) => {
 
             // Check if the deptName is new or existing
             if (isNewDept) {
-                const existingDept = await Dept.findOne({
+                const existingDept = await Department.findOne({
                     where: { deptName: { [Op.iLike]: deptName } },
                     transaction: t
                 });
@@ -36,13 +36,13 @@ exports.createUser = async (req, res) => {
                 }
 
                 deptId = uuid.v4();
-                await Dept.create({
+                await Department.create({
                     id: deptId,
                     deptName: trimmedDept
                 }, { transaction: t });
             } else {
                 const deptLower = deptName.toLowerCase();
-                const existingDept = await Dept.findOne({
+                const existingDept = await Department.findOne({
                     where: { deptName: { [Op.iLike]: deptLower } },
                     attributes: ['id'],
                     transaction: t
@@ -77,9 +77,9 @@ exports.createUser = async (req, res) => {
                     deletedDate: null
                 }, { transaction: t });
 
-                const eventId = uuid.v4();
+                const id = uuid.v4();
                 const eventType = 'created';
-                await FormHelpers.insertUserEvent(eventId, eventType, userId, remarks, t);
+                await FormHelpers.insertUserEvent(id, eventType, userId, remarks, t);
             }
         });
 

@@ -5,7 +5,6 @@ import ActionButton from '../buttons/ActionButton';
 
 export default function UserActions() {
 
-  const { dispatch } = useFormModal()
   const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
   const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });
 

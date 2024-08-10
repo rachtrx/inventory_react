@@ -1,6 +1,5 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-// import { store } from "./store";
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from "react-router-dom";
@@ -11,8 +10,8 @@ import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Global, css } from '@emotion/react';
 
-const container = document.getElementById('root');
-const root = createRoot(container);
+const rootElement = document.getElementById('root');
+const root = ReactDOM.createRoot(rootElement);
 
 const GlobalStyles = () => (
   <Global

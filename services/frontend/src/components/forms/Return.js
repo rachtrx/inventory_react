@@ -6,14 +6,14 @@ import SelectFormControl from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
 import { useFormModal } from "../../context/ModalProvider";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
 import { useMemo } from "react";
 
-const ReturnAsset = () => {
+const Return = () => {
 
     const { isExcel, handleAssetInputChange, assets } = useFormModal()
-    const { assetFilters } = useGlobal()
+    const { assetFilters } = useItems()
 
     const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
 
@@ -63,4 +63,4 @@ const ReturnAsset = () => {
   );
 };
 
-export default ReturnAsset;
+export default Return;

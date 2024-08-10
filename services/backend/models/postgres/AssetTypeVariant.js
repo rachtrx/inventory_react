@@ -1,14 +1,17 @@
+const { v4: uuidv4 } = require('uuid');
+
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
 	class AssetTypeVariant extends Model {}
 
 	AssetTypeVariant.init({
 		id: {
-			type: DataTypes.STRING,
-			primaryKey: true
+			type: DataTypes.UUID,
+			primaryKey: true,
+  			defaultValue: DataTypes.UUIDV4,
 		},
 		assetTypeId: {
-			type: DataTypes.STRING,
+			type: DataTypes.UUID,
 			allowNull: false,
 			references: {
 				model: 'asset_types',
@@ -19,10 +22,6 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
-		// addedDate: {
-		// 	type: DataTypes.DATE,
-		// 	defaultValue: DataTypes.NOW
-		// }
 	}, {
 		sequelize,
 		modelName: 'AssetTypeVariant',

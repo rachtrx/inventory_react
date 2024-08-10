@@ -1,6 +1,5 @@
 import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure, Grid, SimpleGrid } from '@chakra-ui/react';
 import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
-import { eventToStatus } from '../../config';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';

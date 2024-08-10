@@ -5,14 +5,14 @@ import ExcelToggle from "./utils/ExcelToggle";
 import FormToggle from "./utils/FormToggle";
 import DateInputControl from "./utils/DateInputControl";
 import { useFormModal } from "../../context/ModalProvider";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
 import { useMemo } from "react";
 
 const CondemnAsset = () => {
 
   const { isExcel, handleAssetInputChange, assets } = useFormModal()
-  const { assetFilters, userFilters } = useGlobal()
+  const { assetFilters, userFilters } = useItems()
 
   const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
 

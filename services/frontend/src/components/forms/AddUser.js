@@ -5,7 +5,7 @@ import ExcelFormControl from './utils/ExcelFormControl';
 import SelectFormControl from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
-import { useGlobal } from "../../context/GlobalProvider";
+import { useItems } from "../../context/ItemsProvider";
 import { useFormModal } from "../../context/ModalProvider";
 import { MultiSelectFormControl } from "./utils/SelectFormControl";
 import { SingleSelectFormControl } from "./utils/SelectFormControl";
@@ -15,7 +15,7 @@ import Toggle from "./utils/Toggle";
 const AddUser = () => {
 
     const { isExcel } = useFormModal()
-    const { assetFilters, userFilters } = useGlobal()
+    const { assetFilters, userFilters } = useItems()
     const [ isSelectDept, setIsSelectDept ] = useState(true)
 
     const fieldsToReset = useMemo(() => [

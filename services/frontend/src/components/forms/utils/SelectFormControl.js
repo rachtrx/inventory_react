@@ -5,7 +5,7 @@ import { FormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
 import { actionTypes, updateOptions, useFormModal } from '../../../context/ModalProvider';
 import CreatableSelect from 'react-select/creatable';
 
-const withSelect = (Component) => ({ name, label, options = [], isMulti = false, updateChangeFn=null, hideSelectedOptions=false, ...props }) => {
+const withSelect = (Component) => ({ name, label, options = [], isMulti = false, hideSelectedOptions=false, callback=null, ...props }) => {
   const [, meta, { setValue, setTouched }] = useField(name);
   const selectRef = useRef();
 
@@ -14,16 +14,16 @@ const withSelect = (Component) => ({ name, label, options = [], isMulti = false,
 
   const handleChange = useCallback((value) => {
     console.log(value);
-    if (updateChangeFn) {
-      updateChangeFn(value);
+    if (callback) {
+      callback(value);
     }
-    const newValue = isMulti ? (value || []).map(v => v.value) : value?.value || '';
+    const newValue = isMulti ? (value || []).map(v => v.value.trim()) : value?.value.trim() || '';
     console.log("New value set:", newValue);
     setValue(newValue);
     setSelectedOption(value);
     setTouched(true);
-  }, [setTouched, setValue, isMulti, updateChangeFn]);
-
+  }, [setTouched, setValue, isMulti, callback]);
+  
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
       {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
@@ -44,48 +44,60 @@ const withSelect = (Component) => ({ name, label, options = [], isMulti = false,
   );
 };
 
-const SingleSelect = withSelect(Select);
+const EnhancedSelect = withSelect(Select);
 export const SingleSelectFormControl = (props) => {
-  const [displayValue, setDisplayValue] = useState(true);
-
-  const handleMenuOpen = useCallback(() => setDisplayValue(false), []);
-  const handleMenuClose = useCallback(() => setDisplayValue(true), []);
-
   return (
-    <SingleSelect 
+    <EnhancedSelect 
       {...props}
-      onMenuOpen={handleMenuOpen}
-      onMenuClose={handleMenuClose}
-      components={{
-        SingleValue: (props) => displayValue ? <components.SingleValue {...props} /> : null,
-      }}
+      isClearable={true}
       isMulti={false}
     />
   );
 };
 
-const MultiSelect = withSelect(Select);
 export const MultiSelectFormControl = (props) => {
   return (
-    <MultiSelect 
+    <EnhancedSelect 
       {...props}
       isMulti={true}
+      closeMenuOnSelect={false}
     />
   );
 };
 
-const CustomSelect = withSelect(CreatableSelect);
-export const CustomMultiSelectFormControl = ({updateChangeFn=null, name, options, setOptions, ...props}) => {
+const EnhancedCreatableSelect = withSelect(CreatableSelect);
+export const CreatableSingleSelectFormControl = (props) => {
+  return (
+    <EnhancedCreatableSelect 
+      {...props}
+      isClearable={true}
+      isMulti={false}
+    />
+  );
+};
+
+export const CreatableMultiSelectFormControl = ({name, ...props}) => {
 
   return (
-    <CustomSelect 
+    <EnhancedCreatableSelect 
       {...props}
-      name={name}
       isMulti={true}
       hideSelectedOptions={true}
-      options={options}
-      setOptions={setOptions}
-      updateChangeFn={updateChangeFn}
     />
   );
 };
+
+export const PeripheralSearchFormControl = function({ name, defaultOption=null }) {
+
+  const { handlePeripheralInputChange, peripheralOptions } = useFormModal()
+
+  return (
+    <CreatableSingleSelectFormControl
+      name={name}
+      options={defaultOption ? defaultOption : peripheralOptions && peripheralOptions.length > 0 ? peripheralOptions : [{label: "No peripherals found", value: '', isDisabled: true}]}
+      isDisabled={defaultOption ? true : false}
+      onInputChange={handlePeripheralInputChange}
+      placeholder="Select Peripheral" 
+    />
+  )
+}
