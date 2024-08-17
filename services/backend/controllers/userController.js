@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const { sequelize, Sequelize, Loan, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, LoanDetail, Peripheral, PeripheralType } = require('../models/postgres');
 const { Op } = Sequelize;
 const mongodb = require('../models/mongo');
@@ -56,12 +57,22 @@ exports.getUsers = async (req, res) => {
         const { filters } = req.body
         logger.info(filters)
 
+=======
+const { sequelize, Sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+const mongodb = require('../models/mongo');
+
+const logger = require('../logging');
+
+exports.getUsers = async (req, res) => {
+    try {
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
         const usersExist = await User.count();
         
         if (usersExist === 0) {
             return res.json([]);
         }
 
+<<<<<<< HEAD
         const whereClause = {
             ...(filters.name && { userName: { [Op.iLike]: filters.name } }),
         };
@@ -106,10 +117,28 @@ exports.getUsers = async (req, res) => {
                 ...(filters.department.length > 0 && { where: { id: { [Op.in]: filters.department } } }),
             }],
             where: whereClause,
+=======
+        const query = await User.findAll({
+            include: [{
+                model: Asset,
+                required: false,
+                attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                include: {
+                    model: AssetTypeVariant,
+                    attributes: ['variantName']
+                }
+            },
+            {
+                model: Dept,
+                required: true,
+                attributes: ['deptName']
+            }],
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
             // TODO
             order: [['addedDate', 'DESC']],
             attributes: ['id', 'userName', 'bookmarked', 'addedDate']
         });
+<<<<<<< HEAD
 
         if (filters.assetCount.length > 0) {
             filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
@@ -117,6 +146,8 @@ exports.getUsers = async (req, res) => {
                 return filters.assetCount.includes(user.Loans.length);
             });
         }
+=======
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
         
         // Mapping over the result to modify each user object
         const result = query.map(user => {
@@ -138,6 +169,7 @@ exports.getUser = async (req, res) => {
     try {
         const userDetailsPromise = User.findByPk(userId, {
             include: [{
+<<<<<<< HEAD
                 model: Department,
                 attributes: ['deptName']
             },
@@ -156,6 +188,18 @@ exports.getUser = async (req, res) => {
                         }
                     },
                 }
+=======
+                model: Dept,
+                attributes: ['deptName']
+            },
+            {
+                model: Asset,
+                attributes: ['id', 'assetTag', 'bookmarked'],
+                include: {
+                    model: AssetTypeVariant,
+                    attributes: ['variantName']
+                },
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
             }],
             attributes: ['id', 'userName', 'bookmarked', 'addedDate', 'deletedDate']
         });
@@ -184,6 +228,7 @@ exports.getUser = async (req, res) => {
 exports.searchUsers = async (req, res) => {
     const { value, formType } = req.body;
 
+<<<<<<< HEAD
     let orderByClause;
 
     if (formType === 'LOAN') {
@@ -262,11 +307,45 @@ exports.searchUsers = async (req, res) => {
             return {
                 value: user.id,
                 label: `${name} - ${department} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
+=======
+    validMap = {
+        [eventTypes.REMOVE_USER]: [eventTypes.ADD_USER] // TODO
+    }
+
+    const validStatuses = validMap[formType];
+    if (!validStatuses) {
+        return res.status(400).send('Invalid form type provided.');
+    }
+
+    try {
+
+        const results = await sequelize.query(query, {
+            type: sequelize.QueryTypes.SELECT,
+            replacements: {
+                value: `%${value}%`,
+                validStatuses: validStatuses,
+                latestEventIds: [1]
+            },
+        });
+    
+        const users = results.map(user => {
+            logger.info(user);
+            const { name, deptName, status } = user;
+            const disabled = !validStatuses.includes(status)
+        
+            return {
+                value: user.id,
+                label: `${name} - ${deptName} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                 isDisabled: disabled // Disable if not in validStatuses
             };
         });
 
+<<<<<<< HEAD
         res.json(response)
+=======
+        res.json(users);
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     } catch (error) {
         logger.error('Error fetching users:', error)
         console.error('Error fetching users:', error);

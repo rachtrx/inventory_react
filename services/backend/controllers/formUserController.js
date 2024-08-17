@@ -1,12 +1,20 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
+<<<<<<< HEAD
 const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+=======
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 const uuid = require('uuid');
 const FormHelpers = require('./formHelperController');
 
 exports.getDepts = async (req, res) => {
     try {
+<<<<<<< HEAD
         const depts = await Department.findAll({
+=======
+        const depts = await Dept.findAll({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
             order: [['deptName', 'ASC']],
             attributes: ['deptName']
         });
@@ -26,7 +34,11 @@ exports.createUser = async (req, res) => {
 
             // Check if the deptName is new or existing
             if (isNewDept) {
+<<<<<<< HEAD
                 const existingDept = await Department.findOne({
+=======
+                const existingDept = await Dept.findOne({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                     where: { deptName: { [Op.iLike]: deptName } },
                     transaction: t
                 });
@@ -36,13 +48,21 @@ exports.createUser = async (req, res) => {
                 }
 
                 deptId = uuid.v4();
+<<<<<<< HEAD
                 await Department.create({
+=======
+                await Dept.create({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                     id: deptId,
                     deptName: trimmedDept
                 }, { transaction: t });
             } else {
                 const deptLower = deptName.toLowerCase();
+<<<<<<< HEAD
                 const existingDept = await Department.findOne({
+=======
+                const existingDept = await Dept.findOne({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                     where: { deptName: { [Op.iLike]: deptLower } },
                     attributes: ['id'],
                     transaction: t
@@ -77,9 +97,15 @@ exports.createUser = async (req, res) => {
                     deletedDate: null
                 }, { transaction: t });
 
+<<<<<<< HEAD
                 const id = uuid.v4();
                 const eventType = 'created';
                 await FormHelpers.insertUserEvent(id, eventType, userId, remarks, t);
+=======
+                const eventId = uuid.v4();
+                const eventType = 'created';
+                await FormHelpers.insertUserEvent(eventId, eventType, userId, remarks, t);
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
             }
         });
 

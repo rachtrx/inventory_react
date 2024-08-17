@@ -1,12 +1,17 @@
+<<<<<<< HEAD
 const { Asset, AssetType, AssetTypeVariant, Vendor, User, Loan, Sequelize, sequelize} = require('../models/postgres');
 
 exports.formTypes = {
+=======
+const formTypes = {
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     ADD_ASSET: 'ADD_ASSET',
     DEL_ASSET: 'DEL_ASSET',
     LOAN: 'LOAN',
     RETURN: 'RETURN',
     ADD_USER: 'ADD_USER',
     DEL_USER: 'DEL_USER',
+<<<<<<< HEAD
     ADD_PERIPHERAL: 'ADD_PERIPHERAL',
     RESERVE: 'RESERVE',
 }
@@ -54,4 +59,15 @@ exports.getDistinctOptions = async (table, field) => {
     });
 
     return options;
+=======
+}
+
+const formToEventMap = {
+    [formTypes.ADD_ASSET]: 'ADD',
+    [formTypes.DEL_ASSET]: 'DEL',
+    [formTypes.LOAN]: 'LOAN',
+    [formTypes.RETURN]: 'RETURN',
+    [formTypes.ADD_USER]: 'ADD',
+    [formTypes.DEL_USER]: 'DEL',
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 }
