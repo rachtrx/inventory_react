@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const bcrypt = require('bcrypt');
 const logger = require('../logging')
 const { sequelize, User } = require('../models/postgres');
@@ -33,10 +34,45 @@ exports.login = async (req, res) => {
     }
   } catch (error) {
     console.error('Login error:', error);
+=======
+const db = require("../models/postgres");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const logger = require('../logging')
+const { sequelize, Admin, User } = require('../models/postgres');
+const uuid = require('uuid');
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await Admin.findOne({ where: { email } });
+    if (user && bcrypt.compareSync(password, user.pwd)) {
+      const token = jwt.sign(
+        { id: user.id }, // Only include the user ID. # TODO include role in future
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      // Set the JWT in an HttpOnly cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        // secure: true, // Use secure: true in production with HTTPS
+        sameSite: 'strict' // This setting can help protect against CSRF attacks
+      });
+
+      res.json({ userName:user.adminName });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  } catch (error) {
+    logger.error('Sign in error:', error);
+    console.error('Sign in error:', error);
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     res.status(500).send('Internal Server Error');
   }
 };
 
+<<<<<<< HEAD
 exports.loginSSO = async (req, res, done) => {
   try {
     const profile = req.body.profile;
@@ -79,11 +115,25 @@ exports.checkAuth = async (req, res) => {
 			return res.json(createAdminObject(admin));
 		} else {
 			return res.status(404).json({ message: "Admin not found" });
+=======
+exports.checkAuth = async (req, res) => {
+  try {
+		console.log(req.auth);
+		const user = await Admin.findByPk(req.auth.id); // Accessing user id set in JWT
+		if (user) {
+			res.json({ userName:user.adminName });
+		} else {
+			res.status(401).json({ userName: null });
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 		}
   } catch (error) {
 		console.error('Check auth error:', error);
 		logger.error('Check auth error:', error);
+<<<<<<< HEAD
 		res.status(500).json({ message: "Internal Server Error", error: error.message });
+=======
+		res.status(500).send('Internal Server Error');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
   }
 };
 
@@ -97,7 +147,12 @@ exports.register = async (req, res) => {
 
       // Create user
       const newUser = await Admin.create({
+<<<<<<< HEAD
           adminName,
+=======
+					id: uuid.v4(),
+					adminName,
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
           email,
           pwd: hashedPassword
       });
@@ -105,8 +160,13 @@ exports.register = async (req, res) => {
       res.status(201).json({ message: "User created successfully", userId: newUser.id });
   } catch (error) {
       console.error('Registration error:', error);
+<<<<<<< HEAD
       logger.error('Registration error:', error);
       if (error.name === 'MongoError' && error.code === 11000) {
+=======
+			logger.error('Registration error:', error);
+      if (error.name === 'SequelizeUniqueConstraintError') {
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
           res.status(409).send('User with this email already exists.');
       } else {
           res.status(500).send('Internal Server Error');
@@ -114,6 +174,7 @@ exports.register = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.chgPw = async (req, res) => {
   const { newPw } = req.body;
 
@@ -142,5 +203,9 @@ exports.chgPw = async (req, res) => {
 
 exports.logout = (req, res) => {
   res.clearCookie('INVENTORY');
+=======
+exports.logout = (req, res) => {
+  res.clearCookie('token');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
   res.json({ msg: 'Logout successful' });
 }

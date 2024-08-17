@@ -1,13 +1,20 @@
+<<<<<<< HEAD
 const logger = require('../../logging');
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = (sequelize, DataTypes) => {
 	const { Model } = require('sequelize');
 	const Department = require('./Department');
+=======
+module.exports = (sequelize, DataTypes) => {
+	const { Model } = require('sequelize');
+	const Dept = require('./Dept');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 	class User extends Model {
 
 		createUserObject = function() {
 			const plainUser = this.get({ plain: true })
+<<<<<<< HEAD
 			// logger.info(plainUser);
 
 			return {
@@ -35,15 +42,38 @@ module.exports = (sequelize, DataTypes) => {
 						count: peripheral.count
 					})))}
 				})))},
+=======
+			return {
+				id: plainUser.id,
+				name: plainUser.userName,
+				bookmarked: plainUser.bookmarked && true || false,
+				deletedDate: plainUser.deletedDate || null,
+				addedDate: plainUser.addedDate,
+				department: plainUser.Dept.deptName,
+				...plainUser.Assets && { 
+					assets: plainUser.Assets.map(asset => ({
+						id: asset.id,
+						bookmarked: asset.bookmarked,
+						assetTag: asset.assetTag,
+						variant: asset.AssetTypeVariant?.variantName
+					}))
+				}
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 			}
 		}
 	}
 
 	User.init({
 		id: {
+<<<<<<< HEAD
 			type: DataTypes.UUID,
 			primaryKey: true,
   			defaultValue: DataTypes.UUIDV4
+=======
+			type: DataTypes.STRING,
+			allowNull: false,
+			primaryKey: true
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 		},
 		userName: {
 			type: DataTypes.STRING,
@@ -54,10 +84,17 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: true
 		},
 		deptId: {
+<<<<<<< HEAD
 			type: DataTypes.UUID,
 			allowNull: false,
 			references: {
 				model: 'departments',
+=======
+			type: DataTypes.STRING,
+			allowNull: false,
+			references: {
+				model: 'depts',
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 				key: 'id'
 			}
 		},

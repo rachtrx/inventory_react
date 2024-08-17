@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+=======
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 const FormHelpers = require('./formHelperController')
 const uuid = require('uuid');
 const { Event } = require('../models/mongo')
@@ -10,7 +14,10 @@ const { Event } = require('../models/mongo')
 
 exports.loan = async (req, res) => {
     const filePath = req.file ? req.file.path : null;
+<<<<<<< HEAD
     
+=======
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     const userId = req.body.userId;
     const assetId = req.body.assetId;
 
@@ -86,10 +93,17 @@ exports.return = async (req, res) => {
 };
 
 exports.downloadEvent = async (req, res) => {
+<<<<<<< HEAD
     const id = req.body.id;
 
     try {
         const event = await Event.findById(id);
+=======
+    const eventId = req.body.eventId;
+
+    try {
+        const event = await Event.findById(eventId);
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
         if (!event) {
             return res.status(404).send('File not found.');
         }

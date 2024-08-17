@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
 
 const adminSchema = new Schema({
+<<<<<<< HEAD
   _id: { type: String, required: true },
   adminName: { type: String, required: true },
   displayName: { type: String, required: false },
@@ -15,6 +16,16 @@ const adminSchema = new Schema({
     },
   }
 }, { timestamps: true });
+=======
+    name: String,
+      preferences: {
+      dashboard: {
+        theme: { type: String, default: 'light' },
+        layout: { type: String, default: 'grid' }
+      },
+    }
+  }, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
   
   
 const Admin = model('Admin', adminSchema);

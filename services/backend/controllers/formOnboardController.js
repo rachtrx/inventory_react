@@ -1,5 +1,9 @@
 const express = require('express');
+<<<<<<< HEAD
 const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+=======
+const { sequelize, Vendor, Dept, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 const { Op } = require('sequelize');
 const { FormHelpers } = require('./formHelperController')
 const uuid = require('uuid');
@@ -29,12 +33,20 @@ exports.onboardDevice = async (req, res) => {
             }
 
             for (const deptName in usersObj) {
+<<<<<<< HEAD
                 let dept = await Department.findOne({
+=======
+                let dept = await Dept.findOne({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                     where: { deptName: { [Op.iLike]: deptName } },
                     transaction
                 });
                 if (!dept) {
+<<<<<<< HEAD
                     dept = await Department.create({
+=======
+                    dept = await Dept.create({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                         id: uuid.v4(),
                         deptName
                     }, { transaction });
@@ -283,7 +295,11 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
 
         // Check for existing departments
         for (let dept of deptArr) {
+<<<<<<< HEAD
             let exists = await Department.findOne({
+=======
+            let exists = await Dept.findOne({
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                 where: {
                     deptName: {
                         [sequelize.Op.iLike]: dept  // Using ILIKE
@@ -301,7 +317,11 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
             for (let userName of userNames) {
                 let foundUser = await User.findOne({
                     include: [{
+<<<<<<< HEAD
                         model: Department,
+=======
+                        model: Dept,
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                         attributes: ['deptName']
                     }],
                     where: {
@@ -311,8 +331,13 @@ exports.checkOnboard = async (req, res) => { // TODO check 1 by one or get all f
                     },
                     raw: true
                 });
+<<<<<<< HEAD
                 if (foundUser && dept.toLowerCase() !== foundUser['Department.deptName'].toLowerCase()) {
                     return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Department.deptName']}` });
+=======
+                if (foundUser && dept.toLowerCase() !== foundUser['Dept.deptName'].toLowerCase()) {
+                    return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Dept.deptName']}` });
+>>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                 } else if (foundUser) {
                     curUserArr.push(userName);
                 }
