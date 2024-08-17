@@ -1,46 +1,23 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
-import ExcelToggle from "./utils/ExcelToggle";
-import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import SelectFormControl, { CreatableMultiSelectFormControl, MultiSelectFormControl } from "./utils/SelectFormControl";
 import DateInputControl from "./utils/DateInputControl";
 import FormToggle from "./utils/FormToggle";
-import { useFormModal, actionTypes } from "../../context/ModalProvider";
-import { useItems } from "../../context/ItemsProvider";
-import { SingleSelectFormControl } from "./utils/SelectFormControl";
-import { useCallback, useMemo, useState } from "react";
+import { useFormModal } from "../../context/ModalProvider";
+import { SearchFormControl, SingleSelectFormControl } from "./utils/SelectFormControl";
 import { FieldArray, Form, Formik } from "formik";
-import Toggle from "./utils/Toggle";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
 import { LoanAssetsArray } from "./LoanAssetsArray";
 import { FormikSignatureField } from "./utils/SignatureField";
 import { ResponsiveText } from "../utils/ResponsiveText";
-import { SectionDivider } from "./utils/SectionDivider";
+import { createNewAsset } from "./LoanAssetsArray";
+import { v4 as uuidv4 } from 'uuid';
 
-const colorPalette = ['white', 'gray.100']
-
-const tags = {
-  'IPad': [{
-    value: 'Tag1',
-    label: 'Tag1'
-  }],
-  'Laptop': [{
-    value: 'Tag2',
-    label: 'Tag2',
-  }]
-}
-
-const addNewUser = () => ({
-  'user-id': '',
-  'assets': [{
-    'asset-id': '',
-    'bookmarked': false,
-    'tags': [],
-    'remarks': '',
-    'peripherals': []
-  }],
-  'bookmark-user': false,
+const createNewUser = () => ({
+  'key': uuidv4(),
+  'userId': '',
+  'assets': [createNewAsset()],
+  'bookmarked': false,
   'signature': ''
 })
 
@@ -48,15 +25,13 @@ const Loan = () => {
 
   console.log('loan form rendered');
 
-  const { isExcel, userOptions, handleUserInputChange, onModalClose } = useFormModal()
+  const { isExcel, handleUserSearch, onModalClose } = useFormModal();
   const { setLoading, showToast, handleError } = useUI();
-  const [options, setOptions] = useState({
-    tags: tags, // set to [] at the start
-  });
 
   const initialValuesManual = {
-    users: [addNewUser()],
-    'loaned-date': new Date()
+    users: [createNewUser()],
+    'loanDate': new Date(),
+    'expectedReturnDate': null
   };
 
   const initialValuesExcel = {
@@ -89,10 +64,11 @@ const Loan = () => {
     const userIDSet = new Set();
     const duplicates = new Set();
     users.forEach(user => {
-        if (userIDSet.has(user['user-id'])) {
-            duplicates.add(user['user-id']);
+      if (user['userId'] === '') return;
+        if (userIDSet.has(user['userId'])) {
+            duplicates.add(user['userId']);
         }
-        userIDSet.add(user['user-id']);
+        userIDSet.add(user['userId']);
     });
     return duplicates;
   };
@@ -102,10 +78,11 @@ const Loan = () => {
     const duplicates = new Set();
     users.forEach(user => {
       user.assets.forEach(asset => {
-        if (assetIDSet.has(asset['asset-id'])) {
-          duplicates.add(asset['asset-id']);
+        if (asset['assetId'] === '') return;
+        if (assetIDSet.has(asset['assetId'])) {
+          duplicates.add(asset['assetId']);
         }
-        assetIDSet.add(asset['asset-id']);
+        assetIDSet.add(asset['assetId']);
       });
     });
     console.log('Duplicate Assets');
@@ -113,85 +90,107 @@ const Loan = () => {
     return duplicates;
   };
 
+  const validateUniquePeripheralIDs = (peripherals) => {
+    const peripheralIDSet = new Set();
+    const duplicates = new Set();
+    peripherals.forEach(peripheral => {
+      if (peripheral['id'] === '') return;
+        if (peripheralIDSet.has(peripheral['id'])) {
+          duplicates.add(peripheral['id']);
+        }
+        peripheralIDSet.add(peripheral['id']);
+    });
+    console.log('Duplicate Peripherals');
+    console.log(duplicates);
+    return duplicates;
+  }
+
   const validate = values => {
-    // console.log('Running validation');
+
     const errors = {};
     // Implement validation logic
     const userIDDuplicates = validateUniqueUserIDs(values.users);
     const assetIDDuplicates = validateUniqueAssetIDs(values.users);
 
-    if (userIDDuplicates.size > 0) {
-      values.users.forEach((user, index) => {
-        if (userIDDuplicates.has(user['user-id'])) {
-          if (!errors.users) errors.users = [];
-          errors.users[index] = { ...errors.users[index], 'user-id': 'User ID must be unique' };
-        }
-      });
-    }
+    values.users.forEach((user, userIndex) => {
+      let userErr = null
+      console.log(user);
+      if (user['userId'] === '') userErr = 'User cannot be blank'
+      if (userIDDuplicates.size > 0 && userIDDuplicates.has(user['userId'])) userErr = 'User must be unique'
 
-    if (assetIDDuplicates.size > 0) {
-      values.users.forEach((user, userIndex) => {
-        user.assets.forEach((asset, assetIndex) => {
-          if (assetIDDuplicates.has(asset['asset-id'])) {
+      if (userErr) {
+        if (!errors.users) errors.users = [];
+        errors.users[userIndex] = { ...errors.users[userIndex], 'userId': userErr };
+      }
+
+      user.assets.forEach((asset, assetIndex) => {
+        if (assetIDDuplicates.size > 0 && assetIDDuplicates.has(asset['assetId'])) {
+          if (!errors.users) errors.users = [];
+          if (!errors.users[userIndex]) errors.users[userIndex] = {};
+          if (!errors.users[userIndex].assets) errors.users[userIndex].assets = [];
+          errors.users[userIndex].assets[assetIndex] = { 'assetId': 'Asset ID must be unique' };
+        }
+
+        const peripheralIDDuplicates = validateUniquePeripheralIDs(asset.peripherals)
+
+        console.log(asset);
+
+        asset.peripherals.forEach((peripheral, peripheralIndex) => {
+          console.log(peripheral);
+          if (peripheralIDDuplicates.size > 0 && peripheralIDDuplicates.has(peripheral['id'])) {
             if (!errors.users) errors.users = [];
             if (!errors.users[userIndex]) errors.users[userIndex] = {};
             if (!errors.users[userIndex].assets) errors.users[userIndex].assets = [];
-            errors.users[userIndex].assets[assetIndex] = { 'asset-id': 'Asset ID must be unique' };
-          }
-        });
+            if (!errors.users[userIndex].assets[assetIndex]) errors.users[userIndex].assets[assetIndex] = {};
+            if (!errors.users[userIndex].assets[assetIndex].peripherals) errors.users[userIndex].assets[assetIndex].peripherals = [];
+            errors.users[userIndex].assets[assetIndex].peripherals[peripheralIndex] = { ...errors.users[userIndex].assets[assetIndex].peripherals[peripheralIndex], 'id': 'Peripherals must be unique' };
+          }         
+        })
       });
-    }
+    });
     // console.log(errors);
-
+    
     return errors;
   };
 
   return (
     <Box>
-
       {!isExcel ? (
         <Formik
           initialValues={initialValuesManual}
           onSubmit={handleSubmitManual}
           validate={validate}
-          // validateOnChange={true}
-          // validateOnBlur={true}
+          validateOnChange={true}
+          validateOnBlur={true}
         >
-        {formikProps => (
+        {({values, resetForm}) => {
+          return (
           <Form>
             <ModalBody>
             <Divider borderColor="black" borderWidth="2px" my={2} />
               <FieldArray name="users">
                 {({ remove, push }) => (
                   <Box>
-                    {formikProps.values.users.map((user, userIndex, array) => (
-                      <Box key={userIndex}>
+                    {values.users.map((user, userIndex, array) => (
+                      <Box key={user.key}>
                         <Flex direction="column" gap={4}>
-                          <SingleSelectFormControl 
-                            name={`users.${userIndex}.user-id`}
-                            onInputChange={handleUserInputChange}
+                          <SearchFormControl 
+                            name={`users.${userIndex}.userId`}
+                            searchFn={handleUserSearch}
                             label={`User #${userIndex + 1}`} 
-                            options={userOptions} 
-                            placeholder="Select a user" 
+                            placeholder="Select a user"
                           />
                           <LoanAssetsArray 
                             fieldArrayName={`users.${userIndex}.assets`}
                             assets={user.assets}
-                            options={options}
-                            setOptions={setOptions}
-                            newAssetFields={{
-                              'asset-id': '',
-                              'bookmarked': false,
-                              'tags': []
-                              }}
                           />
                           <FormikSignatureField
                             name={`users.${userIndex}.signature`}
                             label="Signature"
                           />
-                          <FormToggle label="Bookmark User" name={`users.${userIndex}.bookmark-user`} />
+                          <FormToggle label="Bookmark User" name={`users.${userIndex}.bookmarked`} />
                           <Flex justifyContent="flex-start" gap={4}>
-                            {formikProps.values.users.length > 1 && (
+                            {values.users.length > 1 && (
                               <Button type="button" onClick={() => remove(userIndex)} alignSelf='flex-start'>
                                 <ResponsiveText>Remove User</ResponsiveText>
                               </Button>
@@ -199,7 +198,7 @@ const Loan = () => {
                             {userIndex === array.length - 1 && (
                               <Button
                                 type="button"
-                                onClick={() => push(addNewUser())}
+                                onClick={() => push(createNewUser())}
                               >
                                 <ResponsiveText>Add Another User</ResponsiveText>
                               </Button>
@@ -212,11 +211,14 @@ const Loan = () => {
                   </Box>
                 )}
               </FieldArray>
-              <DateInputControl label="Loaned Date" name={`loaned-date`} />
+              <Flex>
+                <DateInputControl label="Loaned Date" name={`loanDate`} />
+                <DateInputControl label="Expected Return Date" name={`expectedReturnDate`} />
+              </Flex>
             </ModalBody>
             <ModalFooter>
             <Button variant="outline" onClick={() => {
-              formikProps.resetForm()
+              resetForm()
               onModalClose()
             }}>
               Cancel
@@ -226,7 +228,7 @@ const Loan = () => {
             </Button>
           </ModalFooter>
           </Form>
-        )}
+        )}}
         </Formik>
       ) : (
         <Formik

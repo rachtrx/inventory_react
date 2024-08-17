@@ -19,6 +19,15 @@ module.exports = (sequelize, DataTypes) => {
 				key: 'id'
 			}
 		},
+		totalHits: {
+			type: DataTypes.INTEGER,
+		},
+		consecutiveHits: {
+			type: DataTypes.INTEGER,
+		},
+		consecutiveMisses: {
+			type: DataTypes.INTEGER,
+		}
 	}, {
 		sequelize,
 		modelName: 'VariantPeripheral',

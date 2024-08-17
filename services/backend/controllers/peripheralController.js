@@ -5,45 +5,6 @@ const { getAllOptions } = require('./utils')
 
 class PeripheralController {
 
-    updateVariantSuggestion = async (req, res, next) => {
-        try {
-            const { assetId, peripheralId, saved } = req.body;
-    
-            const asset = await Asset.findOne({
-                attributes: ['variantId'],
-                where: { id: assetId },
-            });
-    
-            if (!asset) {
-                throw new Error('Asset not found');
-            }
-            
-            if (saved) {
-                const variantPeripheral = await VariantPeripheral.findOne({
-                    where: {
-                        variantId: asset.variantId,
-                        peripheralId: peripheralId,
-                    },
-                });
-                if (variantPeripheral) {
-                    await variantPeripheral.destroy();
-                    res.status(200).json({ message: 'Peripheral removed successfully' });
-                } else {
-                    throw new Error('VariantPeripheral not found');
-                }
-            } else {
-                await VariantPeripheral.create({
-                    variantId: asset.variantId,
-                    peripheralId: peripheralId,
-                });
-                res.status(201).json({ message: 'Peripheral created successfully' });
-            }
-            
-        } catch (error) {
-            next(error);
-        }
-    }
-
     updateAssetTypeSuggestion = async (req, res, next) => {
         try {
             const { assetId, peripheralId, saved } = req.body;
@@ -105,7 +66,7 @@ class PeripheralController {
                         include: {
                             model: PeripheralType,
                             attributes: ['id', 'peripheralName', 'availableCount'],
-                        }
+                        },
                     },
                     {
                         model: AssetType,
@@ -129,8 +90,28 @@ class PeripheralController {
         if (!asset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
+
+        // Combine both arrays
+        const peripheralsArr = [
+            ...(asset?.AssetTypeVariant?.VariantPeripherals || []),
+            ...(asset?.AssetTypeVariant?.AssetType?.AssetTypePeripherals || [])
+        ];
     
-        res.status(200).json(asset);
+        // Remove duplicates based on the peripheralTypeId
+        const uniquePeripherals = peripheralsArr.filter((peripheral, index, self) =>
+            index === self.findIndex((p) => p.PeripheralType.id === peripheral.PeripheralType.id)
+        );
+    
+        // Map to the desired structure
+        const peripherals = uniquePeripherals.map((match) => ({
+            id: match.PeripheralType.id,
+            peripheralName: match.PeripheralType.peripheralName,
+            availableCount: match.PeripheralType.availableCount
+        }));
+
+        console.log(peripherals.slice(1, 10));
+    
+        res.status(200).json(peripherals);
     }
 
 

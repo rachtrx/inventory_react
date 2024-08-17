@@ -7,8 +7,8 @@ router.post('/filters', peripheralController.getFilters);
 router.post('/search', peripheralController.searchPeripherals);
 router.post('/getSuggested', peripheralController.getSuggestedPeripherals);
 
-router.post('/updateAssetTypeSuggestion', peripheralController.updateAssetTypeSuggestion);
-router.post('/updateVariantSuggestion', peripheralController.updateVariantSuggestion);
+// router.post('/updateAssetTypeSuggestion', peripheralController.updateAssetTypeSuggestion);
+// router.post('/updateVariantSuggestion', peripheralController.updateVariantSuggestion);
 
 router.post('/add', peripheralController.addPeripheralsEndpoint); // create peripheral
 

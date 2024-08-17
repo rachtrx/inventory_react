@@ -1,11 +1,13 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Field, useField } from 'formik';
 import Select, { components } from 'react-select';
-import { FormControl, FormErrorMessage, FormLabel } from '@chakra-ui/react';
+import { FormControl, FormErrorMessage, FormHelperText, FormLabel } from '@chakra-ui/react';
 import { actionTypes, updateOptions, useFormModal } from '../../../context/ModalProvider';
 import CreatableSelect from 'react-select/creatable';
+import peripheralService from '../../../services/PeripheralService';
+import useDebounce from '../../../hooks/useDebounce';
 
-const withSelect = (Component) => ({ name, label, options = [], isMulti = false, hideSelectedOptions=false, callback=null, ...props }) => {
+const withSelect = (Component) => ({ name, label, options = [], isMulti = false, hideSelectedOptions=false, callback=null, warning=null, ...props }) => {
   const [, meta, { setValue, setTouched }] = useField(name);
   const selectRef = useRef();
 
@@ -40,6 +42,7 @@ const withSelect = (Component) => ({ name, label, options = [], isMulti = false,
         {...props}
       />
       <FormErrorMessage>{meta.error}</FormErrorMessage>
+      {!meta.error && warning && <FormHelperText color="orange.400">{warning}</FormHelperText>}
     </FormControl>
   );
 };
@@ -76,8 +79,7 @@ export const CreatableSingleSelectFormControl = (props) => {
   );
 };
 
-export const CreatableMultiSelectFormControl = ({name, ...props}) => {
-
+export const CreatableMultiSelectFormControl = (props) => {
   return (
     <EnhancedCreatableSelect 
       {...props}
@@ -87,17 +89,31 @@ export const CreatableMultiSelectFormControl = ({name, ...props}) => {
   );
 };
 
-export const PeripheralSearchFormControl = function({ name, defaultOption=null }) {
+export const SearchFormControl = function({ name, searchFn, defaultOptions = [], ...props }) {
+  const [options, setOptions] = useState(defaultOptions || []);
+  const debouncedSearch = useDebounce((value) => {
+    (async () => {
+      try {
+        const response = await searchFn(value);
+        setOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setOptions([{ label: "Error fetching data", value: '', isDisabled: true }]);
+      }
+    })();
+  }, 500);
 
-  const { handlePeripheralInputChange, peripheralOptions } = useFormModal()
+  const handleInputChange = (value) => {
+    debouncedSearch(value);
+  };
 
   return (
     <CreatableSingleSelectFormControl
+      {...props}
       name={name}
-      options={defaultOption ? defaultOption : peripheralOptions && peripheralOptions.length > 0 ? peripheralOptions : [{label: "No peripherals found", value: '', isDisabled: true}]}
-      isDisabled={defaultOption ? true : false}
-      onInputChange={handlePeripheralInputChange}
-      placeholder="Select Peripheral" 
+      options={options && options.length > 0 ? options : [{ label: "No results found", value: '', isDisabled: true }]}
+      onInputChange={handleInputChange}
     />
-  )
-}
+  );
+};
+

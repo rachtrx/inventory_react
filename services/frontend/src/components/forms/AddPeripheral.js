@@ -2,13 +2,14 @@ import { Box, Button, Divider, Flex, IconButton, ModalBody, ModalFooter } from "
 import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import { PeripheralSearchFormControl } from "./utils/SelectFormControl";
+import { CreatableSingleSelectFormControl, PeripheralSearchFormControl, SearchFormControl } from "./utils/SelectFormControl";
 import { useFormModal, actionTypes } from "../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../context/UIProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import peripheralService from "../../services/PeripheralService";
 import { MdRemoveCircleOutline } from "react-icons/md";
+import { useState } from "react";
 
 export const addNewPeripheral = () => ({
 	'id': '',
@@ -21,6 +22,7 @@ const AddPeripheral = () => {
 
   const { isExcel, onModalClose, dispatch } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
+  const { handlePeripheralSearch } = useFormModal();
 
   const initialValuesManual = {
     peripherals: [addNewPeripheral()]
@@ -103,8 +105,9 @@ const AddPeripheral = () => {
               {peripheralHelpers => formikProps.values.peripherals.map((peripheral, index, array) => (
                 <Box>
                   <Flex key={index} gap={4} alignItems="flex-start">
-                    <PeripheralSearchFormControl
+                    <SearchFormControl
                       name={`peripherals.${index}.id`}
+                      searchFn={handlePeripheralSearch}
                     />
                     <InputFormControl 
                       name={`peripherals.${index}.count`} 
