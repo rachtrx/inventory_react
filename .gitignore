@@ -17,6 +17,7 @@ yarn.lock
 
 # Ignore specific files generated during development or build
 .DS_Store
+.env
 .env.dev
 .env.prod
 .env.prod.db
