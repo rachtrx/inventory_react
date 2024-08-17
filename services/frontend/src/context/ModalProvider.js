@@ -63,9 +63,6 @@ export const formTypes = {
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',
-  SET_ASSET_OPTIONS: 'SET_ASSET_OPTIONS',
-  SET_USER_OPTIONS: 'SET_USER_OPTIONS',
-  SET_PERIPHERAL_OPTIONS: 'SET_PERIPHERAL_OPTIONS',
   RESET_STATE: 'RESET_STATE',
 };
 
@@ -73,12 +70,6 @@ const reducer = (state, action) => {
   switch (action.type) {
     case actionTypes.SET_FORM_TYPE:
       return { ...state, formType: action.payload };
-		case actionTypes.SET_ASSET_OPTIONS:
-			return { ...state, assetOptions: action.payload };
-		case actionTypes.SET_USER_OPTIONS:
-      return { ...state, userOptions: action.payload };
-    case actionTypes.SET_PERIPHERAL_OPTIONS:
-      return { ...state, peripheralOptions: action.payload };
     case actionTypes.RESET_STATE:
       return initialState;
     default:
@@ -154,83 +145,23 @@ export const ModalProvider = ({ children }) => {
     onClose(); 
   }, [dispatch, onClose]);
 
-  // useEffect(() => {
-
-  //   const onSubmit = async (values) => {
-  //     setLoading(true);
-  //     try {
-  //       switch (state.formType) {
-  //         case 'AddAsset':
-  //           await assetService.addAsset(values);
-  //           break;
-  //         case 'loanAsset':
-  //           await assetService.loanAsset(values);
-  //           break;
-  //         case 'returnAsset':
-  //           await assetService.returnAsset(values);
-  //           break;
-  //         case 'condemnAsset':
-  //           await assetService.condemnAsset(values);
-  //           break;
-  //         case 'AddUser':
-  //           await userService.addUser(values);
-  //           break;
-  //         case 'removeUser':
-  //           await userService.removeUser(values);
-  //           break;
-  //         default:
-  //           break; // TODO NEED ERROR?
-  //       }
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error(err);
-  //       setLoading(false);
-  //       throw err;
-  //     }
-  //   };
-
-  //   dispatch({ type: actionTypes.SET_ON_SUBMIT, payload: onSubmit });
-  // }, [state.formType, setLoading]);
-
   const handleAssetSearch = async (value) => {
     console.log(`Asset Search Called: ${value}`);
-    const response = await assetService.searchAssets(value, state.formType);
-    console.log(response.data);
-    dispatch({ type: actionTypes.SET_ASSET_OPTIONS, payload: response.data });
+    return await assetService.searchAssets(value, state.formType);
   };
 
   const handleUserSearch = async (value) => {
     console.log(`User Search Called: ${value}`);
-    const response = await userService.searchUsers(value, state.formType);
-    console.log(response.data);
-    dispatch({ type: actionTypes.SET_USER_OPTIONS, payload: response.data });
+    return await userService.searchUsers(value, state.formType);
   };
 
   const handlePeripheralSearch = async (value) => {
     console.log(`Peripheral Search Called: ${value}`);
-    const response = await peripheralService.searchPeripherals(value);
-    console.log(response.data);
-    dispatch({ type: actionTypes.SET_PERIPHERAL_OPTIONS, payload: response.data });
-  };
-
-  const debouncedAssetSearch = useDebounce(handleAssetSearch, 500);
-  const debouncedUserSearch = useDebounce(handleUserSearch, 500);
-  const debouncedPeripheralSearch = useDebounce(handlePeripheralSearch, 500)
-
-  const handleAssetInputChange = (value) => {
-    debouncedAssetSearch(value);
-  };
-
-  const handleUserInputChange = (value) => {
-    debouncedUserSearch(value);
-  };
-
-  const handlePeripheralInputChange = (value) => {
-    debouncedPeripheralSearch(value);
+    return await peripheralService.searchPeripherals(value); 
   };
 
   return (
-    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetInputChange, handleUserInputChange, handlePeripheralInputChange, isModalOpen, onModalOpen, onModalClose }}>
+    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose }}>
       {children}
     </ModalContext.Provider>
   );

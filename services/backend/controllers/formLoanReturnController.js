@@ -10,6 +10,7 @@ const { Event } = require('../models/mongo')
 
 exports.loan = async (req, res) => {
     const filePath = req.file ? req.file.path : null;
+    
     const userId = req.body.userId;
     const assetId = req.body.assetId;
 

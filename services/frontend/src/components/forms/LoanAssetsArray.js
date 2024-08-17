@@ -1,21 +1,30 @@
 import { Box, Button, Flex } from "@chakra-ui/react"
-import { CreatableMultiSelectFormControl, SingleSelectFormControl } from "./utils/SelectFormControl"
-import { updateOptions, useFormModal } from "../../context/ModalProvider"
 import FormToggle from "./utils/FormToggle"
 import InputFormControl from "./utils/InputFormControl"
-import { useCallback, useEffect, useState } from "react"
 import { ResponsiveText } from "../utils/ResponsiveText"
-import { FieldArray } from "formik"
-import peripheralService from "../../services/PeripheralService"
-import { useUI } from "../../context/UIProvider"
+import { FieldArray, useFormikContext } from "formik"
 import { LoanAssetPeripherals } from "./LoanAssetPeripherals"
+import { v4 as uuidv4 } from 'uuid';
 
-export const LoanAssetsArray = ({fieldArrayName, assets, newAssetFields}) => {
+export const createNewAsset = (assetId='') => ({
+	'key': uuidv4(),
+    'assetId': assetId,
+    'bookmarked': false,
+    'tags': [],
+    'remarks': '',
+	// 'shared': false,
+	// 'sharedUserIds': []
+    'peripherals': []
+})
+
+export const LoanAssetsArray = ({fieldArrayName, assets}) => {
+
+	console.log(assets);
 
 	return (
 		<FieldArray name={fieldArrayName}>
-			{assetHelpers => assets.map((_, assetIndex, array) => (
-				<Flex direction="column" key={assetIndex} gap={4} p={2} _hover={{ bg: "blue.50" }}>
+			{assetHelpers => assets.map((asset, assetIndex, array) => (
+				<Flex direction="column" key={asset.key} gap={4} p={2} _hover={{ bg: "blue.50" }}>
 					<LoanAssetPeripherals
 						fieldArrayName={fieldArrayName}
 						assetIndex={assetIndex}
@@ -25,14 +34,17 @@ export const LoanAssetsArray = ({fieldArrayName, assets, newAssetFields}) => {
 					<FormToggle label="Bookmark Asset" name={`${fieldArrayName}.${assetIndex}.bookmarked`}/>
 					<Flex justifyContent="flex-start" gap={2} marginBottom={4}>
 						{assets.length > 1 && (
-							<Button type="button" onClick={() => assetHelpers.remove(assetIndex)}>
+							<Button type="button" onClick={() => {
+								console.log(`Asset Index: ${assetIndex}`);
+								assetHelpers.remove(assetIndex);
+							}}>
 								<ResponsiveText>Remove Asset</ResponsiveText>
 							</Button>
 						)}
 						{assetIndex === array.length - 1 && (
 							<Button
 								type="button"
-								onClick={() => assetHelpers.push(newAssetFields)}
+								onClick={() => assetHelpers.push(createNewAsset())}
 							>
 								<ResponsiveText>Add Asset</ResponsiveText>
 							</Button>
