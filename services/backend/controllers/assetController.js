@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 const { Asset, AssetType, AssetTypeVariant, Vendor, User, Loan, Sequelize, sequelize, LoanDetail} = require('../models/postgres');
 const { Op } = Sequelize;
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils')
-=======
-const { Admin, Asset, AssetType, AssetTypeVariant, Vendor, User, sequelize, Sequelize} = require('../models/postgres');
-const { Op } = Sequelize;
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
 
 const logger = require('../logging');
 const mongodb = require('../models/mongo');
@@ -19,7 +14,6 @@ const dateTimeObject = {
     year: '2-digit'
 }
 
-<<<<<<< HEAD
 exports.getFilters = async (req, res) => {
     const { field } = req.body;
 
@@ -71,16 +65,11 @@ exports.getAssets = async (req, res) => { // TODO Add filters
     const { filters } = req.body
     logger.info(filters)
 
-=======
-exports.getAssets = async (req, res) => { // TODO Add filters
-
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     const assetsExist = await Asset.count();
     if (assetsExist === 0) {
         return res.json([]);
     }
 
-<<<<<<< HEAD
     const whereClause = {
         ...(filters.serialNumber && { serialNumber: { [Op.iLike]: filters.serialNumber } }),
         ...(filters.assetTag && { assetTag: { [Op.iLike]: filters.assetTag } }),
@@ -89,10 +78,6 @@ exports.getAssets = async (req, res) => { // TODO Add filters
 
     try {
         let query = await Asset.findAll({
-=======
-    try {
-        const query = await Asset.findAll({
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
             attributes: [
                 'id',
                 'serialNumber',
@@ -107,7 +92,6 @@ exports.getAssets = async (req, res) => { // TODO Add filters
                 {
                     model: AssetTypeVariant,
                     attributes:['variantName'],
-<<<<<<< HEAD
                     ...(filters.variantName.length > 0 && { where: { id: { [Op.in]: filters.variantName } } }),
                     include: {
                         model: AssetType,
@@ -176,26 +160,6 @@ exports.getAssets = async (req, res) => { // TODO Add filters
 
         const result = query.map(asset => {
             return asset.createAssetObject();
-=======
-                    include: {
-                        model: AssetType,
-                        attributes: ['assetType']
-                    }
-                },
-                {
-                    model: Vendor,
-                    attributes:['vendorName']
-                },
-                {
-                    model: User,
-                    attributes: ['id', 'userName', 'bookmarked']
-                }
-            ],
-        })
-
-        const result = query.map(asset => {
-            return asset.createAssetObject(getAge=true);
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
         });
 
         // logger.info(result.slice(100, 110));
@@ -204,17 +168,12 @@ exports.getAssets = async (req, res) => { // TODO Add filters
         logger.error(error)
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error' });
-<<<<<<< HEAD
-=======
-        throw error;
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     }
 }
 
 exports.searchAssets = async (req, res) => {
     const { value, formType } = req.body;
 
-<<<<<<< HEAD
     let orderByClause;
     if (formType === formTypes.LOAN || formType === formTypes.DEL_ASSET) {
         orderByClause = `
@@ -311,71 +270,6 @@ exports.searchAssets = async (req, res) => {
         })
 
         res.json(response);
-=======
-    const validMap = {
-        [formTypes.DEL_ASSET]: ['Available'],
-        [formTypes.LOAN]: ['Available'],
-        [formTypes.RETURN]: ['On Loan']
-    }
-
-    const validStatuses = validMap[formType];
-    if (!validStatuses) {
-        return res.status(400).send('Invalid form type provided.');
-    }
-    try {
-        const query = await Asset.findAll({
-            attributes: [
-                'id',
-                'serialNumber',
-                'assetTag',
-                'bookmarked',
-                'deletedDate'
-            ],
-            include: [
-                {
-                    model: AssetTypeVariant,
-                    attributes:['variantName'],
-                    include: {
-                        model: AssetType,
-                        attributes: ['assetType']
-                    }
-                },
-                {
-                    model: Vendor,
-                    attributes:['vendorName']
-                },
-                {
-                    model: User,
-                    attributes: ['id', 'userName', 'bookmarked']
-                }
-            ],
-            where: {
-                assetTag: {
-                    [Op.like]: `%${value}%`
-                }
-            }
-        }).then(assets => {
-            // Calculate age for each asset and include it in the results
-            // const plainAsset = asset.get({ plain: true });
-            return assets.map(asset => asset.createAssetObject());
-        })
-        
-        // Convert plain objects to model instances if mapToModel was set to false
-        const assets = query.map(data => {
-    
-            logger.info(data);
-            const { id, assetTag, serialNumber, status } = data;
-            const disabled = !validStatuses.includes(status)
-        
-            return {
-                value: id,
-                label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
-                isDisabled: disabled // Disable if not in validStatuses
-            };
-        });
-
-        res.json(assets);
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     } catch (error) {
         logger.error('Error fetching assets:', error)
         console.error('Error fetching assets:', error);
@@ -411,7 +305,6 @@ exports.getAsset = async (req, res) => {
                     attributes: ['vendorName']
                 },
                 {
-<<<<<<< HEAD
                     model: Loan,
                     attributes: ['id'],
                     include: {
@@ -423,10 +316,6 @@ exports.getAsset = async (req, res) => {
                         },
                     },
                     required: false
-=======
-                    model: User,
-                    attributes: ['id', 'userName', 'bookmarked']
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
                 }
             ],
             where: { id: assetId }
@@ -444,11 +333,7 @@ exports.getAsset = async (req, res) => {
 
         logger.info('Details for Asset:', asset);
 
-<<<<<<< HEAD
         res.json(asset);
-=======
-        res.json(assetDetails);
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     } catch (error) {
         logger.error("Error fetching asset details:", error);
         res.status(500).send({ error: "Internal server error" });

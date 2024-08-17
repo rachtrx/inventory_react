@@ -27,11 +27,7 @@ const printRoutes = (app) => {
 const startServer = async () => {
   try {
     // Sync database
-<<<<<<< HEAD
     await db.syncAll({ alter: true }); // Change to { force: true } only if you understand the consequences
-=======
-    await db.syncAll({ force: false }); // Change to { force: true } only if you understand the consequences
->>>>>>> 9b17626fe53b63ae33f8eb07085e5647a25f7a98
     await connectDB()
     console.log('Database synchronized successfully.');
 
