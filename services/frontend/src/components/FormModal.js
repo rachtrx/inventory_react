@@ -15,7 +15,6 @@ import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
 import AddAsset from './forms/AddAsset';
-import Loan from './forms/Loan';
 import Return from './forms/Return';
 import CondemnAsset from './forms/CondemnAsset';
 import AddUser from './forms/AddUser';
@@ -24,10 +23,11 @@ import Toggle from './forms/utils/Toggle';
 import { ResponsiveText } from './utils/ResponsiveText';
 import AddPeripheral from './forms/AddPeripheral';
 import Reserve from './forms/Reserve';
+import Loans from './forms/Loans';
 
 const formMap = {
     [formTypes.ADD_ASSET]: <AddAsset/>,
-    [formTypes.LOAN]: <Loan/>,
+    [formTypes.LOAN]: <Loans/>,
     [formTypes.RETURN]: <Return/>,
     [formTypes.DEL_ASSET]: <CondemnAsset/>,
     [formTypes.ADD_USER]: <AddUser/>,
@@ -49,7 +49,7 @@ const headerMap = {
 
 export default function FormModal() { 
 
-    const { dispatch, formType, setIsExcel, isModalOpen, onModalOpen, onModalClose } = useFormModal();
+    const { setFormType, formType, isModalOpen, onModalOpen, onModalClose } = useFormModal();
 
     useEffect(() => {
         if (formType) {
@@ -59,22 +59,10 @@ export default function FormModal() {
         }
     }, [formType, onModalOpen, onModalClose]);
 
-    const handleClose = () => {
-        dispatch({ type: actionTypes.SET_FORM_TYPE, payload: null });
-    };
-
-    const checkFn = useCallback(() => {
-        setIsExcel(true);
-      }, [setIsExcel]); // Dependencies array includes setIsExcel
-    
-      const uncheckFn = useCallback(() => {
-          setIsExcel(false);
-      }, [setIsExcel]); // Dependencies array includes setIsExcel
-
     return (
         <Modal 
             isOpen={isModalOpen} 
-            onClose={handleClose} 
+            onClose={() => setFormType(null)} 
             scrollBehavior='inside' 
             size="xl" 
         >
@@ -84,11 +72,6 @@ export default function FormModal() {
                 <ModalHeader display="flex" alignItems="center" gap={4}>
                     <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>
                     <Divider orientation="vertical" height='20px'/>
-                    <Toggle 
-                        label="Use Excel"
-                        check_fn={checkFn}
-                        uncheck_fn={uncheckFn}
-                    />
                 </ModalHeader>
                 {formMap[formType]}
             </ModalContent>

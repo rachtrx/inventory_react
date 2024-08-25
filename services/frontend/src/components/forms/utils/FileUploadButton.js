@@ -1,33 +1,20 @@
 import { Button, Icon } from "@chakra-ui/react";
 import { useRef } from "react";
 import { FaUpload } from "react-icons/fa";
+import { ResponsiveText } from "../../utils/ResponsiveText";
 
 
-export default function FileUploadButton({ fileInputRef, setFileName, onFileProcessed }) {
+export default function FileUploadButton({ fileInputRef, handleFileChange }) {
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFileName(file.name); // Update the state with the file name
-    } else return;
-
-    // Placeholder for processing the Excel file
-    // For example, using a library to parse the Excel file and extract data
-    const data = await parseExcelFile(file);
-
-    // Call the callback function with the processed data
-    onFileProcessed(data);
-  };
-
   return (
   <>
-    <Button onClick={handleButtonClick} bg="white" height="32px">
+    <Button onClick={handleButtonClick} bg="white" height="32px" justifyContent={'space-around'}>
       <Icon as={FaUpload} />
-        &nbsp;Upload
+        <ResponsiveText>Fill with Template</ResponsiveText>
     </Button>
     <input
       type="file"
@@ -39,8 +26,3 @@ export default function FileUploadButton({ fileInputRef, setFileName, onFileProc
   </>
   );
 };
-
-async function parseExcelFile(file) {
-  // Use a library like xlsx to read the file and return the data
-  return {}; // Return the parsed data
-}

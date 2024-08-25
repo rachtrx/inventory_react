@@ -172,10 +172,18 @@ exports.getAssets = async (req, res) => { // TODO Add filters
 }
 
 exports.searchAssets = async (req, res) => {
-    const { value, formType } = req.body;
+    const { value, formType, mode } = req.body;
 
     let orderByClause;
-    if (formType === formTypes.LOAN || formType === formTypes.DEL_ASSET) {
+    if (formType === formTypes.LOAN) {
+        orderByClause = `
+            ORDER BY 
+                "deletedDate" IS NOT NULL ASC,
+                "userIds" IS NOT NULL ASC,
+                "updatedAt" DESC
+        `;
+        validStatuses = ['Available']
+    } else if (formType === formTypes.DEL_ASSET) {
         orderByClause = `
             ORDER BY 
                 "deletedDate" IS NOT NULL ASC,
@@ -265,6 +273,8 @@ exports.searchAssets = async (req, res) => {
                 assetType,
                 variantName, 
                 label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Append status if disabled
+                assetTag: assetTag,
+                shared: shared,
                 isDisabled: disabled // Disable if not in valid statuses or already included
             };
         })

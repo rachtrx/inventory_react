@@ -50,8 +50,8 @@ class AssetService {
         return await this.axios.delete(`${API_URL}/assets/condemn`, assetIds);;
     }
 
-    async searchAssets(value, formType) {
-        return await this.axios.post(`${API_URL}/assets/search`, { value, formType });
+    async searchAssets(value, formType, mode) {
+        return await this.axios.post(`${API_URL}/assets/search`, { value, formType, mode });
     }
 }
 

@@ -5,13 +5,13 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 
 const ActionButton = ({ formType, borderRadius="md", item = null }) => {
 	const { bg, text } = buttonConfigs[formType];
-	const { dispatch } = useFormModal();
+	const { setFormType } = useFormModal();
 
 	return (
 		<Box
 			as="button"
 			onClick={(e) => {
-				dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formType })
+				setFormType(formType)
 			}}
 			bg={bg}
 			borderRadius={borderRadius}

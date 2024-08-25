@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 
 const User = ({ user }) => {
 	const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
-  	const { dispatch } = useFormModal()
+  	const { setFormType } = useFormModal()
 
 	useEffect(() => {
 		console.log(user);
@@ -58,7 +58,7 @@ const User = ({ user }) => {
 						<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
 							{asset.assetTag} - {asset.variant}
 						</Button>
-						<ActionButton bg="orange.100" onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.RETURN })}>
+						<ActionButton bg="orange.100" onClick={() => setFormType(formTypes.RETURN)}>
 							Return
 						</ActionButton>
 					</Flex>
@@ -73,10 +73,10 @@ const User = ({ user }) => {
 					mb={4}
 				/>
 				<Flex gridGap="2">
-					<Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.DEL_USER })} colorScheme="red">
+					<Button onClick={() => setFormType(formTypes.DEL_USER)} colorScheme="red">
 						Resign
 					</Button>
-					<Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.LOAN })} colorScheme="green">
+					<Button onClick={() => setFormType(formTypes.LOAN)} colorScheme="green">
 						Loan Device
 					</Button>
 				</Flex>

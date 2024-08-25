@@ -42,9 +42,6 @@ export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
 
 const initialState = {
   formType: null,
-	assetOptions: [],
-	userOptions: [],
-  peripheralOptions: [],
 };
 
 export const formTypes = {
@@ -133,26 +130,20 @@ const getInitialValues = (formType) => {
 
 export const ModalProvider = ({ children }) => {
 
-  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose } = useDisclosure();
-  const [ state, dispatch ] = useReducer(reducer, initialState);
-  const [ isExcel, setIsExcel ] = useState(false) 
+  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+  const [ formType, setFormType ] = useState(null);
   const { setLoading } = useUI();
 
   console.log("Modal rendered");
 
-  const onModalClose = useCallback(() => {
-    dispatch({ type: 'RESET_STATE' });
-    onClose(); 
-  }, [dispatch, onClose]);
-
-  const handleAssetSearch = async (value) => {
+  const handleAssetSearch = async (value, mode=null) => {
     console.log(`Asset Search Called: ${value}`);
-    return await assetService.searchAssets(value, state.formType);
+    return await assetService.searchAssets(value, formType, mode);
   };
 
   const handleUserSearch = async (value) => {
     console.log(`User Search Called: ${value}`);
-    return await userService.searchUsers(value, state.formType);
+    return await userService.searchUsers(value, formType);
   };
 
   const handlePeripheralSearch = async (value) => {
@@ -161,7 +152,7 @@ export const ModalProvider = ({ children }) => {
   };
 
   return (
-    <ModalContext.Provider value={{ ...state, dispatch, isExcel, setIsExcel, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose }}>
+    <ModalContext.Provider value={{ formType, setFormType, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose }}>
       {children}
     </ModalContext.Provider>
   );

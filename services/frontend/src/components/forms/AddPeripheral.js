@@ -1,8 +1,7 @@
 import { Box, Button, Divider, Flex, IconButton, ModalBody, ModalFooter } from "@chakra-ui/react";
-import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import { CreatableSingleSelectFormControl, PeripheralSearchFormControl, SearchFormControl } from "./utils/SelectFormControl";
+import { CreatableSingleSelectFormControl, PeripheralSearchFormControl, SearchCreatableSingleSelectFormControl, SearchFormControl } from "./utils/SelectFormControl";
 import { useFormModal, actionTypes } from "../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../context/UIProvider";
@@ -10,6 +9,7 @@ import { ResponsiveText } from "../utils/ResponsiveText";
 import peripheralService from "../../services/PeripheralService";
 import { MdRemoveCircleOutline } from "react-icons/md";
 import { useState } from "react";
+import { RemoveButton } from "./utils/ItemButtons";
 
 export const addNewPeripheral = () => ({
 	'id': '',
@@ -20,7 +20,7 @@ const AddPeripheral = () => {
 
   console.log('loan form rendered');
 
-  const { isExcel, onModalClose, dispatch } = useFormModal()
+  const { onModalClose, setFormType } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
   const { handlePeripheralSearch } = useFormModal();
 
@@ -40,7 +40,7 @@ const AddPeripheral = () => {
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Peripherals successfully loaned', 'success', 500);
-      dispatch({ type: actionTypes.SET_FORM_TYPE, payload: null })
+      setFormType(null);
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -89,7 +89,6 @@ const AddPeripheral = () => {
   
   return (
     <Box>
-      {!isExcel ? (
         <Formik
           initialValues={initialValuesManual}
           onSubmit={handleSubmitManual}
@@ -105,21 +104,21 @@ const AddPeripheral = () => {
               {peripheralHelpers => formikProps.values.peripherals.map((peripheral, index, array) => (
                 <Box>
                   <Flex key={index} gap={4} alignItems="flex-start">
-                    <SearchFormControl
+                    <SearchCreatableSingleSelectFormControl
                       name={`peripherals.${index}.id`}
                       searchFn={handlePeripheralSearch}
-                    />
-                    <InputFormControl 
-                      name={`peripherals.${index}.count`} 
-                      type="number" 
-                      placeholder="Enter count" 
-                    />
-                    <IconButton
-                      icon={<MdRemoveCircleOutline />}
-                      aria-label="Remove Tag"
-                      onClick={() => peripheralHelpers.remove(index)}
-                      isDisabled={formikProps.values.peripherals.length === 1}
-                    />
+                    >
+                      <InputFormControl 
+                        name={`peripherals.${index}.count`} 
+                        type="number" 
+                        placeholder="Enter count" 
+                      />
+                      <RemoveButton
+                        ariaLabel="Remove Peripheral"
+                        handleClick={() => peripheralHelpers.remove(index)}
+                        isDisabled={formikProps.values.peripherals.length === 1}
+                      />
+                    </SearchCreatableSingleSelectFormControl>
                   </Flex>
                 <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
                   {index === array.length - 1 && (
@@ -146,22 +145,6 @@ const AddPeripheral = () => {
           </Form>
         )}
         </Formik>
-      ) : (
-        <Formik
-          initialValues={initialValuesExcel}
-          onSubmit={handleSubmitExcel}
-        >
-          <Form>
-            <ModalBody>
-              <ExcelFormControl />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="outline" mr={3} onClick={onModalClose}>Cancel</Button>
-              <Button colorScheme="blue" type="submit">Upload Excel</Button>
-            </ModalFooter>
-          </Form>
-        </Formik>
-      )}
     </Box>
   );
 };

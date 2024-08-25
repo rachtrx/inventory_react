@@ -1,7 +1,6 @@
 import { Box, Button, Flex, FormControl, FormLabel, Input, Textarea } from "@chakra-ui/react";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
-import ExcelToggle from "./utils/ExcelToggle";
 import FormToggle from "./utils/FormToggle";
 import DateInputControl from "./utils/DateInputControl";
 import { useFormModal } from "../../context/ModalProvider";
@@ -11,8 +10,7 @@ import { useMemo } from "react";
 
 const CondemnAsset = () => {
 
-  const { isExcel, handleAssetInputChange, assets } = useFormModal()
-  const { assetFilters, userFilters } = useItems()
+  const { handleAssetInputChange, assets } = useFormModal()
 
   const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
 
@@ -20,12 +18,7 @@ const CondemnAsset = () => {
     <Box width="100%" maxWidth="500px" mx="auto" p={4}>
 
       <Flex direction="column" gap={4}>
-      <ExcelToggle fieldsToReset={fieldsToReset}/>
 
-        {isExcel ? (
-          <ExcelFormControl expectedKeys={null}/>
-        ) : (
-          <>
             <SingleSelectFormControl
               name="asset-tag"
               label="Asset Tag"
@@ -44,8 +37,6 @@ const CondemnAsset = () => {
               label="Remarks"
               placeholder="Add remarks"
             />
-          </>
-        )}
       </Flex>
     </Box>
   );

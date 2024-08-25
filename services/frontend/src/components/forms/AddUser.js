@@ -1,5 +1,4 @@
 import { Box, Flex } from "@chakra-ui/react";
-import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
 import SelectFormControl from "./utils/SelectFormControl";
@@ -14,8 +13,6 @@ import Toggle from "./utils/Toggle";
 
 const AddUser = () => {
 
-    const { isExcel } = useFormModal()
-    const { assetFilters, userFilters } = useItems()
     const [ isSelectDept, setIsSelectDept ] = useState(true)
 
     const fieldsToReset = useMemo(() => [
@@ -25,12 +22,6 @@ const AddUser = () => {
   return (
     <Box width="100%" maxWidth="500px" mx="auto" p={4}>
       <Flex direction="column" gap={4}>
-
-        <ExcelToggle fieldsToReset={fieldsToReset} />
-        {isExcel ? (
-          <ExcelFormControl expectedKeys={null}/>
-        ) : (
-          <>
             <Toggle
               label="New Dept"
               check_fn={() => setIsSelectDept(true)}
@@ -65,8 +56,6 @@ const AddUser = () => {
               label="Remarks"
               placeholder="Add remarks"
             />
-          </>
-        )}
       </Flex>
     </Box>
   );

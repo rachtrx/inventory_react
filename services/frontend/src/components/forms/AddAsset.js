@@ -1,5 +1,4 @@
 import { Box, Flex } from "@chakra-ui/react";
-import ExcelToggle from "./utils/ExcelToggle";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
 import SelectFormControl from "./utils/SelectFormControl";
@@ -13,7 +12,6 @@ import { useMemo } from "react";
 
 const AddAsset = () => {
 
-    const { isExcel } = useFormModal()
     const { assetFilters, userFilters } = useItems()
 
     const fieldsToReset = useMemo(() => [
@@ -24,11 +22,7 @@ const AddAsset = () => {
     <Box width="100%" maxWidth="500px" mx="auto" p={4}>
       <Flex direction="column" gap={4}>
 
-        <ExcelToggle fieldsToReset={fieldsToReset} />
-        {isExcel ? (
-          <ExcelFormControl expectedKeys={null}/>
-        ) : (
-          <>
+        
             <SingleSelectFormControl
               name="model"
               label="Model Name"
@@ -77,8 +71,6 @@ const AddAsset = () => {
               label="Remarks"
               placeholder="Add remarks"
             />
-          </>
-        )}
       </Flex>
     </Box>
   );

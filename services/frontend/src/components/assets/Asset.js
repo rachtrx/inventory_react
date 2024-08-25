@@ -9,7 +9,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
-  const { dispatch } = useFormModal()
+  const { setFormType } = useFormModal()
 
 	return (
 		<Box p={4}>
@@ -95,7 +95,7 @@ const Asset = ({ asset }) => {
               <Button onClick={() => handleItemClick(asset.user)} colorScheme="blue">
                 {asset.user.name}
               </Button>
-              <ActionButton bg="orange.100" onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.RETURN })}>
+              <ActionButton bg="orange.100" onClick={() => setFormType(formTypes.RETURN)}>
                 Return
               </ActionButton>
             </Flex>
@@ -112,10 +112,10 @@ const Asset = ({ asset }) => {
         />
         {asset.status !== 'condemned' && asset.status !== 'loaned' && (
           <Flex gridGap="2">
-            <Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.DEL_ASSET })} colorScheme="red">
+            <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
               CONDEMN
             </Button>
-            <Button onClick={() => dispatch({ type: actionTypes.SET_FORM_TYPE, payload: formTypes.LOAN })} data-asset-id={asset.id} colorScheme="green">
+            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.id} colorScheme="green">
               LOAN
             </Button>
           </Flex>

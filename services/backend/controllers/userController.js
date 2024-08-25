@@ -262,6 +262,7 @@ exports.searchUsers = async (req, res) => {
             return {
                 value: user.id,
                 label: `${name} - ${department} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
+                name: name,
                 isDisabled: disabled // Disable if not in validStatuses
             };
         });

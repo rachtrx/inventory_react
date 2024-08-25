@@ -1,253 +1,177 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
-import ExcelFormControl from './utils/ExcelFormControl';
-import DateInputControl from "./utils/DateInputControl";
-import FormToggle from "./utils/FormToggle";
-import { useFormModal } from "../../context/ModalProvider";
-import { SearchFormControl, SingleSelectFormControl } from "./utils/SelectFormControl";
-import { FieldArray, Form, Formik } from "formik";
-import assetService from "../../services/AssetService";
-import { useUI } from "../../context/UIProvider";
-import { LoanAssetsArray } from "./LoanAssetsArray";
-import { FormikSignatureField } from "./utils/SignatureField";
-import { ResponsiveText } from "../utils/ResponsiveText";
-import { createNewAsset } from "./LoanAssetsArray";
+import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { v4 as uuidv4 } from 'uuid';
+import { FieldArray, useFormikContext } from "formik"
+import { ResponsiveText } from "../utils/ResponsiveText"
+import React, { useEffect } from "react"
+import { LoanSummary } from "./utils/LoanSummary"
+import { AddButton } from "./utils/ItemButtons"
+import { useLoan } from "../../context/LoanProvider"
+import { FaUser, FaUsers } from "react-icons/fa"
+import { LoanAsset } from "./LoanAsset";
+import { LoanUser } from "./LoanUser";
 
-const createNewUser = () => ({
-  'key': uuidv4(),
-  'userId': '',
-  'assets': [createNewAsset()],
-  'bookmarked': false,
-  'signature': ''
+export const LoanType = Object.freeze({
+	SINGLE: 'SINGLE',
+	SHARED: 'SHARED',
+});
+
+const createNewAsset = (assetId='') => ({
+	'key': uuidv4(),
+    'assetId': assetId,
+    'remarks': '',
+    'peripherals': []
 })
 
-const Loan = () => {
+const createNewUser = (userId='') => ({
+	'key': uuidv4(),
+	'userId': userId,
+	'signature': '',
+})
 
-  console.log('loan form rendered');
+export const createNewLoan = (saved=false, assetId='', userId='') => ({
+	'key': uuidv4(),
+	'users': [createNewUser(userId)],
+	'assets': [createNewAsset(assetId)],
+	'saved': saved,
+})
 
-  const { isExcel, handleUserSearch, onModalClose } = useFormModal();
-  const { setLoading, showToast, handleError } = useUI();
-
-  const initialValuesManual = {
-    users: [createNewUser()],
-    'loanDate': new Date(),
-    'expectedReturnDate': null
-  };
-
-  const initialValuesExcel = {
-    file: null
-  };
-
-  const handleSubmitManual = async (values, actions) => {
-    setLoading(true);
-    console.log('Manual Form Values:', values);
-    try {
-      await assetService.loanAsset(values);
-      actions.setSubmitting(false);
-      setLoading(false);
-      showToast('Assets successfully loaned', 'success', 500);
-    } catch (err) {
-      console.error(err);
-      handleError(err);
-      console.error("Error Handled");
-      setLoading(false);
-    }
-  };
-
-  const handleSubmitExcel = (values, actions) => {
-    console.log('Excel Form Values:', values);
-    actions.setSubmitting(false);
-    // Handle Excel file upload
-  };
-
-  const validateUniqueUserIDs = (users) => {
-    const userIDSet = new Set();
-    const duplicates = new Set();
-    users.forEach(user => {
-      if (user['userId'] === '') return;
-        if (userIDSet.has(user['userId'])) {
-            duplicates.add(user['userId']);
-        }
-        userIDSet.add(user['userId']);
-    });
-    return duplicates;
-  };
-  
-  const validateUniqueAssetIDs = (users) => {
-    const assetIDSet = new Set();
-    const duplicates = new Set();
-    users.forEach(user => {
-      user.assets.forEach(asset => {
-        if (asset['assetId'] === '') return;
-        if (assetIDSet.has(asset['assetId'])) {
-          duplicates.add(asset['assetId']);
-        }
-        assetIDSet.add(asset['assetId']);
-      });
-    });
-    console.log('Duplicate Assets');
-    console.log(duplicates);
-    return duplicates;
-  };
-
-  const validateUniquePeripheralIDs = (peripherals) => {
-    const peripheralIDSet = new Set();
-    const duplicates = new Set();
-    peripherals.forEach(peripheral => {
-      if (peripheral['id'] === '') return;
-        if (peripheralIDSet.has(peripheral['id'])) {
-          duplicates.add(peripheral['id']);
-        }
-        peripheralIDSet.add(peripheral['id']);
-    });
-    console.log('Duplicate Peripherals');
-    console.log(duplicates);
-    return duplicates;
-  }
-
-  const validate = values => {
-
-    const errors = {};
-    // Implement validation logic
-    const userIDDuplicates = validateUniqueUserIDs(values.users);
-    const assetIDDuplicates = validateUniqueAssetIDs(values.users);
-
-    values.users.forEach((user, userIndex) => {
-      let userErr = null
-      console.log(user);
-      if (user['userId'] === '') userErr = 'User cannot be blank'
-      if (userIDDuplicates.size > 0 && userIDDuplicates.has(user['userId'])) userErr = 'User must be unique'
-
-      if (userErr) {
-        if (!errors.users) errors.users = [];
-        errors.users[userIndex] = { ...errors.users[userIndex], 'userId': userErr };
-      }
-
-      user.assets.forEach((asset, assetIndex) => {
-        if (assetIDDuplicates.size > 0 && assetIDDuplicates.has(asset['assetId'])) {
-          if (!errors.users) errors.users = [];
-          if (!errors.users[userIndex]) errors.users[userIndex] = {};
-          if (!errors.users[userIndex].assets) errors.users[userIndex].assets = [];
-          errors.users[userIndex].assets[assetIndex] = { 'assetId': 'Asset ID must be unique' };
-        }
-
-        const peripheralIDDuplicates = validateUniquePeripheralIDs(asset.peripherals)
-
-        console.log(asset);
-
-        asset.peripherals.forEach((peripheral, peripheralIndex) => {
-          console.log(peripheral);
-          if (peripheralIDDuplicates.size > 0 && peripheralIDDuplicates.has(peripheral['id'])) {
-            if (!errors.users) errors.users = [];
-            if (!errors.users[userIndex]) errors.users[userIndex] = {};
-            if (!errors.users[userIndex].assets) errors.users[userIndex].assets = [];
-            if (!errors.users[userIndex].assets[assetIndex]) errors.users[userIndex].assets[assetIndex] = {};
-            if (!errors.users[userIndex].assets[assetIndex].peripherals) errors.users[userIndex].assets[assetIndex].peripherals = [];
-            errors.users[userIndex].assets[assetIndex].peripherals[peripheralIndex] = { ...errors.users[userIndex].assets[assetIndex].peripherals[peripheralIndex], 'id': 'Peripherals must be unique' };
-          }         
-        })
-      });
-    });
-    // console.log(errors);
-    
-    return errors;
-  };
-
+const LoanMode = ({ mode }) => {
   return (
-    <Box>
-      {!isExcel ? (
-        <Formik
-          initialValues={initialValuesManual}
-          onSubmit={handleSubmitManual}
-          validate={validate}
-          validateOnChange={true}
-          validateOnBlur={true}
-        >
-        {({values, resetForm}) => {
-          return (
-          <Form>
-            <ModalBody>
-            <Divider borderColor="black" borderWidth="2px" my={2} />
-              <FieldArray name="users">
-                {({ remove, push }) => (
-                  <Box>
-                    {values.users.map((user, userIndex, array) => (
-                      <Box key={user.key}>
-                        <Flex direction="column" gap={4}>
-                          <SearchFormControl 
-                            name={`users.${userIndex}.userId`}
-                            searchFn={handleUserSearch}
-                            label={`User #${userIndex + 1}`} 
-                            placeholder="Select a user"
-                          />
-                          <LoanAssetsArray 
-                            fieldArrayName={`users.${userIndex}.assets`}
-                            assets={user.assets}
-                          />
-                          <FormikSignatureField
-                            name={`users.${userIndex}.signature`}
-                            label="Signature"
-                          />
-                          <FormToggle label="Bookmark User" name={`users.${userIndex}.bookmarked`} />
-                          <Flex justifyContent="flex-start" gap={4}>
-                            {values.users.length > 1 && (
-                              <Button type="button" onClick={() => remove(userIndex)} alignSelf='flex-start'>
-                                <ResponsiveText>Remove User</ResponsiveText>
-                              </Button>
-                            )}
-                            {userIndex === array.length - 1 && (
-                              <Button
-                                type="button"
-                                onClick={() => push(createNewUser())}
-                              >
-                                <ResponsiveText>Add Another User</ResponsiveText>
-                              </Button>
-                            )}
-                          </Flex>
-                        </Flex>
-                        <Divider borderColor="black" borderWidth="2px" my={4} />
-                      </Box>
-                    ))}
-                  </Box>
-                )}
-              </FieldArray>
-              <Flex>
-                <DateInputControl label="Loaned Date" name={`loanDate`} />
-                <DateInputControl label="Expected Return Date" name={`expectedReturnDate`} />
-              </Flex>
-            </ModalBody>
-            <ModalFooter>
-            <Button variant="outline" onClick={() => {
-              resetForm()
-              onModalClose()
-            }}>
-              Cancel
-            </Button>
-            <Button colorScheme="blue" type="submit">
-              Submit
-            </Button>
-          </ModalFooter>
-          </Form>
-        )}}
-        </Formik>
-      ) : (
-        <Formik
-          initialValues={initialValuesExcel}
-          onSubmit={handleSubmitExcel}
-        >
-          <Form>
-            <ModalBody>
-              <ExcelFormControl />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="outline" mr={3} onClick={onModalClose}>Cancel</Button>
-              <Button colorScheme="blue" type="submit">Upload Excel</Button>
-            </ModalFooter>
-          </Form>
-        </Formik>
-      )}
-    </Box>
+    <Flex direction="row" alignItems="center" position='absolute' right='1'>
+      <Flex
+        p={1}
+        gap={1}
+        borderRadius="md"
+        bg="teal.500"
+        color="white"
+        display="inline-flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Box as="span" fontSize="xs">
+          {mode === LoanType.SHARED ? <FaUsers size="10px" /> : <FaUser size="10px" />}
+        </Box>
+        <ResponsiveText fontSize="xs">{mode} MODE</ResponsiveText>
+      </Flex>
+    </Flex>
   );
 };
 
-export default Loan;
+
+export const Loan = () => {
+
+	const { values, setFieldValue } = useFormikContext();
+	const { mode, setMode, loan, loanIndex, loanHelpers, errors, loanCount } = useLoan();
+
+	console.log(mode);
+
+	useEffect(() => {
+		const allEmptyAssets = loan.assets.every(asset => asset.assetId === '');
+		console.log();
+		if (allEmptyAssets && loan.users.length < 2) setMode(null);
+	}, [loan, setMode])
+
+	return (
+		<Box position='relative'>
+			{mode && <LoanMode mode={mode}/>}
+			<ResponsiveText size="md" fontWeight="bold" align="center">
+				{`Loan #${loanIndex + 1}`}
+			</ResponsiveText>
+			{loan.saved ? (
+				<LoanSummary
+					loan={loan}
+					handleEdit={() => {
+					setFieldValue(`loans.${loanIndex}.saved`, false);
+					console.log(values);
+					}}
+					handleRemove={() => {
+					loanHelpers.remove(loanIndex);
+					console.log(values);
+					}}
+					isOnlyLoan={values.loans.length === 1}
+				/>
+			) : (
+				<Flex direction="column" key={loan.key}>
+					<Box display={loan.saved ? "none" : "block"}>
+						<FieldArray name={`loans.${loanIndex}.assets`}>
+							{assetHelpers => loan.assets.map((asset, assetIndex, array) => (
+								<Flex direction="column" key={asset.key}>
+									<LoanAsset
+										fieldArrayName={`loans.${loanIndex}.assets`}
+										assetIndex={assetIndex}
+										assets={loan.assets}
+										assetHelpers={assetHelpers}
+									/>
+									<Flex justifyContent="flex-start" mt={2} mb={4}>
+										{assetIndex === array.length - 1 && (
+											<AddButton
+												handleClick={() => assetHelpers.push(createNewAsset())}
+												label={'Add Asset'}
+											/>
+										)}
+									</Flex>
+								</Flex>
+							))}
+						</FieldArray>
+						<FieldArray name={`loans.${loanIndex}.users`}>
+							{ userHelpers => loan.users.map((user, userIndex, array) => (
+								<VStack key={user.key}>
+									<LoanUser
+										fieldArrayName={`loans.${loanIndex}.users`}
+										userIndex={userIndex}
+										userHelpers={userHelpers}
+										users={loan.users}
+									/>
+									<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
+										{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
+										(
+											<AddButton
+												handleClick={() => {
+													userHelpers.push(createNewUser());
+													setMode(LoanType.SHARED);
+												}}
+												label={'Add User'}
+											/>
+										)}
+									</Flex>
+								</VStack>
+							))}
+						</FieldArray>
+					</Box>
+					<Flex mt={2} gap={4} justifyContent="space-between">
+					{values.loans.length > 1 && !loan.saved && (
+						<Button
+						type="button"
+						onClick={() => loanHelpers.remove(loanIndex)}
+						alignSelf="flex-start"
+						colorScheme="red"
+						>
+						<ResponsiveText>Remove</ResponsiveText>
+						</Button>
+					)}
+					{loanIndex === loanCount - 1 && (
+						<AddButton
+						handleClick={() => loanHelpers.push(createNewLoan())}
+						label="Add Loan"
+						/>
+					)}
+					{!loan.saved && (
+						<>
+						<Spacer />
+						<Button
+							onClick={() => setFieldValue(`loans.${loanIndex}.saved`, true)}
+							colorScheme="green"
+							isDisabled={errors}
+							alignSelf="flex-end"
+						>
+							Save
+						</Button>
+						</>
+					)}
+					</Flex>
+					<Divider borderColor="black" borderWidth="2px" my={4} />
+				</Flex>
+			)}
+		</Box>
+	);
+}
