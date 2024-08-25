@@ -17,9 +17,9 @@ import { FaUpload } from "react-icons/fa";
 
 import * as XLSX from 'xlsx';
 
-const ExcelFormControl = ({ loadValues, templateCols }) => {
+const ExcelFormControl = ({ templateCols, loadValues }) => {
 
-  const { formType } = useFormModal();
+  const { formType, setInitialValues } = useFormModal();
   const fileInputRef = useRef(null);
   const { showToast, handleError } = useUI();
   const { setFieldValue } = useFormikContext()
@@ -58,7 +58,7 @@ const ExcelFormControl = ({ loadValues, templateCols }) => {
       if (new Set([...keysFromExcel, ...templateCols]).size !== templateCols.length) {
         throw new Error("Column names were changed unexpectedly.");
       }
-      loadValues(data, setFieldValue);
+      loadValues(data);
     } catch (err) {
       handleError(err);
     }
@@ -68,8 +68,6 @@ const ExcelFormControl = ({ loadValues, templateCols }) => {
     }
     
     console.log(keysFromExcel);
-
-    // return expectedKeys.every(key => keysFromExcel.includes(key));
   };
 
   const handleButtonClick = () => {

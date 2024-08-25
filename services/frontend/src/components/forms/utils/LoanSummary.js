@@ -3,10 +3,12 @@ import { FaEdit } from "react-icons/fa";
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import { EditButton, RemoveButton } from "./ItemButtons";
 import { useState } from "react";
+import { useLoan } from "../../../context/LoanProvider";
 
-export const LoanSummary = ({ loan, handleEdit, handleRemove, isOnlyLoan }) => {
+export const LoanSummary = ({ loan, handleRemove, isOnlyLoan }) => {
 
-    const [focused, setFocused] = useState(false)
+    const [focused, setFocused] = useState(false);
+    const { setSaved } = useLoan()
 
     return (
       <Box
@@ -30,7 +32,7 @@ export const LoanSummary = ({ loan, handleEdit, handleRemove, isOnlyLoan }) => {
               size="sm"
               isDisabled={isOnlyLoan}
             />
-            <EditButton handleClick={handleEdit} size="sm">
+            <EditButton handleClick={() => setSaved(false)} size="sm">
               Edit
             </EditButton>
           </Flex>

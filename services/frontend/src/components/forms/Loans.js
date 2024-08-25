@@ -5,16 +5,21 @@ import { useFormModal } from "../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, Loan } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
+import { AddButton } from "./utils/ItemButtons";
+import { LoanSummary } from "./utils/LoanSummary";
 
 const Loans = () => {
 
-  console.log('loan form rendered');
   const { setFormType } = useFormModal();
   const { setLoading, showToast, handleError } = useUI();
+  const [ initialValues, setInitialValues ] = useState(null);
   const formRef = useRef(null);
+
+  console.log('loan form rendered');
+  console.log(initialValues);
 
   useEffect(() => {
     if (formRef.current) {
@@ -28,13 +33,18 @@ const Loans = () => {
     'expectedReturnDate': null
   };
 
-  console.log(initialValuesManual);
-
-  const loadExcelValues = (records, setFieldValue) => {
-    records.forEach((record, recordIndex) => {
-      setFieldValue(`loans.${recordIndex}.assets.${0}.assetId`, record.assetTag?.trim());
-      setFieldValue(`loans.${recordIndex}.users.${0}.userId`, record.userName?.trim());
+  const setValuesExcel = (records) => {
+    const loans = [];
+    records.forEach((record) => {
+      loans.push(createNewLoan(record.assetTag?.trim(), record.userName?.trim()));
     })
+    console.log(loans);
+    
+    setInitialValues({
+      loans: loans,
+      'loanDate': new Date(),
+      'expectedReturnDate': null
+    });
   }
 
   const handleSubmitManual = async (values, actions) => {
@@ -65,8 +75,8 @@ const Loans = () => {
         assetIDSet.add(asset['assetId']);
       });
     });
-    console.log('Duplicate Assets');
-    console.log(duplicates);
+    // console.log('Duplicate Assets');
+    // console.log(duplicates);
     return duplicates;
   };
 
@@ -80,8 +90,8 @@ const Loans = () => {
         }
         userIDSet.add(user['userId']);
     });
-    console.log('Duplicate Users');
-    console.log(duplicates);
+    // console.log('Duplicate Users');
+    // console.log(duplicates);
     return duplicates;
   };
 
@@ -95,8 +105,8 @@ const Loans = () => {
         }
         peripheralIDSet.add(peripheral['id']);
     });
-    console.log('Duplicate Peripherals');
-    console.log(duplicates);
+    // console.log('Duplicate Peripherals');
+    // console.log(duplicates);
     return duplicates;
   }
 
@@ -156,32 +166,37 @@ const Loans = () => {
       });
     });
   
-    console.log(errors); // Remove this in production if not needed
+    // console.log(errors); // Remove this in production if not needed
     return errors;
   };
 
   return (
     <Box>
       <Formik
-        initialValues={initialValuesManual}
+        initialValues={initialValues || initialValuesManual}
         onSubmit={handleSubmitManual}
         validate={validate}
         validateOnChange={true}
-        validateOnBlur={true}
+        // validateOnBlur={true}
         innerRef={formRef}
+        enableReinitialize={true}
       >
         {({ values, errors }) => {
-
           return (
             <Form>
               <ModalBody>
-                <ExcelFormControl loadValues={loadExcelValues} templateCols={['assetTag', 'userName']}/>
+                <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userName']}/>
                 <Divider borderColor="black" borderWidth="2px" my={2} />
                 <FieldArray name="loans">
                 {loanHelpers => (
                   values.loans.map((loan, loanIndex, array) => (
-                    <LoanProvider key={loan.key} loan={loan} loanIndex={loanIndex} loanHelpers={loanHelpers} errors={errors.loans?.[loanIndex]} loanCount={array.length}>
-                      <Loan/>
+                    <LoanProvider
+                      key={loan.key}
+                      loan={loan}
+                      loanIndex={loanIndex}
+                      loanHelpers={loanHelpers}
+                      isLast={loanIndex === array.length - 1}
+                    >
                     </LoanProvider>
                   ))
                 )}

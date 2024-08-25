@@ -136,20 +136,20 @@ export const ModalProvider = ({ children }) => {
 
   console.log("Modal rendered");
 
-  const handleAssetSearch = async (value, mode=null) => {
+  const handleAssetSearch = useCallback(async (value) => {
     console.log(`Asset Search Called: ${value}`);
-    return await assetService.searchAssets(value, formType, mode);
-  };
-
-  const handleUserSearch = async (value) => {
+    return await assetService.searchAssets(value, formType);
+  }, [formType]);
+  
+  const handleUserSearch = useCallback(async (value) => {
     console.log(`User Search Called: ${value}`);
     return await userService.searchUsers(value, formType);
-  };
-
-  const handlePeripheralSearch = async (value) => {
+  }, [formType]);
+  
+  const handlePeripheralSearch = useCallback(async (value) => {
     console.log(`Peripheral Search Called: ${value}`);
-    return await peripheralService.searchPeripherals(value); 
-  };
+    return await peripheralService.searchPeripherals(value);
+  }, []);
 
   return (
     <ModalContext.Provider value={{ formType, setFormType, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose }}>

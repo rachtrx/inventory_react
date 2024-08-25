@@ -94,45 +94,49 @@ const withSelect = (Component) =>
 const withSearch = (Component) => ({ name, searchFn, isMulti, ...props }) => {
   // Important: Auto Fill is ONLY FOR SINGLE SEARCH
   const [options, setOptions] = useState([]);
-  const [{value}, , { setValue, setTouched }] = useField(name);
+  const [{value}, meta, { setValue, setTouched }] = useField(name);
   const { handleError } = useUI();
   const isFirstRender = useRef(true);
+
+  useEffect(() => console.log(value), [value])
 
   // Run ONCE when there's a default value
   useEffect(() => {
     
-    if (isMulti || !value || value === '') return;
+    // console.log(`in auto search, value: ${value}, touched: ${meta.touched}`);
+
+    if (isMulti || !(value && !meta.touched)) return;
 
     // Check if it's the first render
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      const fetchData = async () => {
-        try {
-          const response = await searchFn(value); // TODO STRICT SEARCH
-          const data = response.data;
+    const fetchData = async () => {
+      try {
+        const response = await searchFn(value); // TODO STRICT SEARCH
+        const data = response.data;
 
-          if (!data || data.length === 0) {
-            setValue('');
-            setTouched(true);
-            throw new Error(`No records were found matching ${value}. Please update the form.`)
-          } else if (data && data.length > 1) {
-            throw new Error(`Multiple records were found matching ${value}. Please update the form.`) // Make user names unique?
-          } else {
-            setOptions(data);
-            const newValue = data[0].value.trim()
-            console.log(newValue);
-            setValue(newValue);
-          }
-
-        } catch (error) {
-          handleError(`Error fetching data: ${error}`);
+        if (!data || data.length === 0) {
+          setValue('');
+          setTouched(true);
+          throw new Error(`No records were found matching ${value}. Please update the form.`)
+        } else if (data && data.length > 1) {
+          throw new Error(`Multiple records were found matching ${value}. Please update the form.`) // Make user names unique?
+        } else {
+          setOptions(data);
+          const newValue = data[0].value.trim()
+          console.log(newValue);
+          setValue(newValue);
         }
-      };
 
-      fetchData();
+      } catch (error) {
+        handleError(`Error fetching data: ${error}`);
+      }
+    };
+
+    fetchData();
     }
-  }, [value, name, searchFn, setValue, setTouched, isMulti, options, handleError]);
+  }, [value, meta, name, searchFn, setValue, setTouched, isMulti, options, handleError]);
 
   const handleSearch = useCallback(async (value) => {
     try {

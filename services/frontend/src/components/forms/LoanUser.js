@@ -21,7 +21,7 @@ export const LoanUser = function({ fieldArrayName, userIndex, users, userHelpers
 
     const [ curUserOption, setCurUserOption ] = useState({})
     const { handleUserSearch } = useFormModal()
-    const { mode } = useLoan()
+    const { mode, setMode } = useLoan()
 
     useEffect(() => console.log(curUserOption), [curUserOption]);
 
@@ -39,7 +39,10 @@ export const LoanUser = function({ fieldArrayName, userIndex, users, userHelpers
             >
                 <RemoveButton
                     ariaLabel="Remove User"
-                    onClick={() => userHelpers.remove(userIndex)}
+                    onClick={() => {
+                        if (users.length === 2) setMode(null);
+                        userHelpers.remove(userIndex);
+                    }}
                     isDisabled={users.length === 1}
                 />
             </SearchSingleSelectFormControl>
