@@ -58,7 +58,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 				<SearchSingleSelectFormControl
 					name={`${fieldArrayName}.${assetIndex}.assetId`}
 					searchFn={value => handleAssetSearch(value, mode)}
-					callback={(newOption) => {
+					handleChangeCallback={(newOption) => {
 						console.log(newOption);
 
 						if(!newOption) {
@@ -114,7 +114,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 										name={`${fieldName}.id`}
 										defaultOptions={suggestedOptions}
 										searchFn={handlePeripheralSearch}
-										callback={(newOption) => {
+										handleChangeCallback={(newOption) => {
 											if (newOption?.__isNew__) setFieldValue(`${fieldArrayName}.${assetIndex}.peripherals.${index}.isNew`, true)
 										}}
 										warning={warnings?.[`${fieldName}.id`]}

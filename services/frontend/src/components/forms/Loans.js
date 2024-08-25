@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, Loan } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
+import { validate as isUuidValid } from 'uuid';
 
 const Loans = () => {
 
@@ -27,6 +28,7 @@ const Loans = () => {
 
   const reinitializeForm = (newValues) => {
     if (formRef.current) {
+      formRef.current.setTouched({});
       formRef.current.setValues(newValues);
       formRef.current.validateForm();
     }
@@ -123,6 +125,7 @@ const Loans = () => {
         let error = null;
         if (userIDDuplicates.has(user['userId'])) error = 'Users must be unique for each loan'
         if (!user['userId']) error = 'User is Required'
+        else if (!isUuidValid(user['userId'])) error = `${user['userId']} is not found / ambiguous.`
         if (error) {
           errors.loans = errors.loans || [];
           errors.loans[loanIndex] = errors.loans[loanIndex] || {};
@@ -135,6 +138,7 @@ const Loans = () => {
         let error = null;
         if (assetIDDuplicates.has(asset['assetId'])) error = 'Asset must be unique for each loan'
         if (!asset['assetId']) error = 'Asset is Required'
+        else if (!isUuidValid(asset['assetId'])) error = `${asset['assetId']} is not found / ambiguous.`
         if (error) {
           errors.loans = errors.loans || [];
           errors.loans[loanIndex] = errors.loans[loanIndex] || {};
@@ -177,22 +181,27 @@ const Loans = () => {
 			});
 		});
 
-		setWarnings((prevWarnings) => {
-			const updatedWarnings = { ...prevWarnings };
+    const updatedWarnings = values.loans.reduce((acc, loan, loanIndex) => {
+      loan.assets.forEach((asset, assetIndex) => {
+        asset.peripherals.forEach((peripheral, peripheralIndex) => {
+          if (newPeripherals[peripheral.id]) {
+            acc.loans = acc.loans || [];
+            acc.loans[loanIndex] = acc.loans[loanIndex] || {};
+            acc.loans[loanIndex].assets = acc.loans[loanIndex].assets || [];
+            acc.loans[loanIndex].assets[assetIndex] = acc.loans[loanIndex].assets[assetIndex] || {};
+            acc.loans[loanIndex].assets[assetIndex].peripherals = acc.loans[loanIndex].assets[assetIndex].peripherals || [];
+            acc.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex] = {
+              ...acc.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex],
+              id: `New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`
+            };
+          }
+        });
+      });
+    
+      return acc;
+    }, {});
 
-			values.loans.forEach((loan, userIndex) => {
-				loan.assets.forEach((asset, assetIndex) => {
-					asset.peripherals.forEach((peripheral, peripheralIndex) => {
-						if (newPeripherals[peripheral.id]) {
-							updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`] =
-								`New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`;
-						} else delete updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`]
-					});
-				});
-			});
-
-			return updatedWarnings;
-		});
+		setWarnings(updatedWarnings);
   
     // console.log(errors); // Remove this in production if not needed
     return errors;

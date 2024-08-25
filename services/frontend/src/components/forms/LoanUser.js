@@ -32,7 +32,7 @@ export const LoanUser = function({ fieldArrayName, userIndex, userHelpers }) {
             <SearchSingleSelectFormControl
                 name={`${fieldArrayName}.${userIndex}.userId`}
                 searchFn={handleUserSearch}
-                callback={(newOption) => {
+                handleChangeCallback={(newOption) => {
                     if (!newOption || !curUserOption || newOption.value === curUserOption.value) return;
                     setCurUserOption(newOption);
                 }}
