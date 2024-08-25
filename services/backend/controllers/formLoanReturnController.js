@@ -8,6 +8,37 @@ const { Event } = require('../models/mongo')
 // req.file.size,     // Accessing the file size
 // req.file.mimetype  // Accessing the MIME type
 
+
+
+app.post('/submit', async (req, res) => {
+    const { signature, ...otherFormData } = req.body;
+  
+    if (signature) {
+      // Decode base64 string
+      const base64Data = signature.replace(/^data:image\/png;base64,/, '');
+  
+      // Create a unique file name
+      const fileName = `${Date.now()}-signature.png`;
+  
+      // Define the path to save the file
+      const filePath = path.join(__dirname, 'uploads', fileName);
+  
+      // Save the file to the server
+      fs.writeFile(filePath, base64Data, 'base64', (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to save signature' });
+        }
+  
+        // You might want to save the file path or URL in the database
+        // Example: await database.saveSignaturePath(filePath, otherFormData.userId);
+  
+        res.status(200).json({ message: 'Signature saved successfully', filePath });
+      });
+    } else {
+      res.status(400).json({ error: 'No signature provided' });
+    }
+  });
+
 exports.loan = async (req, res) => {
     const filePath = req.file ? req.file.path : null;
     

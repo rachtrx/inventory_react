@@ -38,19 +38,12 @@ export const LoanSummary = ({ loan, handleRemove, isOnlyLoan }) => {
           </Flex>
         )}
         <Flex direction="column" gap={2}>
-          <ResponsiveText fontWeight="bold">
-            Assets: 
             <ResponsiveText as="span" fontWeight="normal">
-              {loan.assets.map((asset) => asset.name).join(', ')}
+              Assets: {loan.assets.map((asset) => asset.assetTag).join(', ')}
             </ResponsiveText>
-          </ResponsiveText>
-          <ResponsiveText fontWeight="bold">
-            Users: 
             <ResponsiveText as="span" fontWeight="normal">
-              {loan.users.map((user) => user.id).join(', ')}
+              Users: {loan.users.map((user) => user.userName).join(', ')}
             </ResponsiveText>
-          </ResponsiveText>
-          
         </Flex>
       </Box>
     );

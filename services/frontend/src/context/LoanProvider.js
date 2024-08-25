@@ -9,6 +9,7 @@ import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
 import { LoanSummary } from '../components/forms/utils/LoanSummary';
 import { AddButton } from '../components/forms/utils/ItemButtons';
+import { validate as isUuidValid } from 'uuid';
 
 const LoanMode = ({ mode }) => {
   return (
@@ -37,24 +38,31 @@ const LoanContext = createContext();
 
 // Devices Provider component
 export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
+  // console.log('loan provider');
   const [ mode, setMode ] = useState(null);
   const [ saved, setSaved ] = useState(false);
   const { values, errors, setFieldValue } = useFormikContext();
 
-  // console.log('loan provider');
+  useEffect(() => {
+    setFieldValue(`loans.${loanIndex}.mode`, mode);
+  }, [mode, setFieldValue, loanIndex])
+
+  useEffect(() => {
+		const allEmptyAssets = loan.assets.every(asset => !isUuidValid(asset.assetId));
+		if (allEmptyAssets && loan.users.length < 2) setMode('');
+    else if (loan.assets.some(asset => !asset.shared)) setMode(LoanType.SINGLE);
+    else if (loan.assets.every(asset => !!asset.shared)) setMode(LoanType.SHARED);
+    else if (loan.users.length >= 2) setMode(LoanType.SHARED);
+	}, [loan, setMode])
 
   useEffect(() => {
     console.log(`Loan ${loanIndex}: ${saved}`);
   }, [saved, loanIndex]);
 
-  useEffect(() => {
-    setFieldValue(`loans.${loanIndex}.saved`, saved ? true : false);
-  }, [saved, setFieldValue, loanIndex]);
-
   const removeLoan = useCallback(() => loanHelpers.remove(loanIndex), [loanHelpers, loanIndex])
 
   return (
-    <LoanContext.Provider value={{ mode, setMode, saved, setSaved, loan, loanIndex, loanHelpers, removeLoan }}>
+    <LoanContext.Provider value={{ mode, setMode, saved, setSaved, loan, loanIndex, loanHelpers, removeLoan, warnings }}>
       {mode && <LoanMode mode={mode}/>}
       <ResponsiveText size="md" fontWeight="bold" align="center">
         {`Loan #${loanIndex + 1}`}

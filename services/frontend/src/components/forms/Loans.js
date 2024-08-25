@@ -6,7 +6,7 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createNewLoan, Loan } from "./Loan";
+import { createNewLoan, LoanType } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
 import { validate as isUuidValid } from 'uuid';
@@ -35,18 +35,41 @@ const Loans = () => {
   };
 
   const setValuesExcel = (records) => {
-    const loans = [];
-    records.forEach((record) => {
-      loans.push(createNewLoan(record.assetTag?.trim(), record.userName?.trim(), record.peripherals?.trim().split(',').map(peripheral => createNewPeripheral(peripheral.trim()))));
-    })
-    console.log(loans);
+    try {
+      const groupedRecords = records.reduce((acc, record) => {
+        const assetTag = record.assetTag?.trim();
+        const userNames = [...new Set(record.userNames?.trim().split(',').map(user => user.trim()))];
+        const peripherals = [...new Set(record.peripherals?.trim().split(',').map(peripheral => peripheral.trim()))];
+
+        if (!acc[assetTag]) {
+          acc[assetTag] = {
+            userNames: userNames,
+            peripherals: peripherals,
+          };
+        } else throw new Error(`Duplicate records of ${acc[assetTag]} were found`)
+        return acc;
+      }, {});
     
-    reinitializeForm({
-      loans: loans,
-      'loanDate': new Date(),
-      'expectedReturnDate': null
-    });
-  }
+      // Convert grouped records into loans
+      const loans = Object.entries(groupedRecords).map(([assetTag, { userNames, peripherals }]) =>
+        createNewLoan(
+          assetTag,
+          userNames,
+          peripherals.map(peripheral => createNewPeripheral(peripheral))
+        )
+      );
+    
+      console.log(loans);
+    
+      reinitializeForm({
+        loans: loans,
+        loanDate: new Date(),
+        expectedReturnDate: null
+      });
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const handleSubmitManual = async (values, actions) => {
     setLoading(true);
@@ -111,99 +134,99 @@ const Loans = () => {
     return duplicates;
   }
 
+  // Helper function to set field error in a nested object
+  const setFieldError = (obj, path, error) => {
+    path.reduce((acc, key, index) => {
+      if (index === path.length - 1) {
+        acc[key] = error;
+      } else {
+        acc[key] = acc[key] || {};
+      }
+      return acc[key];
+    }, obj);
+  };
+  
+  const validateUser = (user, userIDDuplicates) => {
+    if (userIDDuplicates.has(user['userId'])) return 'Users must be unique for each loan';
+    if (!user['userId']) return 'User is Required';
+    if (!isUuidValid(user['userId'])) return `${user['userId']} is not found / ambiguous.`;
+    return null;
+  };
+  
+  const validateAsset = (asset, assetIDDuplicates, mode, userCount) => {
+    if (assetIDDuplicates.has(asset['assetId'])) return 'Asset must be unique for each loan';
+    if (!asset['assetId']) return 'Asset is Required';
+    if (mode === LoanType.SINGLE && userCount > 1) return `${asset.assetTag} is not a shared asset.`;
+    if (!isUuidValid(asset['assetId'])) return `${asset['assetId']} is not found / ambiguous.`;
+    return null;
+  };
+  
+  const validatePeripheral = (peripheral, peripheralIDDuplicates) => {
+    if (peripheralIDDuplicates.has(peripheral['id'])) return 'Peripherals must be unique';
+    if (!peripheral['id']) return 'Peripheral is Required';
+    return null;
+  };
+  
+  // Generate warnings based on new peripherals
+  const generateWarnings = (loans, newPeripherals) => {
+    return loans.reduce((acc, loan, loanIndex) => {
+      loan.assets.forEach((asset, assetIndex) => {
+        asset.peripherals.forEach((peripheral, peripheralIndex) => {
+          if (newPeripherals[peripheral.id]) {
+            setFieldError(acc, ['loans', loanIndex, 'assets', assetIndex, 'peripherals', peripheralIndex, 'id'], 
+              `New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`);
+          }
+        });
+      });
+      return acc;
+    }, {});
+  };
+
   const validate = values => {
     const errors = {};
-  
-    // Validate unique Asset IDs across all loans
+    const newPeripherals = {};
+
     const assetIDDuplicates = validateUniqueAssetIDs(values.loans);
-  
+    
     values.loans.forEach((loan, loanIndex) => {
+      const mode = loan.mode;
+
       // Validate unique User IDs within each loan
       const userIDDuplicates = validateUniqueUserIDs(loan.users);
-  
       loan.users.forEach((user, userIndex) => {
-        let error = null;
-        if (userIDDuplicates.has(user['userId'])) error = 'Users must be unique for each loan'
-        if (!user['userId']) error = 'User is Required'
-        else if (!isUuidValid(user['userId'])) error = `${user['userId']} is not found / ambiguous.`
-        if (error) {
-          errors.loans = errors.loans || [];
-          errors.loans[loanIndex] = errors.loans[loanIndex] || {};
-          errors.loans[loanIndex].users = errors.loans[loanIndex].users || [];
-          errors.loans[loanIndex].users[userIndex] = { 'userId': error };
+        const userError = validateUser(user, userIDDuplicates);
+        if (userError) {
+          setFieldError(errors, ['loans', loanIndex, 'users', userIndex, 'userId'], userError);
         }
       });
   
+      // Validate unique Asset IDs across all loans
       loan.assets.forEach((asset, assetIndex) => {
-        let error = null;
-        if (assetIDDuplicates.has(asset['assetId'])) error = 'Asset must be unique for each loan'
-        if (!asset['assetId']) error = 'Asset is Required'
-        else if (!isUuidValid(asset['assetId'])) error = `${asset['assetId']} is not found / ambiguous.`
-        if (error) {
-          errors.loans = errors.loans || [];
-          errors.loans[loanIndex] = errors.loans[loanIndex] || {};
-          errors.loans[loanIndex].assets = errors.loans[loanIndex].assets || [];
-          errors.loans[loanIndex].assets[assetIndex] = { 'assetId': error };
+        const assetError = validateAsset(asset, assetIDDuplicates, mode, loan.users.length);
+        if (assetError) {
+          setFieldError(errors, ['loans', loanIndex, 'assets', assetIndex, 'assetId'], assetError);
         }
   
         // Validate unique Peripheral IDs within each asset
         const peripheralIDDuplicates = validateUniquePeripheralIDs(asset.peripherals);
-  
         asset.peripherals.forEach((peripheral, peripheralIndex) => {
-          let error = null;
-          if (peripheralIDDuplicates.has(peripheral['id'])) error = 'Peripherals must be unique';
-          if (!peripheral['id']) error = 'Peripheral is Required'
-
-          if (error) {
-            errors.loans = errors.loans || [];
-            errors.loans[loanIndex] = errors.loans[loanIndex] || {};
-            errors.loans[loanIndex].assets = errors.loans[loanIndex].assets || [];
-            errors.loans[loanIndex].assets[assetIndex] = errors.loans[loanIndex].assets[assetIndex] || {};
-            errors.loans[loanIndex].assets[assetIndex].peripherals = errors.loans[loanIndex].assets[assetIndex].peripherals || [];
-            errors.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex] = {
-              ...errors.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex],
-              'id': error,
-            };
+          const peripheralError = validatePeripheral(peripheral, peripheralIDDuplicates);
+          if (peripheralError) {
+            setFieldError(errors, ['loans', loanIndex, 'assets', assetIndex, 'peripherals', peripheralIndex, 'id'], peripheralError);
+          }
+          // Track new peripherals for warnings
+          if (peripheral.id !== '' && !isUuidValid(peripheral.id)) {
+            newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
           }
         });
       });
     });
-
-    // SET WARNINGS
-    const newPeripherals = {};
-		values.loans.forEach((loan) => {
-			loan.assets.forEach((asset) => {
-				asset.peripherals?.forEach((peripheral) => {
-					if (peripheral.isNew && peripheral.id !== '') {
-						newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
-					}
-				});
-			});
-		});
-
-    const updatedWarnings = values.loans.reduce((acc, loan, loanIndex) => {
-      loan.assets.forEach((asset, assetIndex) => {
-        asset.peripherals.forEach((peripheral, peripheralIndex) => {
-          if (newPeripherals[peripheral.id]) {
-            acc.loans = acc.loans || [];
-            acc.loans[loanIndex] = acc.loans[loanIndex] || {};
-            acc.loans[loanIndex].assets = acc.loans[loanIndex].assets || [];
-            acc.loans[loanIndex].assets[assetIndex] = acc.loans[loanIndex].assets[assetIndex] || {};
-            acc.loans[loanIndex].assets[assetIndex].peripherals = acc.loans[loanIndex].assets[assetIndex].peripherals || [];
-            acc.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex] = {
-              ...acc.loans[loanIndex].assets[assetIndex].peripherals[peripheralIndex],
-              id: `New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`
-            };
-          }
-        });
-      });
-    
-      return acc;
-    }, {});
-
-		setWarnings(updatedWarnings);
   
-    // console.log(errors); // Remove this in production if not needed
+    // Set warnings based on new peripherals
+    const updatedWarnings = generateWarnings(values.loans, newPeripherals);
+    // console.log(updatedWarnings);
+    setWarnings(updatedWarnings);
+  
     return errors;
   };
 
@@ -222,7 +245,7 @@ const Loans = () => {
           return (
             <Form>
               <ModalBody>
-                <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userName', 'peripherals']}/>
+                <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userNames', 'peripherals']}/>
                 <Divider borderColor="black" borderWidth="2px" my={2} />
                 <FieldArray name="loans">
                 {loanHelpers => (
@@ -232,7 +255,7 @@ const Loans = () => {
                       loan={loan}
                       loanIndex={loanIndex}
                       loanHelpers={loanHelpers}
-                      warnings={warnings}
+                      warnings={warnings?.loans?.[loanIndex]}
                       isLast={loanIndex === array.length - 1}
                     >
                     </LoanProvider>

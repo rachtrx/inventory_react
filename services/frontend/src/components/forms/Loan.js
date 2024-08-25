@@ -15,44 +15,37 @@ export const LoanType = Object.freeze({
 	SHARED: 'SHARED',
 });
 
-const createNewAsset = (assetId='', peripherals=[]) => ({
+const createNewAsset = (assetTag='', peripherals=[]) => ({
 	'key': uuidv4(),
-	'assetId': assetId,
-	'assetTag': '',
+	'assetId': assetTag,
+	'assetTag': assetTag,
 	'remarks': '',
-	'peripherals': peripherals
+	'peripherals': peripherals,
+	'shared': false
 })
   
-const createNewUser = (userId='') => ({
+const createNewUser = (userName='') => ({
 	'key': uuidv4(),
-	'userId': userId,
-	'userName': '',
+	'userId': userName,
+	'userName': userName,
 	'signature': '',
 })
   
-export const createNewLoan = (assetId='', userId='', peripherals=[], saved=false) => ({
+export const createNewLoan = (assetTag='', userNames=[], peripherals=[]) => ({
 	'key': uuidv4(),
-	'users': [createNewUser(userId)],
-	'assets': [createNewAsset(assetId, peripherals)],
-	'saved': saved,
+	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
+	'assets': [createNewAsset(assetTag, peripherals)],
+	'mode': ''
 })
 
 export const Loan = () => {
 
-	// console.log('loan');
-
-	const { mode, setMode, loan, loanIndex } = useLoan();
-
-	useEffect(() => {
-		const allEmptyAssets = loan.assets.every(asset => asset.assetId === '');
-		console.log();
-		if (allEmptyAssets && loan.users.length < 2) setMode(null);
-	}, [loan, setMode])
+	const { mode, loan, loanIndex, saved } = useLoan();
 
 	return (
 		<Box position='relative'>
 			<Flex direction="column" key={loan.key}>
-				<Box display={loan.saved ? "none" : "block"}>
+				<Box display={saved ? "none" : "block"}>
 					<FieldArray name={`loans.${loanIndex}.assets`}>
 						{assetHelpers => loan.assets.map((asset, assetIndex, array) => (
 							<Flex direction="column" key={asset.key}>
@@ -61,7 +54,6 @@ export const Loan = () => {
 									assetIndex={assetIndex}
 									asset={asset}
 									assetHelpers={assetHelpers}
-									assetsLength={array.length}
 								/>
 								<Flex justifyContent="flex-start" mt={2} mb={4}>
 									{assetIndex === array.length - 1 && (
@@ -80,8 +72,8 @@ export const Loan = () => {
 								<LoanUser
 									fieldArrayName={`loans.${loanIndex}.users`}
 									userIndex={userIndex}
+									user={user}
 									userHelpers={userHelpers}
-									usersLength={array.length}
 								/>
 								<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
 									{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
@@ -89,7 +81,6 @@ export const Loan = () => {
 										<AddButton
 											handleClick={() => {
 												userHelpers.push(createNewUser());
-												setMode(LoanType.SHARED);
 											}}
 											label={'Add User'}
 										/>

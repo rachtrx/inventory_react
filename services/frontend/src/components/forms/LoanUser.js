@@ -17,38 +17,31 @@ import { RemoveButton } from "./utils/ItemButtons"
 import { useLoan } from "../../context/LoanProvider"
 import { LoanType } from "./Loan"
 
-export const LoanUser = function({ fieldArrayName, userIndex, userHelpers }) {
+export const LoanUser = function({ fieldArrayName, userIndex, user, userHelpers }) {
 
-    const [ curUserOption, setCurUserOption ] = useState({})
-    const { handleUserSearch } = useFormModal()
-    const { mode, setMode, loan } = useLoan()
-
-    // console.log('loan user');
-
-    // useEffect(() => console.log(curUserOption), [curUserOption]);
+    const { handleUserSearch } = useFormModal();
+    const { mode, loan } = useLoan();
 
     return (
         <>
             <SearchSingleSelectFormControl
                 name={`${fieldArrayName}.${userIndex}.userId`}
                 searchFn={handleUserSearch}
-                handleChangeCallback={(newOption) => {
-                    if (!newOption || !curUserOption || newOption.value === curUserOption.value) return;
-                    setCurUserOption(newOption);
-                }}
+                secondaryFieldsMeta={[
+                    {name: `${fieldArrayName}.${userIndex}.userName`, attr: 'userName'},
+                ]}
                 label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
                 placeholder="Select user"
             >
                 <RemoveButton
                     ariaLabel="Remove User"
                     onClick={() => {
-                        if (loan.users.length === 2) setMode(null);
                         userHelpers.remove(userIndex);
                     }}
                     isDisabled={loan.users.length === 1}
                 />
             </SearchSingleSelectFormControl>
-            {curUserOption && curUserOption.label && (
+            {user.userId && (
             <FormikSignatureField
                 name={`${fieldArrayName}.${userIndex}.signature`}
                 label={`Signature`}

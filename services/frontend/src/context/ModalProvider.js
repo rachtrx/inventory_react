@@ -136,6 +136,7 @@ export const ModalProvider = ({ children }) => {
 
   console.log("Modal rendered");
 
+
   const handleAssetSearch = useCallback(async (value) => {
     console.log(`Asset Search Called: ${value}`);
     return await assetService.searchAssets(value, formType);

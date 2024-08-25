@@ -6,72 +6,73 @@ import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
 
-const withSelect = (Component) =>
-  ({
-    name,
-    label,
-    options = [],
-    isMulti = false,
-    hideSelectedOptions = false,
-    handleChangeCallback = null,
-    warning = null,
-    children,
-    ...props
-  }) => {
-
-    const [{ value }, meta, { setValue, setTouched }] = useField(name);
-
-    const handleChange = useCallback(
-      (selected) => {
-        console.log('select value changed');
+const withSelect = (Component) => ({
+  name,
+  label,
+  secondaryFieldsMeta = null,
+  options: initialOptions = [],
+  isMulti = false,
+  hideSelectedOptions = false,
+  handleChangeCallback = null,
+  warning = null,
+  children,
+  ...props
+}) => {
+  const [{ value }, meta, { setValue, setTouched }] = useField(name);
+  const [options, setOptions] = useState(initialOptions);
+  const { setFieldValue } = useFormikContext();
   
-        if (handleChangeCallback) {
-          handleChangeCallback(selected);
-        }
-  
-        let newValue;
-        if (isMulti) {
-          newValue = (selected || []).map((option) => option.value.trim());
-        } else {
-          newValue = selected?.value.trim() || '';
-        }
-  
-        setValue(newValue);
-        setTouched(true);
-      },
-      [setTouched, setValue, isMulti, handleChangeCallback]
-    );
-  
-    // Derive selectedOption from Formik value
-    const selectedOption = useMemo(() => {
-      if (isMulti) {
-        return options.filter((option) => value.includes(option.value));
-      } else {
-        return options.find((option) => option.value === value) || null;
+  const handleChange = useCallback(
+    (selected) => {
+      if (secondaryFieldsMeta && Array.isArray(secondaryFieldsMeta)) {
+        secondaryFieldsMeta.forEach(({ name, attr }) => {
+          setFieldValue(name, selected?.[attr] ? selected[attr] : '');
+        });
       }
-    }, [value, options, isMulti]);
+      if (handleChangeCallback) {
+        handleChangeCallback(selected);
+      }
+
+      let newValue;
+      if (isMulti) {
+        newValue = (selected || []).map((option) => option.value.trim());
+      } else {
+        newValue = selected?.value.trim() || '';
+      }
+
+      setValue(newValue);
+      setTouched(true);
+    },
+    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, isMulti, handleChangeCallback]
+  );
+
+  const selectedOption = useMemo(() => {
+    if (isMulti) {
+      return options.filter((option) => value.includes(option.value));
+    } else {
+      return options.find((option) => option.value === value) || null;
+    }
+  }, [value, options, isMulti]);
 
   return (
-    <FormControl
-      id={name}
-      isInvalid={meta.touched && !!meta.error}
-    >
+    <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
       {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
       <Flex alignItems="center" gap={4}>
-        <Select
+        <Component
           classNamePrefix="react-select"
           name={name}
           options={options}
+          setOptions={setOptions}
           isMulti={isMulti}
           onChange={handleChange}
-          value={selectedOption} 
-          hideSelectedOptions={false}
+          value={selectedOption}
+          hideSelectedOptions={hideSelectedOptions}
           isSearchable
           {...props}
           styles={{
             container: (provided) => ({
               ...provided,
-              width: '100%', 
+              width: '100%',
             }),
           }}
         />
@@ -83,68 +84,107 @@ const withSelect = (Component) =>
   );
 };
 
-// Extends with Select
-const withSearch = (Component, creatable) => ({ name, searchFn, isMulti, handleChangeCallback, ...props }) => {
-  const [options, setOptions] = useState([]);
+const withCreate = (Component) => ({
+  name,
+  options = [],
+  setOptions,
+  isMulti = false,
+  handleChangeCallback = null,
+  ...props
+}) => {
+  const [{ value }, , { setValue }] = useField(name);
+
+  const handleCreateOption = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue, __isNew__: true };
+    console.log('creating new option');
+    
+    setOptions((prevOptions) => [...prevOptions, newOption]);
+    
+    if (isMulti) {
+      setValue([...value, inputValue]);
+    } else {
+      setValue(inputValue);
+    }
+
+    // Optionally trigger the change callback
+    if (handleChangeCallback) handleChangeCallback(newOption);
+  };
+
+  return (
+    <Component
+      {...props}
+      name={name}
+      options={options}
+      setOptions={setOptions}
+      handleChangeCallback={handleChangeCallback}
+      onCreateOption={handleCreateOption}
+    />
+  );
+};
+
+const withSearch = (Component) => ({
+  name,
+  options,
+  setOptions,
+  searchFn,
+  isMulti = false,
+  handleChangeCallback = null,
+  onCreateOption = null,
+  ...props
+}) => {
+  
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const { handleError } = useUI();
-  const isFirstRender = useRef(true);
-
-  useEffect(() => console.log(value), [value]);
 
   useEffect(() => {
     if (isMulti || !(value && !meta.touched)) return;
 
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    const fetchData = async () => {
+      try {
+        // console.log(`Value in search fn: ${value}`);
+        const response = await searchFn(value);
+        const data = response.data;
 
-      const fetchData = async () => {
-        try {
-          const response = await searchFn(value);
-          const data = response.data;
+        let option;
 
-          setTouched(true);
+        setTouched(true);
 
-          let option = null
-          
-          if (!data || data.length === 0 || data.length > 1) {
-            setValue(value);
-            if (creatable) {
-              option = { value, label: value, __isNew__: true }
-              setOptions([option]);
-              setValue(value);
-            }
-          } else {
-            setOptions(data);
-            option = data[0]
-            setValue(option.value.trim());
-          }
+        if (data.length === 1) {
+          option = data[0];
+          setValue(option.value.trim());
+        } else if (onCreateOption) {
+          option = {value, label: value, __isNew__: true};
+          onCreateOption(option);
+          setValue(value.trim());
+        } else return;
 
-          if (handleChangeCallback && option) handleChangeCallback(option);
+        if (handleChangeCallback) handleChangeCallback(option);
+        setOptions([option]);
+      } catch (error) {
+        handleError(error);
+      }
+    };
 
-        } catch (error) {
-          handleError(error);
-        }
-      };
+    fetchData();
+  }, [value, meta, searchFn, setValue, setTouched, isMulti, handleError, handleChangeCallback, onCreateOption, setOptions]);
 
-      fetchData();
-    }
-  }, [value, meta, name, searchFn, setValue, setTouched, isMulti, options, handleError, handleChangeCallback]);
-
-  const handleSearch = useCallback(async (value) => {
-    try {
-      if (value === '') return;
-      const response = await searchFn(value);
-      setOptions(response.data);
-    } catch (error) {
-      handleError(error);
-    }
-  }, [searchFn, setOptions, handleError]);
+  const handleSearch = useCallback(
+    async (inputValue) => {
+      try {
+        if (inputValue === '') return;
+        const response = await searchFn(inputValue);
+        setOptions(response.data);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    [searchFn, handleError, setOptions]
+  );
 
   const debouncedSearch = useDebounce(handleSearch, 500);
 
-  const handleInputChange = (value) => {
-    debouncedSearch(value);
+  const handleInputChange = (inputValue) => {
+    debouncedSearch(inputValue);
   };
 
   return (
@@ -152,22 +192,17 @@ const withSearch = (Component, creatable) => ({ name, searchFn, isMulti, handleC
       {...props}
       name={name}
       isMulti={isMulti}
-      options={options && options.length > 0 ? options : [{ label: "No results found", value: null, isDisabled: true }]}
+      options={options}
       onInputChange={handleInputChange}
+      handleChangeCallback={handleChangeCallback}
     />
   );
 };
 
-
-const withSelectAndSearch = (Component, creatable=false) => {
-  return withSearch(withSelect(Component), creatable);
-};
-
 const EnhancedSelect = withSelect(Select);
-const SearchSelect = withSelectAndSearch(Select, false);
-
-const EnhancedCreatableSelect = withSelect(CreatableSelect);
-const SearchCreatableSelect = withSelectAndSearch(CreatableSelect, true);
+const EnhancedCreatableSelect = withSelect(withCreate(CreatableSelect));
+const SearchSelect = withSelect(withSearch(Select));
+const SearchCreatableSelect = (withSelect(withCreate(withSearch(CreatableSelect))));
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {
@@ -237,7 +272,6 @@ export const SearchMultiSelectFormControl = (props) => {
 
 // Creatable Single Select with Search
 export const SearchCreatableSingleSelectFormControl = (props) => {
-  
   
   return (
     <SearchCreatableSelect 

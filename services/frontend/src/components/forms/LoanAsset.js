@@ -9,7 +9,7 @@ import { FieldArray } from "formik"
 import InputFormControl from "./utils/InputFormControl"
 import { ResponsiveText } from "../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, validate as isUuidValid } from 'uuid';
 import { warning } from "framer-motion"
 import FormToggle from "./utils/FormToggle"
 import { AddIcon } from "@chakra-ui/icons"
@@ -21,36 +21,35 @@ export const createNewPeripheral = (id='') => ({
 	'key': uuidv4(),
 	'id': id,
 	'count': 1, 
-	'isNew': true // for warnings
 })
 
 export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelpers }) {
 
 	// console.log('loan asset');
 
-	const [ curAssetOption, setCurAssetOption ] = useState({})
 	const { handleAssetSearch, handlePeripheralSearch } = useFormModal()
 	const [ suggestedOptions, setSuggestedOptions ] = useState()
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
 	const { mode, setMode, warnings, loan } = useLoan();
+	// console.log(warnings);
 
 	useEffect(() => {
-		if (!curAssetOption?.value) return;
+		if (!asset.assetId || !isUuidValid(asset.assetId)) return;
 		const fetchItems = async () => {
 			try {
-			const response = await peripheralService.getSuggestedPeripherals(curAssetOption.value);
+			const response = await peripheralService.getSuggestedPeripherals(asset.assetId);
 			const suggestedOptions = response.data;
 				console.log(suggestedOptions);  
-			setSuggestedOptions(suggestedOptions);
+				setSuggestedOptions(suggestedOptions);
 			} catch (err) {
-			handleError(err);
-			console.error(err);
+				handleError(err);
+				console.error(err);
 			}
 		};
 	
 		fetchItems();
-	}, [curAssetOption, handleError, setFieldValue, assetIndex, fieldArrayName]);
+	}, [asset, handleError, setFieldValue, assetIndex, fieldArrayName]);
 
 	return (
 		<>
@@ -58,17 +57,10 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 				<SearchSingleSelectFormControl
 					name={`${fieldArrayName}.${assetIndex}.assetId`}
 					searchFn={value => handleAssetSearch(value, mode)}
-					handleChangeCallback={(newOption) => {
-						console.log(newOption);
-
-						if(!newOption) {
-							setCurAssetOption({});
-							return;    
-						}
-						if (newOption.value === curAssetOption.value) return;
-						setCurAssetOption(newOption);
-						setMode(newOption.shared ? LoanType.SHARED : LoanType.SINGLE);
-					}}
+					secondaryFieldsMeta={[
+						{name: `${fieldArrayName}.${assetIndex}.assetTag`, attr: 'assetTag'},
+						{name: `${fieldArrayName}.${assetIndex}.shared`, attr: 'shared'}
+					]}
 					label={`Asset Tag #${assetIndex + 1}`}
 					placeholder="Asset Tag"
 				>
@@ -79,8 +71,8 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 					/>
 				</SearchSingleSelectFormControl>
 			</Flex>
-			{curAssetOption && curAssetOption.assetTag && 
-					<InputFormControl name={`${fieldArrayName}.${assetIndex}.remarks`} label={`Add remarks for ${curAssetOption.assetTag}`}/>
+			{asset && asset.assetTag && 
+					<InputFormControl name={`${fieldArrayName}.${assetIndex}.remarks`} label={`Add remarks for ${asset.assetTag}`}/>
 			}
 			
 			<FieldArray name={`${fieldArrayName}.${assetIndex}.peripherals`}>
@@ -93,18 +85,6 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 								))
 							)}
 						</HStack>
-						{(curAssetOption.assetId || asset.peripherals) && (
-							<AddButton
-								ariaLabel="Add Peripheral"
-								handleClick={() => {
-									console.log('Before push:', values);
-									peripheralHelpers.push(createNewPeripheral());
-									console.log('After push:', values);
-								}}
-								label={`Add peripheral`}
-								size='xs'
-							/>
-						)}
 						{asset.peripherals && asset.peripherals.length > 0 && asset.peripherals.map((peripheral, index, array) => {
 							const fieldName = `${fieldArrayName}.${assetIndex}.peripherals.${index}`
 							// console.log(fieldName);
@@ -114,10 +94,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 										name={`${fieldName}.id`}
 										defaultOptions={suggestedOptions}
 										searchFn={handlePeripheralSearch}
-										handleChangeCallback={(newOption) => {
-											if (newOption?.__isNew__) setFieldValue(`${fieldArrayName}.${assetIndex}.peripherals.${index}.isNew`, true)
-										}}
-										warning={warnings?.[`${fieldName}.id`]}
+										warning={warnings?.assets?.[assetIndex]?.peripherals?.[index]?.id || null}
 									>
 										<InputFormControl
 											name={`${fieldArrayName}.${assetIndex}.peripherals.${index}.count`} 
@@ -132,6 +109,18 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 								</Box>
 							)
 						})}
+						{(asset.assetId || asset.peripherals) && (
+							<AddButton
+								ariaLabel="Add Peripheral"
+								handleClick={() => {
+									console.log('Before push:', values);
+									peripheralHelpers.push(createNewPeripheral());
+									console.log('After push:', values);
+								}}
+								label={`Add peripheral`}
+								size='xs'
+							/>
+						)}
 					</Box>
 				)}
 			</FieldArray>
