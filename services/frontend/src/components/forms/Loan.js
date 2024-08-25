@@ -15,29 +15,31 @@ export const LoanType = Object.freeze({
 	SHARED: 'SHARED',
 });
 
-const createNewAsset = (assetId='') => ({
-    'key': uuidv4(),
-      'assetId': assetId,
-	  'assetTag': '',
-      'remarks': '',
-      'peripherals': []
+const createNewAsset = (assetId='', peripherals=[]) => ({
+	'key': uuidv4(),
+	'assetId': assetId,
+	'assetTag': '',
+	'remarks': '',
+	'peripherals': peripherals
 })
   
 const createNewUser = (userId='') => ({
-    'key': uuidv4(),
-    'userId': userId,
+	'key': uuidv4(),
+	'userId': userId,
 	'userName': '',
-    'signature': '',
+	'signature': '',
 })
   
-export const createNewLoan = (assetId='', userId='', saved=false) => ({
-    'key': uuidv4(),
-    'users': [createNewUser(userId)],
-    'assets': [createNewAsset(assetId)],
-    'saved': saved,
+export const createNewLoan = (assetId='', userId='', peripherals=[], saved=false) => ({
+	'key': uuidv4(),
+	'users': [createNewUser(userId)],
+	'assets': [createNewAsset(assetId, peripherals)],
+	'saved': saved,
 })
 
 export const Loan = () => {
+
+	// console.log('loan');
 
 	const { mode, setMode, loan, loanIndex } = useLoan();
 
@@ -57,8 +59,9 @@ export const Loan = () => {
 								<LoanAsset
 									fieldArrayName={`loans.${loanIndex}.assets`}
 									assetIndex={assetIndex}
-									assets={loan.assets}
+									asset={asset}
 									assetHelpers={assetHelpers}
+									assetsLength={array.length}
 								/>
 								<Flex justifyContent="flex-start" mt={2} mb={4}>
 									{assetIndex === array.length - 1 && (
@@ -78,7 +81,7 @@ export const Loan = () => {
 									fieldArrayName={`loans.${loanIndex}.users`}
 									userIndex={userIndex}
 									userHelpers={userHelpers}
-									users={loan.users}
+									usersLength={array.length}
 								/>
 								<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
 									{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&

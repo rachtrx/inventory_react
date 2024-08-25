@@ -24,46 +24,16 @@ export const createNewPeripheral = (id='') => ({
 	'isNew': true // for warnings
 })
 
-export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHelpers }) {
+export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelpers }) {
+
+	// console.log('loan asset');
 
 	const [ curAssetOption, setCurAssetOption ] = useState({})
 	const { handleAssetSearch, handlePeripheralSearch } = useFormModal()
 	const [ suggestedOptions, setSuggestedOptions ] = useState()
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
-	const { mode, setMode } = useLoan();
-	const [ warnings, setWarnings ] = useState({});
-    
-
-	useEffect(() => {
-		const newPeripherals = {};
-		values.loans.forEach((loan) => {
-			loan.assets.forEach((asset) => {
-				asset.peripherals?.forEach((peripheral) => {
-					if (peripheral.isNew && peripheral.id !== '') {
-						newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
-					}
-				});
-			});
-		});
-
-		setWarnings((prevWarnings) => {
-			const updatedWarnings = { ...prevWarnings };
-
-			values.loans.forEach((loan, userIndex) => {
-				loan.assets.forEach((asset, assetIndex) => {
-					asset.peripherals.forEach((peripheral, peripheralIndex) => {
-						if (newPeripherals[peripheral.id]) {
-							updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`] =
-								`New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`;
-						} else delete updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`]
-					});
-				});
-			});
-
-			return updatedWarnings;
-		});
-	}, [values, setWarnings]);
+	const { mode, setMode, warnings, loan } = useLoan();
 
 	useEffect(() => {
 		if (!curAssetOption?.value) return;
@@ -71,7 +41,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHel
 			try {
 			const response = await peripheralService.getSuggestedPeripherals(curAssetOption.value);
 			const suggestedOptions = response.data;
-						console.log(suggestedOptions);  
+				console.log(suggestedOptions);  
 			setSuggestedOptions(suggestedOptions);
 			} catch (err) {
 			handleError(err);
@@ -105,7 +75,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHel
 					<RemoveButton
 						ariaLabel="Remove Asset"
 						onClick={() => assetHelpers.remove(assetIndex)}
-						isDisabled={assets.length === 1}
+						isDisabled={loan.assets.length === 1}
 					/>
 				</SearchSingleSelectFormControl>
 			</Flex>
@@ -123,7 +93,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHel
 								))
 							)}
 						</HStack>
-						{(curAssetOption.assetId || assets[assetIndex].peripherals) && (
+						{(curAssetOption.assetId || asset.peripherals) && (
 							<AddButton
 								ariaLabel="Add Peripheral"
 								handleClick={() => {
@@ -135,9 +105,9 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHel
 								size='xs'
 							/>
 						)}
-						{assets[assetIndex].peripherals && assets[assetIndex].peripherals.length > 0 && assets[assetIndex].peripherals.map((peripheral, index, array) => {
+						{asset.peripherals && asset.peripherals.length > 0 && asset.peripherals.map((peripheral, index, array) => {
 							const fieldName = `${fieldArrayName}.${assetIndex}.peripherals.${index}`
-							console.log(fieldName);
+							// console.log(fieldName);
 							return (
 								<Box key={peripheral.key}>
 									<SearchCreatableSingleSelectFormControl
@@ -147,7 +117,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, assets, assetHel
 										callback={(newOption) => {
 											if (newOption?.__isNew__) setFieldValue(`${fieldArrayName}.${assetIndex}.peripherals.${index}.isNew`, true)
 										}}
-										warning={warnings[`${fieldName}.id`]}
+										warning={warnings?.[`${fieldName}.id`]}
 									>
 										<InputFormControl
 											name={`${fieldArrayName}.${assetIndex}.peripherals.${index}.count`} 

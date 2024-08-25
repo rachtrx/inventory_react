@@ -7,151 +7,146 @@ import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
 
 const withSelect = (Component) =>
-    ({
-        name,
-        label,
-        options = [],
-        isMulti = false,
-        hideSelectedOptions = false,
-        callback = null,
-        warning = null,
-        selectedValue = null,
-        children,
-        ...props
-      }) => {
+  ({
+    name,
+    label,
+    options = [],
+    isMulti = false,
+    hideSelectedOptions = false,
+    callback = null,
+    warning = null,
+    children,
+    ...props
+  }) => {
 
-      // console.log(options);
-      const [{value}, meta, { setValue, setTouched }] = useField(name);
-  
-      // Sync selectedOption state with Formik's field value
-      const [selectedOption, setSelectedOption] = useState(selectedValue);
-
-      useEffect(() => {
-        if (value) {
-          if (isMulti) {
-            const selected = options.filter((option) => value.includes(option.value));
-            setSelectedOption(selected);
-          } else {
-            const selected = options.find((option) => option.value === value) || null;
-            setSelectedOption(selected);
-          }
-        } else {
-          setSelectedOption(null);
-        }
-      }, [value, isMulti, options]);
-  
-      const handleChange = useCallback(
-        (selected) => {
-          if (callback) {
-            callback(selected);
-          }
-      
-          let newValue;
-          if (isMulti) {
-            newValue = (selected || []).map((v) => v.value.trim());
-          } else {
-            newValue = selected?.value.trim() || '';
-          }
-      
-          setValue(newValue);
-          setTouched(true);
-        },
-        [setTouched, setValue, isMulti, callback]
-      );
-  
-      return (
-        <FormControl
-          id={name}
-          isInvalid={meta.touched && !!meta.error}
-        >
-          {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
-          <Flex alignItems="center" gap={4}>
-            <Component
-              classNamePrefix="react-select"
-              name={name}
-              options={options}
-              isMulti={isMulti}
-              onChange={handleChange}
-              value={selectedOption}
-              hideSelectedOptions={hideSelectedOptions}
-              isSearchable
-              {...props}
-              styles={{
-                container: (provided) => ({
-                  ...provided,
-                  width: '100%',  // Ensures the container spans full width
-                }),
-              }}
-            />
-            {children}
-          </Flex>
-          <FormErrorMessage>{meta.error}</FormErrorMessage>
-          {!meta.error && warning && <FormHelperText color="orange.400">{warning}</FormHelperText>}
-        </FormControl>
-      );
-    };
-
-const withSearch = (Component) => ({ name, searchFn, isMulti, ...props }) => {
-  // Important: Auto Fill is ONLY FOR SINGLE SEARCH
-  const [options, setOptions] = useState([]);
+  // console.log(options);
   const [{value}, meta, { setValue, setTouched }] = useField(name);
+
+  // Sync selectedOption state with Formik's field value
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  const handleChange = useCallback(
+    (selected) => {
+      console.log('select value changed');
+      if (callback) {
+        callback(selected);
+      }
+  
+      let newValue;
+      if (isMulti) {
+        newValue = (selected || []).map((v) => v.value.trim());
+      } else {
+        newValue = selected?.value.trim() || '';
+      }
+  
+      setValue(newValue);
+      setTouched(true);
+    },
+    [setTouched, setValue, isMulti, callback]
+  );
+
+  useEffect(() => {
+    if (value) {
+      if (isMulti) {
+        const selected = options.filter((option) => value.includes(option.value));
+        setSelectedOption(selected);
+      } else {
+        const selected = options.find((option) => option.value === value) || null;
+        setSelectedOption(selected);
+      }
+    } else {
+      setSelectedOption(null);
+    }
+  }, [value, isMulti, options]);
+
+  return (
+    <FormControl
+      id={name}
+      isInvalid={meta.touched && !!meta.error}
+    >
+      {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
+      <Flex alignItems="center" gap={4}>
+        <Component
+          classNamePrefix="react-select"
+          name={name}
+          options={options}
+          isMulti={isMulti}
+          onChange={handleChange}
+          value={selectedOption}
+          hideSelectedOptions={hideSelectedOptions}
+          isSearchable
+          {...props}
+          styles={{
+            container: (provided) => ({
+              ...provided,
+              width: '100%',  // Ensures the container spans full width
+            }),
+          }}
+        />
+        {children}
+      </Flex>
+      <FormErrorMessage>{meta.error}</FormErrorMessage>
+      {!meta.error && warning && <FormHelperText color="orange.400">{warning}</FormHelperText>}
+    </FormControl>
+  );
+};
+
+// Extends with Select
+const withSearch = (Component, { onNoMatch } = {}) => ({ name, searchFn, isMulti, ...props }) => {
+  const [options, setOptions] = useState([]);
+  const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const { handleError } = useUI();
   const isFirstRender = useRef(true);
 
-  useEffect(() => console.log(value), [value])
+  useEffect(() => console.log(value), [value]);
 
-  // Run ONCE when there's a default value
   useEffect(() => {
-    
-    // console.log(`in auto search, value: ${value}, touched: ${meta.touched}`);
-
     if (isMulti || !(value && !meta.touched)) return;
 
-    // Check if it's the first render
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-    const fetchData = async () => {
-      try {
-        const response = await searchFn(value); // TODO STRICT SEARCH
-        const data = response.data;
+      const fetchData = async () => {
+        try {
+          const response = await searchFn(value);
+          const data = response.data;
 
-        if (!data || data.length === 0) {
-          setValue('');
-          setTouched(true);
-          throw new Error(`No records were found matching ${value}. Please update the form.`)
-        } else if (data && data.length > 1) {
-          throw new Error(`Multiple records were found matching ${value}. Please update the form.`) // Make user names unique?
-        } else {
-          setOptions(data);
-          const newValue = data[0].value.trim()
-          console.log(newValue);
-          setValue(newValue);
+          if (!data || data.length === 0) {
+            setTouched(true);
+            if (onNoMatch) {
+              onNoMatch(value, setValue, setOptions);
+            } else {
+              handleError(`No records were found matching ${value}. Please update the form.`);
+            }
+          } else if (data && data.length > 1) {
+            throw new Error(`Multiple records were found matching ${value}. Please update the form.`);
+          } else {
+            setOptions(data);
+            const newValue = data[0].value.trim();
+            setValue(newValue);
+          }
+        } catch (error) {
+          handleError(`Error fetching data: ${error}`);
         }
+      };
 
-      } catch (error) {
-        handleError(`Error fetching data: ${error}`);
-      }
-    };
-
-    fetchData();
+      fetchData();
     }
   }, [value, meta, name, searchFn, setValue, setTouched, isMulti, options, handleError]);
 
   const handleSearch = useCallback(async (value) => {
     try {
-      if (value === '') return; // TODO
+      if (value === '') return;
       const response = await searchFn(value);
-      console.log(response.data);
       setOptions(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       setOptions([{ label: "Error fetching data", value: '', isDisabled: true }]);
     }
   }, [searchFn, setOptions]);
-  
+
   const debouncedSearch = useDebounce(handleSearch, 500);
-  
+
   const handleInputChange = (value) => {
     debouncedSearch(value);
   };
@@ -167,16 +162,27 @@ const withSearch = (Component) => ({ name, searchFn, isMulti, ...props }) => {
   );
 };
 
+const handleNoMatchCreatable = (value, setValue, setOptions) => {
+  setOptions([{ value, label: value, __isNew__: true }]);
+  setValue(value);
+};
 
-const withSelectAndSearch = (Component) => {
-  return withSearch(withSelect(Component));
+const handleNoMatchDefault = (value, setValue, setOptions) => {
+  setValue('');
+  setOptions([]);
+  throw new Error(`No records were found matching ${value}. Please update the form.`);
+};
+
+
+const withSelectAndSearch = (Component, onNoMatchHandler) => {
+  return withSearch(withSelect(Component), { onNoMatch: onNoMatchHandler });
 };
 
 const EnhancedSelect = withSelect(Select);
-const SearchSelect = withSelectAndSearch(Select);
+const SearchSelect = withSelectAndSearch(Select, handleNoMatchDefault);
 
 const EnhancedCreatableSelect = withSelect(CreatableSelect);
-const SearchCreatableSelect = withSelectAndSearch(CreatableSelect);
+const SearchCreatableSelect = withSelectAndSearch(CreatableSelect, handleNoMatchCreatable);
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {
@@ -246,6 +252,8 @@ export const SearchMultiSelectFormControl = (props) => {
 
 // Creatable Single Select with Search
 export const SearchCreatableSingleSelectFormControl = (props) => {
+  
+  
   return (
     <SearchCreatableSelect 
       {...props}

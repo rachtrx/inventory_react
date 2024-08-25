@@ -8,24 +8,16 @@ import { useUI } from "../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, Loan } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
-import { AddButton } from "./utils/ItemButtons";
-import { LoanSummary } from "./utils/LoanSummary";
+import { createNewPeripheral } from "./LoanAsset";
 
 const Loans = () => {
 
   const { setFormType } = useFormModal();
   const { setLoading, showToast, handleError } = useUI();
-  const [ initialValues, setInitialValues ] = useState(null);
+  const [ warnings, setWarnings ] = useState({});
   const formRef = useRef(null);
 
   console.log('loan form rendered');
-  console.log(initialValues);
-
-  useEffect(() => {
-    if (formRef.current) {
-      formRef.current.validateForm()
-    }
-  }, [])
 
   const initialValuesManual = {
     loans: [createNewLoan()],
@@ -33,14 +25,21 @@ const Loans = () => {
     'expectedReturnDate': null
   };
 
+  const reinitializeForm = (newValues) => {
+    if (formRef.current) {
+      formRef.current.setValues(newValues);
+      formRef.current.validateForm();
+    }
+  };
+
   const setValuesExcel = (records) => {
     const loans = [];
     records.forEach((record) => {
-      loans.push(createNewLoan(record.assetTag?.trim(), record.userName?.trim()));
+      loans.push(createNewLoan(record.assetTag?.trim(), record.userName?.trim(), record.peripherals?.trim().split(',').map(peripheral => createNewPeripheral(peripheral.trim()))));
     })
     console.log(loans);
     
-    setInitialValues({
+    reinitializeForm({
       loans: loans,
       'loanDate': new Date(),
       'expectedReturnDate': null
@@ -165,6 +164,35 @@ const Loans = () => {
         });
       });
     });
+
+    // SET WARNINGS
+    const newPeripherals = {};
+		values.loans.forEach((loan) => {
+			loan.assets.forEach((asset) => {
+				asset.peripherals?.forEach((peripheral) => {
+					if (peripheral.isNew && peripheral.id !== '') {
+						newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
+					}
+				});
+			});
+		});
+
+		setWarnings((prevWarnings) => {
+			const updatedWarnings = { ...prevWarnings };
+
+			values.loans.forEach((loan, userIndex) => {
+				loan.assets.forEach((asset, assetIndex) => {
+					asset.peripherals.forEach((peripheral, peripheralIndex) => {
+						if (newPeripherals[peripheral.id]) {
+							updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`] =
+								`New peripheral will be created (${newPeripherals[peripheral.id]}x found in this form)`;
+						} else delete updatedWarnings[`users.${userIndex}.assets.${assetIndex}.peripherals.${peripheralIndex}.id`]
+					});
+				});
+			});
+
+			return updatedWarnings;
+		});
   
     // console.log(errors); // Remove this in production if not needed
     return errors;
@@ -173,19 +201,19 @@ const Loans = () => {
   return (
     <Box>
       <Formik
-        initialValues={initialValues || initialValuesManual}
+        initialValues={initialValuesManual}
         onSubmit={handleSubmitManual}
         validate={validate}
         validateOnChange={true}
         // validateOnBlur={true}
         innerRef={formRef}
-        enableReinitialize={true}
+        // enableReinitialize={true}
       >
         {({ values, errors }) => {
           return (
             <Form>
               <ModalBody>
-                <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userName']}/>
+                <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userName', 'peripherals']}/>
                 <Divider borderColor="black" borderWidth="2px" my={2} />
                 <FieldArray name="loans">
                 {loanHelpers => (
@@ -195,6 +223,7 @@ const Loans = () => {
                       loan={loan}
                       loanIndex={loanIndex}
                       loanHelpers={loanHelpers}
+                      warnings={warnings}
                       isLast={loanIndex === array.length - 1}
                     >
                     </LoanProvider>

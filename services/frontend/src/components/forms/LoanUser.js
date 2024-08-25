@@ -17,13 +17,15 @@ import { RemoveButton } from "./utils/ItemButtons"
 import { useLoan } from "../../context/LoanProvider"
 import { LoanType } from "./Loan"
 
-export const LoanUser = function({ fieldArrayName, userIndex, users, userHelpers }) {
+export const LoanUser = function({ fieldArrayName, userIndex, userHelpers }) {
 
     const [ curUserOption, setCurUserOption ] = useState({})
     const { handleUserSearch } = useFormModal()
-    const { mode, setMode } = useLoan()
+    const { mode, setMode, loan } = useLoan()
 
-    useEffect(() => console.log(curUserOption), [curUserOption]);
+    // console.log('loan user');
+
+    // useEffect(() => console.log(curUserOption), [curUserOption]);
 
     return (
         <>
@@ -40,10 +42,10 @@ export const LoanUser = function({ fieldArrayName, userIndex, users, userHelpers
                 <RemoveButton
                     ariaLabel="Remove User"
                     onClick={() => {
-                        if (users.length === 2) setMode(null);
+                        if (loan.users.length === 2) setMode(null);
                         userHelpers.remove(userIndex);
                     }}
-                    isDisabled={users.length === 1}
+                    isDisabled={loan.users.length === 1}
                 />
             </SearchSingleSelectFormControl>
             {curUserOption && curUserOption.label && (

@@ -36,10 +36,12 @@ const LoanMode = ({ mode }) => {
 const LoanContext = createContext();
 
 // Devices Provider component
-export const LoanProvider = ({children, loan, loanIndex, loanHelpers, isLast}) => {
+export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
   const [ mode, setMode ] = useState(null);
   const [ saved, setSaved ] = useState(false);
   const { values, errors, setFieldValue } = useFormikContext();
+
+  // console.log('loan provider');
 
   useEffect(() => {
     console.log(`Loan ${loanIndex}: ${saved}`);
@@ -49,7 +51,7 @@ export const LoanProvider = ({children, loan, loanIndex, loanHelpers, isLast}) =
     setFieldValue(`loans.${loanIndex}.saved`, saved ? true : false);
   }, [saved, setFieldValue, loanIndex]);
 
-  const removeLoan = () => loanHelpers.remove(loanIndex);
+  const removeLoan = useCallback(() => loanHelpers.remove(loanIndex), [loanHelpers, loanIndex])
 
   return (
     <LoanContext.Provider value={{ mode, setMode, saved, setSaved, loan, loanIndex, loanHelpers, removeLoan }}>
@@ -61,10 +63,7 @@ export const LoanProvider = ({children, loan, loanIndex, loanHelpers, isLast}) =
       <Box style={{ display: saved ? 'block' : 'none' }}>
         <LoanSummary
           loan={loan}
-          handleRemove={() => {
-            loanHelpers.remove(loanIndex);
-            console.log(values);
-          }}
+          handleRemove={removeLoan}
           isOnlyLoan={values.loans.length === 1}
         />
       </Box>
