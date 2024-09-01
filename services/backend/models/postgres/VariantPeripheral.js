@@ -1,10 +1,13 @@
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
+const logger = require('../../logging.js');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
+
+module.exports = (sequelize) => {
 	class VariantPeripheral extends Model {}
 
 	VariantPeripheral.init({
 		peripheralTypeId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
 			references: {
 				model: 'peripheral_types',
@@ -12,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
 			}
 		},
 		variantId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
 			references: {
 				model: 'asset_type_variants',

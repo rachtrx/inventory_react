@@ -1,12 +1,12 @@
-const logger = require('../../logging');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
+module.exports = (sequelize) => {
 	class DepartmentAsset extends Model { }
 
 	DepartmentAsset.init({
 		assetId: {
-            type: DataTypes.UUID,
+            type: DataTypes.STRING,
             primaryKey: true,
             references: {
                 model: 'assets',
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             },
         },
 		deptId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
 			references: {
 				model: 'departments',

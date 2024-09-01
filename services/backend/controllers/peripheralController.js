@@ -1,7 +1,9 @@
-const { Asset, PeripheralType, User, Peripheral, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType } = require('../models/postgres');
-const logger = require('../logging')
-const { v4: uuidv4, validate: isUuidValid } = require('uuid');
-const { getAllOptions } = require('./utils')
+const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType } = require('../models/postgres');
+const logger = require('../logging.js');
+const { getAllOptions } = require('./utils.js');
+const { nanoid } = require('nanoid');
+const validateNanoID = require('../utils/nanoidValidation.js');
+
 
 class PeripheralController {
 
@@ -158,7 +160,7 @@ class PeripheralController {
                 attributes: ['id', 'peripheralName', 'availableCount'],
                 ...(filters.peripheralName.length > 0 && { where: { id: { [Op.in]: filters.peripheralName } } }),
                 include: {
-                    model: Peripheral,
+                    model: PeripheralLoan,
                     attributes: ['loanId', 'count'],
                     required: false,
                     include: {
@@ -264,7 +266,7 @@ class PeripheralController {
             type = this.createPeripheral(peripheralTypeId, 1);
         }
 
-        const newPeripheral = Peripheral.build({
+        const newPeripheral = PeripheralLoan.build({
             loanId: loanId,
             peripheralTypeId: type.id
         });
@@ -296,7 +298,7 @@ class PeripheralController {
     
         try {
             for (const peripheral of peripherals) {
-                if (isUuidValid(peripheral.id)) {
+                if (validateNanoID(peripheral.id)) {
                     const type = await this.getType(peripheral.id, { transaction });
                     type.availableCount += peripheral.count;
                     await type.save({ transaction });

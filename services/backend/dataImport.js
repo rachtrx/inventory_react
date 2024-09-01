@@ -1,131 +1,247 @@
-const db = require('./models/postgres'); // Adjust the path as necessary to import your Sequelize models
-const data = require('./data_export.json'); // The path to your JSON file
+const { nanoid } = require('nanoid');
+const db = require('./models/postgres');
+const data = require('./data_export.json');
+const fs = require('fs');
 
-function convertToUUIDv4(hexString) {
-    // Ensure the string is 32 characters long and all hexadecimal
-    if (hexString.length !== 32 || !/^[0-9a-fA-F]{32}$/.test(hexString)) {
-        throw new Error('Invalid 128-bit value');
+// console.log(Object.keys(data));
+
+async function main(data) {
+    
+
+    const mappingDict = {}
+
+    for (let key in data) {
+        const dataset = data[key];
+        dataset.forEach(item => {
+            mappingDict[item.id] = nanoid();
+        });
     }
 
-    // Insert hyphens at the correct positions
-    let uuid = [
-        hexString.slice(0, 8),
-        hexString.slice(8, 12),
-        '4' + hexString.slice(13, 16), // Set the version to 4
-        (parseInt(hexString[16], 16) & 0x3 | 0x8).toString(16) + hexString.slice(17, 20), // Set variant bits
-        hexString.slice(20)
-    ].join('-');
+    fs.writeFileSync('data.json', JSON.stringify(mappingDict, null, 4));
 
-    return uuid;
+    function convertIdsInDataset(dataset) {
+		return dataset.map(item => ({
+			...item,
+			id: mappingDict[item.id],
+			...(item.vendorId && {vendorId: mappingDict[item.vendorId]}),
+			...(item.assetTypeId && {assetTypeId: mappingDict[item.assetTypeId]}),
+			...(item.assetId && {assetId: mappingDict[item.assetId]}),
+			...(item.userId && {userId: mappingDict[item.userId]}),
+			...(item.variantId && {variantId: mappingDict[item.variantId]}),
+			...(item.deptId && {deptId: mappingDict[item.deptId]}),
+		}));
+	}
+
+    newData = {}
+	newData.device_types = convertIdsInDataset(data.device_types);
+	newData.models = convertIdsInDataset(data.models);
+	newData.vendors = convertIdsInDataset(data.vendors);
+    newData.devices = convertIdsInDataset(data.devices);
+    newData.depts = convertIdsInDataset(data.depts);
+	newData.users = convertIdsInDataset(data.users);
+	newData.events = convertIdsInDataset(data.events);
+
+    const createEvent = (id, date) => ({
+        id: id,
+        eventDate: date
+    })
+
+    const eventsArr = []
+    
+    const newUsers = newData.users.map(user => {
+        const { registeredDate, hasResigned, ...rest } = user;
+    
+        let addUserEvent = null;
+        let delUserEvent = null;
+    
+        const addUserEvents = newData.events.filter(event => event.eventType === 'created' && event.userId === user.id);
+    
+        if (addUserEvents.length !== 1) {
+            throw new Error(`add user event for ${user.userName} is not 1`);
+        }
+    
+        addUserEvent = addUserEvents[0]
+        eventsArr.push(createEvent(addUserEvent.id, addUserEvent.eventDate))
+    
+        const delUserEvents = newData.events.filter(event => event.eventType === 'removed' && event.userId === user.id);
+    
+        if (delUserEvents.length > 1) {
+            throw new Error(`More than 1 del user event for ${user.userName}`);
+        }
+    
+        if (delUserEvents.length === 1) {
+            delUserEvent = delUserEvents[0]
+            eventsArr.push(createEvent(delUserEvent.id, delUserEvent.eventDate))
+        }
+    
+        const newUser = {
+            ...rest,
+            addEventId: addUserEvent.id,
+            deleteEventid: delUserEvent && delUserEvent.id || null
+        };
+    
+        return newUser;
+    });
+    
+    const newAssets = []
+    
+    newData.devices
+        .forEach(asset => {
+    
+            const { registeredDate, status, userId, ...rest } = asset;
+    
+            let addAssetEvent = null;
+            let delAssetEvent = null;
+        
+            const addAssetEvents = newData.events.filter(event => event.eventType === 'registered' && event.assetId === asset.id);
+
+            // console.log(addAssetEvents)
+        
+            if (addAssetEvents.length !== 1) {
+                throw new Error(`add asset event for ${asset.assetTag} is not 1`);
+            }
+        
+            addAssetEvent = addAssetEvents[0]
+            eventsArr.push(createEvent(addAssetEvent.id, addAssetEvent.eventDate))
+        
+            const delAssetEvents = newData.events.filter(event => event.eventType === 'condemned' && event.assetId === asset.id);
+        
+            if (delAssetEvents.length > 1) {
+                throw new Error(`More than 1 del asset event for ${asset.assetTag}`);
+            }
+        
+            if (delAssetEvents.length === 1) {
+                delAssetEvent = delAssetEvents[0]
+                eventsArr.push(createEvent(delAssetEvent.id, delAssetEvent.eventDate))
+            }
+    
+            const newAsset = {
+                ...rest,
+                addEventId: addAssetEvent.id,
+                deleteEventid: delAssetEvent && delAssetEvent.id || null
+            };
+            newAssets.push(newAsset)
+        });
+   
+    const remarksArr = []
+    const loansArr = []
+    const userLoansArr = []
+    const assetLoansArr = []
+    
+    newData.events.forEach(event => {
+    
+        if (event.remarks) {
+            remarksArr.push({
+                id: nanoid(),
+                eventId: event.id,
+                text: event.remarks,
+                remarkDate: event.eventDate
+            })
+        }
+    })
+    
+    const sortedTransactionEvents = newData.events.filter((event) => (event.eventType === 'loaned' || event.eventType === 'returned')).sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+    
+    trackedAssetIds = {}
+    
+    sortedTransactionEvents.forEach((event) => {
+    
+        const {assetId=null, userId=null, eventType} = event;
+        if (!assetId || !userId) throw new Error(`No Asset ID or User ID found!`);
+    
+        if (!trackedAssetIds[event.assetId]) {
+            if (eventType === 'loaned') {
+                const loanId = nanoid();
+                trackedAssetIds[event.assetId] = {...event, loanId: loanId};
+            } else throw new Error(`2 returns found in a row for ${assetId}`)
+        } else if (eventType === 'loaned') {
+            throw new Error(`2 loans found in a row for ${assetId}`)
+        } else {
+            const loanEvent = trackedAssetIds[event.assetId];
+            const returnEvent = event;
+    
+            if (loanEvent.userId !== returnEvent.userId) throw new Error(`Loan User ID ${loanEvent.userId} is not the same as Return User ID ${returnEvent.userId}`);
+
+            eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
+            eventsArr.push(createEvent(returnEvent.id, returnEvent.eventDate))
+    
+            loansArr.push({
+                id: loanEvent.loanId,
+            })
+            
+            const userLoanId = nanoid();
+            userLoansArr.push({
+                id: userLoanId,
+                loanId: loanEvent.loanId,
+                userId: loanEvent.userId,
+                filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath
+            })
+    
+            assetLoansArr.push({
+                id: nanoid(),
+                loanId: loanEvent.loanId,
+                userLoanId: userLoanId,
+                userId: userId,
+                assetId: assetId,
+                loanEventId: loanEvent.id,
+                returnEventId: returnEvent.id
+            });
+    
+            delete trackedAssetIds[event.assetId]
+        }
+    })
+    
+    for (const [assetId, loanEvent] of Object.entries(trackedAssetIds)) {
+        const {id, userId, loanId} = loanEvent;
+
+        eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
+    
+        loansArr.push({
+            id: loanId,
+        })
+    
+        const userLoanId = nanoid();
+        userLoansArr.push({
+            id: userLoanId,
+            loanId: loanId,
+            userId: userId,
+            filepath: loanEvent.filepath
+        })
+    
+        assetLoansArr.push({
+            id: nanoid(),
+            loanId: loanId,
+            userLoanId: userLoanId,
+            userId: userId,
+            assetId: assetId,
+            loanEventId: id,
+        });
+    }
+    
+    async function importData() {
+        await db.sequelize.sync({ force: true }); // Not needed to drop any tables...
+        await db.Event.bulkCreate(eventsArr);
+        await db.Department.bulkCreate(newData.depts);
+        await db.User.bulkCreate(newUsers);
+        await db.AssetType.bulkCreate(newData.device_types);
+        await db.AssetTypeVariant.bulkCreate(newData.models);
+        await db.Vendor.bulkCreate(newData.vendors);
+        await db.Asset.bulkCreate(newAssets);
+        await db.Remark.bulkCreate(remarksArr);
+        await db.Loan.bulkCreate(loansArr);
+        await db.UserLoan.bulkCreate(userLoansArr);
+        await db.AssetLoan.bulkCreate(assetLoansArr);
+    }
+    
+    importData().then(() => {
+        console.log('Postgres Data import complete.')
+    }).catch(error => {
+        console.error('Failed to import Postgres data:', error)
+        process.exit(1);
+    });
 }
 
-function convertIdsInDataset(dataset) {
-    return dataset.map(item => ({
-        ...item,
-        id: convertToUUIDv4(item.id)
-    }));
-}
-
-data.depts = convertIdsInDataset(data.depts);
-data.users = convertIdsInDataset(data.users);
-data.device_types = convertIdsInDataset(data.device_types);
-data.models = convertIdsInDataset(data.models);
-data.vendors = convertIdsInDataset(data.vendors);
-data.events = convertIdsInDataset(data.events);
-
-const removedEvents = data.events.filter(event => event.eventType === 'removed');
-
-const eventDateByUserId = removedEvents.reduce((acc, { userId, eventDate }) => {
-	acc[userId] = eventDate;
-	return acc;
-}, {});
-
-const newUsers = data.users.map(user => {
-	const { registeredDate, hasResigned, ...rest } = user;
-
-	const newUser = {
-			...rest,
-			addedDate: registeredDate,
-			deletedDate: eventDateByUserId[user.id] || null
-	};
-
-	return newUser;
-});
-
-const condemnedEvents = data.events.filter(event => event.eventType === 'condemned');
-
-const eventDateByAssetId = condemnedEvents.reduce((acc, { assetId, eventDate }) => {
-	acc[assetId] = eventDate;
-	return acc;
-}, {});
-
-const loanEvents = []
-const loanAssetEvents = []
-const loanDetailEvents = []
-const newAssets = []
-
-data.devices
-	.forEach(asset => {
-
-		const { registeredDate, status, userId, id, ...rest } = asset;
-
-		let eventId = null;
-
-		if (userId) {
-			const mostRecentLoanEvents = data.events
-				.filter(event => 
-					event.userId === userId && 
-					event.assetId === id && 
-					event.eventType === 'loaned'
-				)
-				.sort((a, b) => new Date(b.eventDate) - new Date(a.eventDate));
-
-			eventId = mostRecentLoanEvents[0].id;
-			const startDate = mostRecentLoanEvents[0].eventDate
-			const newLoanEvent = {
-				id: eventId,
-			};
-
-			const loanDetailEvent = {
-				loanId: eventId,
-				userId: userId,
-				startDate: startDate,
-				status: 'COMPLETED',
-				eventId: eventId
-			}
-			loanEvents.push(newLoanEvent);
-			loanDetailEvents.push(loanDetailEvent);
-		}
-
-		const newAsset = {
-			...rest,
-			id: id,
-			addedDate: registeredDate,
-			deletedDate: eventDateByAssetId[asset.id] || null,
-			loanId: eventId,
-		};
-		newAssets.push(newAsset)
-	});
-
-async function importData() {
-    await db.sequelize.sync({ force: true }); // Not needed to drop any tables...
-    await db.Department.bulkCreate(data.depts);
-    await db.User.bulkCreate(newUsers);
-    await db.AssetType.bulkCreate(data.device_types);
-    await db.AssetTypeVariant.bulkCreate(data.models);
-    await db.Vendor.bulkCreate(data.vendors);
-	await db.Loan.bulkCreate(loanEvents);
-    await db.Asset.bulkCreate(newAssets);
-	await db.AssetLoan.bulkCreate(loanAssetEvents);
-	await db.LoanDetail.bulkCreate(loanDetailEvents);
-}
-
-importData().then(() => {
-	console.log('Postgres Data import complete.')
-}).catch(error => {
-	console.error('Failed to import Postgres data:', error)
-	process.exit(1);
-});
+main(data);
 
 // MONGO
 
@@ -156,7 +272,7 @@ importData().then(() => {
 //     const newEvent = await mongodb.Event.create({
 //       	...event.assetId && { assetId: event.assetId },
 // 		...event.userId && { userId: event.userId },
-// 		_id: event.id,
+// 		loanId: event.id,
 // 		eventType: eventType,
 // 		remarks: remarksArray,
 // 		eventDate: event.eventDate,

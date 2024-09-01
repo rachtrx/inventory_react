@@ -1,31 +1,49 @@
-module.exports = (sequelize, DataTypes) => {
-    const { Model } = require('sequelize');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
+
+module.exports = (sequelize) => {
     class Admin extends Model {}
 
     Admin.init({
     id: {
         type: DataTypes.STRING,
+        allowNull: false,
         primaryKey: true,
-        unique: true
     },
     adminName: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+    },
+    displayName: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
     },
     pwd: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true,
+    },
+    authType: {
+        type: DataTypes.ENUM('SSO', 'local'),
+        allowNull: false,
+    },
+    preferences: {
+        type: DataTypes.JSON,
+        defaultValue: {
+            dashboard: {
+                theme: 'light',
+                layout: 'grid',
+            }
+        }
     }
     }, {
     sequelize,
-    modelName: 'Admin'
+    modelName: 'Admin',
+    timestamps: true,
     });
-
     return Admin;
-};
+}

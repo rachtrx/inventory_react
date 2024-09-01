@@ -1,8 +1,10 @@
 const { createLogger, format, transports } = require('winston');
 const path = require('path');
-
 const fs = require('fs');
+
 const dir = path.join(__dirname, 'logs');
+
+
 console.log(dir);
 
 if (!fs.existsSync(dir)){
@@ -33,4 +35,4 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-module.exports = logger
+module.exports = logger;

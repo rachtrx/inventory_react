@@ -1,8 +1,7 @@
-const logger = require('../../logging');
-const { v4: uuidv4 } = require('uuid');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
+module.exports = (sequelize) => {
 	class Asset extends Model {
 
 		createAssetObject = function() {
@@ -32,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
 					startDate: loanDetails.startDate,
 					expectedReturnDate: loanDetails.expectedReturnDate,
 				})))}),
-				...(plainAsset.Loan?.Peripheral && {
+				...(plainAsset.Loan?.PeripheralLoans && {
 					peripherals: plainAsset.Loan.PeripheralLoans.map((peripheralLoan) => ({
 						type: peripheralLoan.peripheralType?.peripheralName,
 						count: peripheralLoan.count
@@ -44,9 +43,8 @@ module.exports = (sequelize, DataTypes) => {
 
 	Asset.init({
 		id: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
-  			defaultValue: DataTypes.UUIDV4
 		},
 		serialNumber: {
 			type: DataTypes.STRING,
@@ -59,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
 			unique: true
 		},
 		variantId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			allowNull: false,
 			references: {
 				model: 'asset_type_variants',
@@ -74,6 +72,10 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.INTEGER,
 			allowNull: false
 		},
+		leased: {
+			type: DataTypes.INTEGER,
+			defaultValue: 0
+		},
 		location: {
 			type: DataTypes.STRING
 		},
@@ -86,17 +88,26 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: true,
 		},
 		vendorId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			allowNull: false,
 			references: {
 				model: 'vendors',
 				key: 'id'
 			}
 		},
-		deletedDate: {
-			type: DataTypes.DATE,
-			allowNull: true,
-			defaultValue: null
+		add_event_id: {
+			type: DataTypes.STRING,
+			references: {
+			  model: 'events',
+			  key: 'id',
+			},
+		},
+		delete_event_id: {
+			type: DataTypes.STRING,
+			references: {
+			  model: 'events',
+			  key: 'id',
+			},
 		},
 		value: {
 			type: DataTypes.NUMERIC(10, 2)

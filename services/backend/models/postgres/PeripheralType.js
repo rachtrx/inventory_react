@@ -1,7 +1,7 @@
-const { v4: uuidv4 } = require('uuid');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
+module.exports = (sequelize) => {
 	class PeripheralType extends Model {
 
 		createPeripheralTypeObject() {
@@ -29,9 +29,8 @@ module.exports = (sequelize, DataTypes) => {
 
 	PeripheralType.init({
 		id: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
-  			defaultValue: DataTypes.UUIDV4
 		},
 		peripheralName: {
 			type: DataTypes.STRING,

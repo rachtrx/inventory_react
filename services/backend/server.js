@@ -1,7 +1,7 @@
-require('dotenv').config();
-const app = require('./app'); // Import the express app we defined
-const db = require('./models/postgres'); // Import your Sequelize setup from index.js
-const { connectDB } = require('./models/mongo'); 
+require('dotenv/config');
+const app = require('./app.js');
+const db = require('./models/postgres');
+// const connectDB = require('./models/mongo');
 
 const printRoutes = (app) => {
 	console.log('Registered routes:');

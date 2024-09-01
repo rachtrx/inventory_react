@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { nanoid } = require('nanoid');
+
 const { Schema, model } = mongoose;
 
 const adminSchema = new Schema({
@@ -19,4 +21,4 @@ const adminSchema = new Schema({
   
 const Admin = model('Admin', adminSchema);
 
-module.exports = Admin
+module.exports = Admin;

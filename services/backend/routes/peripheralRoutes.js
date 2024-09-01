@@ -1,6 +1,7 @@
 const express = require('express');
+const peripheralController = require('../controllers/peripheralController.js');
+
 const router = express.Router();
-const peripheralController = require('../controllers/peripheralController');
 
 router.post('/', peripheralController.getPeripherals);
 router.post('/filters', peripheralController.getFilters);

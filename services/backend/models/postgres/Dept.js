@@ -1,5 +1,7 @@
-module.exports = (sequelize, DataTypes) => {
-    const { Model } = require('sequelize');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
+
+module.exports = (sequelize) => {
     class Dept extends Model {}
 
     Dept.init({

@@ -1,22 +1,23 @@
-const { v4: uuidv4 } = require('uuid');
+const logger = require('../../logging.js');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
-	class Vendor extends Model {}
+module.exports = (sequelize) => {
+    class Vendor extends Model {}
 
-	Vendor.init({
-		id: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-  			defaultValue: DataTypes.UUIDV4
-		},
-		vendorName: {
-			type: DataTypes.STRING,
-			allowNull: false
-		}
-	}, {
-		sequelize,
-		modelName: 'Vendor'
-	});
-	return Vendor;
-}
+    Vendor.init({
+        id: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+        vendorName: {
+            type: DataTypes.STRING,
+            allowNull: false
+        }
+    }, {
+        sequelize,
+        modelName: 'Vendor'
+    });
+
+    return Vendor;
+};

@@ -1,6 +1,7 @@
 const express = require('express');
+const formAssetController = require('../controllers/formAssetController.js');
+
 const router = express.Router();
-const formAssetController = require('../controllers/formAssetController');
 
 router.get('/types', formAssetController.getAssetTypes);
 router.get('/typeVariants', formAssetController.getAssetTypeVariants);

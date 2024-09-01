@@ -1,22 +1,18 @@
-const logger = require('../../logging');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
-	class Loan extends Model { }
+module.exports = (sequelize) => {
+    class Loan extends Model { }
 
-	Loan.init({
-		id: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-  			defaultValue: DataTypes.UUIDV4
-		},
-		bookmarked: {
-			type: DataTypes.INTEGER,
-  			defaultValue: 0
-		}
-	}, {
-		sequelize,
-		modelName: 'Loan'
-	});
+    Loan.init({
+        id: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+    }, {
+        sequelize,
+        modelName: 'Loan'
+    });
+
     return Loan;
-}
+};

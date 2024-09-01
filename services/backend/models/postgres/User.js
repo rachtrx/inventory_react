@@ -1,9 +1,7 @@
-const logger = require('../../logging');
-const { v4: uuidv4 } = require('uuid');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
 
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
-	const Department = require('./Department');
+module.exports = (sequelize) => {
 	class User extends Model {
 
 		createUserObject = function() {
@@ -41,9 +39,8 @@ module.exports = (sequelize, DataTypes) => {
 
 	User.init({
 		id: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
-  			defaultValue: DataTypes.UUIDV4
 		},
 		userName: {
 			type: DataTypes.STRING,
@@ -54,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
 			allowNull: true
 		},
 		deptId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			allowNull: false,
 			references: {
 				model: 'departments',
@@ -65,14 +62,19 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.INTEGER,
 			allowNull: false
 		},
-		addedDate: {
-			type: DataTypes.DATE,
-			defaultValue: DataTypes.NOW
+		add_event_id: {
+			type: DataTypes.STRING,
+			references: {
+			  model: 'events',
+			  key: 'id',
+			},
 		},
-		deletedDate: {
-			type: DataTypes.DATE,
-			allowNull: true,
-			defaultValue: null
+		delete_event_id: {
+			type: DataTypes.STRING,
+			references: {
+			  model: 'events',
+			  key: 'id',
+			},
 		},
 	}, {
 		sequelize,

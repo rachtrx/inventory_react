@@ -1,6 +1,7 @@
 const express = require('express');
+const dashboardController = require('../controllers/dashboardController.js');
+
 const router = express.Router();
-const dashboardController = require('../controllers/dashboardController');
 
 router.get('/', dashboardController.dashboard);
 // router.post('/filters', homeController.getFilters);

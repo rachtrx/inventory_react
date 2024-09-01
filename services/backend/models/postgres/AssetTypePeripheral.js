@@ -1,10 +1,12 @@
-module.exports = (sequelize, DataTypes) => {
-	const { Model } = require('sequelize');
+const Sequelize = require('sequelize');
+const { DataTypes, Model } = Sequelize;
+
+module.exports = (sequelize) => {
 	class AssetTypePeripheral extends Model {}
 
 	AssetTypePeripheral.init({
 		peripheralTypeId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
 			references: {
 				model: 'peripheral_types',
@@ -12,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 			}
 		},
 		assetTypeId: {
-			type: DataTypes.UUID,
+			type: DataTypes.STRING,
 			primaryKey: true,
 			references: {
 				model: 'asset_types',

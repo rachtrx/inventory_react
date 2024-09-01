@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const app = express();
-const logger = require('./logging')
+const logger = require('./logging.js');
 const { expressjwt: jwt } = require('express-jwt');
 const cookieParser = require('cookie-parser');
 
@@ -50,16 +49,18 @@ const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
 const peripheralRoutes = require('./routes/peripheralRoutes');
 const searchRoutes = require('./routes/searchRoutes');
-const formRoutes = require('./routes/formRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+
+const formRoutes = require('./routes/formRoutes');
 
 app.use('/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/peripherals', peripheralRoutes);
+
 app.use('/api/forms', formRoutes);
-app.use('/api/dashboard', dashboardRoutes)
-app.use('/api/peripherals', peripheralRoutes)
 
 // Setup global error handling middleware to catch authentication errors
 

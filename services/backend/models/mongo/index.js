@@ -1,5 +1,5 @@
-const Admin = require('./Admin')
-const Event = require('./Event')
+const Admin = require('./Admin');
+const Event = require('./Event');
 
 const mongoose = require('mongoose');
 
