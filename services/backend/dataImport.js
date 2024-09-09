@@ -124,7 +124,6 @@ async function main(data) {
         });
    
     const remarksArr = []
-    const loansArr = []
     const userLoansArr = []
     const assetLoansArr = []
     
@@ -151,8 +150,7 @@ async function main(data) {
     
         if (!trackedAssetIds[event.assetId]) {
             if (eventType === 'loaned') {
-                const loanId = nanoid();
-                trackedAssetIds[event.assetId] = {...event, loanId: loanId};
+                trackedAssetIds[event.assetId] = event;
             } else throw new Error(`2 returns found in a row for ${assetId}`)
         } else if (eventType === 'loaned') {
             throw new Error(`2 loans found in a row for ${assetId}`)
@@ -164,26 +162,19 @@ async function main(data) {
 
             eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
             eventsArr.push(createEvent(returnEvent.id, returnEvent.eventDate))
-    
-            loansArr.push({
-                id: loanEvent.loanId,
-            })
             
             const userLoanId = nanoid();
             userLoansArr.push({
                 id: userLoanId,
-                loanId: loanEvent.loanId,
                 userId: loanEvent.userId,
-                filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath
+                filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
+                loanEventId: loanEvent.id,
             })
     
             assetLoansArr.push({
                 id: nanoid(),
-                loanId: loanEvent.loanId,
                 userLoanId: userLoanId,
-                userId: userId,
                 assetId: assetId,
-                loanEventId: loanEvent.id,
                 returnEventId: returnEvent.id
             });
     
@@ -196,25 +187,18 @@ async function main(data) {
 
         eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
     
-        loansArr.push({
-            id: loanId,
-        })
-    
         const userLoanId = nanoid();
         userLoansArr.push({
             id: userLoanId,
-            loanId: loanId,
             userId: userId,
-            filepath: loanEvent.filepath
+            filepath: loanEvent.filepath,
+            loanEventId: id,
         })
     
         assetLoansArr.push({
             id: nanoid(),
-            loanId: loanId,
             userLoanId: userLoanId,
-            userId: userId,
             assetId: assetId,
-            loanEventId: id,
         });
     }
     
@@ -228,7 +212,6 @@ async function main(data) {
         await db.Vendor.bulkCreate(newData.vendors);
         await db.Asset.bulkCreate(newAssets);
         await db.Remark.bulkCreate(remarksArr);
-        await db.Loan.bulkCreate(loansArr);
         await db.UserLoan.bulkCreate(userLoansArr);
         await db.AssetLoan.bulkCreate(assetLoansArr);
     }

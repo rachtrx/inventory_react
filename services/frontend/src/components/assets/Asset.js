@@ -6,10 +6,16 @@ import ActionButton from '../buttons/ActionButton';
 import Timeline from '../Timeline';
 import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
+import { ItemLink } from '../buttons/ItemLink';
+import { AssetActionButton, UserActionButton } from '../buttons/SplitButton';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
   const { setFormType } = useFormModal()
+
+  const currentUsers = asset.users?.filter(user => !user.returnDate);
+  const pastUsers = asset.users?.filter(user => user.returnDate);
+  const reservedUsers = asset.users?.filter(user => user.reserveDate && !user.cancelDate && !user.loanDate);
 
 	return (
 		<Box p={4}>
@@ -76,32 +82,33 @@ const Asset = ({ asset }) => {
         </Grid>
       </Box>
 
-      <Box mb={4}>
-        <Heading as="h2" size="md" mb="2">PAST USERS</Heading>
-        <SimpleGrid columns={3} spacing={4}>
-          {asset.pastUsers?.map((user) => (
-            <Button key={user.id} onClick={() => handleItemClick(user)} colorScheme="blue">
-              {user.name}
-            </Button>
+      <Flex mb={4} gap={4}>
+        <Flex direction="column">
+          <Heading as="h2" size="md" mb="2">
+            {asset.shared ? 'Current Users: ' : 'Current User: '}
+          </Heading>
+          {currentUsers?.map(user => (
+            <>
+              <ItemLink key={user.id} isCopy={false} item={user} />
+              <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
+            </>
           ))}
-        </SimpleGrid>
-      </Box>
+        </Flex>
 
-      <Box mb={4}>
-        <SimpleGrid columns={2} spacing={10} alignItems="center">
-          {asset.status === 'loaned' && (
-            <Flex gridGap="2">
-              <Text>USER:</Text>
-              <Button onClick={() => handleItemClick(asset.user)} colorScheme="blue">
-                {asset.user.name}
-              </Button>
-              <ActionButton bg="orange.100" onClick={() => setFormType(formTypes.RETURN)}>
-                Return
-              </ActionButton>
-            </Flex>
-          )}
-        </SimpleGrid>
-      </Box>
+        <Flex direction="column">
+          <Heading as="h2" size="md" mb="2">Past Users:</Heading>
+          {pastUsers?.map(user => (
+            <ItemLink key={user.id} isCopy={false} item={user} />
+          ))}
+        </Flex>
+
+        <Flex direction="column">
+          <Heading as="h2" size="md" mb="2">Reserved for:</Heading>
+          {reservedUsers?.map(user => (
+            <ItemLink key={user.id} isCopy={false} item={user} />
+          ))}
+        </Flex>
+      </Flex>
 
       <Box>
         <IconButton

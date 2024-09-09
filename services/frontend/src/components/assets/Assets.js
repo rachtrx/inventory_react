@@ -1,5 +1,5 @@
 import AssetFilters from "./AssetFilters";
-import AssetActions from './AssetActions';
+import AssetsActions from './AssetsActions';
 import AssetCards from './AssetCards';
 import AssetTable from "./AssetTable";
 import RecordsLayout from '../RecordsLayout';
@@ -13,7 +13,7 @@ export const AssetsPage = () => {
       <RecordsLayout
         header="Assets"
         Filters={AssetFilters}
-        Actions={AssetActions}
+        Actions={AssetsActions}
         Cards={AssetCards}
         Table={AssetTable}
       />

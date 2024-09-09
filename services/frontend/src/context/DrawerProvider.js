@@ -63,6 +63,7 @@ export const DrawerProvider = ({ children }) => {
 				else throw new Error();
 
 				const response = await service.getItem(item.id);
+				console.log(response.data);
 				setState(prev => ({
 					...prev,
 					currentItem: response.data,

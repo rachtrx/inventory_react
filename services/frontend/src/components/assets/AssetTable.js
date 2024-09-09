@@ -8,6 +8,7 @@ import { useState } from 'react';
 import ActionButton from '../buttons/ActionButton';
 import { formTypes } from '../../context/ModalProvider';
 import { ItemLink } from '../buttons/ItemLink';
+import { CardActions } from './CardActions';
 
 const AssetTable = ({ items }) => {
 
@@ -22,7 +23,7 @@ const AssetTable = ({ items }) => {
           <Th>Model</Th>
           <Th>Asset Tag</Th>
           <Th>Options</Th>
-          <Th>User</Th>
+          <Th>Users</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -43,9 +44,9 @@ const AssetTable = ({ items }) => {
             <Td><ResponsiveText>{asset.variant}</ResponsiveText></Td>
             <Td><ItemLink item={asset} fontWeight="bold"/></Td>
             <Td>
-              <ActionButton formType={asset.user ? formTypes.RETURN : asset.deletedDate ? formTypes.RESTORE_ASSET : formTypes.LOAN} item={asset} />
+              <CardActions asset={asset}/>
             </Td>
-            <Td>{asset.user && <ItemLink item={asset.user}/>}</Td>
+            <Td>{asset.users && asset.users.map((user) => (<ItemLink item={user} fontWeight="bold"/>))}</Td>
           </Tr>
         ))}
       </Tbody>

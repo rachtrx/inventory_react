@@ -28,8 +28,8 @@ module.exports = (sequelize) => {
         allowNull: true,
     },
     authType: {
-        type: DataTypes.ENUM('SSO', 'local'),
-        allowNull: false,
+        type: DataTypes.JSON,
+        allowNull: false
     },
     preferences: {
         type: DataTypes.JSON,
@@ -41,9 +41,9 @@ module.exports = (sequelize) => {
         }
     }
     }, {
-    sequelize,
-    modelName: 'Admin',
-    timestamps: true,
+        sequelize,
+        modelName: 'Admin',
+        timestamps: true,
     });
     return Admin;
 }

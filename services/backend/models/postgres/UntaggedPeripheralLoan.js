@@ -2,9 +2,9 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class AssetLoan extends Model { }
+    class UntaggedPeripheralLoan extends Model { }
 
-	AssetLoan.init({
+    UntaggedPeripheralLoan.init({
         id: {
             type: DataTypes.STRING,
             primaryKey: true,
@@ -16,10 +16,10 @@ module.exports = (sequelize) => {
                 key: 'id'
             },
         },
-        assetId: {
+        peripheralId: {
             type: DataTypes.STRING,
             references: {
-                model: 'assets',
+                model: 'peripherals',
                 key: 'id'
             },
         },
@@ -31,15 +31,16 @@ module.exports = (sequelize) => {
             },
             allowNull: true,
         },
-	}, {
-		sequelize,
-		modelName: 'AssetLoan',
+    }, {
+        sequelize,
+        modelName: 'UntaggedPeripheralLoan',
         indexes: [
 			{
 				unique: true,
-				fields: ['user_loan_id', 'asset_id']
+				fields: ['user_loan_id', 'peripheral_id']
 			}
 		]
-	});
-    return AssetLoan;
-}
+    });
+
+    return UntaggedPeripheralLoan;
+};

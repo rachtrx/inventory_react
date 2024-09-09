@@ -1,8 +1,7 @@
-const { Asset, AssetType, AssetTypeVariant, Vendor, User, Loan, Sequelize, sequelize, Event } = require('../models/postgres');
+const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, TaggedPeripheralLoan, Peripheral, PeripheralType } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
-const mongodb = require('../models/mongo');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -84,11 +83,9 @@ class AssetController {
                     'id',
                     'serialNumber',
                     'assetTag',
-                    'addedDate',
                     'location',
                     'bookmarked',
                     'value',
-                    'deletedDate',
                 ],
                 include: [
                     {
@@ -121,14 +118,15 @@ class AssetController {
                     },
                     {
                         model: AssetLoan,
-                        attributes: ['id'],
+                        attributes: ['id', 'returnEventId'],
                         include: {
-                            model: LoanDetail,
-                            attributes: ['status', 'startDate', 'expectedReturnDate'],
+                            model: UserLoan,
+                            attributes: ['userId', 'reserveEventId', 'loanEventId'],
                             include: {
                                 model: User,
                                 attributes: ['id', 'userName', 'bookmarked'],
-                            }
+                            },
+                            where: { cancelEventId: null },
                         },
                         where: { returnEventId: null },
                         required: false
@@ -144,14 +142,14 @@ class AssetController {
                 });
             }
     
-            logger.info(query.slice(1, 10))
-    
             if (filters.status.length > 0) {
                 query = query.filter(asset => {
-                    const hasLoan = asset.Loan;
+                    const hasLoan = asset.AssetLoans.some(loan => !loan.UserLoan.returnEventId && loan.UserLoan.loanEventId);
                     const isShared = asset.shared;
-    
-                    const isDeleted = asset.deletedDate !== null;
+
+                    // next line: dont need to filter out cancelled reservations (done in query already) 
+                    const isReserved = asset.AssetLoans && asset.AssetLoans.some(loan => loan.UserLoan.reserveEventId && !loan.UserLoan.loanEventId);
+                    const isDeleted = asset.DeleteEvent !== null;
         
                     if (filters.status.includes('Condemned') && isDeleted) {
                         return true;
@@ -161,11 +159,11 @@ class AssetController {
                         return true;
                     }
         
-                    if (filters.status.includes('Reserved') && !isShared && hasLoan && asset.Loan.LoanDetails.some(loanDetail => loanDetail.status === 'PENDING')) {
+                    if (filters.status.includes('Reserved') && isReserved) {
                         return true;
                     }
                     
-                    if (filters.status.includes('Unavailable') && !isShared && hasLoan && asset.Loan.LoanDetails.some(loanDetail => loanDetail.status === 'COMPLETED')) {
+                    if (filters.status.includes('Unavailable') && !isShared && (isReserved || hasLoan)) {
                         return true;
                     }
         
@@ -193,25 +191,40 @@ class AssetController {
         if (formType === formTypes.LOAN) {
             orderByClause = `
                 ORDER BY 
-                    "deletedDate" IS NOT NULL ASC,
-                    "userIds" IS NOT NULL ASC,
-                    "updatedAt" DESC
+                    CASE 
+                        WHEN status = 'Available' THEN 1
+                        WHEN status = 'Reserved' THEN 2
+                        WHEN status = 'On Loan' THEN 3
+                        WHEN status = 'Condemned' THEN 4
+                        ELSE 5
+                    END,
+                "updatedAt" DESC
             `;
             validStatuses = ['Available']
         } else if (formType === formTypes.DEL_ASSET) {
             orderByClause = `
                 ORDER BY 
-                    "deletedDate" IS NOT NULL ASC,
-                    "userIds" IS NOT NULL ASC,
-                    "updatedAt" DESC
+                    CASE 
+                        WHEN status = 'Available' THEN 1
+                        WHEN status = 'Reserved' THEN 2
+                        WHEN status = 'On Loan' THEN 3
+                        WHEN status = 'Condemned' THEN 4
+                        ELSE 5
+                    END,
+                "updatedAt" DESC
             `;
             validStatuses = ['Available']
         } else if (formType === formTypes.RETURN) {
             orderByClause = `
                 ORDER BY 
-                    "deletedDate" IS NOT NULL ASC,
-                    CARDINALITY("userIds") > 0 DESC,
-                    "updatedAt" DESC
+                    CASE 
+                        WHEN status = 'On Loan' THEN 1
+                        WHEN status = 'Reserved' THEN 2
+                        WHEN status = 'Available' THEN 3
+                        WHEN status = 'Condemned' THEN 4
+                        ELSE 5
+                    END,
+                "updatedAt" DESC
             `;
             validStatuses = ['On Loan']
         } else {
@@ -226,24 +239,42 @@ class AssetController {
                     assets.asset_tag AS "assetTag", 
                     assets.bookmarked,
                     assets.shared,
-                    assets.deleted_date AS "deletedDate", 
+                    delete_event.event_date AS "deletedDate",
+                    add_event.event_date AS "addedDate",
                     asset_type_variants.variant_name AS "variantName",
                     asset_types.asset_type AS "assetType",
                     vendors.vendor_name AS "vendorName",
                     assets.updated_at AS "updatedAt",
+                    COUNT(loan_event.id) AS loan_count,
+                    COUNT(return_event.id) AS return_count,
+                    COUNT(reserve_event.id) AS reserve_count,
+                    COUNT(cancel_event.id) AS cancel_count,
+
                     CASE 
-                        WHEN COUNT(users.id) = 0 THEN NULL
-                        ELSE ARRAY_AGG(users.id) 
-                    END AS "userIds"
+                        WHEN delete_event.event_date IS NOT NULL THEN 'Deleted'
+                        WHEN assets.shared THEN 'Available'
+                        WHEN COUNT(loan_event.id) > COUNT(return_event.id) THEN 'On Loan'
+                        WHEN COUNT(loan_event.id) = COUNT(return_event.id) 
+                            AND COUNT(reserve_event.id) > COUNT(cancel_event.id) THEN 'Reserved'
+                        ELSE 'Available'
+                    END AS status
+
                 FROM assets
                 LEFT JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
                 LEFT JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
                 LEFT JOIN vendors ON assets.vendor_id = vendors.id
-                LEFT JOIN loans ON assets.loan_id = loans.id
-                LEFT JOIN loan_details ON loans.id = loan_details.loan_id
-                LEFT JOIN users ON loan_details.user_id = users.id
+                LEFT JOIN asset_loans ON assets.loan_id = asset_loans.id
+                LEFT JOIN user_loans ON asset_loans.user_loan_id = user_loans.id
+                LEFT JOIN users ON user_loans.user_id = users.id
+                -- Join the events table twice, once for the deleted event and once for the added event
+                LEFT JOIN events AS delete_event ON assets.delete_event_id = delete_event.id
+                LEFT JOIN events AS add_event ON assets.add_event_id = add_event.id
+                LEFT JOIN events AS loan_event ON user_loans.loan_event_id = loan_event.id
+                LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
+                LEFT JOIN events AS reserve_event ON user_loans.reserve_event_id = reserve_event.id
+                LEFT JOIN events AS cancel_event ON user_loans.cancel_event_id = cancel_event.id
                 WHERE (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)
-                GROUP BY assets.id, asset_types.asset_type, asset_type_variants.variant_name, vendors.vendor_name
+                GROUP BY assets.id, asset_types.asset_type, asset_type_variants.variant_name, vendors.vendor_name, delete_event.event_date, add_event.event_date
             )
             SELECT *
             FROM AssetLoanCounts
@@ -304,10 +335,9 @@ class AssetController {
     
     async getAsset (req, res) {
         const assetId = req.params.id;
-        const { Event } = mongodb;
     
         try {
-            const assetDetailsPromise = Asset.findOne({
+            const assetDetails = await Asset.findOne({
                 attributes: [
                     'id',
                     'serialNumber',
@@ -330,31 +360,77 @@ class AssetController {
                         attributes: ['vendorName']
                     },
                     {
-                        model: Loan,
+                        model: Event,
+                        as: 'AddEvent',
+                        attributes: ['eventDate']
+                    },
+                    {
+                        model: Event,
+                        as: 'DeleteEvent',
+                        attributes: ['eventDate'],
+                        required: false,
+                    },
+                    {
+                        model: AssetLoan,
                         attributes: ['id'],
-                        include: {
-                            model: LoanDetail,
-                            attributes: ['status', 'startDate', 'expectedReturnDate'],
-                            include: {
-                                model: User,
-                                attributes: ['id', 'userName', 'bookmarked']
+                        include: [
+                            {
+                                model: UserLoan,
+                                attributes: ['filepath', 'expectedLoanDate', 'expectedReturnDate'],
+                                include: [
+                                    {
+                                        model: User,
+                                        attributes: ['id', 'userName', 'bookmarked']
+                                    },
+                                    {
+                                        model: Event,
+                                        as: 'ReserveEvent',
+                                        attributes: ['eventDate'],
+                                        required: false
+                                    },
+                                    {
+                                        model: Event,
+                                        as: 'CancelEvent',
+                                        attributes: ['eventDate'],
+                                        required: false
+                                    },
+                                    {
+                                        model: Event,
+                                        as: 'LoanEvent',
+                                        attributes: ['eventDate'],
+                                        required: false,
+                                    },
+                                ],
                             },
-                        },
+                            {
+                                model: Event,
+                                as: 'ReturnEvent',
+                                attributes: ['eventDate'],
+                                required: false,
+                            },
+                            {
+                                model: TaggedPeripheralLoan,
+                                attributes: ['id'],
+                                include: {
+                                    model: Peripheral,
+                                    attributes: ['id'],
+                                    include: {
+                                        model: PeripheralType,
+                                        attributes: ['id', 'peripheralName'],
+                                    },
+                                },
+                                required: false,
+                            }
+                        ],
                         required: false
                     }
                 ],
                 where: { id: assetId }
             });
     
-            const assetEventsPromise = Event.find({ assetId }).sort({ eventDate: -1 });
-    
-            const [assetDetails, assetEvents] = await Promise.all([assetDetailsPromise, assetEventsPromise]);
-    
             if (!assetDetails) return res.status(404).send({ error: "Asset not found" });
     
             const asset = assetDetails.createAssetObject()
-    
-            asset.events = assetEvents;
     
             logger.info('Details for Asset:', asset);
     

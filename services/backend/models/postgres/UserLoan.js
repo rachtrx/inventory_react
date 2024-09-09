@@ -10,13 +10,6 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			primaryKey: true,
 		},
-		loanId: {
-			type: DataTypes.STRING,
-			references: {
-                model: 'loans',
-                key: 'id'
-            },
-		},
 		userId: {
 			type: DataTypes.STRING,
 			references: {
@@ -27,7 +20,41 @@ module.exports = (sequelize) => {
 		filepath: {
 			type: DataTypes.STRING,
 			allowNull: true,
-		}
+		},
+		reserveEventId: {
+            type: DataTypes.STRING,
+            references: {
+                model: 'events',
+                key: 'id'
+            },
+			allowNull: true,
+        },
+        expectedLoanDate: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			defaultValue: null
+		},
+		cancelEventId: {
+            type: DataTypes.STRING,
+            references: {
+                model: 'events',
+                key: 'id'
+            },
+			allowNull: true,
+        },
+		expectedReturnDate: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			defaultValue: null
+		},
+		loanEventId: {
+            type: DataTypes.STRING,
+            references: {
+                model: 'events',
+                key: 'id'
+            },
+			allowNull: true,
+        },
 	}, {
 		sequelize,
 		modelName: 'UserLoan'

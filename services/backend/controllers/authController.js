@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const logger = require('../logging.js');
-const { sequelize, User } = require('../models/postgres');
-const Admin = require('../models/mongo/Admin.js');
+const { sequelize, User, Admin } = require('../models/postgres');
 const { generateToken } = require('../utils/jwtHelper.js');
 
 const createAdminObject = (admin) => ({
@@ -44,14 +43,20 @@ class AuthController {
   
       // Search for an existing admin using the OID from the profile
       let admin = await Admin.findOne({ where: { id: profile.id } });
+
+      logger.info(admin);
   
       if (!admin) {
+        // If admin does not exist, create a new record
         admin = await Admin.create({
           id: profile.id,
           email: profile.mail,
           adminName: profile.displayName,
           authType: ['SSO']
         });
+      } else if (!admin.authType.includes('SSO')) {
+        admin.authType.push('SSO');  // Add 'SSO' to authType array
+        await admin.save();  // Save the updated admin instance to the database
       }
   
       const token = generateToken(admin);

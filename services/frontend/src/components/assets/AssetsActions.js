@@ -4,7 +4,7 @@ import { useFormModal, actionTypes, formTypes } from '../../context/ModalProvide
 import ActionButton from '../buttons/ActionButton';
 import { buttonConfigs } from '../buttons/constants';
 
-export default function AssetActions() {
+export default function AssetsActions() {
 
   const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
   const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });

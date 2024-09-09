@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
+const logger = require('../../logging.js');
 
 module.exports = (sequelize) => {
 	class Asset extends Model {
@@ -13,30 +14,29 @@ module.exports = (sequelize) => {
 				id: plainAsset.id,
 				serialNumber: plainAsset.serialNumber,
 				assetTag: plainAsset.assetTag,
-				status: plainAsset.deletedDate ? 'Condemned' : !plainAsset.Loan ? 'Available' : plainAsset.Loan.status === 'COMPLETED' ? 'On Loan' : 'Reserved',
 				value: String(parseFloat(plainAsset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
 				bookmarked: plainAsset.bookmarked && true || false,
 				variant: plainAsset.AssetTypeVariant?.variantName,
 				assetType: plainAsset.AssetTypeVariant?.AssetType?.assetType,
 				vendor: plainAsset.Vendor?.vendorName,
-				...(plainAsset.addedDate && {addedDate: plainAsset.addedDate}),
-				...(plainAsset.deletedDate && {deletedDate: plainAsset.deletedDate}),
+				...(plainAsset.AddEvent && {addedDate: plainAsset.AddEvent.eventDate}),
+				...(plainAsset.DeleteEvent && {deletedDate: plainAsset.DeleteEvent.eventDate}),
 				...(plainAsset.location && {location: plainAsset.location}),
-				...(plainAsset.Loan && {loanId: plainAsset.Loan.id}),
-				...(plainAsset.Loan?.LoanDetails && {users: (plainAsset.Loan.LoanDetails.map((loanDetails) => ({
-					id: loanDetails.User.id,
-					name: loanDetails.User.userName,
-					bookmarked: loanDetails.User.bookmarked,
-					status: loanDetails.status,
-					startDate: loanDetails.startDate,
-					expectedReturnDate: loanDetails.expectedReturnDate,
+				...(plainAsset.AssetLoans && plainAsset.AssetLoans.length > 0 && {users: (plainAsset.AssetLoans.map((assetLoan) => ({
+					id: assetLoan.UserLoan.User.id,
+					userName: assetLoan.UserLoan.User.userName,
+					bookmarked: assetLoan.UserLoan.User.bookmarked,
+					...(assetLoan.UserLoan.ReserveEvent && { reserveDate: assetLoan.UserLoan.ReserveEvent.eventDate }),
+					...(assetLoan.UserLoan.reserveEventId && { reserveEventId: assetLoan.UserLoan.reserveEventId }),
+					...(assetLoan.UserLoan.CancelEvent && { cancelDate: assetLoan.UserLoan.CancelEvent.eventDate }),
+					...(assetLoan.UserLoan.cancelEventId && { cancelDate: assetLoan.UserLoan.cancelEventId }),
+					...(assetLoan.UserLoan.LoanEvent && { loanDate: assetLoan.UserLoan.LoanEvent.eventDate }),
+					...(assetLoan.UserLoan.expectedReturnDate && { expectedReturnDate: assetLoan.UserLoan.expectedReturnDate }),
+					...(assetLoan.UserLoan.expectedLoanDate && { expectedLoanDate: assetLoan.UserLoan.expectedLoanDate }),
+					...(assetLoan.UserLoan.loanEventId && { loanEventId: assetLoan.UserLoan.loanEventId }),
+					...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
+					...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
 				})))}),
-				...(plainAsset.Loan?.PeripheralLoans && {
-					peripherals: plainAsset.Loan.PeripheralLoans.map((peripheralLoan) => ({
-						type: peripheralLoan.peripheralType?.peripheralName,
-						count: peripheralLoan.count
-					}))
-				}),
 			}
 		}
 	}

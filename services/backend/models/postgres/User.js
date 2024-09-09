@@ -1,38 +1,56 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
+const logger = require('../../logging.js');
 
 module.exports = (sequelize) => {
 	class User extends Model {
 
 		createUserObject = function() {
 			const plainUser = this.get({ plain: true })
-			// logger.info(plainUser);
+			logger.info(plainUser);
 
 			return {
 				id: plainUser.id,
 				userName: plainUser.userName,
 				bookmarked: plainUser.bookmarked && true || false,
-				deletedDate: plainUser.deletedDate || null,
-				addedDate: plainUser.addedDate,
 				department: plainUser.Department.deptName,
-				...plainUser.LoanDetails && {loans: (plainUser.LoanDetails.map((loanDetails) => ({ 
-					id: loanDetails.Loan.id,
-					status: loanDetails.status,
-					startDate: loanDetails.startDate,
-					expectedReturnDate: loanDetails.expectedReturnDate,
-					...loanDetails.Loan.Asset && {asset: {
-						id: loanDetails.Loan.Asset.id,
-						bookmarked: loanDetails.Loan.Asset.bookmarked,
-						assetTag: loanDetails.Loan.Asset.assetTag,
-						variant: loanDetails.Loan.Asset.AssetTypeVariant?.variantName,
-						assetType: loanDetails.Loan.Asset.AssetTypeVariant?.AssetType?.assetType,
-					}},
-					...loanDetails.Loan.Peripherals && {peripherals: (loanDetails.Loan.Peripherals.map((peripheral) => ({
-						id: peripheral.peripheralType?.id,
-						peripheralName: peripheral.peripheralType?.peripheralName,
-						count: peripheral.count
-					})))}
-				})))},
+				...(plainUser.AddEvent && {addedDate: plainUser.AddEvent.eventDate}),
+				...(plainUser.DeleteEvent && {deletedDate: plainUser.DeleteEvent.eventDate}),
+				...plainUser.UserLoans && {loans: (plainUser.UserLoans.map((userLoan) => 
+					({
+						...(userLoan.ReserveEvent && { reserveDate: userLoan.ReserveEvent.eventDate }),
+						...(userLoan.reserveEventId && { reserveEventId: userLoan.reserveEventId }),
+						...(userLoan.CancelEvent && { cancelDate: userLoan.CancelEvent.eventDate }),
+						...(userLoan.cancelEventId && { cancelDate: userLoan.cancelEventId }),
+						...(userLoan.expectedLoanDate && { expectedLoanDate: userLoan.expectedLoanDate }),
+						...(userLoan.loanEventId && { loanEventId: userLoan.loanEventId }),
+						...(userLoan.LoanEvent && { loanDate: userLoan.LoanEvent.eventDate }),
+						...(userLoan.expectedReturnDate && { expectedReturnDate: userLoan.expectedReturnDate }),
+						...(userLoan.AssetLoans && userLoan.AssetLoan && userLoan.AssetLoan.Asset && { asset: {
+							id: userLoan.Loan.Asset.id,
+							bookmarked: userLoan.Loan.Asset.bookmarked,
+							assetTag: userLoan.Loan.Asset.assetTag,
+							variant: userLoan.Loan.Asset.AssetTypeVariant?.variantName,
+							assetType: userLoan.Loan.Asset.AssetTypeVariant?.AssetType?.assetType,
+							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
+							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
+							...(assetLoan.TaggedPeripheralLoans && { peripherals: assetLoan.TaggedPeripheralLoans.reduce((peripheralMap, peripheral) => {
+								if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
+									peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
+								} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;
+
+								return peripheralMap;
+							}, {})}),
+						}}),
+						...(userLoan.UntaggedPeripheralLoans && userLoan.UntaggedPeripheralLoans.length > 0 && { peripherals: userLoan.UntaggedPeripheralLoans.reduce(((peripheralMap, peripheral) => {
+							if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
+								peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
+							} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;
+
+							return peripheralMap;
+						}, {}))})
+					})
+				))},
 			}
 		}
 	}

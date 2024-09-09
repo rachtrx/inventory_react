@@ -28,7 +28,7 @@ const startServer = async () => {
   try {
     // Sync database
     await db.syncAll({ alter: true }); // Change to { force: true } only if you understand the consequences
-    await connectDB()
+    // await connectDB()
     console.log('Database synchronized successfully.');
 
     // Start listening for requests

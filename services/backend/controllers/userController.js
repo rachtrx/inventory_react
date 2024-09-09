@@ -1,6 +1,5 @@
-const { sequelize, Sequelize, Loan, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, LoanDetail, PeripheralLoan, PeripheralType } = require('../models/postgres');
+const { sequelize, Sequelize, Event, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, UserLoan, GroupLoan, PeripheralLoan, PeripheralType, Peripheral, TaggedPeripheralLoan, UntaggedPeripheralLoan } = require('../models/postgres');
 const { Op } = require('sequelize');
-const mongodb = require('../models/mongo');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 
@@ -12,28 +11,28 @@ class UserController {
         let options;
         try {
             if (field === 'department') {
-                meta = [Department, 'id', 'deptName'];
+                const meta = [Department, 'id', 'deptName'];
                 logger.info(meta)
                 options = await getAllOptions(meta)
                 
             } else if (field === 'assetCount') {
-                const result = await LoanDetail.findAll({
+                const result = await AssetLoan.findAll({
                     attributes: [
-                        'userId',
-                        [Sequelize.fn('COUNT', Sequelize.col('"Loan->Asset"."id"')), 'assetCount']
+                        Sequelize.col('"UserLoan.user_id"'),
+                        [Sequelize.fn('COUNT', Sequelize.col('"AssetLoan"."id"')), 'assetCount']
                     ],
                     include: {
-                        model: Loan,
+                        model: UserLoan,
                         attributes: [],
                         required: true,
                         include: {
-                            model: Asset,
+                            model: User,
                             attributes: [],
                             required: true,
                         }
                     },
-                    where: { status: 'COMPLETED' },
-                    group: ['"LoanDetail.user_id"'], // TODO
+                    where: { returnEventId: null },
+                    group: ['"UserLoan.user_id"'], // TODO
                     raw: true
                 });
                 const counts = result.map(item => item.assetCount);
@@ -68,54 +67,106 @@ class UserController {
             };
     
             let query = await User.findAll({
-                include: [{
-                    model: LoanDetail,
-                    attributes: ['status', 'startDate', 'expectedReturnDate'],
-                    where: { status: 'COMPLETED' },
-                    include: {
-                        model: Loan,
-                        attributes: ['id'],
+                attributes: ['id', 'userName', 'bookmarked'],
+                include: [
+                    {
+                        model: Event,
+                        as: 'AddEvent',
+                        attributes: ['eventDate'],
+                    },
+                    {
+                        model: Event,
+                        as: 'DeleteEvent',
+                        attributes: ['eventDate'],
                         required: false,
+                    },
+                    {
+                        model: UserLoan,
+                        attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
                         include: [
                             {
-                                model: Asset,
-                                attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
-                                include: {
-                                    model: AssetTypeVariant,
-                                    attributes: ['variantName'],
-                                    include: {
-                                        model: AssetType,
-                                        attributes: ['assetType']
+                                model: AssetLoan,
+                                attributes: ['id', 'returnEventId'],
+                                required: false,
+                                include: [
+                                    {
+                                        model: Asset,
+                                        attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                        include: {
+                                            model: AssetTypeVariant,
+                                            attributes: ['id', 'variantName'],
+                                            include: {
+                                                model: AssetType,
+                                                attributes: ['id', 'assetType']
+                                            }
+                                        }
+                                    },
+                                    {
+                                        model: TaggedPeripheralLoan,
+                                        attributes: ['id', 'returnEventId'],
+                                        required: false,
+                                        include: {
+                                            model: Peripheral,
+                                            attributes: ['id'],
+                                            include: {
+                                                model: PeripheralType,
+                                                attributes: ['id', 'peripheralName'],
+                                            },
+                                        },
+                                        where: {
+                                            returnEventId: {
+                                                [Op.is]: null
+                                            }
+                                        },
                                     }
-                                }
+                                ],
+                                where: {
+                                    returnEventId: {
+                                        [Op.is]: null
+                                    }
+                                },
                             },
                             {
-                                model: PeripheralLoan,
-                                attributes: ['count'],
+                                model: UntaggedPeripheralLoan,
+                                attributes: ['id', 'returnEventId'],
+                                required: false,
                                 include: {
-                                    model: PeripheralType,
-                                    attributes: ['id', 'peripheralName'],
-                                }
+                                    model: Peripheral,
+                                    attributes: ['id'],
+                                    include: {
+                                        model: PeripheralType,
+                                        attributes: ['id', 'peripheralName'],
+                                    },
+                                },
+                                where: {
+                                    returnEventId: {
+                                        [Op.is]: null
+                                    }
+                                },
                             }
-                        ]
+                        ],
+                        where: {
+                            loanEventId: {
+                                [Op.not]: null
+                            }
+                        },
+                    },
+                    {
+                        model: Department,
+                        required: true,
+                        attributes: ['deptName'],
+                        ...(filters.department.length > 0 && { where: { id: { [Op.in]: filters.department } } }),
                     }
-                },
-                {
-                    model: Department,
-                    required: true,
-                    attributes: ['deptName'],
-                    ...(filters.department.length > 0 && { where: { id: { [Op.in]: filters.department } } }),
-                }],
+                ],
                 where: whereClause,
                 // TODO
-                order: [['addedDate', 'DESC']],
-                attributes: ['id', 'userName', 'bookmarked', 'addedDate']
+                // order: [['addedDate', 'DESC']],
             });
     
             if (filters.assetCount.length > 0) {
                 filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
                 query = query.filter(user => {
-                    return filters.assetCount.includes(user.Loans.length);
+                    return filters.assetCount.includes(user.AssetLoans.length);
                 });
             }
             
@@ -134,7 +185,6 @@ class UserController {
     
     async getUser (req, res) {
         const userId = req.params.id;
-        const { Event } = mongodb;
     
         try {
             const userDetailsPromise = User.findByPk(userId, {

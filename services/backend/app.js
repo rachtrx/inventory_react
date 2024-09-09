@@ -15,6 +15,8 @@ const corsOptions = {
     maxAge: 600  // Set the maximum time (in seconds) the results of a preflight request can be cached
 };
 
+const app = express();
+
 app.use((req, res, next) => {
 	console.log(req.path);
     next();

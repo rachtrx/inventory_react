@@ -2,6 +2,7 @@ const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset 
 const FormHelpers = require('./formHelperController.js');
 const { Event } = require('../models/mongo');
 const { nanoid } = require('nanoid');
+const logger = require('../logging.js');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -11,7 +12,10 @@ const { nanoid } = require('nanoid');
 class FormLoanReturnController {
 
     async loan (req, res) {
+        console.log(req.body);
         const { signature, ...otherFormData } = req.body;
+
+        let filePath = null;
     
         if (signature) {
             // Decode base64 string
@@ -22,7 +26,7 @@ class FormLoanReturnController {
     
             // Define the path to save the file
             const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
-            const filePath = path.join(uploadsDir, 'signatures', fileName);
+            filePath = path.join(uploadsDir, 'signatures', fileName);
     
             // Save the file to the server
             fs.writeFile(filePath, base64Data, 'base64', (err) => {
@@ -35,21 +39,10 @@ class FormLoanReturnController {
     
                 res.status(200).json({ message: 'Signature saved successfully', filePath });
             });
-        } else {
-            res.status(400).json({ error: 'No signature provided' });
         }
-    };
-    
-    async loan (req, res) {
-        const filePath = req.file ? req.file.path : null;
-        
-        const userId = req.body.userId;
-        const assetId = req.body.assetId;
-    
-        // TODO i think not needed bc filefilter alr checks...
-        if (!filePath && req.fileValidationError) {
-            return res.status(400).json({ error: 'Only PDF files are allowed!' });
-        }
+
+        const userId = otherFormData.userId;
+        const assetId = otherFormData.assetId;
     
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -65,7 +58,7 @@ class FormLoanReturnController {
             if (asset.status === 'condemned') {
                 throw new Error("Asset tag is already condemned!");
             }
-            await FormHelpers.insertAssetEvent(nanoid(), assetId, 'loaned', req.body.remarks, userId, null, filePath, session);
+            await FormHelpers.insertAssetEvent(nanoid(), assetId, 'loaned', otherFormData.remarks, userId, null, filePath, session);
             await FormHelpers.updateStatus(assetId, 'loaned', userId, session);
     
             await session.commitTransaction();

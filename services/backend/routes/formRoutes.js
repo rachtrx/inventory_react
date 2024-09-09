@@ -39,9 +39,6 @@ router.use('/condemnAsset', formAssetController.condemn);
 router.use('/addUser', formUserController.add);
 router.use('/removeUser', formUserController.remove)
 
-// router.post('/loan', upload.single('pdfFile'), formLoanReturnController.loan);
-// router.post('/return', upload.single('pdfFile'), formLoanReturnController.return);
-
 router.post('/download', formLoanReturnController.downloadEvent);
 
 module.exports = router;

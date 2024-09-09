@@ -2,17 +2,17 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-    class Loan extends Model { }
+    class GroupLoan extends Model { }
 
-    Loan.init({
+    GroupLoan.init({
         id: {
             type: DataTypes.STRING,
             primaryKey: true,
         },
     }, {
         sequelize,
-        modelName: 'Loan'
+        modelName: 'GroupLoan'
     });
 
-    return Loan;
+    return GroupLoan;
 };
