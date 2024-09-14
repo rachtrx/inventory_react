@@ -26,19 +26,18 @@ module.exports = (sequelize) => {
 						...(userLoan.loanEventId && { loanEventId: userLoan.loanEventId }),
 						...(userLoan.LoanEvent && { loanDate: userLoan.LoanEvent.eventDate }),
 						...(userLoan.expectedReturnDate && { expectedReturnDate: userLoan.expectedReturnDate }),
-						...(userLoan.AssetLoans && userLoan.AssetLoan && userLoan.AssetLoan.Asset && { asset: {
-							id: userLoan.Loan.Asset.id,
-							bookmarked: userLoan.Loan.Asset.bookmarked,
-							assetTag: userLoan.Loan.Asset.assetTag,
-							variant: userLoan.Loan.Asset.AssetTypeVariant?.variantName,
-							assetType: userLoan.Loan.Asset.AssetTypeVariant?.AssetType?.assetType,
-							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
-							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-							...(assetLoan.TaggedPeripheralLoans && { peripherals: assetLoan.TaggedPeripheralLoans.reduce((peripheralMap, peripheral) => {
+						...(userLoan.AssetLoan && userLoan.AssetLoan.Asset && { asset: {
+							id: userLoan.AssetLoan.Asset.id,
+							bookmarked: userLoan.AssetLoan.Asset.bookmarked,
+							assetTag: userLoan.AssetLoan.Asset.assetTag,
+							variant: userLoan.AssetLoan.Asset.AssetTypeVariant?.variantName,
+							assetType: userLoan.AssetLoan.Asset.AssetTypeVariant?.AssetType?.assetType,
+							...(userLoan.AssetLoan.returnEventId && { returnEventId: userLoan.AssetLoan.returnEventId }),
+							...(userLoan.AssetLoan.ReturnEvent && { returnDate: userLoan.AssetLoan.ReturnEvent.eventDate }),
+							...(userLoan.AssetLoan.TaggedPeripheralLoans && { peripherals: userLoan.AssetLoan.TaggedPeripheralLoans.reduce((peripheralMap, peripheral) => {
 								if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
 									peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
 								} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;
-
 								return peripheralMap;
 							}, {})}),
 						}}),

@@ -111,9 +111,9 @@ db.PeripheralType.hasMany(db.VariantPeripheral, { foreignKey: 'peripheralTypeId'
 db.VariantPeripheral.belongsTo(db.PeripheralType, { foreignKey: 'peripheralTypeId', targetKey: 'id' });
 
 // EVENTS
-db.Event.hasOne(db.UserLoan, { as: 'Reservations', foreignKey: 'reserveEventId' });
+db.Event.hasOne(db.UserLoan, { as: 'Reservation', foreignKey: 'reserveEventId' });
 db.UserLoan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
-db.Event.hasOne(db.UserLoan, { as: 'Cancellations', foreignKey: 'cancelEventId' });
+db.Event.hasOne(db.UserLoan, { as: 'Cancellation', foreignKey: 'cancelEventId' });
 db.UserLoan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
 
 db.Event.hasOne(db.Asset, { as: 'AddedAsset', foreignKey: 'addEventId' });

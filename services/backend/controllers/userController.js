@@ -82,12 +82,12 @@ class UserController {
                     },
                     {
                         model: UserLoan,
+                        required: false,
                         attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
                         include: [
                             {
                                 model: AssetLoan,
                                 attributes: ['id', 'returnEventId'],
-                                required: false,
                                 include: [
                                     {
                                         model: Asset,
@@ -112,6 +112,7 @@ class UserController {
                                                 model: PeripheralType,
                                                 attributes: ['id', 'peripheralName'],
                                             },
+                                            required: false,
                                         },
                                         where: {
                                             returnEventId: {
@@ -145,11 +146,6 @@ class UserController {
                                 },
                             }
                         ],
-                        where: {
-                            loanEventId: {
-                                [Op.not]: null
-                            }
-                        },
                     },
                     {
                         model: Department,
