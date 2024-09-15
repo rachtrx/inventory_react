@@ -1,6 +1,13 @@
-const validateNanoID = (id, length = 21) => {
-    const nanoidRegex = new RegExp(`^[a-zA-Z0-9_-]{${length}}$`);
-    return nanoidRegex.test(id);
-}
+const crypto = require('crypto');
 
-module.exports = { validateNanoID }
+const generateSecureID = () => {
+	// Generates 8 hexadecimal characters
+	return crypto.randomBytes(4).toString('hex').toUpperCase(); 
+};
+
+const isValidID = (id) => {
+	const idPattern = /^[A-F0-9]{8}$/;
+	return idPattern.test(id);
+};
+
+module.exports = { generateSecureID, isValidID }

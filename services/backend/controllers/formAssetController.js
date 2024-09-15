@@ -2,7 +2,7 @@ const { Asset, AssetType, AssetTypeVariant, Vendor } = require('../models/postgr
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
-const { nanoid } = require('nanoid');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 class FormAssetController {
 
@@ -46,7 +46,7 @@ class FormAssetController {
                         throw new Error(`Device Type ${assetType} already exists!`);
                     }
     
-                    assetTypeId = nanoid();
+                    assetTypeId = generateSecureID();
                     await AssetType.create({
                         id: assetTypeId,
                         assetType: assetType
@@ -80,7 +80,7 @@ class FormAssetController {
     
                 // Create the variant
                 await AssetTypeVariant.create({
-                    id: nanoid(),
+                    id: generateSecureID(),
                     assetTypeId: assetTypeId,
                     variantName: variants.variantName
                 }, { transaction: t });
@@ -118,7 +118,7 @@ class FormAssetController {
                     if (cur_vendor) {
                         throw new Error(`Vendor ${trimmedVendorName} already exists!`);
                     }
-                    vendorId = nanoid();
+                    vendorId = generateSecureID();
                     await Vendor.create({ id: vendorId, vendorName: trimmedVendorName }, { transaction: t });
                 } else {
                     cur_vendor = await Vendor.findOne({
@@ -150,7 +150,7 @@ class FormAssetController {
                     if (serialNums.has(serialNumber)) {
                         throw new Error(`Duplicate Serial Number ${serialNumber}!`);
                     }
-                    const assetId = nanoid();
+                    const assetId = generateSecureID();
                     await Asset.create({
                         id: assetId,
                         serialNumber: serialNumber.toUpperCase(),
@@ -162,7 +162,7 @@ class FormAssetController {
                         value: value,
                         vendorId: vendorId
                     }, { transaction: t });
-                    await FormHelpers.insertAssetEvent(nanoid(), assetId, eventTypes.ADD_ASSET, remarks, t);
+                    await FormHelpers.insertAssetEvent(generateSecureID(), assetId, eventTypes.ADD_ASSET, remarks, t);
                     assetTags.add(assetTag.toUpperCase());
                     serialNums.add(serialNumber.toUpperCase())
                 }
@@ -203,7 +203,7 @@ class FormAssetController {
                     assetIds.add(assetId);
                     
                     // Update the status and log the event
-                    await FormHelpers.insertAssetEvent(nanoid(), assetId, "condemned", remarks, t);
+                    await FormHelpers.insertAssetEvent(generateSecureID(), assetId, "condemned", remarks, t);
                     await FormHelpers.updateStatus(assetId, "condemned", t);
                 }
             });

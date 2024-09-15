@@ -4,18 +4,14 @@ import { useFormModal } from "../../context/ModalProvider"
 import { useUI } from "../../context/UIProvider"
 import peripheralService from "../../services/PeripheralService"
 import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton } from "@chakra-ui/react";
-import { MdRemoveCircleOutline, MdSave } from 'react-icons/md';
 import { FieldArray } from "formik"
 import InputFormControl from "./utils/InputFormControl"
 import { ResponsiveText } from "../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { v4 as uuidv4, validate as isUuidValid } from 'uuid';
-import { warning } from "framer-motion"
-import FormToggle from "./utils/FormToggle"
-import { AddIcon } from "@chakra-ui/icons"
 import { AddButton, RemoveButton } from "./utils/ItemButtons"
 import { useLoan } from "../../context/LoanProvider"
-import { LoanType } from "./Loan"
+import DateInputControl from "./utils/DateInputControl"
+import { v4 as uuidv4, validate as isValidUuid } from 'uuid';
 
 export const createNewPeripheral = (id='') => ({
 	'key': uuidv4(),
@@ -23,7 +19,7 @@ export const createNewPeripheral = (id='') => ({
 	'count': 1, 
 })
 
-export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelpers }) {
+export const LoanAsset = function({ loanIndex, asset }) {
 
 	// console.log('loan asset');
 
@@ -31,11 +27,11 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 	const [ suggestedOptions, setSuggestedOptions ] = useState()
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
-	const { mode, setMode, warnings, loan } = useLoan();
+	const { mode, setMode, warnings } = useLoan();
 	// console.log(warnings);
 
 	useEffect(() => {
-		if (!asset.assetId || !isUuidValid(asset.assetId)) return;
+		if (!asset.assetId || !isValidUuid(asset.assetId)) return;
 		const fetchItems = async () => {
 			try {
 			const response = await peripheralService.getSuggestedPeripherals(asset.assetId);
@@ -49,33 +45,27 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 		};
 	
 		fetchItems();
-	}, [asset, handleError, setFieldValue, assetIndex, fieldArrayName]);
+	}, [asset, handleError, setFieldValue]);
 
 	return (
 		<>
-			<Flex key={assetIndex} gap={4} alignItems={'flex-start'}>
+			<Flex gap={4} alignItems={'flex-start'}>
 				<SearchSingleSelectFormControl
-					name={`${fieldArrayName}.${assetIndex}.assetId`}
+					name={`loans.${loanIndex}.asset.assetId`}
 					searchFn={value => handleAssetSearch(value, mode)}
 					secondaryFieldsMeta={[
-						{name: `${fieldArrayName}.${assetIndex}.assetTag`, attr: 'assetTag'},
-						{name: `${fieldArrayName}.${assetIndex}.shared`, attr: 'shared'}
+						{name: `loans.${loanIndex}.asset.assetTag`, attr: 'assetTag'},
+						{name: `loans.${loanIndex}.asset.shared`, attr: 'shared'}
 					]}
-					label={`Asset Tag #${assetIndex + 1}`}
+					label={`Asset Tag`}
 					placeholder="Asset Tag"
-				>
-					<RemoveButton
-						ariaLabel="Remove Asset"
-						onClick={() => assetHelpers.remove(assetIndex)}
-						isDisabled={loan.assets.length === 1}
-					/>
-				</SearchSingleSelectFormControl>
+				/>
 			</Flex>
 			{asset && asset.assetTag && 
-					<InputFormControl name={`${fieldArrayName}.${assetIndex}.remarks`} label={`Add remarks for ${asset.assetTag}`}/>
+				<InputFormControl name={`loans.${loanIndex}.asset.remarks`} label={`Loan Remarks for ${asset.assetTag}`}/>
 			}
 			
-			<FieldArray name={`${fieldArrayName}.${assetIndex}.peripherals`}>
+			<FieldArray name={`loans.${loanIndex}.asset.peripherals`}>
 				{peripheralHelpers => (
 					<Box>
 						<HStack mb={1}>
@@ -86,7 +76,7 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 							)}
 						</HStack>
 						{asset.peripherals && asset.peripherals.length > 0 && asset.peripherals.map((peripheral, index, array) => {
-							const fieldName = `${fieldArrayName}.${assetIndex}.peripherals.${index}`
+							const fieldName = `loans.${loanIndex}.asset.peripherals.${index}`
 							// console.log(fieldName);
 							return (
 								<Box key={peripheral.key}>
@@ -94,10 +84,10 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 										name={`${fieldName}.id`}
 										defaultOptions={suggestedOptions}
 										searchFn={handlePeripheralSearch}
-										warning={warnings?.assets?.[assetIndex]?.peripherals?.[index]?.id || null}
+										warning={warnings?.loans?.[loanIndex]?.peripherals?.[index]?.id || null}
 									>
 										<InputFormControl
-											name={`${fieldArrayName}.${assetIndex}.peripherals.${index}.count`} 
+											name={`${fieldName}.count`} 
 											type="number" 
 											placeholder="Enter count" 
 										/>
@@ -124,6 +114,10 @@ export const LoanAsset = function({ fieldArrayName, assetIndex, asset, assetHelp
 					</Box>
 				)}
 			</FieldArray>
+			<Flex mt={2}>
+				<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.asset.loanDate`} />
+				<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.asset.expectedReturnDate`} />
+			</Flex>
 		</>
 	)
 }

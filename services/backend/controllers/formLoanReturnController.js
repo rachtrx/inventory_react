@@ -1,8 +1,8 @@
 const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
 const FormHelpers = require('./formHelperController.js');
 const { Event } = require('../models/mongo');
-const { nanoid } = require('nanoid');
 const logger = require('../logging.js');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -58,7 +58,7 @@ class FormLoanReturnController {
             if (asset.status === 'condemned') {
                 throw new Error("Asset tag is already condemned!");
             }
-            await FormHelpers.insertAssetEvent(nanoid(), assetId, 'loaned', otherFormData.remarks, userId, null, filePath, session);
+            await FormHelpers.insertAssetEvent(generateSecureID(), assetId, 'loaned', otherFormData.remarks, userId, null, filePath, session);
             await FormHelpers.updateStatus(assetId, 'loaned', userId, session);
     
             await session.commitTransaction();
@@ -94,7 +94,7 @@ class FormLoanReturnController {
             if (asset.status !== "loaned") {
                 return res.status(400).json({ error: "Asset is not on loan!" });
             }
-            await FormHelpers.insertAssetEvent(nanoid(), assetId, 'returned', req.body.remarks, userId, null, filePath, session);
+            await FormHelpers.insertAssetEvent(generateSecureID(), assetId, 'returned', req.body.remarks, userId, null, filePath, session);
             await FormHelpers.updateStatus(assetId, 'available', userId, session);
     
             await session.commitTransaction();

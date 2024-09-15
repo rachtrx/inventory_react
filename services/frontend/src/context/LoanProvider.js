@@ -9,7 +9,7 @@ import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
 import { LoanSummary } from '../components/forms/utils/LoanSummary';
 import { AddButton } from '../components/forms/utils/ItemButtons';
-import { validate as isUuidValid } from 'uuid';
+import { validate as isValidUuid } from "uuid";
 
 const LoanMode = ({ mode }) => {
   return (
@@ -40,60 +40,35 @@ const LoanContext = createContext();
 export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
   // console.log('loan provider');
   const [ mode, setMode ] = useState(null);
-  const [ saved, setSaved ] = useState(false);
-  const { values, errors, setFieldValue } = useFormikContext();
+  const { values, setFieldValue } = useFormikContext();
 
   useEffect(() => {
     setFieldValue(`loans.${loanIndex}.mode`, mode);
   }, [mode, setFieldValue, loanIndex])
 
   useEffect(() => {
-		const allEmptyAssets = loan.assets.every(asset => !isUuidValid(asset.assetId));
-		if (allEmptyAssets && loan.users.length < 2) setMode('');
-    else if (loan.assets.some(asset => !asset.shared)) setMode(LoanType.SINGLE);
-    else if (loan.assets.every(asset => !!asset.shared)) setMode(LoanType.SHARED);
-    else if (loan.users.length >= 2) setMode(LoanType.SHARED);
+    if (loan.users.length >= 2) setMode(LoanType.SHARED);
+    else {
+      const noAsset = !isValidUuid(loan.asset.assetId);
+      if (noAsset) setMode('');
+      else if (!loan.asset.shared) setMode(LoanType.SINGLE);
+      else if (loan.asset.shared) setMode(LoanType.SHARED);
+    }
 	}, [loan, setMode])
-
-  useEffect(() => {
-    console.log(`Loan ${loanIndex}: ${saved}`);
-  }, [saved, loanIndex]);
 
   const removeLoan = useCallback(() => loanHelpers.remove(loanIndex), [loanHelpers, loanIndex])
 
   return (
-    <LoanContext.Provider value={{ mode, setMode, saved, setSaved, loan, loanIndex, loanHelpers, removeLoan, warnings }}>
+    <LoanContext.Provider value={{ mode, setMode, loan, loanIndex, loanHelpers, removeLoan, warnings }}>
       {mode && <LoanMode mode={mode}/>}
       <ResponsiveText size="md" fontWeight="bold" align="center">
-        {`Loan #${loanIndex + 1}`}
+        {`Asset #${loanIndex + 1}`}
       </ResponsiveText>
 
-      <Box style={{ display: saved ? 'block' : 'none' }}>
-        <LoanSummary
-          loan={loan}
-          handleRemove={removeLoan}
-          isOnlyLoan={values.loans.length === 1}
-        />
-      </Box>
-      <Box style={{ display: !saved ? 'block' : 'none' }}>
-        <Loan />
-      </Box>
+      <Loan />
       
       <Flex mt={2} gap={4} justifyContent="space-between">
-        {!saved && (
-          <>
-            <Spacer />
-            <Button
-              onClick={() => setSaved(true)}
-              colorScheme="green"
-              isDisabled={errors.loans?.[loanIndex]}
-              alignSelf="flex-end"
-            >
-              Save
-            </Button>
-          </>
-        )}
-        {values.loans.length > 1 && !saved && (
+        {values.loans.length > 1 && (
           <Button
           type="button"
           onClick={() => removeLoan()}
@@ -108,7 +83,7 @@ export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) =
       {isLast && (
         <AddButton
           handleClick={() => loanHelpers.push(createNewLoan())}
-          label="Add Loan"
+          label="Add Asset"
         />
       )}
     </LoanContext.Provider>

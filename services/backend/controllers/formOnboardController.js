@@ -3,7 +3,7 @@ const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset,
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
-const { nanoid } = require('nanoid');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 
 const pythonTime = (isoString) => {
@@ -25,7 +25,7 @@ class FormOnboardController {
                     });
                     if (!existingVendor) {
                         await Vendor.create({
-                            id: nanoid(),
+                            id: generateSecureID(),
                             vendorName
                         }, { transaction });
                     }
@@ -38,7 +38,7 @@ class FormOnboardController {
                     });
                     if (!dept) {
                         dept = await Department.create({
-                            id: nanoid(),
+                            id: generateSecureID(),
                             deptName
                         }, { transaction });
                     }
@@ -50,7 +50,7 @@ class FormOnboardController {
                         });
                         if (!userExists) {
                             const newUser = await User.create({
-                                id: nanoid(),
+                                id: generateSecureID(),
                                 userName,
                                 deptId: dept.id,
                                 deletedDate: null,
@@ -68,7 +68,7 @@ class FormOnboardController {
                     });
                     if (!type) {
                         type = await AssetType.create({
-                            id: nanoid(),
+                            id: generateSecureID(),
                             assetType
                         }, { transaction });
                     }
@@ -80,7 +80,7 @@ class FormOnboardController {
                         });
                         if (!variantExists) {
                             await AssetTypeVariant.create({
-                                id: nanoid(),
+                                id: generateSecureID(),
                                 assetTypeId: type.id,
                                 variantName
                             }, { transaction });
@@ -147,7 +147,7 @@ class FormOnboardController {
                         throw new Error(`Vendor ${vendorName} for Asset Tag ${assetTag} does not exist!`);
                     }
                 
-                    const assetId = nanoid();
+                    const assetId = generateSecureID();
                 
                     // Create new device
                     await Asset.create({
@@ -166,7 +166,7 @@ class FormOnboardController {
                 
                     // Log 'registered' event
                     await FormHelpers.insertAssetEvent(
-                        nanoid(),
+                        generateSecureID(),
                         assetId,
                         eventTypes.ADD_ASSET,
                         registeredRemarks,
@@ -179,7 +179,7 @@ class FormOnboardController {
                     if (userName) {
                         const formattedLoanedDate = new Date(loanedDate);
                         await FormHelpers.insertAssetEvent(
-                            nanoid(),
+                            generateSecureID(),
                             assetId,
                             'loaned',
                             loanedRemarks,

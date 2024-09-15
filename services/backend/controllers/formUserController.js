@@ -1,7 +1,7 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
 const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
-const { nanoid } = require('nanoid');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 
 
@@ -38,7 +38,7 @@ class FormUserController {
                         throw new Error(`Department ${deptName} already exists!`);
                     }
     
-                    deptId = nanoid();
+                    deptId = generateSecureID();
                     await Department.create({
                         id: deptId,
                         deptName: trimmedDept
@@ -71,7 +71,7 @@ class FormUserController {
                         throw new Error(`User Name ${userName} already exists or is duplicated in the request!`);
                     }
     
-                    const userId = nanoid();
+                    const userId = generateSecureID();
                     await User.create({
                         id: userId,
                         userName: userName,
@@ -80,7 +80,7 @@ class FormUserController {
                         deletedDate: null
                     }, { transaction: t });
     
-                    const id = nanoid();
+                    const id = generateSecureID();
                     const eventType = 'created';
                     await FormHelpers.insertUserEvent(id, eventType, userId, remarks, t);
                 }
@@ -124,7 +124,7 @@ class FormUserController {
                     }
                     userIds.add(userId);
             
-                    await insertUserEvent(nanoid(), 'removed', userId, remarks, t);
+                    await insertUserEvent(generateSecureID(), 'removed', userId, remarks, t);
                     await User.update({ deletedDate: 1 }, { // TODO UPDATE!
                         where: { id: userId },
                         transaction: t

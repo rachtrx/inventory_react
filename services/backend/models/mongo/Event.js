@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const { nanoid } = require('nanoid');
+const { generateSecureID } = require('../../utils/nanoidValidation');
 
 const { Schema, model } = mongoose;
 
 const eventSchema = new Schema({
   loanId: {
     type: String,
-    default: nanoid,
+    default: generateSecureID,
   },
   description: String,
   eventDate: { type: Date, default: Date.now },

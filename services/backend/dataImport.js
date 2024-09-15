@@ -1,7 +1,7 @@
-const { nanoid } = require('nanoid');
 const db = require('./models/postgres');
 const data = require('./data_export.json');
 const fs = require('fs');
+const { generateSecureID } = require('./utils/nanoidValidation');
 
 // console.log(Object.keys(data));
 
@@ -13,7 +13,7 @@ async function main(data) {
     for (let key in data) {
         const dataset = data[key];
         dataset.forEach(item => {
-            mappingDict[item.id] = nanoid();
+            mappingDict[item.id] = generateSecureID();
         });
     }
 
@@ -131,7 +131,7 @@ async function main(data) {
     
         if (event.remarks) {
             remarksArr.push({
-                id: nanoid(),
+                id: generateSecureID(),
                 eventId: event.id,
                 text: event.remarks,
                 remarkDate: event.eventDate
@@ -163,7 +163,7 @@ async function main(data) {
             eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
             eventsArr.push(createEvent(returnEvent.id, returnEvent.eventDate))
             
-            const userLoanId = nanoid();
+            const userLoanId = generateSecureID();
             userLoansArr.push({
                 id: userLoanId,
                 userId: loanEvent.userId,
@@ -172,7 +172,7 @@ async function main(data) {
             })
     
             assetLoansArr.push({
-                id: nanoid(),
+                id: generateSecureID(),
                 userLoanId: userLoanId,
                 assetId: assetId,
                 returnEventId: returnEvent.id
@@ -187,7 +187,7 @@ async function main(data) {
 
         eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
     
-        const userLoanId = nanoid();
+        const userLoanId = generateSecureID();
         userLoansArr.push({
             id: userLoanId,
             userId: userId,
@@ -196,7 +196,7 @@ async function main(data) {
         })
     
         assetLoansArr.push({
-            id: nanoid(),
+            id: generateSecureID(),
             userLoanId: userLoanId,
             assetId: assetId,
         });

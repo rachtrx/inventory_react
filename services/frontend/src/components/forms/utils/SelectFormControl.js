@@ -13,7 +13,6 @@ const withSelect = (Component) => ({
   options: initialOptions = [],
   isMulti = false,
   hideSelectedOptions = false,
-  handleChangeCallback = null,
   warning = null,
   children,
   ...props
@@ -29,9 +28,6 @@ const withSelect = (Component) => ({
           setFieldValue(name, selected?.[attr] ? selected[attr] : '');
         });
       }
-      if (handleChangeCallback) {
-        handleChangeCallback(selected);
-      }
 
       let newValue;
       if (isMulti) {
@@ -43,7 +39,7 @@ const withSelect = (Component) => ({
       setValue(newValue);
       setTouched(true);
     },
-    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, isMulti, handleChangeCallback]
+    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, isMulti]
   );
 
   const selectedOption = useMemo(() => {
@@ -89,14 +85,12 @@ const withCreate = (Component) => ({
   options = [],
   setOptions,
   isMulti = false,
-  handleChangeCallback = null,
   ...props
 }) => {
   const [{ value }, , { setValue }] = useField(name);
 
   const handleCreateOption = (inputValue) => {
     const newOption = { value: inputValue, label: inputValue, __isNew__: true };
-    console.log('creating new option');
     
     setOptions((prevOptions) => [...prevOptions, newOption]);
     
@@ -105,9 +99,6 @@ const withCreate = (Component) => ({
     } else {
       setValue(inputValue);
     }
-
-    // Optionally trigger the change callback
-    if (handleChangeCallback) handleChangeCallback(newOption);
   };
 
   return (
@@ -116,7 +107,6 @@ const withCreate = (Component) => ({
       name={name}
       options={options}
       setOptions={setOptions}
-      handleChangeCallback={handleChangeCallback}
       onCreateOption={handleCreateOption}
     />
   );
@@ -128,7 +118,6 @@ const withSearch = (Component) => ({
   setOptions,
   searchFn,
   isMulti = false,
-  handleChangeCallback = null,
   onCreateOption = null,
   ...props
 }) => {
@@ -144,7 +133,6 @@ const withSearch = (Component) => ({
         // console.log(`Value in search fn: ${value}`);
         const response = await searchFn(value);
         const data = response.data;
-
         let option;
 
         setTouched(true);
@@ -158,7 +146,6 @@ const withSearch = (Component) => ({
           setValue(value.trim());
         } else return;
 
-        if (handleChangeCallback) handleChangeCallback(option);
         setOptions([option]);
       } catch (error) {
         handleError(error);
@@ -166,7 +153,7 @@ const withSearch = (Component) => ({
     };
 
     fetchData();
-  }, [value, meta, searchFn, setValue, setTouched, isMulti, handleError, handleChangeCallback, onCreateOption, setOptions]);
+  }, [value, meta, searchFn, setValue, setTouched, isMulti, handleError, onCreateOption, setOptions]);
 
   const handleSearch = useCallback(
     async (inputValue) => {
@@ -194,7 +181,6 @@ const withSearch = (Component) => ({
       isMulti={isMulti}
       options={options}
       onInputChange={handleInputChange}
-      handleChangeCallback={handleChangeCallback}
     />
   );
 };

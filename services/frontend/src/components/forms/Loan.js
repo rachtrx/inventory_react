@@ -3,11 +3,12 @@ import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../utils/ResponsiveText"
 import React, { useEffect } from "react"
 import { LoanSummary } from "./utils/LoanSummary"
-import { AddButton } from "./utils/ItemButtons"
+import { AddButton, RemoveButton } from "./utils/ItemButtons"
 import { useLoan } from "../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
-import { LoanAsset } from "./LoanAsset";
-import { LoanUser } from "./LoanUser";
+import { createNewPeripheral, LoanAsset } from "./LoanAsset";
+import { SearchSingleSelectFormControl } from "./utils/SelectFormControl"
+import { useFormModal } from "../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
 
 export const LoanType = Object.freeze({
@@ -16,11 +17,10 @@ export const LoanType = Object.freeze({
 });
 
 const createNewAsset = (assetTag='', peripherals=[]) => ({
-	'key': uuidv4(),
 	'assetId': assetTag,
 	'assetTag': assetTag,
+	'peripherals': peripherals.length === 0 ? [] : peripherals.map(peripheral => createNewPeripheral(peripheral)),
 	'remarks': '',
-	'peripherals': peripherals,
 	'shared': false
 })
   
@@ -33,63 +33,60 @@ const createNewUser = (userName='') => ({
   
 export const createNewLoan = (assetTag='', userNames=[], peripherals=[]) => ({
 	'key': uuidv4(),
+	'asset': createNewAsset(assetTag, peripherals),
 	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
-	'assets': [createNewAsset(assetTag, peripherals)],
-	'mode': ''
+	'mode': '',
+	'loanDate': new Date(),
+	'expectedReturnDate': null,
 })
 
 export const Loan = () => {
 
-	const { mode, loan, loanIndex, saved } = useLoan();
+	const { mode, loan, loanIndex } = useLoan();
+	const { handleUserSearch } = useFormModal();
 
 	return (
 		<Box position='relative'>
 			<Flex direction="column" key={loan.key}>
-				<Box display={saved ? "none" : "block"}>
-					<FieldArray name={`loans.${loanIndex}.assets`}>
-						{assetHelpers => loan.assets.map((asset, assetIndex, array) => (
-							<Flex direction="column" key={asset.key}>
-								<LoanAsset
-									fieldArrayName={`loans.${loanIndex}.assets`}
-									assetIndex={assetIndex}
-									asset={asset}
-									assetHelpers={assetHelpers}
+				<LoanAsset
+					loanIndex={loanIndex}
+					asset={loan.asset}
+				/>
+				<FieldArray name={`loans.${loanIndex}.users`}>
+					{ userHelpers => loan.users.map((user, userIndex, array) => (
+						<VStack key={user.key}>
+							<SearchSingleSelectFormControl
+								name={`loans.${loanIndex}.users.${userIndex}.userId`}
+								searchFn={handleUserSearch}
+								secondaryFieldsMeta={[
+									{name: `loans.${loanIndex}.users.${userIndex}.userName`, attr: 'userName'},
+								]}
+								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
+								placeholder="Select user"
+							>
+								<RemoveButton
+									ariaLabel="Remove User"
+									onClick={() => {
+										userHelpers.remove(userIndex);
+									}}
+									isDisabled={loan.users.length === 1}
 								/>
-								<Flex justifyContent="flex-start" mt={2} mb={4}>
-									{assetIndex === array.length - 1 && (
-										<AddButton
-											handleClick={() => assetHelpers.push(createNewAsset())}
-											label={'Add Asset'}
-										/>
-									)}
-								</Flex>
+							</SearchSingleSelectFormControl>
+							
+							<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
+								{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
+								(
+									<AddButton
+										handleClick={() => {
+											userHelpers.push(createNewUser());
+										}}
+										label={'Add User'}
+									/>
+								)}
 							</Flex>
-						))}
-					</FieldArray>
-					<FieldArray name={`loans.${loanIndex}.users`}>
-						{ userHelpers => loan.users.map((user, userIndex, array) => (
-							<VStack key={user.key}>
-								<LoanUser
-									fieldArrayName={`loans.${loanIndex}.users`}
-									userIndex={userIndex}
-									user={user}
-									userHelpers={userHelpers}
-								/>
-								<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
-									{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
-									(
-										<AddButton
-											handleClick={() => {
-												userHelpers.push(createNewUser());
-											}}
-											label={'Add User'}
-										/>
-									)}
-								</Flex>
-							</VStack>
-						))}
-					</FieldArray>
-				</Box>
+						</VStack>
+					))}
+				</FieldArray>
 			</Flex>
 		</Box>
 	);
