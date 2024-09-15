@@ -3,67 +3,52 @@ import { useField } from 'formik';
 import SignatureCanvas from 'react-signature-canvas';
 import { FormControl, FormLabel, Button, Box, Flex, IconButton, Collapse } from '@chakra-ui/react';
 import { ResponsiveText } from '../../utils/ResponsiveText';
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { RepeatIcon } from '@chakra-ui/icons';
 
-export const FormikSignatureField = ({ name, label, ...props }) => {
+export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...props }) => {
   const [, , helpers] = useField(name);
-  const containerRef = useRef(null);
   const sigPadRef = useRef(null);
 	const [dimensions, setDimensions] = useState({ width: 500, height: 200 });
-  const [isCollapsed, setIsCollapsed] = useState(true);
-
-  const updateDimensions = () => {
-    if (containerRef.current) {
-      const width = containerRef.current.offsetWidth - 20;
-      setDimensions({
-        width: width,
-        height: width * 0.3,
-      });
-    }
-  };
 
   useEffect(() => {
-    window.addEventListener('resize', updateDimensions);
-    updateDimensions(); // Initial size update
-
-    return () => {
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, []);
+    const width = signatureFieldWidth;
+    setDimensions({
+      width: `${width}px`,
+      height: `${width * 0.2}px`,
+    });
+  }, [signatureFieldWidth]);
 
   const handleEnd = () => {
     const signatureImage = sigPadRef.current.getTrimmedCanvas().toDataURL('image/png');
     helpers.setValue(signatureImage);
   };
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
   return (
     <FormControl>
-      <Flex alignItems="center" ref={containerRef}>
+      <Flex direction='column' alignItems="flex-start">
         {label && (
-          <FormLabel htmlFor={name} mb={0}>
+          <FormLabel htmlFor={name} display="flex" alignItems="center" justifyContent="space-between" mb={0}>
             <ResponsiveText>{label}</ResponsiveText>
-          </FormLabel>
+            
+            <IconButton
+              aria-label="Clear Signature"
+              icon={<RepeatIcon />} 
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                sigPadRef.current.clear();
+                helpers.setValue('');
+            }}
+          />
+        </FormLabel>
         )}
-        <IconButton
-          aria-label={isCollapsed ? 'Expand signature pad' : 'Collapse signature pad'}
-          icon={isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
-          size="sm"
-          variant="ghost"
-          onClick={toggleCollapse}
-        />
-      </Flex>
-      <Collapse in={!isCollapsed} width={'100%'}>
-        <Box border="2px" borderColor="gray.200" p={2}>
+        <Box border="2px" borderColor="gray.200" p={1}>
           <SignatureCanvas
-					  width={"100%"}
+            width={"100%"}
             penColor="black"
             canvasProps={{
               width: dimensions.width,
-          		height: dimensions.height,
+              height: dimensions.height,
               className: 'sigCanvas'
             }}
             ref={sigPadRef}
@@ -71,17 +56,7 @@ export const FormikSignatureField = ({ name, label, ...props }) => {
             {...props}
           />
         </Box>
-        <Flex justify="flex-end" mt={2}>
-          <Button
-            onClick={() => {
-              sigPadRef.current.clear();
-              helpers.setValue('');
-            }}
-          >
-            <ResponsiveText>Clear Signature</ResponsiveText>
-          </Button>
-        </Flex>
-      </Collapse>
+      </Flex>
     </FormControl>
   );
 };

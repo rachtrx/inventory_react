@@ -10,16 +10,18 @@ import { createNewPeripheral, LoanAsset } from "./LoanAsset";
 import { SearchSingleSelectFormControl } from "./utils/SelectFormControl"
 import { useFormModal } from "../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
+import DateInputControl from "./utils/DateInputControl"
 
 export const LoanType = Object.freeze({
 	SINGLE: 'SINGLE',
 	SHARED: 'SHARED',
 });
 
-const createNewAsset = (assetTag='', peripherals=[]) => ({
+const createNewAsset = (assetTag='', peripherals) => ({ // 1 loan only can have 1 asset
+	'key': uuidv4(),
 	'assetId': assetTag,
 	'assetTag': assetTag,
-	'peripherals': peripherals.length === 0 ? [] : peripherals.map(peripheral => createNewPeripheral(peripheral)),
+	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral.peripheralName, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
 	'remarks': '',
 	'shared': false
 })
@@ -30,14 +32,15 @@ const createNewUser = (userName='') => ({
 	'userName': userName,
 	'signature': '',
 })
-  
-export const createNewLoan = (assetTag='', userNames=[], peripherals=[]) => ({
+
+
+export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
 	'key': uuidv4(),
 	'asset': createNewAsset(assetTag, peripherals),
 	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
 	'mode': '',
-	'loanDate': new Date(),
-	'expectedReturnDate': null,
+	'loanDate': loanDate || new Date(),
+	'expectedReturnDate': expectedReturnDate,
 })
 
 export const Loan = () => {
@@ -87,7 +90,12 @@ export const Loan = () => {
 						</VStack>
 					))}
 				</FieldArray>
+				<Flex mt={2}>
+					<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.loanDate`} />
+					<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.expectedReturnDate`} />
+				</Flex>
 			</Flex>
 		</Box>
 	);
 }
+

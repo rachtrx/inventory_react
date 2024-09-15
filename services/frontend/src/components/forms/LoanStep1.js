@@ -9,7 +9,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, LoanType } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
-import { validate as isValidUuid } from "uuid";
 
 export const LoanStep1 = ({ nextStep, formData }) => {
 
@@ -19,6 +18,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
     const formRef = useRef(null);
   
     console.log('loan form rendered');
+		console.log(formData);
   
     const reinitializeForm = (newValues) => {
       if (formRef.current) {
@@ -27,6 +27,22 @@ export const LoanStep1 = ({ nextStep, formData }) => {
         formRef.current.validateForm();
       }
     };
+
+		const processPeripherals = (peripheralsString) => {
+			if (!peripheralsString) return {};
+		
+			return peripheralsString
+				.split(',')
+				.map(peripheral => peripheral.trim())
+				.reduce((acc, peripheral) => {
+					if (acc[peripheral]) {
+						acc[peripheral] += 1;
+					} else {
+						acc[peripheral] = 1;
+					}
+					return acc;
+				}, {});
+		};
   
     const setValuesExcel = (records) => {
       try {
@@ -35,14 +51,14 @@ export const LoanStep1 = ({ nextStep, formData }) => {
 					if (acc[assetTag]) {
 						throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
 					}
+
+					const peripherals = processPeripherals(record.peripherals);
 				
 					acc[assetTag] = {
 						userNames: record.userNames
 							? [...new Set(record.userNames.split(',').map(user => user.trim()))]
 							: [],
-						peripherals: record.peripherals
-							? [...new Set(record.peripherals.split(',').map(peripheral => peripheral.trim()))]
-							: [],
+						peripherals: Object.entries(peripherals).map(([name, count]) => ({peripheralName: name, count: count}))
 					};
 				
 					return acc;
@@ -127,7 +143,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
     const validateUser = (user, userIDDuplicates) => {
       if (userIDDuplicates.has(user['userId'])) return 'Users must be unique for each loan';
       if (!user['userId']) return 'User is Required';
-      if (!isValidUuid(user['userId'])) return `${user['userId']} is not found / ambiguous.`;
+      if (user['userId'] === '' && user['userName'] !== user['userId']) return `${user['userName']} is not found / ambiguous.`;
       return null;
     };
     
@@ -135,7 +151,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
       if (assetIDDuplicates.has(asset['assetId'])) return 'Asset must be unique for each loan';
       if (!asset['assetId']) return 'Asset is Required';
       if (mode === LoanType.SINGLE && userCount > 1) return `${asset.assetTag} is not a shared asset.`;
-      if (!isValidUuid(asset['assetId'])) return `${asset['assetId']} is not found / ambiguous.`;
+      if (asset['assetId'] === '' && asset['assetTag'] !== asset['assetId']) return `${asset['assetTag']} is not found / ambiguous.`;
       return null;
     };
     
@@ -159,7 +175,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
     };
   
     const validate = values => {
-			console.log(formRef.current?.values);
+			// console.log(formRef.current?.values);
       const errors = {};
       const newPeripherals = {};
   
@@ -191,7 +207,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
 						setFieldError(errors, ['loans', loanIndex, 'asset', 'peripherals', peripheralIndex, 'id'], peripheralError);
 					}
 					// Track new peripherals for warnings
-					if (peripheral.id !== '' && !isValidUuid(peripheral.id)) {
+					if (peripheral.id !== '' && (peripheral.id === peripheral.peripheralName)) {
 						newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
 					}
 				});

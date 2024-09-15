@@ -11,12 +11,13 @@ import { useFormikContext } from 'formik';
 import { AddButton, RemoveButton } from "./utils/ItemButtons"
 import { useLoan } from "../../context/LoanProvider"
 import DateInputControl from "./utils/DateInputControl"
-import { v4 as uuidv4, validate as isValidUuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
-export const createNewPeripheral = (id='') => ({
+export const createNewPeripheral = (peripheralName='', count=1) => ({
 	'key': uuidv4(),
-	'id': id,
-	'count': 1, 
+	'id': peripheralName,
+	'peripheralName': peripheralName,
+	'count': count, 
 })
 
 export const LoanAsset = function({ loanIndex, asset }) {
@@ -28,10 +29,10 @@ export const LoanAsset = function({ loanIndex, asset }) {
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
 	const { mode, setMode, warnings } = useLoan();
-	// console.log(warnings);
+	console.log(warnings);
 
 	useEffect(() => {
-		if (!asset.assetId || !isValidUuid(asset.assetId)) return;
+		if (!asset.assetId || asset.assetTag === asset.assetId) return;
 		const fetchItems = async () => {
 			try {
 			const response = await peripheralService.getSuggestedPeripherals(asset.assetId);
@@ -76,18 +77,20 @@ export const LoanAsset = function({ loanIndex, asset }) {
 							)}
 						</HStack>
 						{asset.peripherals && asset.peripherals.length > 0 && asset.peripherals.map((peripheral, index, array) => {
-							const fieldName = `loans.${loanIndex}.asset.peripherals.${index}`
 							// console.log(fieldName);
 							return (
 								<Box key={peripheral.key}>
 									<SearchCreatableSingleSelectFormControl
-										name={`${fieldName}.id`}
+										name={`loans.${loanIndex}.asset.peripherals.${index}.id`}
 										defaultOptions={suggestedOptions}
 										searchFn={handlePeripheralSearch}
-										warning={warnings?.loans?.[loanIndex]?.peripherals?.[index]?.id || null}
+										secondaryFieldsMeta={[
+											{name: `loans.${loanIndex}.asset.peripherals.${index}.peripheralName`, attr: 'peripheralName'},
+										]}
+										warning={warnings?.peripherals?.[index]?.id || null}
 									>
 										<InputFormControl
-											name={`${fieldName}.count`} 
+											name={`loans.${loanIndex}.asset.peripherals.${index}.count`} 
 											type="number" 
 											placeholder="Enter count" 
 										/>
@@ -114,10 +117,6 @@ export const LoanAsset = function({ loanIndex, asset }) {
 					</Box>
 				)}
 			</FieldArray>
-			<Flex mt={2}>
-				<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.asset.loanDate`} />
-				<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.asset.expectedReturnDate`} />
-			</Flex>
 		</>
 	)
 }

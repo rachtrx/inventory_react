@@ -33,9 +33,11 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets/bookmark`, {id, bookmarked});
     }
 
-    async loanAsset(id, userId) {
+    async loanAsset(formData) {
         console.log('loaning asset');
-        return await this.axios.post(`${API_URL}/assets/loan`, [id, userId]);;
+        console.log(formData);
+        downloadFormData(formData);
+        // return await this.axios.post(`${API_URL}/forms/loan`, formData);;
     }
     
     async returnAsset(id) {
@@ -54,6 +56,18 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets/search`, { value, formType, mode });
     }
 }
+
+const downloadFormData = (formData) => {
+    const data = JSON.stringify(formData, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'formData.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+  
 
 const assetService = new AssetService(axiosInstance);
 export default assetService;

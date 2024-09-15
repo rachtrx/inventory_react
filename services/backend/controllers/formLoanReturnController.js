@@ -1,8 +1,9 @@
-const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset } = require('../models/postgres');
+const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, TaggedPeripheralLoan, Event, Remark  } = require('../models/postgres');
 const FormHelpers = require('./formHelperController.js');
 const { Event } = require('../models/mongo');
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
+const peripheralController = require('./peripheralController.js');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -12,62 +13,211 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 class FormLoanReturnController {
 
     async loan (req, res) {
-        console.log(req.body);
-        const { signature, ...otherFormData } = req.body;
+        logger.info(req.body);
+        const { loans, signatures } = req.body;
 
         let filePath = null;
-    
-        if (signature) {
-            // Decode base64 string
-            const base64Data = signature.replace(/^data:image\/png;base64,/, '');
-    
-            // Create a unique file name
-            const fileName = `${Date.now()}-signature.png`;
-    
-            // Define the path to save the file
-            const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
-            filePath = path.join(uploadsDir, 'signatures', fileName);
-    
-            // Save the file to the server
-            fs.writeFile(filePath, base64Data, 'base64', (err) => {
-                if (err) {
-                    return res.status(500).json({ error: 'Failed to save signature' });
-                }
-    
-                // You might want to save the file path or URL in the database
-                // Example: await database.saveSignaturePath(filePath, otherFormData.userId);
-    
-                res.status(200).json({ message: 'Signature saved successfully', filePath });
-            });
-        }
 
-        const userId = otherFormData.userId;
-        const assetId = otherFormData.assetId;
-    
-        const session = await mongoose.startSession();
-        session.startTransaction();
-    
+        // Start a transaction
+        const transaction = await sequelize.transaction();
+
         try {
-            const asset = await Asset.findById(assetId).session(session);
-            if (!asset) {
-                throw new Error(`Asset ${assetId} not found!`);
+            // VALIDATION
+            // GET all unique users and assets
+            const uniqueUserIds = new Set();
+            const uniqueAssetIds = new Set();
+
+            // Collect unique asset and user IDs
+            loans.forEach(loan => {
+                uniqueAssetIds.add(loan.asset.assetId);
+                loan.users.forEach(user => uniqueUserIds.add(user.userId));
+            });
+
+            // Fetch and validate all unique assets in parallel
+            const assetsData = await Promise.all(
+                [...uniqueAssetIds].map(assetId => Asset.findByPk(assetId, { transaction }))
+            );
+
+            // Fetch and validate all unique users in parallel
+            const usersData = await Promise.all(
+                [...uniqueUserIds].map(userId => User.findByPk(userId, { transaction }))
+            );
+
+            // VALIDATE all unique users and assets
+            await Promise.all(assetsData.map(async (assetData, index) => {
+                if (!assetData) {
+                    throw new Error(`Asset with ID ${[...uniqueAssetIds][index]} not found!`);
+                }
+            
+                if (!assetData.shared) {
+                    // Check if the asset is already on loan
+                    const isOnLoan = await Asset.findOne({
+                        include: {
+                            model: AssetLoan,
+                            attributes: [],
+                            required: true,
+                            where: { returnEventId: { [Op.eq]: null } }
+                        },
+                        transaction
+                    });
+            
+                    if (isOnLoan) {
+                        throw new Error(`Asset with ID ${assetData.assetId} is still on loan!`);
+                    }
+                }
+            
+                if (assetData.deleteEventId) {
+                    throw new Error(`Asset with ID ${assetData.assetId} is condemned!`);
+                }
+            }));
+
+            usersData.forEach((userData, index) => {
+                if (!userData) {
+                    throw new Error(`User with ID ${[...uniqueUserIds][index]} not found.`);
+                }
+                if (userData.deleteEventId) {
+                    throw new Error(`User with ID ${userData.userId} is deleted.`);
+                }
+            });
+            
+            // CREATE any new peripherals
+            const newPeripherals = {}; // tracks <newPeripheralName>: <newPeripheralId>
+            const peripheralCache = {}; // tracks <peripheralId>: <peripheralTypeObject>
+            for (const loan of loans) {
+                if (loan.peripherals) {
+                    for (const peripheral of loan.peripherals) {
+                        let peripheralType;
+                        // id === name means new. Check if added to newPeripherals already
+                        if (peripheral.id === peripheral.PeripheralName && !newPeripherals[peripheral.PeripheralName]) {
+                            peripheralType = await peripheralController.createPeripheralType(
+                                peripheral.PeripheralName,
+                                peripheral.count,
+                                transaction
+                            );
+                            newPeripherals[peripheral.PeripheralName] = peripheralType.id;
+                            peripheral.id = peripheralType.id;
+                            peripheralCache[peripheral.id] = {peripheralType: peripheralType}; // Setup, add count later
+                        } else if (peripheral.id === peripheral.PeripheralName) {
+                            // if new but added to newPeripherals already, just need to update the id
+                            peripheral.id = newPeripherals[peripheral.PeripheralName];
+                        } else if (!peripheralCache[peripheral.id]) {
+                            // Get existing peripheral type if not found yet and update cache
+                            peripheralType = await PeripheralType.findByPk(peripheral.id, {transaction});
+                            peripheralCache[peripheral.id] = {peripheralType: peripheralType}; // Setup, add count later
+                        }
+                        
+                        // Add count now
+                        peripheralCache[peripheral.id] = {
+                            ...peripheralCache[peripheral.id], 
+                            count: (peripheralCache[peripheral.id].count || 0) + peripheral.count
+                        };
+                    }
+                }
             }
-            if (asset.status === 'loaned') {
-                throw new Error("Asset is still on loan!");
+            
+            // TOP UP MISSING PERIPHERALS
+            for (const peripheralData of Object.values(peripheralCache)) {
+                const {peripheralType, count} = peripheralData;
+                if (peripheralType.availableCount < count) {
+                    await peripheralType.update({
+                        availableCount: peripheralType.availableCount + count
+                    }, { transaction });
+                }
             }
-            if (asset.status === 'condemned') {
-                throw new Error("Asset tag is already condemned!");
+
+            const userLoans = {}
+
+            // INSERTION
+            for (const loan of loans) {
+                const { asset, users, mode, loanDate, expectedReturnDate=null } = loan;
+
+                const loanEventId = generateSecureID()
+
+                // Event, Remarks
+                await Event.create({
+                    id: loanEventId,
+                    adminId: req.auth.id,
+                    eventDate: loanDate
+                }, { transaction });
+
+                if (asset.remarks !== '') await Remark.create({
+                    id: generateSecureID(),
+                    eventId: loanEventId,
+                    remarks: asset.remarks
+                }, { transaction });
+                
+                // Asset Loans and User Loans for each user
+                const assetLoanIds = {}
+                for (const user of users) {
+                    const userLoanId = generateSecureID()
+                    const userLoan = await UserLoan.create({
+                        id: userLoanId,
+                        userId: user.userId,
+                        loanEventId: loanEventId,
+                        expectedReturnDate: expectedReturnDate
+                    }, { transaction });
+                    
+                    if (!userLoans[user.userId]) userLoans[user.userId] = [userLoan]
+                    else userLoans[user.userId].push(userLoan);
+                    
+                    assetLoanIds[user.userId] = generateSecureID()
+                    await AssetLoan.create({
+                        id: assetLoanIds[user.userId],
+                        userLoanId: userLoanId,
+                        assetId: asset.assetId,
+                    }, { transaction });
+                }
+
+                // Peripheral Loans for each count of each type for each user
+                if (asset.peripherals) {
+                    for (const peripheral of asset.peripherals) {
+                        for (let idx = 0; idx < peripheral.count; idx++) {
+                            const peripheral = await Peripheral.create({
+                                id: generateSecureID(),
+                                peripheralTypeId: peripheral.id
+                            }, { transaction });
+
+                            for (const user of users) {
+                                await TaggedPeripheralLoan.create({
+                                    id: generateSecureID(),
+                                    assetLoanId: assetLoanIds[user.userId],
+                                    assetId: asset.assetId,
+                                }, { transaction });
+                            }
+
+                            await peripheralCache[peripheral.id].peripheralType.update({
+                                availableCount: peripheralCache[peripheral.id].peripheralType.availableCount - 1
+                            }, { transaction });
+                        }
+                    }
+                }
             }
-            await FormHelpers.insertAssetEvent(generateSecureID(), assetId, 'loaned', otherFormData.remarks, userId, null, filePath, session);
-            await FormHelpers.updateStatus(assetId, 'loaned', userId, session);
+
+            // Updating the Signatures
+            if (signatures) {
+                for (const [userId, signature] of Object.entries(signatures)) {
+                    const base64Data = signature.replace(/^data:image\/png;base64,/, '');
+                    const fileName = `${Date.now()}-${userId}-signature.png`;
+                    const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
+                    filePath = path.join(uploadsDir, 'signatures', fileName);
     
-            await session.commitTransaction();
-            session.endSession();
+                    await fs.promises.writeFile(filePath, base64Data, 'base64');
     
+                    for (const userLoan of userLoans[userId]) {
+                        await userLoan.update({
+                            filepath: filePath
+                        }, { transaction });
+                    }
+                }
+            }
+
+            // Commit the transaction
+            await transaction.commit();
+
             return res.json({ message: 'All assets processed successfully.' });
         } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
+            // Rollback transaction on error
+            await transaction.rollback();
             console.error("Transaction failed:", error);
             return res.status(500).json({ error: error.message });
         }

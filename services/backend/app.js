@@ -52,7 +52,6 @@ const userRoutes = require('./routes/userRoutes');
 const peripheralRoutes = require('./routes/peripheralRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
-
 const formRoutes = require('./routes/formRoutes');
 
 app.use('/auth', authRoutes);
@@ -61,7 +60,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/peripherals', peripheralRoutes);
-
 app.use('/api/forms', formRoutes);
 
 // Setup global error handling middleware to catch authentication errors

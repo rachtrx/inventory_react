@@ -20,9 +20,12 @@ const withSelect = (Component) => ({
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const [options, setOptions] = useState(initialOptions);
   const { setFieldValue } = useFormikContext();
+
+  useEffect(() => console.log(options), [options])
   
   const handleChange = useCallback(
     (selected) => {
+      console.log(selected);
       if (secondaryFieldsMeta && Array.isArray(secondaryFieldsMeta)) {
         secondaryFieldsMeta.forEach(({ name, attr }) => {
           setFieldValue(name, selected?.[attr] ? selected[attr] : '');
@@ -36,17 +39,24 @@ const withSelect = (Component) => ({
         newValue = selected?.value.trim() || '';
       }
 
+      const newOptions = isMulti ? selected : [selected];
+      newOptions.forEach((option) => {
+        if (option && !options.some((o) => o.value === option.value)) {
+          setOptions((prevOptions) => [...prevOptions, { value: option.value, label: option.label }]);
+        }
+      });
+      
       setValue(newValue);
       setTouched(true);
     },
-    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, isMulti]
+    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, options, isMulti]
   );
 
   const selectedOption = useMemo(() => {
     if (isMulti) {
-      return options.filter((option) => value.includes(option.value));
+      return options.filter((option) => value.includes(option?.value));
     } else {
-      return options.find((option) => option.value === value) || null;
+      return options.find((option) => option?.value === value) || null;
     }
   }, [value, options, isMulti]);
 
@@ -87,19 +97,6 @@ const withCreate = (Component) => ({
   isMulti = false,
   ...props
 }) => {
-  const [{ value }, , { setValue }] = useField(name);
-
-  const handleCreateOption = (inputValue) => {
-    const newOption = { value: inputValue, label: inputValue, __isNew__: true };
-    
-    setOptions((prevOptions) => [...prevOptions, newOption]);
-    
-    if (isMulti) {
-      setValue([...value, inputValue]);
-    } else {
-      setValue(inputValue);
-    }
-  };
 
   return (
     <Component
@@ -107,7 +104,7 @@ const withCreate = (Component) => ({
       name={name}
       options={options}
       setOptions={setOptions}
-      onCreateOption={handleCreateOption}
+      creatable={true}
     />
   );
 };
@@ -118,7 +115,7 @@ const withSearch = (Component) => ({
   setOptions,
   searchFn,
   isMulti = false,
-  onCreateOption = null,
+  creatable=false,
   ...props
 }) => {
   
@@ -133,32 +130,44 @@ const withSearch = (Component) => ({
         // console.log(`Value in search fn: ${value}`);
         const response = await searchFn(value);
         const data = response.data;
-        let option;
+
+        console.log(data);
+
+        let option = null;
 
         setTouched(true);
 
-        if (data.length === 1) {
-          option = data[0];
-          setValue(option.value.trim());
-        } else if (onCreateOption) {
-          option = {value, label: value, __isNew__: true};
-          onCreateOption(option);
-          setValue(value.trim());
-        } else return;
+        if (data.length >= 1) {
+          option = data.find(item => item.label === value);
+          if (option && option.description) {
+            option = {...option, label: `${option.label} - ${option.description}`}
+          }
+        } else if (creatable) {
+          option = { value: value.trim(), label: value.trim() }
+        }
 
-        setOptions([option]);
+        if (!option) {
+          setOptions([]);
+          setValue('');
+          throw new Error(`${value} not found!`)
+        } else {
+          setOptions([option]);
+          setValue(option.value);
+        }
+        
       } catch (error) {
         handleError(error);
       }
     };
 
     fetchData();
-  }, [value, meta, searchFn, setValue, setTouched, isMulti, handleError, onCreateOption, setOptions]);
+  }, [value]);  // Only run on `value` change
 
   const handleSearch = useCallback(
     async (inputValue) => {
       try {
         if (inputValue === '') return;
+        console.log(`input value detected: ${inputValue}`);
         const response = await searchFn(inputValue);
         setOptions(response.data);
       } catch (error) {

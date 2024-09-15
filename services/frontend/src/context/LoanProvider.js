@@ -9,7 +9,7 @@ import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
 import { LoanSummary } from '../components/forms/utils/LoanSummary';
 import { AddButton } from '../components/forms/utils/ItemButtons';
-import { validate as isValidUuid } from "uuid";
+import { useFormModal } from './ModalProvider';
 
 const LoanMode = ({ mode }) => {
   return (
@@ -42,18 +42,17 @@ export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) =
   const [ mode, setMode ] = useState(null);
   const { values, setFieldValue } = useFormikContext();
 
+  console.log(values);
+
   useEffect(() => {
     setFieldValue(`loans.${loanIndex}.mode`, mode);
   }, [mode, setFieldValue, loanIndex])
 
   useEffect(() => {
-    if (loan.users.length >= 2) setMode(LoanType.SHARED);
-    else {
-      const noAsset = !isValidUuid(loan.asset.assetId);
-      if (noAsset) setMode('');
-      else if (!loan.asset.shared) setMode(LoanType.SINGLE);
-      else if (loan.asset.shared) setMode(LoanType.SHARED);
-    }
+    const noAsset = loan.asset.assetId === '';
+    if (noAsset && loan.users.length === 1) setMode('');
+    else if (!loan.asset.shared) setMode(LoanType.SINGLE);
+    else setMode(LoanType.SHARED);
 	}, [loan, setMode])
 
   const removeLoan = useCallback(() => loanHelpers.remove(loanIndex), [loanHelpers, loanIndex])

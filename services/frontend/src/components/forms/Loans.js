@@ -4,6 +4,7 @@ import { LoanStep1 } from "./LoanStep1";
 import { useUI } from "../../context/UIProvider";
 import assetService from "../../services/AssetService";
 import { createNewLoan } from "./Loan";
+import { Box } from "@chakra-ui/react";
 
 const Loans = () => {
 
@@ -16,13 +17,27 @@ const Loans = () => {
   });
   const [userLoans, setUserLoans] = useState({});
 
-  const prevStep = () => setStep(step - 1);
+  const prevStep = () => {
+    const resetLoans = formData.loans.map(loan => {
+      return createNewLoan(
+        loan.asset.assetTag, 
+        loan.users.map(user => user.userName), 
+        loan.asset.peripherals,
+        loan.loanDate,
+        loan.expectedReturnDate
+      );
+    })
+    setFormData((prevData) => ({
+      ...prevData,
+      loans: resetLoans
+    }));
+    setStep(step - 1)
+  };
 
   const handleUserData = (values, actions) => {
     console.log('Manual Form Values:', values);
-    setLoading(true);
     const userLoans = {}
-    const signatures = [];
+    const signatures = {};
 
     values.loans.forEach((loan) =>
       loan.users?.forEach((user) => {
@@ -31,6 +46,7 @@ const Loans = () => {
           userLoans[user.userId].assets = [loan.asset];
           userLoans[user.userId].userName = user.userName;
           signatures[user.userId] = ''
+          console.log(signatures);
         } else userLoans[user.userId].assets.push(loan.asset)
       })
     );
@@ -60,10 +76,10 @@ const Loans = () => {
   };
 
   return (
-    <div>
+    <Box>
       {step === 1 && <LoanStep1 nextStep={handleUserData} formData={formData}/>}
       {step === 2 && <LoanStep2 prevStep={prevStep} handleSubmit={handleSubmit} userLoans={userLoans} formData={formData}/>}
-    </div>
+    </Box>
   );
 };
 

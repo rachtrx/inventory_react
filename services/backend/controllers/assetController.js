@@ -192,41 +192,24 @@ class AssetController {
             orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN status = 'Available' THEN 1
-                        WHEN status = 'Reserved' THEN 2
-                        WHEN status = 'On Loan' THEN 3
-                        WHEN status = 'Condemned' THEN 4
+                        WHEN shared = 1 OR ("userCount" = 0 AND "reserveCount" = 0) THEN 1
+                        WHEN "reserveCount" > 0 THEN 2
+                        WHEN "userCount" > 0 THEN 3
+                        WHEN "deletedDate" IS NOT NULL THEN 4
                         ELSE 5
-                    END,
-                "updatedAt" DESC
+                    END ASC,
+                "lastReturn" DESC
             `;
-            validStatuses = ['Available']
-        } else if (formType === formTypes.DEL_ASSET) {
-            orderByClause = `
-                ORDER BY 
-                    CASE 
-                        WHEN status = 'Available' THEN 1
-                        WHEN status = 'Reserved' THEN 2
-                        WHEN status = 'On Loan' THEN 3
-                        WHEN status = 'Condemned' THEN 4
-                        ELSE 5
-                    END,
-                "updatedAt" DESC
-            `;
-            validStatuses = ['Available']
         } else if (formType === formTypes.RETURN) {
             orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN status = 'On Loan' THEN 1
-                        WHEN status = 'Reserved' THEN 2
-                        WHEN status = 'Available' THEN 3
-                        WHEN status = 'Condemned' THEN 4
-                        ELSE 5
-                    END,
-                "updatedAt" DESC
+                        WHEN "userCount" > 0 THEN 1
+                        WHEN "deletedDate" IS NOT NULL THEN 2
+                        ELSE 3
+                    END ASC,
+                "lastLoan" ASC
             `;
-            validStatuses = ['On Loan']
         } else {
             throw new Error('Invalid form type provided.');
         }
@@ -244,29 +227,24 @@ class AssetController {
                     asset_type_variants.variant_name AS "variantName",
                     asset_types.asset_type AS "assetType",
                     vendors.vendor_name AS "vendorName",
-                    assets.updated_at AS "updatedAt",
-                    COUNT(loan_event.id) AS loan_count,
-                    COUNT(return_event.id) AS return_count,
-                    COUNT(reserve_event.id) AS reserve_count,
-                    COUNT(cancel_event.id) AS cancel_count,
-
-                    CASE 
-                        WHEN delete_event.event_date IS NOT NULL THEN 'Deleted'
-                        WHEN assets.shared THEN 'Available'
-                        WHEN COUNT(loan_event.id) > COUNT(return_event.id) THEN 'On Loan'
-                        WHEN COUNT(loan_event.id) = COUNT(return_event.id) 
-                            AND COUNT(reserve_event.id) > COUNT(cancel_event.id) THEN 'Reserved'
-                        ELSE 'Available'
-                    END AS status
-
+                    MAX(loan_event.event_date) AS "lastLoan",
+                    MAX(return_event.event_date) AS "lastReturn",
+                    COUNT(loan_event.id) - COUNT(return_event.id) AS "userCount",
+                    SUM(
+                        CASE 
+                            WHEN loan_event.id IS NULL 
+                                AND return_event.id IS NULL 
+                                AND cancel_event.id IS NULL 
+                                AND reserve_event.id IS NOT NULL THEN 1 
+                            ELSE 0
+                        END
+                    ) AS "reserveCount"
                 FROM assets
                 LEFT JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
                 LEFT JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
                 LEFT JOIN vendors ON assets.vendor_id = vendors.id
-                LEFT JOIN asset_loans ON assets.loan_id = asset_loans.id
+                LEFT JOIN asset_loans ON assets.id = asset_loans.asset_id
                 LEFT JOIN user_loans ON asset_loans.user_loan_id = user_loans.id
-                LEFT JOIN users ON user_loans.user_id = users.id
-                -- Join the events table twice, once for the deleted event and once for the added event
                 LEFT JOIN events AS delete_event ON assets.delete_event_id = delete_event.id
                 LEFT JOIN events AS add_event ON assets.add_event_id = add_event.id
                 LEFT JOIN events AS loan_event ON user_loans.loan_event_id = loan_event.id
@@ -274,7 +252,17 @@ class AssetController {
                 LEFT JOIN events AS reserve_event ON user_loans.reserve_event_id = reserve_event.id
                 LEFT JOIN events AS cancel_event ON user_loans.cancel_event_id = cancel_event.id
                 WHERE (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)
-                GROUP BY assets.id, asset_types.asset_type, asset_type_variants.variant_name, vendors.vendor_name, delete_event.event_date, add_event.event_date
+                GROUP BY 
+                    assets.id, 
+                    assets.serial_number, 
+                    assets.asset_tag, 
+                    assets.bookmarked, 
+                    assets.shared, 
+                    delete_event.event_date, 
+                    add_event.event_date, 
+                    asset_type_variants.variant_name, 
+                    asset_types.asset_type, 
+                    vendors.vendor_name
             )
             SELECT *
             FROM AssetLoanCounts
@@ -288,13 +276,18 @@ class AssetController {
                 type: sequelize.QueryTypes.SELECT
             });
     
-            response = assets.map((asset) => {
+            const response = assets.map((asset) => {
                 logger.info(asset);
+
+                asset.userCount = Number(asset.userCount);
+                asset.reserveCount = Number(asset.reserveCount);
                 
                 if (asset.deletedDate) {
                     asset.status = 'Deleted';
-                } else if (asset.userIds?.length > 0) {
-                    asset.status = `${asset.userIds.length} user${asset.userIds.length > 1 ? 's' : ''}`;
+                } else if (asset.userCount !== 0 && !asset.shared) {
+                    asset.status = `On Loan: ${asset.userCount} user${asset.userCount === 1 ? '' : 's'}`;
+                } else if (asset.reserveCount !== 0 && !asset.shared) {
+                    asset.status = `Reserved: ${asset.reserveCount} user${asset.reserveCount === 1 ? '' : 's'}`;
                 } else {
                     asset.status = `Available`;
                 }
@@ -304,8 +297,6 @@ class AssetController {
                 let disabled;
                 switch(formType) {
                     case formTypes.LOAN:
-                        disabled = status !== 'Available' && !shared
-                        break;
                     case formTypes.DEL_ASSET:
                         disabled = status !== 'Available'
                         break;
@@ -318,7 +309,8 @@ class AssetController {
                     value: id,
                     assetType,
                     variantName, 
-                    label: `${assetTag} - ${serialNumber} ${disabled ? `(${status})` : ''}`, // Append status if disabled
+                    label: `${assetTag}`, // Append status if disabled,
+                    description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
                     assetTag: assetTag,
                     shared: shared,
                     isDisabled: disabled // Disable if not in valid statuses or already included

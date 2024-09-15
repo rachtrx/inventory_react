@@ -136,20 +136,19 @@ export const ModalProvider = ({ children }) => {
 
   console.log("Modal rendered");
 
-
   const handleAssetSearch = useCallback(async (value) => {
     console.log(`Asset Search Called: ${value}`);
-    return await assetService.searchAssets(value, formType);
+    return await assetService.searchAssets(value.trim(), formType);
   }, [formType]);
   
   const handleUserSearch = useCallback(async (value) => {
     console.log(`User Search Called: ${value}`);
-    return await userService.searchUsers(value, formType);
+    return await userService.searchUsers(value.trim(), formType);
   }, [formType]);
   
   const handlePeripheralSearch = useCallback(async (value) => {
     console.log(`Peripheral Search Called: ${value}`);
-    return await peripheralService.searchPeripherals(value);
+    return await peripheralService.searchPeripherals(value.trim());
   }, []);
 
   return (

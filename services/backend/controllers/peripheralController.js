@@ -1,7 +1,7 @@
 const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType } = require('../models/postgres');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
-const isValidID = require('../utils/nanoidValidation.js');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 
 class PeripheralController {
@@ -237,10 +237,10 @@ class PeripheralController {
         }
     }
 
-    async createPeripheral(peripheralName, count, transaction) {
+    async createPeripheralType(peripheralName, count, transaction) {
         console.log("Creating Peripheral");
         return await PeripheralType.create({ 
-            id: uuidv4(), 
+            id: generateSecureID(), 
             peripheralName, 
             availableCount: count 
         }, { transaction });
@@ -262,7 +262,7 @@ class PeripheralController {
         }
 
         if (!type) { // TODO check for the name first?
-            type = this.createPeripheral(peripheralTypeId, 1);
+            type = this.createPeripheralType(peripheralTypeId, 1);
         }
 
         const newPeripheral = PeripheralLoan.build({
@@ -302,8 +302,8 @@ class PeripheralController {
                     type.availableCount += peripheral.count;
                     await type.save({ transaction });
                 } else {
-                    // Ensure you await the call to createPeripheral and pass the transaction
-                    await this.createPeripheral(peripheral.id, peripheral.count, transaction);
+                    // Ensure you await the call to createPeripheralType and pass the transaction
+                    await this.createPeripheralType(peripheral.id, peripheral.count, transaction);
                 }
             }
             await transaction.commit(); // Commit only after all peripherals are processed

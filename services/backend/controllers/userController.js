@@ -235,18 +235,18 @@ class UserController {
     
         if (formType === 'LOAN') {
             orderByClause = `
-                ORDER BY 
+                ORDER BY
                     "deletedDate" IS NOT NULL ASC,
-                    "updatedAt" DESC
+                    "lastEventDate" DESC
             `;
         } else if (formType === 'DEL_USER') {
             orderByClause = `
                 ORDER BY 
                     "deletedDate" IS NOT NULL ASC,
-                    ("reserveCount" = 0 AND "loanCount" = 0) ASC,
-                    "reserveCount" = 0 ASC,
-                    "loanCount" = 0 ASC,
-                    "updatedAt" DESC
+                    ("reserveCount" = 0 AND "loanCount" = 0) DESC,
+                    "reserveCount" = 0 DESC,
+                    "loanCount" = 0 DESC,
+                    "lastEventDate" DESC
             `;
         } else {
             throw new Error('Invalid form type provided.');
@@ -258,18 +258,43 @@ class UserController {
                     users.id, 
                     users.user_name AS name, 
                     users.bookmarked, 
-                    users.deleted_date AS "deletedDate", 
+                    delete_event.event_date AS "deletedDate",
                     departments.dept_name AS department,
-                    CAST(COUNT(CASE WHEN loan_details.status = 'COMPLETED' AND assets.id IS NOT NULL THEN 1 END) AS INTEGER) AS "loanCount",
-                    CAST(COUNT(CASE WHEN loan_details.status = 'RESERVED' AND assets.id IS NOT NULL THEN 1 END) AS INTEGER) AS "reserveCount",
-                    users.updated_at AS "updatedAt"
+                    GREATEST(
+                        MAX(delete_event.event_date),
+                        MAX(add_event.event_date),
+                        MAX(loan_event.event_date),
+                        MAX(return_event.event_date),
+                        MAX(reserve_event.event_date),
+                        MAX(cancel_event.event_date)
+                    ) AS "lastEventDate",
+                    COUNT(loan_event.id) - COUNT(return_event.id) AS "loanCount",
+                    SUM(
+                        CASE 
+                            WHEN loan_event.id IS NULL 
+                                AND return_event.id IS NULL 
+                                AND cancel_event.id IS NULL 
+                                AND reserve_event.id IS NOT NULL THEN 1 
+                            ELSE 0
+                        END
+                    ) AS "reserveCount"
                 FROM users
-                LEFT JOIN loan_details ON users.id = loan_details.user_id
-                LEFT JOIN loans ON loan_details.loan_id = loans.id
-                LEFT JOIN assets ON loans.id = assets.loan_id
+                LEFT JOIN user_loans ON users.id = user_loans.user_id
+                LEFT JOIN asset_loans ON asset_loans.id = asset_loans.user_loan_id
+                LEFT JOIN events AS delete_event ON users.delete_event_id = delete_event.id
+                LEFT JOIN events AS add_event ON users.add_event_id = add_event.id
+                LEFT JOIN events AS loan_event ON user_loans.loan_event_id = loan_event.id
+                LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
+                LEFT JOIN events AS reserve_event ON user_loans.reserve_event_id = reserve_event.id
+                LEFT JOIN events AS cancel_event ON user_loans.cancel_event_id = cancel_event.id
                 LEFT JOIN departments ON users.dept_id = departments.id
                 WHERE users.user_name ILIKE :userName
-                GROUP BY users.id, departments.dept_name
+                GROUP BY 
+                    users.id, 
+                    users.user_name, 
+                    users.bookmarked, 
+                    delete_event.event_date,
+                    departments.dept_name
             )
             SELECT *
             FROM UserLoanCounts
@@ -283,7 +308,7 @@ class UserController {
                 type: sequelize.QueryTypes.SELECT
             });
     
-            response = users.map(user => {
+            const response = users.map(user => {
                 logger.info(user)
                 if (user.deletedDate) {
                     user.status = 'Deleted';
@@ -308,7 +333,8 @@ class UserController {
             
                 return {
                     value: user.id,
-                    label: `${name} - ${department} ${disabled ? `(${status})` : ''}`, // Capitalize the first letter
+                    label: `${name}`, // Capitalize the first letter
+                    description: `${department} ${disabled ? `(${status})` : ''}`,
                     userName: name,
                     isDisabled: disabled // Disable if not in validStatuses
                 };
