@@ -15,7 +15,7 @@ import { ItemLink } from '../buttons/ItemLink';
 const UserTable = ({ items }) => {
 
   const { loading, setLoading, error, setError }  = useUI();
-  const { handleToggle } = useItems()
+  const { handleUpdate } = useItems()
 
   return (
     <Table size='sm' variant="simple">
@@ -34,7 +34,7 @@ const UserTable = ({ items }) => {
             _hover={{ bg: 'gray.100' }}
             // onClick={() => handleItemClick(user)}
           >
-            <Td><StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleToggle}/></Td>
+            <Td><StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
             <Td><ResponsiveText>{user.department}</ResponsiveText></Td><Td>
               {user.assets?.length > 0 ? 

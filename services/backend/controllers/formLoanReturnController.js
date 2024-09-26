@@ -1,9 +1,11 @@
 const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, TaggedPeripheralLoan, Event, Remark  } = require('../models/postgres');
+const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
-const { Event } = require('../models/mongo');
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const peripheralController = require('./peripheralController.js');
+const path = require('path');
+const fs = require('fs');   
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -13,7 +15,7 @@ const peripheralController = require('./peripheralController.js');
 class FormLoanReturnController {
 
     async loan (req, res) {
-        logger.info(req.body);
+        // logger.info(req.body);
         const { loans, signatures } = req.body;
 
         let filePath = null;
@@ -46,7 +48,7 @@ class FormLoanReturnController {
             // VALIDATE all unique users and assets
             await Promise.all(assetsData.map(async (assetData, index) => {
                 if (!assetData) {
-                    throw new Error(`Asset with ID ${[...uniqueAssetIds][index]} not found!`);
+                    throw new Error(`Asset with ID ${[...uniqueAssetIds][index]} not found!`); // TODO CONVERT TO TAG
                 }
             
                 if (!assetData.shared) {
@@ -58,16 +60,17 @@ class FormLoanReturnController {
                             required: true,
                             where: { returnEventId: { [Op.eq]: null } }
                         },
+                        where: { id: assetData.id },
                         transaction
                     });
             
                     if (isOnLoan) {
-                        throw new Error(`Asset with ID ${assetData.assetId} is still on loan!`);
+                        throw new Error(`Asset with ID ${assetData.assetTag} is still on loan!`);
                     }
                 }
             
                 if (assetData.deleteEventId) {
-                    throw new Error(`Asset with ID ${assetData.assetId} is condemned!`);
+                    throw new Error(`Asset with ID ${assetData.assetTag} is condemned!`);
                 }
             }));
 
@@ -84,46 +87,48 @@ class FormLoanReturnController {
             const newPeripherals = {}; // tracks <newPeripheralName>: <newPeripheralId>
             const peripheralCache = {}; // tracks <peripheralId>: <peripheralTypeObject>
             for (const loan of loans) {
-                if (loan.peripherals) {
-                    for (const peripheral of loan.peripherals) {
+                if (loan.asset.peripherals) {
+                    for (const peripheral of loan.asset.peripherals) {
                         let peripheralType;
                         // id === name means new. Check if added to newPeripherals already
-                        if (peripheral.id === peripheral.PeripheralName && !newPeripherals[peripheral.PeripheralName]) {
+                        if (peripheral.id === peripheral.peripheralName && !newPeripherals[peripheral.peripheralName]) {
                             peripheralType = await peripheralController.createPeripheralType(
-                                peripheral.PeripheralName,
-                                peripheral.count,
+                                peripheral.peripheralName,
+                                0,
                                 transaction
                             );
-                            newPeripherals[peripheral.PeripheralName] = peripheralType.id;
+                            newPeripherals[peripheral.peripheralName] = peripheralType.id;
                             peripheral.id = peripheralType.id;
-                            peripheralCache[peripheral.id] = {peripheralType: peripheralType}; // Setup, add count later
-                        } else if (peripheral.id === peripheral.PeripheralName) {
+                            peripheralCache[peripheral.id] = peripheralType; // Setup, add count later
+                        } else if (peripheral.id === peripheral.peripheralName) {
                             // if new but added to newPeripherals already, just need to update the id
-                            peripheral.id = newPeripherals[peripheral.PeripheralName];
+                            peripheral.id = newPeripherals[peripheral.peripheralName];
                         } else if (!peripheralCache[peripheral.id]) {
                             // Get existing peripheral type if not found yet and update cache
                             peripheralType = await PeripheralType.findByPk(peripheral.id, {transaction});
-                            peripheralCache[peripheral.id] = {peripheralType: peripheralType}; // Setup, add count later
+                            peripheralCache[peripheral.id] = peripheralType; // Setup, add count later
                         }
                         
-                        // Add count now
-                        peripheralCache[peripheral.id] = {
-                            ...peripheralCache[peripheral.id], 
-                            count: (peripheralCache[peripheral.id].count || 0) + peripheral.count
-                        };
+                        // // Add count now
+                        // peripheralCache[peripheral.id] = {
+                        //     ...peripheralCache[peripheral.id], 
+                        //     count: (peripheralCache[peripheral.id].count || 0) + peripheral.count
+                        // };
                     }
                 }
             }
             
-            // TOP UP MISSING PERIPHERALS
-            for (const peripheralData of Object.values(peripheralCache)) {
-                const {peripheralType, count} = peripheralData;
-                if (peripheralType.availableCount < count) {
-                    await peripheralType.update({
-                        availableCount: peripheralType.availableCount + count
-                    }, { transaction });
-                }
-            }
+            // // TOP UP MISSING PERIPHERALS → Nevermind, just allow negative
+            // for (const peripheralData of Object.values(peripheralCache)) {
+            //     const {peripheralType, count} = peripheralData;
+            //     if (peripheralType.availableCount < count) {
+            //         await peripheralType.update({
+            //             availableCount: peripheralType.availableCount + count
+            //         }, { transaction });
+            //     }
+            // }
+
+            logger.info(loans)
 
             const userLoans = {}
 
@@ -172,7 +177,7 @@ class FormLoanReturnController {
                 if (asset.peripherals) {
                     for (const peripheral of asset.peripherals) {
                         for (let idx = 0; idx < peripheral.count; idx++) {
-                            const peripheral = await Peripheral.create({
+                            const newPeripheralOnLoan = await Peripheral.create({
                                 id: generateSecureID(),
                                 peripheralTypeId: peripheral.id
                             }, { transaction });
@@ -181,14 +186,13 @@ class FormLoanReturnController {
                                 await TaggedPeripheralLoan.create({
                                     id: generateSecureID(),
                                     assetLoanId: assetLoanIds[user.userId],
-                                    assetId: asset.assetId,
+                                    peripheralId: newPeripheralOnLoan.id,
                                 }, { transaction });
                             }
-
-                            await peripheralCache[peripheral.id].peripheralType.update({
-                                availableCount: peripheralCache[peripheral.id].peripheralType.availableCount - 1
-                            }, { transaction });
                         }
+                        await peripheralCache[peripheral.id].update({
+                            availableCount: peripheralCache[peripheral.id].availableCount - peripheral.count
+                        }, { transaction });
                     }
                 }
             }

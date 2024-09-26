@@ -433,14 +433,15 @@ class AssetController {
         }
     };
     
-    async bookmarkAsset(req, res) {
-        const { id, bookmarked } = req.body;
+    async updateAsset(req, res) {
+        const { id, field, newValue } = req.body;
+        logger.info(`${id}, ${field}, ${newValue}`);
     
         try {
             const asset = await Asset.findByPk(id);
     
             if (asset) {
-                asset.bookmarked = bookmarked === true ? 1 : 0;
+                asset[field] = newValue;
                 await asset.save();
                 res.json({ message: "Bookmark updated successfully" });
             } else {

@@ -1,4 +1,4 @@
-const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType } = require('../models/postgres');
+const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType, Peripheral, TaggedPeripheralLoan, UntaggedPeripheralLoan, UserLoan, AssetLoan, Event } = require('../models/postgres');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
@@ -115,8 +115,6 @@ class PeripheralController {
         res.status(200).json(peripherals);
     }
 
-
-
     getType = async (peripheralId, options = {}) => {
         return await PeripheralType.findOne({
             where: { id: peripheralId },
@@ -159,32 +157,103 @@ class PeripheralController {
                 attributes: ['id', 'peripheralName', 'availableCount'],
                 ...(filters.peripheralName.length > 0 && { where: { id: { [Op.in]: filters.peripheralName } } }),
                 include: {
-                    model: PeripheralLoan,
-                    attributes: ['loanId', 'count'],
-                    required: false,
-                    include: {
-                        model: Loan,
-                        attributes: ['id'],
-                        include: [{
-                            model: Asset,
+                    model: Peripheral,
+                    attributes: ['id'],
+                    include: [
+                        {
+                            model: TaggedPeripheralLoan,
+                            where: { returnEventId: null },
+                            attributes: ['id'],
                             required: false,
-                            attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
                             include: {
-                                model: AssetTypeVariant,
-                                attributes: ['variantName'],
+                                model: AssetLoan,
+                                attributes: ['id'],
                                 include: {
-                                    model: AssetType,
-                                    attributes: ['assetType']
+                                    model: UserLoan,
+                                    attributes: ['id'],
+                                    where: { cancelEventId: null },
+                                    include: [
+                                        {
+                                            model: User,
+                                            attributes: ['id', 'userName', 'bookmarked'],
+                                        },
+                                        {
+                                            model: Event,
+                                            as: 'ReserveEvent',
+                                            attributes: ['eventDate'],
+                                            required: false,
+                                        },
+                                        {
+                                            model: Event,
+                                            as: 'LoanEvent',
+                                            attributes: ['eventDate'],
+                                            required: false,
+                                        },
+                                    ]
                                 }
                             }
                         },
                         {
-                            model: User,
-                            attributes: ['id', 'userName', 'bookmarked'],
-                        }]
-                    }
+                            model: UntaggedPeripheralLoan,
+                            where: { returnEventId: null },
+                            attributes: ['id'],
+                            required: false,
+                            include: {
+                                model: UserLoan,
+                                attributes: ['id'],
+                                where: { cancelEventId: null },
+                                include: [
+                                    {
+                                        model: User,
+                                        attributes: ['id', 'userName', 'bookmarked'],
+                                    },
+                                    {
+                                        model: Event,
+                                        as: 'ReserveEvent',
+                                        attributes: ['eventDate'],
+                                        required: false,
+                                    },
+                                    {
+                                        model: Event,
+                                        as: 'LoanEvent',
+                                        attributes: ['eventDate'],
+                                        required: false,
+                                    },
+                                ]
+                            }
+                        }
+                    ]
                 },
-                // TODO
+                group: [
+                    // PeripheralType attributes
+                    '"PeripheralType"."id"',
+                    '"PeripheralType"."peripheral_name"',
+                    '"PeripheralType"."available_count"',
+                    // Peripheral attributes
+                    '"Peripherals"."id"',
+                    // TaggedPeripheralLoan attributes
+                    '"Peripherals->TaggedPeripheralLoans"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->LoanEvent"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->ReserveEvent"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->LoanEvent"."event_date"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->ReserveEvent"."event_date"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."id"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."user_name"',
+                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."bookmarked"',
+                    // UntaggedPeripheralLoan attributes
+                    '"Peripherals->UntaggedPeripheralLoans"."id"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan"."id"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->LoanEvent"."id"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->ReserveEvent"."id"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->LoanEvent"."event_date"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->ReserveEvent"."event_date"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."id"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."user_name"',
+                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."bookmarked"',    
+                    
+                ],
                 order: [['updatedAt', 'DESC']],
             });
 
@@ -297,7 +366,7 @@ class PeripheralController {
     
         try {
             for (const peripheral of peripherals) {
-                if (isValidID(peripheral.id)) {
+                if (peripheral.id !== peripheral.peripheralName) {
                     const type = await this.getType(peripheral.id, { transaction });
                     type.availableCount += peripheral.count;
                     await type.save({ transaction });

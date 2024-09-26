@@ -22,7 +22,7 @@ import { ItemLink } from "../buttons/ItemLink";
 
 function UserCards({ items }) {
 
-  const { handleToggle } = useItems()
+  const { handleUpdate } = useItems()
 
   return (
     <Cards>
@@ -51,7 +51,6 @@ function UserCards({ items }) {
             position="absolute" top={2} right={2}
             id={user.id}
             isBookmarked={user.bookmarked}
-            onToggle={handleToggle}
           />
         </Card>
       </Box>

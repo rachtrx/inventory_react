@@ -9,7 +9,7 @@ import { CircleText } from '../utils/CircleText';
 const PeripheralTable = ({ items }) => {
 
   const { loading, setLoading, error, setError }  = useUI();
-  const { handleToggle } = useItems()
+  const { handleUpdate } = useItems()
 
   return (
     <Table size='sm' variant="simple">
@@ -28,7 +28,7 @@ const PeripheralTable = ({ items }) => {
             _hover={{ bg: 'gray.100' }}
             // onClick={() => handleItemClick(peripheralType)}
           >
-            <Td><StarButton id={peripheralType.id} isBookmarked={peripheralType.bookmarked} onToggle={handleToggle}/></Td>
+            <Td><StarButton id={peripheralType.id} isBookmarked={peripheralType.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><ItemLink item={peripheralType} size={'lg'} fontWeight="bold"/></Td>
             
             <Td>

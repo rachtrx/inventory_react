@@ -207,7 +207,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
 						setFieldError(errors, ['loans', loanIndex, 'asset', 'peripherals', peripheralIndex, 'id'], peripheralError);
 					}
 					// Track new peripherals for warnings
-					if (peripheral.id !== '' && (peripheral.id === peripheral.peripheralName)) {
+					if (peripheral.id !== '' && (peripheral.id !== peripheral.peripheralName)) {
 						newPeripherals[peripheral.id] = (newPeripherals[peripheral.id] || 0) + parseInt(peripheral.count, 10);
 					}
 				});
@@ -215,7 +215,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
     
       // Set warnings based on new peripherals
       const updatedWarnings = generateWarnings(values.loans, newPeripherals);
-      // console.log(updatedWarnings);
+      console.log(updatedWarnings);
       setWarnings(updatedWarnings);
     
       return errors;

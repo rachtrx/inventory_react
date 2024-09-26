@@ -1,9 +1,11 @@
 import { Box } from "@chakra-ui/react"
 import { useState } from "react";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai"
+import { useItems } from "../../context/ItemsProvider";
 
-const StarButton = ({ isBookmarked, onToggle, id, ...props }) => {
+const StarButton = ({ isBookmarked, id, ...props }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { handleUpdate } = useItems()
 
   return (
     <Box
@@ -13,7 +15,7 @@ const StarButton = ({ isBookmarked, onToggle, id, ...props }) => {
       {isBookmarked || isHovered ? (
         <AiFillStar 
           onClick={(e) => {
-            onToggle(id, isBookmarked);
+            handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -21,7 +23,7 @@ const StarButton = ({ isBookmarked, onToggle, id, ...props }) => {
       ) : (
         <AiOutlineStar 
           onClick={(e) => {
-            onToggle(id, isBookmarked);
+            handleUpdate(id, 'bookmarked', 1);
           }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}

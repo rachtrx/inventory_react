@@ -12,7 +12,7 @@ import { CardActions } from './CardActions';
 
 const AssetTable = ({ items }) => {
 
-  const { handleToggle } = useItems()
+  const { handleUpdate } = useItems()
 
   return (
     <Table size="sm" variant="simple">
@@ -37,7 +37,7 @@ const AssetTable = ({ items }) => {
               <StarButton
                 id={asset.id}
                 isBookmarked={asset.bookmarked}
-                onToggle={handleToggle}
+                onToggle={handleUpdate}
               />
             </Td>
             <Td><ResponsiveText>{asset.assetType}</ResponsiveText></Td>

@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
+const logger = require('../../logging.js');
 
 module.exports = (sequelize) => {
 	class PeripheralType extends Model {
@@ -12,9 +13,18 @@ module.exports = (sequelize) => {
 				id: this.id,
 				peripheralName: this.peripheralName,
 				availableCount: this.availableCount,
-				...this.peripherals?.length > 0 && {
+				...this.Peripherals?.length > 0 && {
 					totalCount: this.availableCount + this.peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
-					loans: this.peripherals.map((peripheral) => ({
+					assets: this.Peripherals.reduce((assetAcc, peripheral) => {
+						if (!peripheral.TaggedPeripheralLoans) return assetAcc;
+
+						peripheral.TaggedPeripheralLoans.forEach(taggedPeripheralLoan => {
+							const assetLoanId = taggedPeripheralLoan.AssetLoan.id
+						});
+
+						return assetAcc;
+					}, {}),
+					loans: this.Peripherals.map((peripheral) => ({
 						id: peripheral.loanId,
 						userId: peripheral.Loan.User.id,
 						userName: peripheral.Loan.User.userName,

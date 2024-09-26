@@ -50,14 +50,13 @@ export const ItemsProvider = ({ children, service }) => {
     fetchItems();
   }, [setItems, setLoading, handleError, service]); // Run this effect only once on mount
 
-  const handleToggle = useCallback(async (id, isBookmarked) => {
+  const handleUpdate = useCallback(async (id, field, newValue) => {
+    const value = newValue;
     setLoading(true);
     try {
-      await service.bookmark(id, !isBookmarked);
+      await service.updateItem(id, field, newValue);
       setItems(prevItems => 
-        prevItems.map(item =>
-          item.id === id ? { ...item, bookmarked: !isBookmarked } : item
-        )
+        prevItems.map(item =>item.id === id ? { ...item, [field]: value } : item)
       );
     } catch (err) {
       console.log(err);
@@ -94,7 +93,7 @@ export const ItemsProvider = ({ children, service }) => {
   }, [handleError, service])
 
   return (
-    <ItemsContext.Provider value={{ items, setItems, filters, setFilters, handleToggle, fetchFilters, onSubmit }}>
+    <ItemsContext.Provider value={{ items, setItems, filters, setFilters, handleUpdate, fetchFilters, onSubmit }}>
       {children}
     </ItemsContext.Provider>
   );

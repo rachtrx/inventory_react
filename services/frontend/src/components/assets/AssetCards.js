@@ -23,7 +23,6 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
 
 function AssetCards({items}) {
-    const { handleToggle } = useItems()
     
     return (
         <Cards>
@@ -51,7 +50,6 @@ function AssetCards({items}) {
                         position="absolute" top={2} right={2}
                         id={asset.id}
                         isBookmarked={asset.bookmarked}
-                        onToggle={handleToggle}
                     />
                     <CardActions asset={asset} flex='1' borderRadius='0'/>
                 </Card>

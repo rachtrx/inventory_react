@@ -29,8 +29,8 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets`, {filters});
     }
 
-    async bookmark(id, bookmarked) {
-        return await this.axios.post(`${API_URL}/assets/bookmark`, {id, bookmarked});
+    async updateItem(id, field, newValue) {
+        return await this.axios.patch(`${API_URL}/assets/update`, {id, field, newValue});
     }
 
     async loanAsset(formData) {

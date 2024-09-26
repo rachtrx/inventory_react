@@ -24,8 +24,8 @@ class UserService {
         return await this.axios.post(`${API_URL}/users`, {filters});
     }
     
-    async bookmark(id, bookmarked) {
-        return await this.axios.post(`${API_URL}/users/bookmark`, {id, bookmarked});
+    async update(id, field, newValue) {
+        return await this.axios.patch(`${API_URL}/users/update`, {id, field, newValue});
     }
 
     async searchUsers(value, formType) {

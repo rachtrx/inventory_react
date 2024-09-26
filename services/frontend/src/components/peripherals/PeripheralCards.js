@@ -23,7 +23,7 @@ import { CircleText } from "../utils/CircleText";
 
 function PeripheralCards({ items }) {
 
-  const { handleToggle } = useItems()
+  const { handleUpdate } = useItems()
 
   return (
     <Cards>
@@ -59,7 +59,7 @@ function PeripheralCards({ items }) {
             position="absolute" top={2} right={2}
             id={peripheralType.id}
             isBookmarked={peripheralType.bookmarked}
-            onToggle={handleToggle}
+            onToggle={handleUpdate}
           />
         </Card>
       </Box>

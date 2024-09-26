@@ -36,7 +36,6 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
     updateUrl
   );
 
-
   if (loading) return <CardSkeleton />;
   if (error) return <Box>Error: {error.message}</Box>;
 

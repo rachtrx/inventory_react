@@ -8,7 +8,7 @@ class PeripheralService {
     }
 
     defaultFilters = {
-        "name": ''
+        "peripheralName": []
     }
 
     async loadItems(filters = this.defaultFilters) {

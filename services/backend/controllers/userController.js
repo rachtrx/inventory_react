@@ -347,13 +347,15 @@ class UserController {
             res.status(500).send('Internal Server Error');
         }
     };
+
+    async updateUser(req, res) {
+        const { id, field, newValue } = req.body;
     
-    async bookmarkUser (req, res) {
-        const { id, bookmarked } = req.body;
         try {
             const user = await User.findByPk(id);
+    
             if (user) {
-                user.bookmarked = bookmarked === true ? 1 : 0;
+                user[field] = newValue,
                 await user.save();
                 res.json({ message: "Bookmark updated successfully" });
             } else {
@@ -364,7 +366,6 @@ class UserController {
             res.status(500).send('Internal Server Error');
         }
     };
-
 }    
 
 module.exports = new UserController();

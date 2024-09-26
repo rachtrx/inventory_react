@@ -90,32 +90,12 @@ const withSelect = (Component) => ({
   );
 };
 
-const withCreate = (Component) => ({
-  name,
-  options = [],
-  setOptions,
-  isMulti = false,
-  ...props
-}) => {
-
-  return (
-    <Component
-      {...props}
-      name={name}
-      options={options}
-      setOptions={setOptions}
-      creatable={true}
-    />
-  );
-};
-
-const withSearch = (Component) => ({
+const withSearch = (Component, creatable) => ({
   name,
   options,
   setOptions,
   searchFn,
   isMulti = false,
-  creatable=false,
   ...props
 }) => {
   
@@ -195,9 +175,9 @@ const withSearch = (Component) => ({
 };
 
 const EnhancedSelect = withSelect(Select);
-const EnhancedCreatableSelect = withSelect(withCreate(CreatableSelect));
-const SearchSelect = withSelect(withSearch(Select));
-const SearchCreatableSelect = (withSelect(withCreate(withSearch(CreatableSelect))));
+const EnhancedCreatableSelect = withSelect(CreatableSelect);
+const SearchSelect = withSelect(withSearch(Select, false));
+const SearchCreatableSelect = (withSelect(withSearch(CreatableSelect, true)));
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {
