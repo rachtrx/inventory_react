@@ -37,7 +37,7 @@ class AssetService {
         console.log('loaning asset');
         console.log(formData);
         downloadFormData(formData);
-        // return await this.axios.post(`${API_URL}/forms/loan`, formData);;
+        return await this.axios.post(`${API_URL}/forms/loan`, formData);;
     }
     
     async returnAsset(id) {

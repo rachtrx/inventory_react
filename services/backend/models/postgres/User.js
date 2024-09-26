@@ -34,14 +34,8 @@ module.exports = (sequelize) => {
 							assetType: userLoan.AssetLoan.Asset.AssetTypeVariant?.AssetType?.assetType,
 							...(userLoan.AssetLoan.returnEventId && { returnEventId: userLoan.AssetLoan.returnEventId }),
 							...(userLoan.AssetLoan.ReturnEvent && { returnDate: userLoan.AssetLoan.ReturnEvent.eventDate }),
-							...(userLoan.AssetLoan.TaggedPeripheralLoans && { peripherals: userLoan.AssetLoan.TaggedPeripheralLoans.reduce((peripheralMap, peripheral) => {
-								if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
-									peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
-								} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;
-								return peripheralMap;
-							}, {})}),
 						}}),
-						...(userLoan.UntaggedPeripheralLoans && userLoan.UntaggedPeripheralLoans.length > 0 && { peripherals: userLoan.UntaggedPeripheralLoans.reduce(((peripheralMap, peripheral) => {
+						...(userLoan.PeripheralLoans && userLoan.PeripheralLoans.length > 0 && { peripherals: userLoan.PeripheralLoans.reduce(((peripheralMap, peripheral) => {
 							if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
 								peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
 							} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;

@@ -1,4 +1,4 @@
-const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, TaggedPeripheralLoan, Peripheral, PeripheralType } = require('../models/postgres');
+const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, Peripheral, PeripheralType, PeripheralLoan } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
@@ -84,6 +84,7 @@ class AssetController {
                     'serialNumber',
                     'assetTag',
                     'location',
+                    'shared',
                     'bookmarked',
                     'value',
                 ],
@@ -307,9 +308,9 @@ class AssetController {
     
                 return {
                     value: id,
+                    label: `${assetTag}`, // Append status if disabled,
                     assetType,
                     variantName, 
-                    label: `${assetTag}`, // Append status if disabled,
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
                     assetTag: assetTag,
                     shared: shared,
@@ -371,6 +372,19 @@ class AssetController {
                                 attributes: ['filepath', 'expectedLoanDate', 'expectedReturnDate'],
                                 include: [
                                     {
+                                        model: PeripheralLoan,
+                                        attributes: ['id'],
+                                        include: {
+                                            model: Peripheral,
+                                            attributes: ['id'],
+                                            include: {
+                                                model: PeripheralType,
+                                                attributes: ['id', 'peripheralName'],
+                                            },
+                                        },
+                                        required: false,
+                                    },
+                                    {
                                         model: User,
                                         attributes: ['id', 'userName', 'bookmarked']
                                     },
@@ -400,19 +414,6 @@ class AssetController {
                                 attributes: ['eventDate'],
                                 required: false,
                             },
-                            {
-                                model: TaggedPeripheralLoan,
-                                attributes: ['id'],
-                                include: {
-                                    model: Peripheral,
-                                    attributes: ['id'],
-                                    include: {
-                                        model: PeripheralType,
-                                        attributes: ['id', 'peripheralName'],
-                                    },
-                                },
-                                required: false,
-                            }
                         ],
                         required: false
                     }
@@ -443,7 +444,7 @@ class AssetController {
             if (asset) {
                 asset[field] = newValue;
                 await asset.save();
-                res.json({ message: "Bookmark updated successfully" });
+                res.json({ message: "Asset updated successfully" });
             } else {
                 res.status(404).json({ message: "Asset not found" });
             }

@@ -11,10 +11,12 @@ import { useMemo } from "react";
 
 const Return = () => {
 
-    const { handleAssetInputChange, assets } = useFormModal()
-    const { assetFilters } = useItems()
+  // REINITIALISE FORM TO INCLUDE ALL POSSIBLE UPDATES
 
-    const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
+  const { handleAssetInputChange, assets } = useFormModal()
+  const { assetFilters } = useItems()
+
+  const fieldsToReset = useMemo(() => ['asset-tag', 'remarks'], []);
 
   return (
     <Box width="100%" maxWidth="500px" mx="auto" p={4}>

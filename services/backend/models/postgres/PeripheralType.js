@@ -14,24 +14,31 @@ module.exports = (sequelize) => {
 				peripheralName: this.peripheralName,
 				availableCount: this.availableCount,
 				...this.Peripherals?.length > 0 && {
-					totalCount: this.availableCount + this.peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
+					totalCount: this.availableCount + this.Peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
 					assets: this.Peripherals.reduce((assetAcc, peripheral) => {
-						if (!peripheral.TaggedPeripheralLoans) return assetAcc;
 
-						peripheral.TaggedPeripheralLoans.forEach(taggedPeripheralLoan => {
-							const assetLoanId = taggedPeripheralLoan.AssetLoan.id
-						});
+						// Each peripheral on loan can only be tagged to 1 asset
+						const asset = peripheral.PeripheralLoans
+							.find(peripheralLoan => peripheralLoan.UserLoan?.AssetLoan?.Asset?.id)
+							?.UserLoan?.AssetLoan?.Asset;
 
+						if (!assetAcc[asset.id]) {
+							assetAcc[asset.id] = {assetTag: asset.assetTag, count: 1}
+						}
+						else assetAcc[asset.id].count += 1;
 						return assetAcc;
 					}, {}),
-					loans: this.Peripherals.map((peripheral) => ({
-						id: peripheral.loanId,
-						userId: peripheral.Loan.User.id,
-						userName: peripheral.Loan.User.userName,
-						assetId: peripheral.Loan.Asset?.id,
-						assetTag: peripheral.Loan.Asset?.assetTag,
-						serialNumber: peripheral.Loan.Asset?.serialNumber,
-					}))
+					users: this.Peripherals.reduce((userAcc, peripheral) => {
+						peripheral.PeripheralLoans.forEach(peripheralLoan => {
+							const user = peripheralLoan.UserLoan.User;
+
+							if (!userAcc[user.id]) {
+								userAcc[user.id] = {userName: user.userName, count: 1}
+							}
+							else userAcc[user.id].count += 1;
+						})
+						return userAcc;
+					}, {}),
 				}
 			}
 		} 

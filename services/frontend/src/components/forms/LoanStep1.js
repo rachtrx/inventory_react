@@ -10,23 +10,17 @@ import { createNewLoan, LoanType } from "./Loan";
 import { LoanProvider } from "../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
 
-export const LoanStep1 = ({ nextStep, formData }) => {
+export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
 
-    const { setFormType } = useFormModal();
+    const { setFormType, reinitializeForm } = useFormModal();
     const { setLoading, showToast, handleError } = useUI();
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
     console.log('loan form rendered');
 		console.log(formData);
-  
-    const reinitializeForm = (newValues) => {
-      if (formRef.current) {
-        formRef.current.setTouched({});
-        formRef.current.setValues(newValues);
-        formRef.current.validateForm();
-      }
-    };
+
+    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
 
 		const processPeripherals = (peripheralsString) => {
 			if (!peripheralsString) return {};
@@ -75,7 +69,7 @@ export const LoanStep1 = ({ nextStep, formData }) => {
       
         console.log(loans);
       
-        reinitializeForm({
+        setFormData({
           loans: loans
         });
       } catch (error) {

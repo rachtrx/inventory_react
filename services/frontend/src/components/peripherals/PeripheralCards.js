@@ -35,24 +35,38 @@ function PeripheralCards({ items }) {
           _hover={{bg: 'gray.100',}}
         >
           <CardBody> {/*onClick={() => handleItemClick(peripheralType)}*/}
-            <VStack align="start">
-              <ItemLink item={peripheralType} size={'lg'} fontWeight="bold"/>
-              <ResponsiveText fontSize="md" fontWeight="semibold">
-                {peripheralType.availableCount} Untagged / {peripheralType.totalCount}
-              </ResponsiveText>
-              <CircleText
-                text={peripheralType.peripherals?.assets?.length || 0}
-              />
-              <ResponsiveText>Assets</ResponsiveText>
-              <CircleText
-                text={peripheralType.peripherals?.users?.length || 0}
-              />
-              <ResponsiveText>Users</ResponsiveText>
-                <Flex>
-                  {peripheralType.availableCount && <ActionButton formType={formTypes.TAG} item={peripheralType} style={{ marginLeft: 'auto' }} />}
-                  {peripheralType.availableCount !== peripheralType.totalCount && <ActionButton formType={formTypes.UNTAG} item={peripheralType} style={{ marginLeft: 'auto' }} />}
+            <Flex>
+              <VStack align="start" flex='1'>
+                <ResponsiveText fontSize="lg" fontWeight="semibold">{peripheralType.peripheralName.toUpperCase()}</ResponsiveText>
+                <ResponsiveText fontSize="md" fontWeight="semibold">
+                  Stock: {peripheralType.availableCount}
+                </ResponsiveText>
+                <Flex justifyContent='space-evenly' alignSelf='stretch'>
+                  <Flex gap={2}>
+                    <CircleText
+                      text={peripheralType.assets ? Object.keys(peripheralType.assets).length : 0}
+                    />
+                    <ResponsiveText>Assets</ResponsiveText>
+                  </Flex>
+                  <Flex gap={2}>
+                    <CircleText
+                      text={peripheralType.users ? Object.keys(peripheralType.users).length : 0}
+                    />
+                    <ResponsiveText>Users</ResponsiveText>
+                  </Flex>
                 </Flex>
-            </VStack>
+                
+                
+              </VStack>
+              <Box alignSelf='flex-end'>
+                <ActionButton
+                  key={formTypes.ADD_PERIPHERAL}
+                  formType={formTypes.ADD_PERIPHERAL}
+                  item={peripheralType}
+                  initialValues={{peripheralName: peripheralType.peripheralName}}
+                />
+              </Box>
+            </Flex>
           </CardBody>
           
           <StarButton

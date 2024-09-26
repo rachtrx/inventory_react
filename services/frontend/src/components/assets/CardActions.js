@@ -35,7 +35,13 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 	return (
 		<Flex justifyContent={'stretch'} alignItems="stretch" >
 			{Array.from(actionSet).map((action) => (
-				<ActionButton key={action} formType={action} item={asset} {...buttonProps}/>
+				<ActionButton 
+					key={action} 
+					formType={action} 
+					item={asset}
+					initialValues={{assetTag: asset.assetTag}}
+					{...buttonProps}
+				/>
 			))}
 		</Flex>
 	);

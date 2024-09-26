@@ -2,17 +2,17 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class TaggedPeripheralLoan extends Model { }
+	class PeripheralLoan extends Model { }
 
-	TaggedPeripheralLoan.init({
+	PeripheralLoan.init({
 		id: {
             type: DataTypes.STRING,
             primaryKey: true,
         },
-        assetLoanId: {
+		userLoanId: {
             type: DataTypes.STRING,
             references: {
-                model: 'asset_loans',
+                model: 'user_loans',
                 key: 'id'
             },
         },
@@ -33,26 +33,26 @@ module.exports = (sequelize) => {
         },
 	}, {
 		sequelize,
-		modelName: 'TaggedPeripheralLoan',
+		modelName: 'PeripheralLoan',
 	});
 
-	// TaggedPeripheralLoan.addHook('beforeUpdate', async (TaggedPeripheralLoan, options) => {
+	// PeripheralLoan.addHook('beforeUpdate', async (PeripheralLoan, options) => {
 	// 	// Check if the 'returned_date' is being updated
-	// 	if (TaggedPeripheralLoan.changed('returned_date')) {
+	// 	if (PeripheralLoan.changed('returned_date')) {
 	// 	  const peripheralType = await PeripheralType.findOne({
-	// 		where: { id: TaggedPeripheralLoan.peripheralTypeId },
+	// 		where: { id: PeripheralLoan.peripheralTypeId },
 	// 	  });
 	  
 	// 	  if (peripheralType) {
-	// 		peripheralType.availableCount += TaggedPeripheralLoan.count;
+	// 		peripheralType.availableCount += PeripheralLoan.count;
 	// 		await peripheralType.save();
 	  
-	// 		console.log(`PeripheralType with ID: ${peripheralType.id} updated, availableCount increased by ${TaggedPeripheralLoan.count}`);
+	// 		console.log(`PeripheralType with ID: ${peripheralType.id} updated, availableCount increased by ${PeripheralLoan.count}`);
 	// 	  }
 	// 	}
 	//   });
 	  
-	return TaggedPeripheralLoan;
+	return PeripheralLoan;
 }
 
 // untag the asset id to be able to stock transfer

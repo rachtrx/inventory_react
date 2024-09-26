@@ -1,4 +1,4 @@
-const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType, Peripheral, TaggedPeripheralLoan, UntaggedPeripheralLoan, UserLoan, AssetLoan, Event } = require('../models/postgres');
+const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType, Peripheral, UserLoan, AssetLoan, Event } = require('../models/postgres');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
@@ -161,43 +161,9 @@ class PeripheralController {
                     attributes: ['id'],
                     include: [
                         {
-                            model: TaggedPeripheralLoan,
+                            model: PeripheralLoan,
                             where: { returnEventId: null },
                             attributes: ['id'],
-                            required: false,
-                            include: {
-                                model: AssetLoan,
-                                attributes: ['id'],
-                                include: {
-                                    model: UserLoan,
-                                    attributes: ['id'],
-                                    where: { cancelEventId: null },
-                                    include: [
-                                        {
-                                            model: User,
-                                            attributes: ['id', 'userName', 'bookmarked'],
-                                        },
-                                        {
-                                            model: Event,
-                                            as: 'ReserveEvent',
-                                            attributes: ['eventDate'],
-                                            required: false,
-                                        },
-                                        {
-                                            model: Event,
-                                            as: 'LoanEvent',
-                                            attributes: ['eventDate'],
-                                            required: false,
-                                        },
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            model: UntaggedPeripheralLoan,
-                            where: { returnEventId: null },
-                            attributes: ['id'],
-                            required: false,
                             include: {
                                 model: UserLoan,
                                 attributes: ['id'],
@@ -219,9 +185,19 @@ class PeripheralController {
                                         attributes: ['eventDate'],
                                         required: false,
                                     },
+                                    {
+                                        model: AssetLoan,
+                                        attributes: ['id'],
+                                        required: false,
+                                        include: {
+                                            model: Asset,
+                                            attributes: ['id', 'assetTag'],
+                                        }
+                                    },
                                 ]
                             }
-                        }
+                            
+                        },
                     ]
                 },
                 group: [
@@ -231,28 +207,19 @@ class PeripheralController {
                     '"PeripheralType"."available_count"',
                     // Peripheral attributes
                     '"Peripherals"."id"',
-                    // TaggedPeripheralLoan attributes
-                    '"Peripherals->TaggedPeripheralLoans"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->LoanEvent"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->ReserveEvent"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->LoanEvent"."event_date"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->ReserveEvent"."event_date"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."id"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."user_name"',
-                    '"Peripherals->TaggedPeripheralLoans->AssetLoan->UserLoan->User"."bookmarked"',
-                    // UntaggedPeripheralLoan attributes
-                    '"Peripherals->UntaggedPeripheralLoans"."id"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan"."id"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->LoanEvent"."id"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->ReserveEvent"."id"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->LoanEvent"."event_date"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->ReserveEvent"."event_date"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."id"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."user_name"',
-                    '"Peripherals->UntaggedPeripheralLoans->UserLoan->User"."bookmarked"',    
-                    
+                    // PeripheralLoan attributes
+                    '"Peripherals->PeripheralLoans"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->User"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->User"."user_name"',
+                    '"Peripherals->PeripheralLoans->UserLoan->User"."bookmarked"',
+                    '"Peripherals->PeripheralLoans->UserLoan->LoanEvent"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->ReserveEvent"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->LoanEvent"."event_date"',
+                    '"Peripherals->PeripheralLoans->UserLoan->ReserveEvent"."event_date"',
+                    '"Peripherals->PeripheralLoans->UserLoan->AssetLoan"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->AssetLoan->Asset"."id"',
+                    '"Peripherals->PeripheralLoans->UserLoan->AssetLoan->Asset"."asset_tag"',
                 ],
                 order: [['updatedAt', 'DESC']],
             });
@@ -261,7 +228,7 @@ class PeripheralController {
                 return peripheralType.createPeripheralTypeObject();
             });
     
-            // logger.info(result.slice(100, 110));
+            logger.info(result);
             res.json(result);
         } catch (error) {
             logger.error(error)

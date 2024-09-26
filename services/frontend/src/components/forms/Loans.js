@@ -5,10 +5,12 @@ import { useUI } from "../../context/UIProvider";
 import assetService from "../../services/AssetService";
 import { createNewLoan } from "./Loan";
 import { Box } from "@chakra-ui/react";
+import { useFormModal } from "../../context/ModalProvider";
 
 const Loans = () => {
 
   const { setLoading, showToast, handleError } = useUI();
+  const { setFormType, initialValues } = useFormModal();
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -16,6 +18,17 @@ const Loans = () => {
     signatures: {}
   });
   const [userLoans, setUserLoans] = useState({});
+
+  useEffect(() => {
+    if (initialValues) {
+      const assetTag = initialValues.assetTag
+      const userNames = [initialValues.userName || '']
+      setFormData({
+        loans: [createNewLoan(assetTag, userNames)],
+        signatures: {}
+      })
+    }
+  }, [initialValues])
 
   const prevStep = () => {
     const resetLoans = formData.loans.map(loan => {
@@ -67,6 +80,7 @@ const Loans = () => {
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);
+      setFormType(null);
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -77,7 +91,7 @@ const Loans = () => {
 
   return (
     <Box>
-      {step === 1 && <LoanStep1 nextStep={handleUserData} formData={formData}/>}
+      {step === 1 && <LoanStep1 nextStep={handleUserData} formData={formData} setFormData={setFormData}/>}
       {step === 2 && <LoanStep2 prevStep={prevStep} handleSubmit={handleSubmit} userLoans={userLoans} formData={formData}/>}
     </Box>
   );

@@ -22,8 +22,7 @@ const AssetLoanModel = require('./AssetLoan.js');
 
 const PeripheralTypeModel = require('./PeripheralType.js');
 const PeripheralModel = require('./Peripheral.js');
-const TaggedPeripheralLoanModel = require('./TaggedPeripheralLoan.js');
-const UntaggedPeripheralLoanModel = require('./UntaggedPeripheralLoan.js');
+const PeripheralLoanModel = require('./PeripheralLoan.js');
 
 const VariantPeripheralModel = require('./VariantPeripheral.js');
 const AssetTypePeripheralModel = require('./AssetTypePeripheral.js');
@@ -52,8 +51,7 @@ const db = {
 
   PeripheralType: PeripheralTypeModel(sequelize),
   Peripheral: PeripheralModel(sequelize),
-  TaggedPeripheralLoan: TaggedPeripheralLoanModel(sequelize),
-  UntaggedPeripheralLoan: UntaggedPeripheralLoanModel(sequelize),
+  PeripheralLoan: PeripheralLoanModel(sequelize),
 
   VariantPeripheral: VariantPeripheralModel(sequelize),
   AssetTypePeripheral: AssetTypePeripheralModel(sequelize)
@@ -78,11 +76,8 @@ db.PeripheralType.hasMany(db.Peripheral, { foreignKey: 'peripheralTypeId' })
 db.Peripheral.belongsTo(db.PeripheralType, { foreignKey: 'peripheralTypeId', targetKey: 'id' })
 
 // LOANS
-db.Peripheral.hasMany(db.TaggedPeripheralLoan, { foreignKey: 'peripheralId' })
-db.TaggedPeripheralLoan.belongsTo(db.Peripheral, { foreignKey: 'peripheralId', targetKey: 'id' })
-
-db.Peripheral.hasMany(db.UntaggedPeripheralLoan, { foreignKey: 'peripheralId' })
-db.UntaggedPeripheralLoan.belongsTo(db.Peripheral, { foreignKey: 'peripheralId', targetKey: 'id' })
+db.Peripheral.hasMany(db.PeripheralLoan, { foreignKey: 'peripheralId' })
+db.PeripheralLoan.belongsTo(db.Peripheral, { foreignKey: 'peripheralId', targetKey: 'id' })
 
 db.Asset.hasMany(db.AssetLoan, { foreignKey: 'assetId' });
 db.AssetLoan.belongsTo(db.Asset, { foreignKey: 'assetId', targetKey: 'id' });
@@ -93,9 +88,6 @@ db.UserLoan.belongsTo(db.User, { foreignKey: 'userId', targetKey: 'id' });
 // One-to-Many relationship between Loan and Loan and Asset / Peripheral
 db.UserLoan.hasOne(db.AssetLoan, { foreignKey: 'userLoanId' });
 db.AssetLoan.belongsTo(db.UserLoan, { foreignKey: 'userLoanId', targetKey: 'id' });
-
-db.UserLoan.hasMany(db.UntaggedPeripheralLoan, { foreignKey: 'userLoanId' });
-db.UntaggedPeripheralLoan.belongsTo(db.UserLoan, { foreignKey: 'userLoanId', targetKey: 'id' });
 
 // RECOMMENDATIONS
 db.AssetType.hasMany(db.AssetTypePeripheral, { foreignKey: 'assetTypeId' });
@@ -130,12 +122,8 @@ db.UserLoan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
 
 db.Event.hasOne(db.AssetLoan, { as: 'ReturnedAsset', foreignKey: 'returnEventId' })
 db.AssetLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
-db.AssetLoan.hasMany(db.TaggedPeripheralLoan, { foreignKey: 'assetLoanId' });
-db.TaggedPeripheralLoan.belongsTo(db.AssetLoan, { foreignKey: 'assetLoanId', targetKey: 'id' });
-
-
-db.Event.hasOne(db.UntaggedPeripheralLoan, { as: 'ReturnedPeripheral', foreignKey: 'returnEventId' })
-db.UntaggedPeripheralLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
+db.UserLoan.hasMany(db.PeripheralLoan, { foreignKey: 'userLoanId' });
+db.PeripheralLoan.belongsTo(db.UserLoan, { foreignKey: 'userLoanId', targetKey: 'id' });
 
 // Event and Admin
 db.Admin.hasMany(db.Event, { foreignKey: 'adminId' })

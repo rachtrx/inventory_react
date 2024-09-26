@@ -1,4 +1,4 @@
-const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, TaggedPeripheralLoan, Event, Remark  } = require('../models/postgres');
+const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan  } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
@@ -134,7 +134,8 @@ class FormLoanReturnController {
 
             // INSERTION
             for (const loan of loans) {
-                const { asset, users, mode, loanDate, expectedReturnDate=null } = loan;
+                const { asset, users, mode, loanDate } = loan;
+                const expectedReturnDate = loan.expectedReturnDate === "" ? null : loan.expectedReturnDate;
 
                 const loanEventId = generateSecureID()
 
@@ -152,7 +153,7 @@ class FormLoanReturnController {
                 }, { transaction });
                 
                 // Asset Loans and User Loans for each user
-                const assetLoanIds = {}
+                const userLoanIds = {}
                 for (const user of users) {
                     const userLoanId = generateSecureID()
                     const userLoan = await UserLoan.create({
@@ -165,12 +166,12 @@ class FormLoanReturnController {
                     if (!userLoans[user.userId]) userLoans[user.userId] = [userLoan]
                     else userLoans[user.userId].push(userLoan);
                     
-                    assetLoanIds[user.userId] = generateSecureID()
                     await AssetLoan.create({
-                        id: assetLoanIds[user.userId],
+                        id: generateSecureID(),
                         userLoanId: userLoanId,
                         assetId: asset.assetId,
                     }, { transaction });
+                    userLoanIds[user.userId] = userLoanId;
                 }
 
                 // Peripheral Loans for each count of each type for each user
@@ -183,9 +184,9 @@ class FormLoanReturnController {
                             }, { transaction });
 
                             for (const user of users) {
-                                await TaggedPeripheralLoan.create({
+                                await PeripheralLoan.create({
                                     id: generateSecureID(),
-                                    assetLoanId: assetLoanIds[user.userId],
+                                    userLoanId: userLoanIds[user.userId],
                                     peripheralId: newPeripheralOnLoan.id,
                                 }, { transaction });
                             }
@@ -226,6 +227,40 @@ class FormLoanReturnController {
             return res.status(500).json({ error: error.message });
         }
     };
+
+    async findReturnDetails (req, res) {
+
+        const { ids } = req.body;
+
+        try {
+            for (const id of ids) {
+                let query = await AssetLoan.findOne({
+                    attributes: [],
+                    include: [
+                        {
+                            model: Asset,
+                            include: {
+                                model: AssetLoan,
+                                where: {
+                                    id: {
+                                      [Op.not]: id,
+                                    },
+                                    asset_id: specificAssetId,
+                                },
+                            }
+                        }
+                    ],
+                    where: { id: }
+                })
+            }
+
+            
+
+        } catch (error) {
+            console.error("Search failed:", error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
     
     async return (req, res) {
         const filePath = req.file ? req.file.path : null;

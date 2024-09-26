@@ -3,15 +3,16 @@ import { buttonConfigs } from './constants';
 import { actionTypes, useFormModal } from '../../context/ModalProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 
-const ActionButton = ({ formType, borderRadius="md", item = null, ...rest }) => {
+const ActionButton = ({ formType, borderRadius="md", item = null, initialValues=null, ...rest }) => {
 	const { bg, text } = buttonConfigs[formType];
-	const { setFormType } = useFormModal();
+	const { setFormType, setInitialValues } = useFormModal();
 
 	return (
 		<Box
 			as="button"
 			onClick={(e) => {
-				setFormType(formType)
+				setInitialValues(initialValues);
+				setFormType(formType);
 			}}
 			bg={bg}
 			borderRadius={borderRadius}

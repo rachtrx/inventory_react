@@ -17,6 +17,7 @@ module.exports = (sequelize) => {
 				value: String(parseFloat(plainAsset.value)) || 'Unspecified', // removed toFixed(2) since database handles it
 				bookmarked: plainAsset.bookmarked && true || false,
 				variant: plainAsset.AssetTypeVariant?.variantName,
+				shared: plainAsset.shared,
 				assetType: plainAsset.AssetTypeVariant?.AssetType?.assetType,
 				vendor: plainAsset.Vendor?.vendorName,
 				...(plainAsset.AddEvent && {addedDate: plainAsset.AddEvent.eventDate}),

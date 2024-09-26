@@ -132,7 +132,12 @@ export const ModalProvider = ({ children }) => {
 
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
+  const [ initialValues, setInitialValues ] = useState(null);
   const { setLoading } = useUI();
+
+  useEffect(() => {
+    if (!formType) setInitialValues(null);
+  }, [formType]);
 
   console.log("Modal rendered");
 
@@ -151,8 +156,16 @@ export const ModalProvider = ({ children }) => {
     return await peripheralService.searchPeripherals(value.trim());
   }, []);
 
+  const reinitializeForm = useCallback((formRef, newValues) => {
+    if (formRef.current) {
+      formRef.current.setTouched({});
+      formRef.current.setValues(newValues);
+      formRef.current.validateForm();
+    }
+  }, []);
+
   return (
-    <ModalContext.Provider value={{ formType, setFormType, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose }}>
+    <ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose, reinitializeForm }}>
       {children}
     </ModalContext.Provider>
   );

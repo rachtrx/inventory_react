@@ -21,6 +21,7 @@ import { formTypes } from '../../context/ModalProvider';
 import { ItemLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
+import SharedButton from '../buttons/SharedButton';
 
 function AssetCards({items}) {
     
@@ -36,21 +37,35 @@ function AssetCards({items}) {
                     overflow="hidden"
                 >
                     <CardBody>  {/*onClick={() => handleItemClick(asset)} */}
-                        <VStack align="start">
-                            <ItemLink item={asset} size={'lg'} fontWeight="bold"/>
-                            <Box>
-                                <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.assetType}</ResponsiveText>
-                                <ResponsiveText size={'sm'}>{asset.variant}</ResponsiveText>
-                            </Box>
-                            {asset.users && asset.users.map((user) => (<ItemLink item={user}/>))}
-                        </VStack>
+                        <Flex>
+                            <VStack align="start" flex='1'>
+                                <ItemLink item={asset} size={'lg'} fontWeight="bold"/>
+                                <Box>
+                                    <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.assetType}</ResponsiveText>
+                                    <ResponsiveText size={'sm'}>{asset.variant}</ResponsiveText>
+                                </Box>
+                                <Box display="inline-flex" flexWrap="wrap" gap={2}>
+                                    {asset.users && asset.users.map((user) => (
+                                        <ItemLink key={user.id} item={user} />
+                                    ))}
+                                </Box>
+                            </VStack>
+                            
+                            <VStack alignSelf='flex-start'>
+                                <StarButton
+                                    id={asset.id}
+                                    isBookmarked={asset.bookmarked}
+                                />
+                                <SharedButton
+                                    id={asset.id}
+                                    isShared={asset.shared}
+                                    userCount={asset.users?.length || 0}
+                                />
+                            </VStack>
+                        </Flex>
                     </CardBody>
-
-                    <StarButton
-                        position="absolute" top={2} right={2}
-                        id={asset.id}
-                        isBookmarked={asset.bookmarked}
-                    />
+                    
+                    
                     <CardActions asset={asset} flex='1' borderRadius='0'/>
                 </Card>
             </Box>

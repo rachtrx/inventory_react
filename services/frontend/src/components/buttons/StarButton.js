@@ -1,35 +1,21 @@
-import { Box } from "@chakra-ui/react"
-import { useState } from "react";
-import { AiFillStar, AiOutlineStar } from "react-icons/ai"
-import { useItems } from "../../context/ItemsProvider";
+import { IconButton } from '@chakra-ui/react';
+import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
+import { useItems } from '../../context/ItemsProvider';
 
-const StarButton = ({ isBookmarked, id, ...props }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const { handleUpdate } = useItems()
+const StarButton = ({ id, isBookmarked, ...props }) => {
+  const { handleUpdate } = useItems();
+
+  const handleClick = () => {
+    handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
+  };
 
   return (
-    <Box
-      cursor="pointer" 
-      {...props}
-    >
-      {isBookmarked || isHovered ? (
-        <AiFillStar 
-          onClick={(e) => {
-            handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        />
-      ) : (
-        <AiOutlineStar 
-          onClick={(e) => {
-            handleUpdate(id, 'bookmarked', 1);
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        />
-      )}
-    </Box>
+    <IconButton
+      aria-label={isBookmarked ? 'Unbookmark' : 'Bookmark'}
+      icon={isBookmarked ? <AiFillStar /> : <AiOutlineStar />}
+      onClick={handleClick}
+      {...props} // Pass any additional props if needed
+    />
   );
 };
 

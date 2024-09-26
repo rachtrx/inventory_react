@@ -8,11 +8,11 @@ import { useUI } from "../../context/UIProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import peripheralService from "../../services/PeripheralService";
 import { MdRemoveCircleOutline } from "react-icons/md";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "./utils/ItemButtons";
 
-export const addNewPeripheral = () => ({
-	'id': '',
+export const addNewPeripheral = (id='') => ({
+	'id': id,
 	'count': null,
 })
 
@@ -20,16 +20,17 @@ const AddPeripheral = () => {
 
   console.log('loan form rendered');
 
-  const { onModalClose, setFormType } = useFormModal()
+  const { onModalClose, setFormType, handlePeripheralSearch, initialValues, reinitializeForm } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
-  const { handlePeripheralSearch } = useFormModal();
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    if (!initialValues) return;
+    reinitializeForm(formRef, {peripherals: [addNewPeripheral(initialValues.peripheralName)]})
+  }, [reinitializeForm, initialValues])
 
   const initialValuesManual = {
     peripherals: [addNewPeripheral()]
-  };
-
-  const initialValuesExcel = {
-    file: null
   };
 
   const handleSubmitManual = async (values, actions) => {
@@ -47,12 +48,6 @@ const AddPeripheral = () => {
       console.error("Error Handled");
       setLoading(false);
     }
-  };
-
-  const handleSubmitExcel = (values, actions) => {
-    console.log('Excel Form Values:', values);
-    actions.setSubmitting(false);
-    // Handle Excel file upload
   };
 
   const validateUniquePeripheralIDs = (peripherals) => {
@@ -95,6 +90,7 @@ const AddPeripheral = () => {
           validate={validate}
           validateOnChange={true}
           validateOnBlur={true}
+          innerRef={formRef}
         >
         {formikProps => (
           <Form>

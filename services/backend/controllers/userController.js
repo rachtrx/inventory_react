@@ -1,4 +1,4 @@
-const { sequelize, Sequelize, Event, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, UserLoan, GroupLoan, PeripheralLoan, PeripheralType, Peripheral, TaggedPeripheralLoan, UntaggedPeripheralLoan } = require('../models/postgres');
+const { sequelize, Sequelize, Event, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, UserLoan, GroupLoan, PeripheralLoan, PeripheralType, Peripheral } = require('../models/postgres');
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
@@ -101,25 +101,6 @@ class UserController {
                                             }
                                         }
                                     },
-                                    {
-                                        model: TaggedPeripheralLoan,
-                                        attributes: ['id', 'returnEventId'],
-                                        required: false,
-                                        include: {
-                                            model: Peripheral,
-                                            attributes: ['id'],
-                                            include: {
-                                                model: PeripheralType,
-                                                attributes: ['id', 'peripheralName'],
-                                            },
-                                            required: false,
-                                        },
-                                        where: {
-                                            returnEventId: {
-                                                [Op.is]: null
-                                            }
-                                        },
-                                    }
                                 ],
                                 where: {
                                     returnEventId: {
@@ -128,7 +109,7 @@ class UserController {
                                 },
                             },
                             {
-                                model: UntaggedPeripheralLoan,
+                                model: PeripheralLoan,
                                 attributes: ['id', 'returnEventId'],
                                 required: false,
                                 include: {
@@ -138,13 +119,14 @@ class UserController {
                                         model: PeripheralType,
                                         attributes: ['id', 'peripheralName'],
                                     },
+                                    required: false,
                                 },
                                 where: {
                                     returnEventId: {
                                         [Op.is]: null
                                     }
                                 },
-                            }
+                            },
                         ],
                     },
                     {

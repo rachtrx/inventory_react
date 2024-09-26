@@ -37,7 +37,7 @@ export const ItemsProvider = ({ children, service }) => {
       try {
         const response = await service.loadItems();
         const items = response.data;
-        console.log(items.slice(1, 50));
+        console.log(items.slice(0, 50));
         setItems(items);
       } catch (err) {
         handleError(err);
