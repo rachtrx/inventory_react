@@ -19,25 +19,43 @@ module.exports = (sequelize) => {
 				variant: plainAsset.AssetTypeVariant?.variantName,
 				shared: plainAsset.shared,
 				assetType: plainAsset.AssetTypeVariant?.AssetType?.assetType,
-				vendor: plainAsset.Vendor?.vendorName,
+				...(plainAsset.Vendor && {vendor: plainAsset.Vendor.vendorName}),
 				...(plainAsset.AddEvent && {addedDate: plainAsset.AddEvent.eventDate}),
 				...(plainAsset.DeleteEvent && {deletedDate: plainAsset.DeleteEvent.eventDate}),
 				...(plainAsset.location && {location: plainAsset.location}),
-				...(plainAsset.AssetLoans && plainAsset.AssetLoans.length > 0 && {users: (plainAsset.AssetLoans.map((assetLoan) => ({
-					id: assetLoan.UserLoan.User.id,
-					userName: assetLoan.UserLoan.User.userName,
-					bookmarked: assetLoan.UserLoan.User.bookmarked,
-					...(assetLoan.UserLoan.ReserveEvent && { reserveDate: assetLoan.UserLoan.ReserveEvent.eventDate }),
-					...(assetLoan.UserLoan.reserveEventId && { reserveEventId: assetLoan.UserLoan.reserveEventId }),
-					...(assetLoan.UserLoan.CancelEvent && { cancelDate: assetLoan.UserLoan.CancelEvent.eventDate }),
-					...(assetLoan.UserLoan.cancelEventId && { cancelDate: assetLoan.UserLoan.cancelEventId }),
-					...(assetLoan.UserLoan.LoanEvent && { loanDate: assetLoan.UserLoan.LoanEvent.eventDate }),
-					...(assetLoan.UserLoan.expectedReturnDate && { expectedReturnDate: assetLoan.UserLoan.expectedReturnDate }),
-					...(assetLoan.UserLoan.expectedLoanDate && { expectedLoanDate: assetLoan.UserLoan.expectedLoanDate }),
-					...(assetLoan.UserLoan.loanEventId && { loanEventId: assetLoan.UserLoan.loanEventId }),
-					...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
-					...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-				})))}),
+				...(plainAsset.AssetLoans && plainAsset.AssetLoans.length > 0 && {
+					users: (plainAsset.AssetLoans.map((assetLoan) => {
+
+						const userLoan = assetLoan.UserLoan
+						const peripheralLoans = userLoan.peripheralLoans
+
+						return {
+							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
+							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
+							...(userLoan && {
+								id: assetLoan.UserLoan.User.id,
+								userName: assetLoan.UserLoan.User.userName,
+								bookmarked: assetLoan.UserLoan.User.bookmarked,
+								...(userLoan.ReserveEvent && { reserveDate: userLoan.ReserveEvent.eventDate }),
+								...(userLoan.reserveEventId && { reserveEventId: userLoan.reserveEventId }),
+								...(userLoan.CancelEvent && { cancelDate: userLoan.CancelEvent.eventDate }),
+								...(userLoan.cancelEventId && { cancelDate: userLoan.cancelEventId }),
+								...(userLoan.LoanEvent && { loanDate: userLoan.LoanEvent.eventDate }),
+								...(userLoan.expectedReturnDate && { expectedReturnDate: userLoan.expectedReturnDate }),
+								...(userLoan.expectedLoanDate && { expectedLoanDate: userLoan.expectedLoanDate }),
+								...(userLoan.loanEventId && { loanEventId: userLoan.loanEventId }),
+							}),
+							...(peripheralLoans && {peripherals: peripheralLoans.map(peripheralLoan => ({
+								...(peripheralLoan.returnEventId && { returnEventId: peripheralLoan.eventDate }),
+								...(peripheralLoan.ReturnEvent && { returnDate: peripheralLoan.ReturnEvent.eventDate }),
+								...(peripheralLoan.Peripheral && {
+									id: peripheralLoan.Peripheral.id,
+									peripheralName: peripheralLoan.Peripheral.peripheralType.peripheralName,
+								})
+							}))})
+						}
+					}))
+				}),
 			}
 		}
 	}

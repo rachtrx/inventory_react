@@ -30,8 +30,9 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 //   }
 // });
 
-router.use('/loan', formLoanReturnController.loan);
-router.use('/return', formLoanReturnController.return);
+router.post('/loan', formLoanReturnController.loan);
+router.get('/return', formLoanReturnController.loadReturn);
+router.post('/return', formLoanReturnController.return);
 
 router.use('/addAsset', formAssetController.add);
 router.use('/condemnAsset', formAssetController.condemn);

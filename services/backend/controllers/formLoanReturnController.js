@@ -1,4 +1,4 @@
-const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan  } = require('../models/postgres');
+const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan, Department  } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
@@ -6,6 +6,7 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 const peripheralController = require('./peripheralController.js');
 const path = require('path');
 const fs = require('fs');   
+const { omitUndefined } = require('mongoose');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -228,33 +229,67 @@ class FormLoanReturnController {
         }
     };
 
-    async findReturnDetails (req, res) {
+    async loadReturn (req, res) {
 
         const { ids } = req.body;
 
         try {
             for (const id of ids) {
-                let query = await AssetLoan.findOne({
-                    attributes: [],
+                let query = await Asset.findOne({
+                    attributes: ['serialNumber', 'assetTag'],
                     include: [
                         {
-                            model: Asset,
-                            include: {
-                                model: AssetLoan,
-                                where: {
-                                    id: {
-                                      [Op.not]: id,
-                                    },
-                                    asset_id: specificAssetId,
+                            model: AssetLoan,
+                            attributes: ['id'],
+                            include: [
+                                {
+                                    model: UserLoan,
+                                    attributes: ['expectedReturnDate'],
+                                    include: [
+                                        {
+                                            model: User,
+                                            attributes: ['userName'],
+                                            include: {
+                                                model: Department,
+                                                attributes: ['deptName']
+                                            }
+                                        },
+                                        {
+                                            model: PeripheralLoan,
+                                            attributes: ['returnEventId'],
+                                            include: {
+                                                model: Peripheral,
+                                                attributes: ['id'],
+                                                include: {
+                                                    model: PeripheralType,
+                                                    attributes: ['peripheralName']
+                                                }
+                                            }
+                                        }
+                                    ]
                                 },
-                            }
-                        }
+                                {
+                                    model: AssetTypeVariant,
+                                    attributes: ['variantName'],
+                                    include: {
+                                        model: AssetType,
+                                        attributes: ['assetType']
+                                    }
+                                }
+                            ],
+                        },
+                        
                     ],
-                    where: { id: }
+                    where: { 
+                        id: id
+                    },
                 })
             }
 
-            
+            const asset = query.createAssetObject()
+            logger.info('Details for Asset:', asset);
+    
+            res.json(asset);
 
         } catch (error) {
             console.error("Search failed:", error);

@@ -1,16 +1,15 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../utils/ResponsiveText"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect } from "react"
-import { LoanSummary } from "./utils/LoanSummary"
-import { AddButton, RemoveButton } from "./utils/ItemButtons"
-import { useLoan } from "../../context/LoanProvider"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
+import { useLoan } from "../../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
 import { createNewPeripheral, LoanAsset } from "./LoanAsset";
-import { SearchSingleSelectFormControl } from "./utils/SelectFormControl"
-import { useFormModal } from "../../context/ModalProvider"
+import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
-import DateInputControl from "./utils/DateInputControl"
+import DateInputControl from "../utils/DateInputControl"
 
 export const LoanType = Object.freeze({
 	SINGLE: 'SINGLE',

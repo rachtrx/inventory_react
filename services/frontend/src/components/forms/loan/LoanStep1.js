@@ -1,13 +1,13 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
-import ExcelFormControl from './utils/ExcelFormControl';
-import DateInputControl from "./utils/DateInputControl";
-import { useFormModal } from "../../context/ModalProvider";
+import ExcelFormControl from '../utils/ExcelFormControl';
+import DateInputControl from "../utils/DateInputControl";
+import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
-import assetService from "../../services/AssetService";
-import { useUI } from "../../context/UIProvider";
+import assetService from "../../../services/AssetService";
+import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, LoanType } from "./Loan";
-import { LoanProvider } from "../../context/LoanProvider";
+import { LoanProvider } from "../../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
 
 export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
