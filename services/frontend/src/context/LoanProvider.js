@@ -4,7 +4,7 @@ import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
 import { useFormikContext } from 'formik';
 import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
-import { createNewLoan, Loan, LoanType } from '../components/forms/Loan';
+import { createNewLoan, Loan, LoanType } from '../components/forms/loan/Loan';
 import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
 import { LoanSummary } from '../components/forms/utils/LoanSummary';

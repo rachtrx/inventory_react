@@ -39,6 +39,14 @@ class AssetService {
         downloadFormData(formData);
         return await this.axios.post(`${API_URL}/forms/loan`, formData);;
     }
+
+    async fetchReturn(assetId) {
+        return await this.axios.get(`${API_URL}/assets/return`, {
+            params: {
+                field: assetId
+            }
+        });
+    }
     
     async returnAsset(id) {
         return await this.axios.post(`${API_URL}/assets/return`, id);

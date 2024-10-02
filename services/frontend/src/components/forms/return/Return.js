@@ -1,49 +1,39 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../utils/ResponsiveText"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect } from "react"
-import { LoanSummary } from "./utils/LoanSummary"
-import { AddButton, RemoveButton } from "./utils/ItemButtons"
-import { useLoan } from "../../context/LoanProvider"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
+import { useLoan } from "../../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
-import { createNewPeripheral, LoanAsset } from "./LoanAsset";
-import { SearchSingleSelectFormControl } from "./utils/SelectFormControl"
-import { useFormModal } from "../../context/ModalProvider"
+import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
-import DateInputControl from "./utils/DateInputControl"
+import DateInputControl from "../utils/DateInputControl"
 
-export const LoanType = Object.freeze({
-	SINGLE: 'SINGLE',
-	SHARED: 'SHARED',
-});
+const createNewPeripheral = (peripheral) => ({
+    'key': uuidv4(),
+    'id': peripheral.peripheralId || '',
+    'peripheralName': peripheral.peripheralName || '',
+    'disabled': peripheral.returned,
+    'selected': peripheral.selected
+})
 
-const createNewAsset = (assetTag='', peripherals) => ({ // 1 loan only can have 1 asset
+const createNewUser = (user) => ({
+	'key': uuidv4(),
+	'userId': user.userId || '',
+	'userName': user.userName || '',
+    'peripherals': user.peripherals ? user.peripherals.map(peripheral => createNewPeripheral(peripheral)) : []
+})
+
+export const createNewReturn = (assetTag='') => ({
 	'key': uuidv4(),
 	'assetId': assetTag,
 	'assetTag': assetTag,
-	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral.peripheralName, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
-	'remarks': '',
-	'shared': false
-})
-  
-const createNewUser = (userName='') => ({
-	'key': uuidv4(),
-	'userId': userName,
-	'userName': userName,
-	'signature': '',
+	'users': [],
+	'remarks': ''
 })
 
-
-export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
-	'key': uuidv4(),
-	'asset': createNewAsset(assetTag, peripherals),
-	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
-	'mode': '',
-	'loanDate': loanDate || new Date(),
-	'expectedReturnDate': expectedReturnDate,
-})
-
-export const Loan = () => {
+export const Return = () => {
 
 	const { mode, loan, loanIndex } = useLoan();
 	const { handleUserSearch } = useFormModal();
@@ -98,4 +88,3 @@ export const Loan = () => {
 		</Box>
 	);
 }
-

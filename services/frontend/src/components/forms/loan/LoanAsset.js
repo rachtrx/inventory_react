@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
-import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "./utils/SelectFormControl"
-import { useFormModal } from "../../context/ModalProvider"
-import { useUI } from "../../context/UIProvider"
-import peripheralService from "../../services/PeripheralService"
+import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
+import { useUI } from "../../../context/UIProvider"
+import peripheralService from "../../../services/PeripheralService"
 import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton } from "@chakra-ui/react";
 import { FieldArray } from "formik"
-import InputFormControl from "./utils/InputFormControl"
-import { ResponsiveText } from "../utils/ResponsiveText"
+import InputFormControl from "../utils/InputFormControl"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { AddButton, RemoveButton } from "./utils/ItemButtons"
-import { useLoan } from "../../context/LoanProvider"
-import DateInputControl from "./utils/DateInputControl"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
+import { useLoan } from "../../../context/LoanProvider"
+import DateInputControl from "../utils/DateInputControl"
 import { v4 as uuidv4 } from 'uuid';
 
 export const createNewPeripheral = (peripheralName='', count=1) => ({
