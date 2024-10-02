@@ -177,7 +177,7 @@ const withSearch = (Component, creatable) => ({
 const EnhancedSelect = withSelect(Select);
 const EnhancedCreatableSelect = withSelect(CreatableSelect);
 const SearchSelect = withSelect(withSearch(Select, false));
-const SearchCreatableSelect = (withSelect(withSearch(CreatableSelect, true)));
+const SearchCreatableSelect = withSelect(withSearch(CreatableSelect, true));
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {

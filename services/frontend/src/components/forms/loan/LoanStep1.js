@@ -1,81 +1,28 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
-import ExcelFormControl from './utils/ExcelFormControl';
-import DateInputControl from "./utils/DateInputControl";
-import { useFormModal } from "../../context/ModalProvider";
+import ExcelFormControl from '../utils/ExcelFormControl';
+import DateInputControl from "../utils/DateInputControl";
+import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
-import assetService from "../../services/AssetService";
-import { useUI } from "../../context/UIProvider";
+import assetService from "../../../services/AssetService";
+import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, LoanType } from "./Loan";
-import { LoanProvider } from "../../context/LoanProvider";
+import { LoanProvider } from "../../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
+import { useLoansContext } from "../../../context/LoansProvider";
 
-export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
+export const LoanStep1 = () => {
+
+  const { handleUserData, formData, setValuesExcel, warnings, setWarnings } = useLoansContext()
 
     const { setFormType, reinitializeForm } = useFormModal();
     const { setLoading, showToast, handleError } = useUI();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
     console.log('loan form rendered');
 		console.log(formData);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
-
-		const processPeripherals = (peripheralsString) => {
-			if (!peripheralsString) return {};
-		
-			return peripheralsString
-				.split(',')
-				.map(peripheral => peripheral.trim())
-				.reduce((acc, peripheral) => {
-					if (acc[peripheral]) {
-						acc[peripheral] += 1;
-					} else {
-						acc[peripheral] = 1;
-					}
-					return acc;
-				}, {});
-		};
-  
-    const setValuesExcel = (records) => {
-      try {
-        const groupedRecords = records.reduce((acc, record) => {
-					const assetTag = record.assetTag?.trim();
-					if (acc[assetTag]) {
-						throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
-					}
-
-					const peripherals = processPeripherals(record.peripherals);
-				
-					acc[assetTag] = {
-						userNames: record.userNames
-							? [...new Set(record.userNames.split(',').map(user => user.trim()))]
-							: [],
-						peripherals: Object.entries(peripherals).map(([name, count]) => ({peripheralName: name, count: count}))
-					};
-				
-					return acc;
-				}, {});
-      
-        // Convert grouped records into loans
-        const loans = Object.entries(groupedRecords).map(([assetTag, { userNames, peripherals }]) =>
-          createNewLoan(
-            assetTag,
-            userNames,
-            peripherals,
-          )
-        );
-      
-        console.log(loans);
-      
-        setFormData({
-          loans: loans
-        });
-      } catch (error) {
-        handleError(error);
-      }
-    };
     
     const validateUniqueAssetIDs = (loans) => {
       const assetIDSet = new Set();
@@ -219,7 +166,7 @@ export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
       <Box>
         <Formik
           initialValues={formData}
-          onSubmit={nextStep}
+          onSubmit={handleUserData}
           validate={validate}
           validateOnChange={true}
           // validateOnBlur={true}
@@ -243,6 +190,7 @@ export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
                         loanHelpers={loanHelpers}
                         warnings={warnings?.loans?.[loanIndex]}
                         isLast={loanIndex === array.length - 1}
+                        assetOptions
                       >
                       </LoanProvider>
                     ))

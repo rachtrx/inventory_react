@@ -15,7 +15,7 @@ import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
 import AddAsset from './forms/AddAsset';
-import Return from './forms/Return';
+import Return from './forms/return/Returns';
 import CondemnAsset from './forms/CondemnAsset';
 import AddUser from './forms/AddUser';
 import RemoveUser from './forms/RemoveUser';
@@ -23,7 +23,7 @@ import Toggle from './forms/utils/Toggle';
 import { ResponsiveText } from './utils/ResponsiveText';
 import AddPeripheral from './forms/AddPeripheral';
 import Reserve from './forms/Reserve';
-import Loans from './forms/Loans';
+import Loans from './forms/loan/Loans';
 
 const formMap = {
     [formTypes.ADD_ASSET]: <AddAsset/>,

@@ -1,43 +1,42 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../utils/ResponsiveText"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect } from "react"
-import { LoanSummary } from "./utils/LoanSummary"
-import { AddButton, RemoveButton } from "./utils/ItemButtons"
-import { useLoan } from "../../context/LoanProvider"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
+import { useLoan } from "../../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
 import { createNewPeripheral, LoanAsset } from "./LoanAsset";
-import { SearchSingleSelectFormControl } from "./utils/SelectFormControl"
-import { useFormModal } from "../../context/ModalProvider"
+import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
-import DateInputControl from "./utils/DateInputControl"
+import DateInputControl from "../utils/DateInputControl"
 
 export const LoanType = Object.freeze({
 	SINGLE: 'SINGLE',
 	SHARED: 'SHARED',
 });
 
-const createNewAsset = (assetTag='', peripherals) => ({ // 1 loan only can have 1 asset
+const createNewAsset = (asset=null, peripherals) => ({ // 1 loan only can have 1 asset
 	'key': uuidv4(),
-	'assetId': assetTag,
-	'assetTag': assetTag,
-	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral.peripheralName, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
+	'assetId': asset.assetId || '',
+	'assetTag': asset.assetTag || '',
+	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
 	'remarks': '',
 	'shared': false
 })
   
-const createNewUser = (userName='') => ({
+const createNewUser = (user=null) => ({
 	'key': uuidv4(),
-	'userId': userName,
-	'userName': userName,
+	'userId': user?.userId || '',
+	'userName': user?.userName || '',
 	'signature': '',
 })
 
 
-export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
+export const createNewLoan = (asset=null, users=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
 	'key': uuidv4(),
-	'asset': createNewAsset(assetTag, peripherals),
-	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
+	'asset': createNewAsset(asset, peripherals),
+	'users': users.length === 0 ? [createNewUser()] : users.map(user => createNewUser(user)),
 	'mode': '',
 	'loanDate': loanDate || new Date(),
 	'expectedReturnDate': expectedReturnDate,

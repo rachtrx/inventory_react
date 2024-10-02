@@ -1,13 +1,16 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../utils/ResponsiveText";
-import { FormikSignatureField } from "./utils/SignatureField";
+import { ResponsiveText } from "../../utils/ResponsiveText";
+import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
+import { useLoansContext } from "../../../context/LoansProvider";
 
-export const LoanStep2 = ({ prevStep, handleSubmit, userLoans, formData }) => {
+export const LoanStep2 = () => {
+
+	const { prevStep, handleSubmit, userLoans, formData } = useLoansContext();
 
 	const parentRef = useRef(null);
-  const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
+  	const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
 	console.log(userLoans);
 

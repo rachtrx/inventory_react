@@ -1,21 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { LoanStep2 } from "./LoanStep2";
-import { LoanStep1 } from "./LoanStep1";
-import { useUI } from "../../context/UIProvider";
-import assetService from "../../services/AssetService";
-import { createNewLoan } from "./Loan";
-import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../context/ModalProvider";
+import { Box, Flex } from "@chakra-ui/react";
+import ExcelFormControl from '../utils/ExcelFormControl';
+import InputFormControl from '../utils/InputFormControl';
+import SelectFormControl from "../utils/SelectFormControl";
+import DateInputControl from "../utils/DateInputControl";
+import FormToggle from "../utils/FormToggle";
+import { useFormModal } from "../../../context/ModalProvider";
+import { useItems } from "../../../context/ItemsProvider";
+import { SingleSelectFormControl } from "../utils/SelectFormControl";
+import { useEffect, useMemo, useState } from "react";
+import ReturnStep1 from "./ReturnStep1";
+import { ReturnStep2 } from "./ReturnStep2";
+import { useUI } from "../../../context/UIProvider";
+import { createNewReturn } from "./Return";
 
-const Loans = () => {
+const Returns = () => {
 
   const { setLoading, showToast, handleError } = useUI();
   const { setFormType, initialValues } = useFormModal();
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    loans: [createNewLoan()],
-    signatures: {}
+    returns: [createNewReturn()],
   });
   const [userLoans, setUserLoans] = useState({});
 
@@ -24,7 +29,7 @@ const Loans = () => {
       const assetTag = initialValues.assetTag
       const userNames = [initialValues.userName || '']
       setFormData({
-        loans: [createNewLoan(assetTag, userNames)],
+        loans: [createNewReturn(assetTag, users)],
         signatures: {}
       })
     }
@@ -45,6 +50,31 @@ const Loans = () => {
       loans: resetLoans
     }));
     setStep(step - 1)
+  };
+
+  const fetchReturn = async (values) => {
+    console.log('Fetching return for:', values);
+
+    const userLoans = {}
+    const signatures = {};
+
+    values.loans.forEach((loan) =>
+      loan.users?.forEach((user) => {
+        if (!userLoans[user.userId]) {
+          userLoans[user.userId] = {}
+          userLoans[user.userId].assets = [loan.asset];
+          userLoans[user.userId].userName = user.userName;
+          signatures[user.userId] = ''
+          console.log(signatures);
+        } else userLoans[user.userId].assets.push(loan.asset)
+      })
+    );
+    setUserLoans(userLoans);
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values,
+      signatures: signatures,
+    }));
   };
 
   const handleUserData = (values, actions) => {
@@ -91,10 +121,10 @@ const Loans = () => {
 
   return (
     <Box>
-      {step === 1 && <LoanStep1 nextStep={handleUserData} formData={formData} setFormData={setFormData}/>}
-      {step === 2 && <LoanStep2 prevStep={prevStep} handleSubmit={handleSubmit} userLoans={userLoans} formData={formData}/>}
+      {step === 1 && <ReturnStep1 nextStep={handleUserData} formData={formData} setFormData={setFormData}/>}
+      {step === 2 && <ReturnStep2 prevStep={prevStep} handleSubmit={handleSubmit} userLoans={userLoans} formData={formData}/>}
     </Box>
   );
 };
 
-export default Loans;
+export default Returns;
