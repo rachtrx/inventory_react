@@ -1,4 +1,4 @@
-const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan  } = require('../models/postgres');
+const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan, Department  } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
@@ -6,6 +6,7 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 const peripheralController = require('./peripheralController.js');
 const path = require('path');
 const fs = require('fs');   
+const { omitUndefined } = require('mongoose');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path

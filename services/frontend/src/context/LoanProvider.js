@@ -7,9 +7,7 @@ import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
 import { createNewLoan, Loan, LoanType } from '../components/forms/loan/Loan';
 import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
-import { LoanSummary } from '../components/forms/utils/LoanSummary';
 import { AddButton } from '../components/forms/utils/ItemButtons';
-import { useFormModal } from './ModalProvider';
 
 const LoanMode = ({ mode }) => {
   return (
