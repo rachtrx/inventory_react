@@ -10,14 +10,17 @@ const withSelect = (Component) => ({
   name,
   label,
   secondaryFieldsMeta = null,
-  options: initialOptions = [],
+  initialOptions = [],
+  initialOption = null,
   isMulti = false,
   hideSelectedOptions = false,
   warning = null,
+  handleError = null,
   children,
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
+  const [selectedOption, setSelectedOption] = useState(initialOption);
   const [options, setOptions] = useState(initialOptions);
   const { setFieldValue } = useFormikContext();
 
@@ -26,7 +29,7 @@ const withSelect = (Component) => ({
   const handleChange = useCallback(
     (selected) => {
       console.log(selected);
-      if (secondaryFieldsMeta && Array.isArray(secondaryFieldsMeta)) {
+      if (handleError) {
         secondaryFieldsMeta.forEach(({ name, attr }) => {
           setFieldValue(name, selected?.[attr] ? selected[attr] : '');
         });
@@ -52,12 +55,14 @@ const withSelect = (Component) => ({
     [secondaryFieldsMeta, setFieldValue, setTouched, setValue, options, isMulti]
   );
 
-  const selectedOption = useMemo(() => {
+  useEffect(() => {
+    let option;
     if (isMulti) {
-      return options.filter((option) => value.includes(option?.value));
+      option = options.filter((option) => value.includes(option?.value));
     } else {
-      return options.find((option) => option?.value === value) || null;
+      option = options.find((option) => option?.value === value) || null;
     }
+    setSelectedOption(option);
   }, [value, options, isMulti]);
 
   return (

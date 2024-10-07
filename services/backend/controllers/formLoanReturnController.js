@@ -1,4 +1,4 @@
-const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan, Department  } = require('../models/postgres');
+const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan, Department, Loan  } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
@@ -52,26 +52,23 @@ class FormLoanReturnController {
                     throw new Error(`Asset with ID ${[...uniqueAssetIds][index]} not found!`); // TODO CONVERT TO TAG
                 }
             
-                if (!assetData.shared) {
-                    // Check if the asset is already on loan
-                    const isOnLoan = await Asset.findOne({
-                        include: {
-                            model: AssetLoan,
-                            attributes: [],
-                            required: true,
-                            where: { returnEventId: { [Op.eq]: null } }
-                        },
-                        where: { id: assetData.id },
-                        transaction
-                    });
-            
-                    if (isOnLoan) {
-                        throw new Error(`Asset with ID ${assetData.assetTag} is still on loan!`);
-                    }
+                const isOnLoan = await Asset.findOne({
+                    include: {
+                        model: AssetLoan,
+                        attributes: [],
+                        required: true,
+                        where: { returnEventId: { [Op.eq]: null } }
+                    },
+                    where: { id: assetData.id },
+                    transaction
+                });
+        
+                if (isOnLoan) {
+                    throw new Error(`Asset with ID ${assetData.assetTag} is still on loan!`);
                 }
             
                 if (assetData.deleteEventId) {
-                    throw new Error(`Asset with ID ${assetData.assetTag} is condemned!`);
+                    throw new Error(`Asset Tag ${assetData.assetTag} is condemned!`);
                 }
             }));
 
@@ -110,6 +107,7 @@ class FormLoanReturnController {
                             peripheralCache[peripheral.id] = peripheralType; // Setup, add count later
                         }
                         
+                        // IMPT ALLOW NEGATIVE PERIPHERAL COUNT!
                         // // Add count now
                         // peripheralCache[peripheral.id] = {
                         //     ...peripheralCache[peripheral.id], 
@@ -119,7 +117,8 @@ class FormLoanReturnController {
                 }
             }
             
-            // // TOP UP MISSING PERIPHERALS → Nevermind, just allow negative
+            // IMPT ALLOW NEGATIVE PERIPHERAL COUNT!
+            // // TOP UP MISSING PERIPHERALS
             // for (const peripheralData of Object.values(peripheralCache)) {
             //     const {peripheralType, count} = peripheralData;
             //     if (peripheralType.availableCount < count) {
@@ -138,41 +137,46 @@ class FormLoanReturnController {
                 const { asset, users, mode, loanDate } = loan;
                 const expectedReturnDate = loan.expectedReturnDate === "" ? null : loan.expectedReturnDate;
 
-                const loanEventId = generateSecureID()
+                const loanId = generateSecureID() // PK for loan instance
+                const loanEventId = generateSecureID() // Attribute of loan instance
 
                 // Event, Remarks
                 await Event.create({
                     id: loanEventId,
+                    eventDate: loanDate,
                     adminId: req.auth.id,
-                    eventDate: loanDate
                 }, { transaction });
+
+                await Loan.create({
+                    id: loanId,
+                    expectedReturnDate: expectedReturnDate,
+                    loanEventId: loanEventId
+                })
 
                 if (asset.remarks !== '') await Remark.create({
                     id: generateSecureID(),
                     eventId: loanEventId,
                     remarks: asset.remarks
                 }, { transaction });
+
+                // Create Asset Loan
+                await AssetLoan.create({
+                    id: generateSecureID(),
+                    loanId: loanId,
+                    assetId: asset.assetId,
+                }, { transaction });
                 
-                // Asset Loans and User Loans for each user
-                const userLoanIds = {}
+                // User Loans for each user
                 for (const user of users) {
-                    const userLoanId = generateSecureID()
                     const userLoan = await UserLoan.create({
-                        id: userLoanId,
+                        id: generateSecureID(),
+                        loanId: loanId,
                         userId: user.userId,
-                        loanEventId: loanEventId,
-                        expectedReturnDate: expectedReturnDate
                     }, { transaction });
                     
+                    // add loan to dictionary under user key to tag signature later
                     if (!userLoans[user.userId]) userLoans[user.userId] = [userLoan]
                     else userLoans[user.userId].push(userLoan);
-                    
-                    await AssetLoan.create({
-                        id: generateSecureID(),
-                        userLoanId: userLoanId,
-                        assetId: asset.assetId,
-                    }, { transaction });
-                    userLoanIds[user.userId] = userLoanId;
                 }
 
                 // Peripheral Loans for each count of each type for each user
@@ -184,13 +188,11 @@ class FormLoanReturnController {
                                 peripheralTypeId: peripheral.id
                             }, { transaction });
 
-                            for (const user of users) {
-                                await PeripheralLoan.create({
-                                    id: generateSecureID(),
-                                    userLoanId: userLoanIds[user.userId],
-                                    peripheralId: newPeripheralOnLoan.id,
-                                }, { transaction });
-                            }
+                            await PeripheralLoan.create({
+                                id: generateSecureID(),
+                                loanId: loanId,
+                                peripheralId: newPeripheralOnLoan.id,
+                            }, { transaction });
                         }
                         await peripheralCache[peripheral.id].update({
                             availableCount: peripheralCache[peripheral.id].availableCount - peripheral.count
@@ -231,60 +233,61 @@ class FormLoanReturnController {
 
     async loadReturn (req, res) {
 
-        const id = req.query.field;
+        const id = req.query.id;
 
         try {
-            for (const id of ids) {
-                let query = await Asset.findOne({
-                    attributes: ['serialNumber', 'assetTag'],
-                    include: [
-                        {
-                            model: AssetLoan,
-                            attributes: ['id'],
-                            include: [
-                                {
-                                    model: UserLoan,
-                                    attributes: ['expectedReturnDate'],
-                                    include: [
-                                        {
-                                            model: User,
-                                            attributes: ['userName'],
+            let query = await Asset.findOne({
+                attributes: ['serialNumber', 'assetTag'],
+                include: [
+                    {
+                        model: AssetTypeVariant,
+                        attributes: ['variantName'],
+                        include: {
+                            model: AssetType,
+                            attributes: ['assetType']
+                        }
+                    },
+                    {
+                        model: AssetLoan,
+                        attributes: ['id'],
+                        include: {
+                            model: Loan,
+                            attributes: ['expectedReturnDate'],
+                            include: {
+                                model: UserLoan,
+                                attributes: ['id'],
+                                include: [
+                                    {
+                                        model: User,
+                                        attributes: ['userName', 'id'],
+                                        include: {
+                                            model: Department,
+                                            attributes: ['deptName']
+                                        },
+                                        required: false,
+                                    },
+                                    {
+                                        model: PeripheralLoan,
+                                        attributes: ['returnEventId'],
+                                        include: {
+                                            model: Peripheral,
+                                            attributes: ['id'],
                                             include: {
-                                                model: Department,
-                                                attributes: ['deptName']
+                                                model: PeripheralType,
+                                                attributes: ['peripheralName']
                                             }
                                         },
-                                        {
-                                            model: PeripheralLoan,
-                                            attributes: ['returnEventId'],
-                                            include: {
-                                                model: Peripheral,
-                                                attributes: ['id'],
-                                                include: {
-                                                    model: PeripheralType,
-                                                    attributes: ['peripheralName']
-                                                }
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    model: AssetTypeVariant,
-                                    attributes: ['variantName'],
-                                    include: {
-                                        model: AssetType,
-                                        attributes: ['assetType']
+                                        required: false,
                                     }
-                                }
-                            ],
+                                ]
+                            }
                         },
-                        
-                    ],
-                    where: { 
-                        id: id
                     },
-                })
-            }
+                ],
+                where: { 
+                    id: id
+                },
+            })
 
             const asset = query.createAssetObject()
             logger.info('Details for Asset:', asset);

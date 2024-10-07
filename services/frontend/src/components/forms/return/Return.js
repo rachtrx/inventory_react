@@ -9,81 +9,44 @@ import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
 import DateInputControl from "../utils/DateInputControl"
-
-const createNewPeripheral = (peripheral) => ({
-    'key': uuidv4(),
-    'id': peripheral.peripheralId || '',
-    'peripheralName': peripheral.peripheralName || '',
-    'disabled': peripheral.returned,
-    'selected': peripheral.selected
-})
+import { useReturn } from "../../../context/ReturnProvider"
+import ReturnPeripherals from "./ReturnPeripherals"
 
 const createNewUser = (user) => ({
 	'key': uuidv4(),
 	'userId': user.userId || '',
 	'userName': user.userName || '',
-    'peripherals': user.peripherals ? user.peripherals.map(peripheral => createNewPeripheral(peripheral)) : []
+    'peripherals': user.peripherals || []
 })
 
-export const createNewReturn = (assetTag='') => ({
+export const createNewReturn = (asset=null, users=[]) => ({
 	'key': uuidv4(),
-	'assetId': assetTag,
-	'assetTag': assetTag,
-	'users': [],
+	'assetId': asset?.assetId || '',
+	'assetTag': asset?.assetTag || '',
+	'users': users.map(user => createNewUser(user)),
 	'remarks': ''
 })
 
 export const Return = () => {
 
-	const { mode, loan, loanIndex } = useLoan();
-	const { handleUserSearch } = useFormModal();
+	const { ret, returnIndex, assetOption } = useReturn();
+	const { handleAssetSearch, handleUserSearch } = useFormModal();
 
 	return (
 		<Box position='relative'>
-			<Flex direction="column" key={loan.key}>
-				<LoanAsset
-					loanIndex={loanIndex}
-					asset={loan.asset}
+			<Flex direction="column" key={ret.key}>
+				<SearchSingleSelectFormControl
+					name={`returns.${returnIndex}.asset.assetId`}
+					searchFn={value => handleAssetSearch(value)}
+					secondaryFieldsMeta={[
+						{name: `loans.${returnIndex}.asset.assetTag`, attr: 'assetTag'},
+					]}
+					label={`Asset Tag`}
+					placeholder="Asset Tag"
+					initialOptions={assetOption}
+					initialOption={assetOption}
 				/>
-				<FieldArray name={`loans.${loanIndex}.users`}>
-					{ userHelpers => loan.users.map((user, userIndex, array) => (
-						<VStack key={user.key}>
-							<SearchSingleSelectFormControl
-								name={`loans.${loanIndex}.users.${userIndex}.userId`}
-								searchFn={handleUserSearch}
-								secondaryFieldsMeta={[
-									{name: `loans.${loanIndex}.users.${userIndex}.userName`, attr: 'userName'},
-								]}
-								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
-								placeholder="Select user"
-							>
-								<RemoveButton
-									ariaLabel="Remove User"
-									onClick={() => {
-										userHelpers.remove(userIndex);
-									}}
-									isDisabled={loan.users.length === 1}
-								/>
-							</SearchSingleSelectFormControl>
-							
-							<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
-								{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
-								(
-									<AddButton
-										handleClick={() => {
-											userHelpers.push(createNewUser());
-										}}
-										label={'Add User'}
-									/>
-								)}
-							</Flex>
-						</VStack>
-					))}
-				</FieldArray>
-				<Flex mt={2}>
-					<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.loanDate`} />
-					<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.expectedReturnDate`} />
-				</Flex>
+				<ReturnPeripherals/>
 			</Flex>
 		</Box>
 	);

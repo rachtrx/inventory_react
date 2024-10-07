@@ -2,17 +2,29 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class PeripheralLoan extends Model { }
+	class PeripheralLoan extends Model { 
+
+        createperipheralLoanObject = function() {
+            return {
+                ...(this.returnEventId && { returnEventId: this.eventDate }),
+                ...(this.ReturnEvent && { returnDate: this.ReturnEvent.eventDate }),
+                ...(this.Peripheral && {
+                    peripheralId: this.Peripheral.id,
+                    peripheralName: this.Peripheral.PeripheralType.peripheralName,
+                })
+            }
+        }
+    }
 
 	PeripheralLoan.init({
 		id: {
             type: DataTypes.STRING,
             primaryKey: true,
         },
-		userLoanId: {
+		loanId: {
             type: DataTypes.STRING,
             references: {
-                model: 'user_loans',
+                model: 'loans',
                 key: 'id'
             },
         },

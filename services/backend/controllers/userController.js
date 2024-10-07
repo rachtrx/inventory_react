@@ -18,21 +18,23 @@ class UserController {
             } else if (field === 'assetCount') {
                 const result = await AssetLoan.findAll({
                     attributes: [
-                        Sequelize.col('"UserLoan.user_id"'),
+                        Sequelize.col('"UserLoan.user_id"'), // TODO
                         [Sequelize.fn('COUNT', Sequelize.col('"AssetLoan"."id"')), 'assetCount']
                     ],
                     include: {
-                        model: UserLoan,
+                        model: Loan,
                         attributes: [],
-                        required: true,
+                        where: { returnEventId: null },
                         include: {
-                            model: User,
-                            attributes: [],
-                            required: true,
+                            model: UserLoan,
+                            attributes: ['userId'],
+                            include: {
+                                model: User,
+                                attributes: [],
+                            },
                         }
                     },
-                    where: { returnEventId: null },
-                    group: ['"UserLoan.user_id"'], // TODO
+                    group: ['"Loan->UserLoan.user_id"'], // TODO
                     raw: true
                 });
                 const counts = result.map(item => item.assetCount);
@@ -83,51 +85,55 @@ class UserController {
                     {
                         model: UserLoan,
                         required: false,
-                        attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
-                        include: [
-                            {
-                                model: AssetLoan,
-                                attributes: ['id', 'returnEventId'],
-                                include: [
-                                    {
-                                        model: Asset,
-                                        attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
-                                        include: {
-                                            model: AssetTypeVariant,
-                                            attributes: ['id', 'variantName'],
+                        attributes: ['id'],
+                        include: {
+                            model: Loan,
+                            attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
+                            include: [
+                                {
+                                    model: AssetLoan,
+                                    attributes: ['id', 'returnEventId'],
+                                    include: [
+                                        {
+                                            model: Asset,
+                                            attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
                                             include: {
-                                                model: AssetType,
-                                                attributes: ['id', 'assetType']
+                                                model: AssetTypeVariant,
+                                                attributes: ['id', 'variantName'],
+                                                include: {
+                                                    model: AssetType,
+                                                    attributes: ['id', 'assetType']
+                                                }
                                             }
+                                        },
+                                    ],
+                                    where: {
+                                        returnEventId: {
+                                            [Op.is]: null
                                         }
                                     },
-                                ],
-                                where: {
-                                    returnEventId: {
-                                        [Op.is]: null
-                                    }
                                 },
-                            },
-                            {
-                                model: PeripheralLoan,
-                                attributes: ['id', 'returnEventId'],
-                                required: false,
-                                include: {
-                                    model: Peripheral,
-                                    attributes: ['id'],
-                                    include: {
-                                        model: PeripheralType,
-                                        attributes: ['id', 'peripheralName'],
-                                    },
+                                {
+                                    model: PeripheralLoan,
+                                    attributes: ['id', 'returnEventId'],
                                     required: false,
+                                    include: {
+                                        model: Peripheral,
+                                        attributes: ['id'],
+                                        include: {
+                                            model: PeripheralType,
+                                            attributes: ['id', 'peripheralName'],
+                                        },
+                                        required: false,
+                                    },
+                                    where: {
+                                        returnEventId: {
+                                            [Op.is]: null
+                                        }
+                                    },
                                 },
-                                where: {
-                                    returnEventId: {
-                                        [Op.is]: null
-                                    }
-                                },
-                            },
-                        ],
+                            ],
+                        }
                     },
                     {
                         model: Department,
@@ -166,27 +172,71 @@ class UserController {
     
         try {
             const userDetailsPromise = User.findByPk(userId, {
-                include: [{
-                    model: Department,
-                    attributes: ['deptName']
-                },
-                {
-                    model: LoanDetail,
-                    attributes: ['status', 'startDate', 'expectedReturnDate'],
-                    include: {
-                        model: Loan,
-                        attributes: ['id'],
+                include: [
+                    {
+                        model: Department,
+                        attributes: ['deptName']
+                    },
+                    {
+                        model: Event,
+                        as: 'AddEvent',
+                        attributes: ['eventDate']
+                    },
+                    {
+                        model: Event,
+                        as: 'DeleteEvent',
+                        attributes: ['eventDate'],
+                        required: false,
+                    },
+                    {
+                        model: UserLoan,
+                        attributes: ['id', 'filepath'],
                         include: {
-                            model: Asset,
-                            attributes: ['id', 'assetTag', 'bookmarked'],
-                            include: {
-                                model: AssetTypeVariant,
-                                attributes: ['variantName']
-                            }
-                        },
+                            model: Loan,
+                            attributes: ['id', 'expectedReturnDate'],
+                            include: [
+                                {
+                                    model: AssetLoan,
+                                    include: [
+                                        {
+                                            model: Asset,
+                                            attributes: ['id', 'assetTag', 'bookmarked'],
+                                            include: {
+                                                model: AssetTypeVariant,
+                                                attributes: ['variantName']
+                                            }
+                                        },
+                                        {
+                                            model: Event,
+                                            as: 'ReturnEvent',
+                                            attributes: ['eventDate'],
+                                            required: false
+                                        }
+                                    ]
+                                },
+                                {
+                                    model: Event,
+                                    as: 'ReserveEvent',
+                                    attributes: ['eventDate'],
+                                    required: false
+                                },
+                                {
+                                    model: Event,
+                                    as: 'CancelEvent',
+                                    attributes: ['eventDate'],
+                                    required: false
+                                },
+                                {
+                                    model: Event,
+                                    as: 'LoanEvent',
+                                    attributes: ['eventDate'],
+                                    required: false,
+                                },
+                            ]
+                        }
                     }
-                }],
-                attributes: ['id', 'userName', 'bookmarked', 'addedDate', 'deletedDate']
+                ],
+                attributes: ['id', 'userName', 'bookmarked']
             });
     
             const userEventsPromise = Event.find({ userId }).sort({ eventDate: -1 });

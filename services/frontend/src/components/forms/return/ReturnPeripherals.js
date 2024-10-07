@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox } from '@chakra-ui/react';
 
-const MasterCheckboxTable = () => {
+const ReturnPeripherals = () => {
   const [masterChecked, setMasterChecked] = useState(false);
   const [rowChecked, setRowChecked] = useState([false, false, false, false]); // Example for 4 rows
 
@@ -61,4 +61,4 @@ const MasterCheckboxTable = () => {
   );
 };
 
-export default MasterCheckboxTable;
+export default ReturnPeripherals;

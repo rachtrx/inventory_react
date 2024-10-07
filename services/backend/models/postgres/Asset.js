@@ -6,11 +6,10 @@ module.exports = (sequelize) => {
 	class Asset extends Model {
 
 		createAssetObject = function() {
-			const plainAsset = this.get({ plain: true });
-
-			logger.info(plainAsset);
+			const plainAsset = this;
+			logger.info(this.get({ plain: true }));	
 		
-			return {
+			const asset = {
 				id: plainAsset.id,
 				serialNumber: plainAsset.serialNumber,
 				assetTag: plainAsset.assetTag,
@@ -23,40 +22,77 @@ module.exports = (sequelize) => {
 				...(plainAsset.AddEvent && {addedDate: plainAsset.AddEvent.eventDate}),
 				...(plainAsset.DeleteEvent && {deletedDate: plainAsset.DeleteEvent.eventDate}),
 				...(plainAsset.location && {location: plainAsset.location}),
-				...(plainAsset.AssetLoans && plainAsset.AssetLoans.length > 0 && {
-					users: (plainAsset.AssetLoans.map((assetLoan) => {
-
-						const userLoan = assetLoan.UserLoan
-						const peripheralLoans = userLoan.peripheralLoans
-
+				...(plainAsset.AssetLoans && {
+					// Ongoing loan (those with loanEvent but no returnEvent)
+					ongoingLoan: (() => {
+						const assetLoan = plainAsset.AssetLoans.find(assetLoan => 
+							!assetLoan.returnEventId && 
+							!assetLoan.ReturnEvent
+						);
+				
+						if (!assetLoan) {
+							return null;  // No ongoing loan found
+						}
+				
+						const userLoans = assetLoan.Loan.UserLoans;
+						const peripheralLoans = assetLoan.Loan.PeripheralLoans;
+				
 						return {
+							...assetLoan.Loan.createLoanObject(),
+							users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
 							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
 							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-							...(userLoan && {
-								id: assetLoan.UserLoan.User.id,
-								userName: assetLoan.UserLoan.User.userName,
-								bookmarked: assetLoan.UserLoan.User.bookmarked,
-								...(userLoan.ReserveEvent && { reserveDate: userLoan.ReserveEvent.eventDate }),
-								...(userLoan.reserveEventId && { reserveEventId: userLoan.reserveEventId }),
-								...(userLoan.CancelEvent && { cancelDate: userLoan.CancelEvent.eventDate }),
-								...(userLoan.cancelEventId && { cancelDate: userLoan.cancelEventId }),
-								...(userLoan.LoanEvent && { loanDate: userLoan.LoanEvent.eventDate }),
-								...(userLoan.expectedReturnDate && { expectedReturnDate: userLoan.expectedReturnDate }),
-								...(userLoan.expectedLoanDate && { expectedLoanDate: userLoan.expectedLoanDate }),
-								...(userLoan.loanEventId && { loanEventId: userLoan.loanEventId }),
+							...(peripheralLoans && {
+								peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
 							}),
-							...(peripheralLoans && {peripherals: peripheralLoans.map(peripheralLoan => ({
-								...(peripheralLoan.returnEventId && { returnEventId: peripheralLoan.eventDate }),
-								...(peripheralLoan.ReturnEvent && { returnDate: peripheralLoan.ReturnEvent.eventDate }),
-								...(peripheralLoan.Peripheral && {
-									id: peripheralLoan.Peripheral.id,
-									peripheralName: peripheralLoan.Peripheral.peripheralType.peripheralName,
-								})
-							}))})
+						};
+					})(),
+					reservation: (() => {
+						const assetLoan = plainAsset.AssetLoans.find(assetLoan => 
+							(assetLoan.reserveEventId || assetLoan.ReserveEvent) && !assetLoan.cancelEventId && !assetLoan.CancelEvent
+						);
+				
+						if (!assetLoan) {
+							return null;  // No ongoing loan found
 						}
-					}))
+				
+						const userLoans = assetLoan.Loan.UserLoans;
+						const peripheralLoans = assetLoan.Loan.PeripheralLoans;
+				
+						return {
+							...assetLoan.Loan.createLoanObject(),
+							users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
+							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
+							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
+							...(peripheralLoans && {
+								peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
+							}),
+						};
+					})(),
+						
+					// Past loans (those with a returnEventId or ReturnEvent)
+					pastLoans: plainAsset.AssetLoans
+						.filter(assetLoan => assetLoan.returnEventId || assetLoan.ReturnEvent)
+						.map(assetLoan => {
+							const userLoans = assetLoan.Loan.UserLoans;
+							const peripheralLoans = assetLoan.Loan.PeripheralLoans;
+				
+							return {
+								...assetLoan.Loan.createLoanObject(),
+								users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
+								...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
+								...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
+								...(peripheralLoans && {
+									peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
+								}),
+							};
+						}),
 				}),
 			}
+
+			logger.info(asset);
+
+			return asset;
 		}
 	}
 

@@ -41,9 +41,9 @@ class AssetService {
     }
 
     async fetchReturn(assetId) {
-        return await this.axios.get(`${API_URL}/assets/return`, {
+        return await this.axios.get(`${API_URL}/forms/return`, {
             params: {
-                field: assetId
+                id: assetId
             }
         });
     }

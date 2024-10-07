@@ -9,10 +9,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             primaryKey: true,
         },
-        userLoanId: {
+        loanId: {
             type: DataTypes.STRING,
             references: {
-                model: 'user_loans',
+                model: 'loans',
                 key: 'id'
             },
         },
@@ -37,7 +37,7 @@ module.exports = (sequelize) => {
         indexes: [
 			{
 				unique: true,
-				fields: ['user_loan_id', 'asset_id']
+				fields: ['loan_id', 'asset_id']
 			}
 		]
 	});

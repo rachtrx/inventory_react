@@ -1,4 +1,4 @@
-const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, Peripheral, PeripheralType, PeripheralLoan } = require('../models/postgres');
+const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, Peripheral, PeripheralType, PeripheralLoan, Loan } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
@@ -121,11 +121,15 @@ class AssetController {
                         model: AssetLoan,
                         attributes: ['id', 'returnEventId'],
                         include: {
-                            model: UserLoan,
-                            attributes: ['userId', 'reserveEventId', 'loanEventId'],
+                            model: Loan,
+                            attributes: ['id', 'reserveEventId', 'loanEventId'],
                             include: {
-                                model: User,
-                                attributes: ['id', 'userName', 'bookmarked'],
+                                model: UserLoan,
+                                attributes: ['id'],
+                                include: {
+                                    model: User,
+                                    attributes: ['id', 'userName', 'bookmarked'],
+                                },
                             },
                             where: { cancelEventId: null },
                         },
@@ -193,9 +197,9 @@ class AssetController {
             orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN shared = 1 OR ("userCount" = 0 AND "reserveCount" = 0) THEN 1
+                        WHEN shared = 1 OR ("loanCount" = 0 AND "reserveCount" = 0) THEN 1
                         WHEN "reserveCount" > 0 THEN 2
-                        WHEN "userCount" > 0 THEN 3
+                        WHEN "loanCount" > 0 THEN 3
                         WHEN "deletedDate" IS NOT NULL THEN 4
                         ELSE 5
                     END ASC,
@@ -205,7 +209,7 @@ class AssetController {
             orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN "userCount" > 0 THEN 1
+                        WHEN "loanCount" > 0 THEN 1
                         WHEN "deletedDate" IS NOT NULL THEN 2
                         ELSE 3
                     END ASC,
@@ -230,14 +234,24 @@ class AssetController {
                     vendors.vendor_name AS "vendorName",
                     MAX(loan_event.event_date) AS "lastLoan",
                     MAX(return_event.event_date) AS "lastReturn",
-                    COUNT(loan_event.id) - COUNT(return_event.id) AS "userCount",
-                    SUM(
+
+                    COUNT(
+                        CASE 
+                            WHEN loan_event.id IS NOT NULL 
+                            AND return_event.id IS NULL 
+                            THEN users.id 
+                            ELSE NULL 
+                        END
+                    ) AS "loanCount",
+                    
+                    COUNT(
                         CASE 
                             WHEN loan_event.id IS NULL 
-                                AND return_event.id IS NULL 
-                                AND cancel_event.id IS NULL 
-                                AND reserve_event.id IS NOT NULL THEN 1 
-                            ELSE 0
+                            AND return_event.id IS NULL 
+                            AND cancel_event.id IS NULL 
+                            AND reserve_event.id IS NOT NULL
+                            THEN users.id 
+                            ELSE NULL 
                         END
                     ) AS "reserveCount"
                 FROM assets
@@ -245,13 +259,18 @@ class AssetController {
                 LEFT JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
                 LEFT JOIN vendors ON assets.vendor_id = vendors.id
                 LEFT JOIN asset_loans ON assets.id = asset_loans.asset_id
-                LEFT JOIN user_loans ON asset_loans.user_loan_id = user_loans.id
+                LEFT JOIN loans ON asset_loans.loan_id = loans.id
+                LEFT JOIN user_loans ON loans.id = user_loans.loan_id
+                LEFT JOIN users ON user_loans.user_id = users.id
+
                 LEFT JOIN events AS delete_event ON assets.delete_event_id = delete_event.id
                 LEFT JOIN events AS add_event ON assets.add_event_id = add_event.id
-                LEFT JOIN events AS loan_event ON user_loans.loan_event_id = loan_event.id
+
+                LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
+                LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
+                LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
                 LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
-                LEFT JOIN events AS reserve_event ON user_loans.reserve_event_id = reserve_event.id
-                LEFT JOIN events AS cancel_event ON user_loans.cancel_event_id = cancel_event.id
+
                 WHERE (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)
                 GROUP BY 
                     assets.id, 
@@ -280,13 +299,13 @@ class AssetController {
             const response = assets.map((asset) => {
                 logger.info(asset);
 
-                asset.userCount = Number(asset.userCount);
+                asset.loanCount = Number(asset.loanCount);
                 asset.reserveCount = Number(asset.reserveCount);
                 
                 if (asset.deletedDate) {
                     asset.status = 'Deleted';
-                } else if (asset.userCount !== 0 && !asset.shared) {
-                    asset.status = `On Loan: ${asset.userCount} user${asset.userCount === 1 ? '' : 's'}`;
+                } else if (asset.loanCount !== 0 && !asset.shared) {
+                    asset.status = `On Loan: ${asset.loanCount} user${asset.loanCount === 1 ? '' : 's'}`;
                 } else if (asset.reserveCount !== 0 && !asset.shared) {
                     asset.status = `Reserved: ${asset.reserveCount} user${asset.reserveCount === 1 ? '' : 's'}`;
                 } else {
@@ -368,26 +387,10 @@ class AssetController {
                         attributes: ['id'],
                         include: [
                             {
-                                model: UserLoan,
-                                attributes: ['filepath', 'expectedLoanDate', 'expectedReturnDate'],
+
+                                model: Loan,
+                                attributes: ['expectedLoanDate', 'expectedReturnDate'],
                                 include: [
-                                    {
-                                        model: PeripheralLoan,
-                                        attributes: ['id'],
-                                        include: {
-                                            model: Peripheral,
-                                            attributes: ['id'],
-                                            include: {
-                                                model: PeripheralType,
-                                                attributes: ['id', 'peripheralName'],
-                                            },
-                                        },
-                                        required: false,
-                                    },
-                                    {
-                                        model: User,
-                                        attributes: ['id', 'userName', 'bookmarked']
-                                    },
                                     {
                                         model: Event,
                                         as: 'ReserveEvent',
@@ -405,6 +408,29 @@ class AssetController {
                                         as: 'LoanEvent',
                                         attributes: ['eventDate'],
                                         required: false,
+                                    },
+                                    {
+                                        model: UserLoan,
+                                        attributes: ['filepath'],
+                                        include: [
+                                            {
+                                                model: PeripheralLoan,
+                                                attributes: ['id'],
+                                                include: {
+                                                    model: Peripheral,
+                                                    attributes: ['id'],
+                                                    include: {
+                                                        model: PeripheralType,
+                                                        attributes: ['id', 'peripheralName'],
+                                                    },
+                                                },
+                                                required: false,
+                                            },
+                                            {
+                                                model: User,
+                                                attributes: ['id', 'userName', 'bookmarked']
+                                            }
+                                        ],
                                     },
                                 ],
                             },

@@ -25,16 +25,6 @@ const Returns = () => {
   });
   const [userReturns, setUserReturns] = useState({});
 
-  useEffect(() => {
-    if (initialValues) {
-      const assetTag = initialValues.assetTag
-      setFormData({
-        returns: [createNewReturn(assetTag)],
-        signatures: {}
-      })
-    }
-  }, [initialValues])
-
   const prevStep = () => {
     setStep(step - 1)
   };

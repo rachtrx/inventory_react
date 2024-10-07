@@ -2,7 +2,6 @@ import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from 
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect } from "react"
-import { LoanSummary } from "../utils/LoanSummary"
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "../../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
@@ -45,6 +44,7 @@ export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDat
 
 export const Loan = () => {
 
+	const { setFieldError } = useFormikContext()
 	const { mode, loan, loanIndex } = useLoan();
 	const { handleUserSearch } = useFormModal();
 
@@ -65,6 +65,7 @@ export const Loan = () => {
 									{name: `loans.${loanIndex}.users.${userIndex}.userName`, attr: 'userName'},
 								]}
 								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
+								error=
 								placeholder="Select user"
 							>
 								<RemoveButton

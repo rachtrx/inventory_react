@@ -57,7 +57,7 @@ async function main(data) {
         const addUserEvents = newData.events.filter(event => event.eventType === 'created' && event.userId === user.id);
     
         if (addUserEvents.length !== 1) {
-            throw new Error(`add user event for ${user.userName} is not 1`);
+            throw new Error(`${addUserEvents.length} add user events found for ${user.userName}`);
         }
     
         addUserEvent = addUserEvents[0]
@@ -66,7 +66,7 @@ async function main(data) {
         const delUserEvents = newData.events.filter(event => event.eventType === 'removed' && event.userId === user.id);
     
         if (delUserEvents.length > 1) {
-            throw new Error(`More than 1 del user event for ${user.userName}`);
+            throw new Error(`${delUserEvents.length} del user events found for ${user.userName}`);
         }
     
         if (delUserEvents.length === 1) {
@@ -83,10 +83,8 @@ async function main(data) {
         return newUser;
     });
     
-    const newAssets = []
-    
-    newData.devices
-        .forEach(asset => {
+    const newAssets = newData.devices
+        .map(asset => {
     
             const { registeredDate, status, userId, ...rest } = asset;
     
@@ -120,12 +118,13 @@ async function main(data) {
                 addEventId: addAssetEvent.id,
                 deleteEventid: delAssetEvent && delAssetEvent.id || null
             };
-            newAssets.push(newAsset)
+            return newAsset;
         });
    
     const remarksArr = []
     const userLoansArr = []
     const assetLoansArr = []
+    const loansArr = []
     
     newData.events.forEach(event => {
     
@@ -163,17 +162,25 @@ async function main(data) {
             eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
             eventsArr.push(createEvent(returnEvent.id, returnEvent.eventDate))
             
+            const loanId = generateSecureID();
+
+            loansArr.push({
+                id: loanId,
+                loanEventId: loanEvent.id,
+            })
+
             const userLoanId = generateSecureID();
+
             userLoansArr.push({
                 id: userLoanId,
+                loanId: loanId,
                 userId: loanEvent.userId,
                 filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
-                loanEventId: loanEvent.id,
             })
     
             assetLoansArr.push({
                 id: generateSecureID(),
-                userLoanId: userLoanId,
+                loanId: loanId,
                 assetId: assetId,
                 returnEventId: returnEvent.id
             });
@@ -183,21 +190,28 @@ async function main(data) {
     })
     
     for (const [assetId, loanEvent] of Object.entries(trackedAssetIds)) {
-        const {id, userId, loanId} = loanEvent;
+        const {id, userId} = loanEvent;
 
         eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
+
+        const loanId = generateSecureID();
+
+        loansArr.push({
+            id: loanId,
+            loanEventId: loanEvent.id,
+        })
     
         const userLoanId = generateSecureID();
         userLoansArr.push({
             id: userLoanId,
+            loanId: loanId,
             userId: userId,
             filepath: loanEvent.filepath,
-            loanEventId: id,
         })
     
         assetLoansArr.push({
             id: generateSecureID(),
-            userLoanId: userLoanId,
+            loanId: loanId,
             assetId: assetId,
         });
     }
@@ -212,6 +226,7 @@ async function main(data) {
         await db.Vendor.bulkCreate(newData.vendors);
         await db.Asset.bulkCreate(newAssets);
         await db.Remark.bulkCreate(remarksArr);
+        await db.Loan.bulkCreate(loansArr);
         await db.UserLoan.bulkCreate(userLoansArr);
         await db.AssetLoan.bulkCreate(assetLoansArr);
     }

@@ -6,30 +6,16 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 
 	const actionSet = new Set();
 
-	if (!asset.users || asset.users.length === 0) {
+	if (asset.reservation) {
+		// actionSet.add(formTypes.CONFIRM);
+		// actionSet.add(formTypes.CANCEL);
+	} else if (!asset.ongoingLoan) {
 		actionSet.add(formTypes.LOAN);
+		// actionSet.add(formTypes.RESERVE);
+		// actionSet.add(formTypes.CONDEMN);
 	} else {
-		asset.users.forEach((user) => {
-			if (user.loanEventId) {
-				actionSet.add(formTypes.RETURN);
-			}
-
-			if (user.reserveEventId) {
-				actionSet.add(formTypes.LOAN); // LOAN TO RESERVED
-			}
-
-			if (asset.shared || (!user.reserveEventId && !user.loanEventId)) {
-				actionSet.add(formTypes.LOAN); // NEW LOAN
-			}
-
-			// if (user.reserveEventId) {
-			// 	actionSet.add(formTypes.CANCEL); // CANCEL
-			// }
-
-			// if (!user.reserveEventId && !user.loanEventId) { // Perhaps leave out condemn
-			// 	actionSet.add(formTypes.CONDEMN);
-			// }
-		});
+		actionSet.add(formTypes.RETURN);
+		// actionSet.add(formTypes.RELOAN);
 	}
 
 	return (

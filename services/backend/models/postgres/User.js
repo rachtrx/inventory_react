@@ -6,7 +6,8 @@ module.exports = (sequelize) => {
 	class User extends Model {
 
 		createUserObject = function() {
-			const plainUser = this.get({ plain: true })
+			const plainUser = this;
+			// const plainUser = this.get({ plain: true })
 			logger.info(plainUser);
 
 			return {
@@ -16,34 +17,21 @@ module.exports = (sequelize) => {
 				department: plainUser.Department.deptName,
 				...(plainUser.AddEvent && {addedDate: plainUser.AddEvent.eventDate}),
 				...(plainUser.DeleteEvent && {deletedDate: plainUser.DeleteEvent.eventDate}),
-				...plainUser.UserLoans && {loans: (plainUser.UserLoans.map((userLoan) => 
-					({
-						...(userLoan.ReserveEvent && { reserveDate: userLoan.ReserveEvent.eventDate }),
-						...(userLoan.reserveEventId && { reserveEventId: userLoan.reserveEventId }),
-						...(userLoan.CancelEvent && { cancelDate: userLoan.CancelEvent.eventDate }),
-						...(userLoan.cancelEventId && { cancelDate: userLoan.cancelEventId }),
-						...(userLoan.expectedLoanDate && { expectedLoanDate: userLoan.expectedLoanDate }),
-						...(userLoan.loanEventId && { loanEventId: userLoan.loanEventId }),
-						...(userLoan.LoanEvent && { loanDate: userLoan.LoanEvent.eventDate }),
-						...(userLoan.expectedReturnDate && { expectedReturnDate: userLoan.expectedReturnDate }),
-						...(userLoan.AssetLoan && userLoan.AssetLoan.Asset && { asset: {
-							id: userLoan.AssetLoan.Asset.id,
-							bookmarked: userLoan.AssetLoan.Asset.bookmarked,
-							assetTag: userLoan.AssetLoan.Asset.assetTag,
-							variant: userLoan.AssetLoan.Asset.AssetTypeVariant?.variantName,
-							assetType: userLoan.AssetLoan.Asset.AssetTypeVariant?.AssetType?.assetType,
-							...(userLoan.AssetLoan.returnEventId && { returnEventId: userLoan.AssetLoan.returnEventId }),
-							...(userLoan.AssetLoan.ReturnEvent && { returnDate: userLoan.AssetLoan.ReturnEvent.eventDate }),
-						}}),
-						...(userLoan.PeripheralLoans && userLoan.PeripheralLoans.length > 0 && { peripherals: userLoan.PeripheralLoans.reduce(((peripheralMap, peripheral) => {
-							if (!Object.keys(peripheralMap).contains(peripheral.PeripheralType.peripheralName)) {
-								peripheralMap[peripheral.PeripheralType.peripheralName] = 1;
-							} else peripheralMap[peripheral.PeripheralType.peripheralName] += 1;
+				...(plainUser.UserLoans && {loans: (plainUser.UserLoans.map((userLoan) => {
+					const loan = userLoan.Loan;
 
-							return peripheralMap;
-						}, {}))})
-					})
-				))},
+					return {
+						...(loan.ReserveEvent && { reserveDate: loan.ReserveEvent.eventDate }),
+						...(loan.reserveEventId && { reserveEventId: loan.reserveEventId }),
+						...(loan.CancelEvent && { cancelDate: loan.CancelEvent.eventDate }),
+						...(loan.cancelEventId && { cancelDate: loan.cancelEventId }),
+						...(loan.expectedLoanDate && { expectedLoanDate: loan.expectedLoanDate }),
+						...(loan.loanEventId && { loanEventId: loan.loanEventId }),
+						...(loan.LoanEvent && { loanDate: loan.LoanEvent.eventDate }),
+						...(loan.expectedReturnDate && { expectedReturnDate: loan.expectedReturnDate }),
+						
+					}
+				}))})
 			}
 		}
 	}
