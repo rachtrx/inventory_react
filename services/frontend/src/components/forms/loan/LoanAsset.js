@@ -48,16 +48,22 @@ export const LoanAsset = function({ loanIndex, asset }) {
 		fetchItems();
 	}, [asset, handleError, setFieldValue]);
 
+	const updateAssetFields = (loanIndex, selected) => {
+		setFieldValue(`loans.${loanIndex}.asset.assetTag`, selected?.assetTag || '');
+		setFieldValue(`loans.${loanIndex}.asset.shared`, selected?.shared || '');
+	}
+
+	const updatePeripheralFields = (loanIndex, peripheralIndex, selected) => {
+		setFieldValue(`loans.${loanIndex}.asset.peripherals.${peripheralIndex}.peripheralName`, selected?.peripheralName || '');
+	}
+
 	return (
 		<>
 			<Flex gap={4} alignItems={'flex-start'}>
 				<SearchSingleSelectFormControl
 					name={`loans.${loanIndex}.asset.assetId`}
 					searchFn={value => handleAssetSearch(value, mode)}
-					secondaryFieldsMeta={[
-						{name: `loans.${loanIndex}.asset.assetTag`, attr: 'assetTag'},
-						{name: `loans.${loanIndex}.asset.shared`, attr: 'shared'}
-					]}
+					updateFields={(selected) => updateAssetFields(loanIndex, selected)}
 					label={`Asset Tag`}
 					placeholder="Asset Tag"
 				/>
@@ -84,9 +90,7 @@ export const LoanAsset = function({ loanIndex, asset }) {
 										name={`loans.${loanIndex}.asset.peripherals.${index}.id`}
 										defaultOptions={suggestedOptions}
 										searchFn={handlePeripheralSearch}
-										secondaryFieldsMeta={[
-											{name: `loans.${loanIndex}.asset.peripherals.${index}.peripheralName`, attr: 'peripheralName'},
-										]}
+										updateFields={(selected) => updatePeripheralFields(loanIndex, index, selected)}
 										warning={warnings?.peripherals?.[index]?.id || null}
 									>
 										<InputFormControl

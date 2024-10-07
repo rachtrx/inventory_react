@@ -44,9 +44,13 @@ export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDat
 
 export const Loan = () => {
 
-	const { setFieldError } = useFormikContext()
 	const { mode, loan, loanIndex } = useLoan();
 	const { handleUserSearch } = useFormModal();
+	const { setFieldValue } = useFormikContext();
+
+	const updateUserFields = (loanIndex, userIndex, selected) => {
+		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userName`, selected?.userName || '')
+	}
 
 	return (
 		<Box position='relative'>
@@ -61,12 +65,9 @@ export const Loan = () => {
 							<SearchSingleSelectFormControl
 								name={`loans.${loanIndex}.users.${userIndex}.userId`}
 								searchFn={handleUserSearch}
-								secondaryFieldsMeta={[
-									{name: `loans.${loanIndex}.users.${userIndex}.userName`, attr: 'userName'},
-								]}
 								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
-								error=
 								placeholder="Select user"
+								updateFields={(selected) => updateUserFields(loanIndex, userIndex, selected)}
 							>
 								<RemoveButton
 									ariaLabel="Remove User"
@@ -99,4 +100,3 @@ export const Loan = () => {
 		</Box>
 	);
 }
-

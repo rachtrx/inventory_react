@@ -197,7 +197,7 @@ class AssetController {
             orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN shared = 1 OR ("loanCount" = 0 AND "reserveCount" = 0) THEN 1
+                        WHEN ("loanCount" = 0 AND "reserveCount" = 0) THEN 1
                         WHEN "reserveCount" > 0 THEN 2
                         WHEN "loanCount" > 0 THEN 3
                         WHEN "deletedDate" IS NOT NULL THEN 4

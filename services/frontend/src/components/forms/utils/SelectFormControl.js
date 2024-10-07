@@ -9,31 +9,25 @@ import { useUI } from '../../../context/UIProvider';
 const withSelect = (Component) => ({
   name,
   label,
-  secondaryFieldsMeta = null,
+  updateFields = null,
   initialOptions = [],
   initialOption = null,
   isMulti = false,
   hideSelectedOptions = false,
   warning = null,
-  handleError = null,
   children,
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const [selectedOption, setSelectedOption] = useState(initialOption);
   const [options, setOptions] = useState(initialOptions);
-  const { setFieldValue } = useFormikContext();
 
   useEffect(() => console.log(options), [options])
   
   const handleChange = useCallback(
     (selected) => {
       console.log(selected);
-      if (handleError) {
-        secondaryFieldsMeta.forEach(({ name, attr }) => {
-          setFieldValue(name, selected?.[attr] ? selected[attr] : '');
-        });
-      }
+      if (updateFields) updateFields(selected);
 
       let newValue;
       if (isMulti) {
@@ -52,7 +46,7 @@ const withSelect = (Component) => ({
       setValue(newValue);
       setTouched(true);
     },
-    [secondaryFieldsMeta, setFieldValue, setTouched, setValue, options, isMulti]
+    [updateFields, setTouched, setValue, options, isMulti]
   );
 
   useEffect(() => {
