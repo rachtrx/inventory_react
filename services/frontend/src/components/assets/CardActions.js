@@ -25,7 +25,7 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 					key={action} 
 					formType={action} 
 					item={asset}
-					initialValues={{assetTag: asset.assetTag}}
+					initialValues={{asset}}
 					{...buttonProps}
 				/>
 			))}

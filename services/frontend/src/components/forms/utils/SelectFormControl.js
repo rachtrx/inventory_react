@@ -6,7 +6,7 @@ import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
 
-const withSelect = (Component) => ({
+const withSelect = (Component, isCreatable) => ({
   name,
   label,
   updateFields = null,
@@ -50,14 +50,25 @@ const withSelect = (Component) => ({
   );
 
   useEffect(() => {
+    console.log(options);
     let option;
+
+    // Find the selected option based on whether it's a multi-select or single select
     if (isMulti) {
       option = options.filter((option) => value.includes(option?.value));
     } else {
       option = options.find((option) => option?.value === value) || null;
     }
-    setSelectedOption(option);
-  }, [value, options, isMulti]);
+
+    // Handle the case where it's a creatable select and the option is not found
+    if (!option && isCreatable && !meta.touched && value) { // TODO warning not appearing because technically shouldnt set ID
+      console.log(value);
+      option = { value: value.trim(), label: value.trim() };
+      setOptions((prevOptions) => [...prevOptions, option]); // Add the new creatable option
+    }
+
+    setSelectedOption(option); // Set the selected option (whether found or newly created)
+  }, [value, options, isMulti, meta.touched]);
 
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
@@ -89,7 +100,7 @@ const withSelect = (Component) => ({
   );
 };
 
-const withSearch = (Component, creatable) => ({
+const withSearch = (Component) => ({
   name,
   options,
   setOptions,
@@ -100,47 +111,6 @@ const withSearch = (Component, creatable) => ({
   
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const { handleError } = useUI();
-
-  useEffect(() => {
-    if (isMulti || !(value && !meta.touched)) return;
-
-    const fetchData = async () => {
-      try {
-        // console.log(`Value in search fn: ${value}`);
-        const response = await searchFn(value);
-        const data = response.data;
-
-        console.log(data);
-
-        let option = null;
-
-        setTouched(true);
-
-        if (data.length >= 1) {
-          option = data.find(item => item.label === value);
-          if (option && option.description) {
-            option = {...option, label: `${option.label} - ${option.description}`}
-          }
-        } else if (creatable) {
-          option = { value: value.trim(), label: value.trim() }
-        }
-
-        if (!option) {
-          setOptions([]);
-          setValue('');
-          throw new Error(`${value} not found!`)
-        } else {
-          setOptions([option]);
-          setValue(option.value);
-        }
-        
-      } catch (error) {
-        handleError(error);
-      }
-    };
-
-    fetchData();
-  }, [value]);  // Only run on `value` change
 
   const handleSearch = useCallback(
     async (inputValue) => {
@@ -174,9 +144,9 @@ const withSearch = (Component, creatable) => ({
 };
 
 const EnhancedSelect = withSelect(Select);
-const EnhancedCreatableSelect = withSelect(CreatableSelect);
-const SearchSelect = withSelect(withSearch(Select, false));
-const SearchCreatableSelect = (withSelect(withSearch(CreatableSelect, true)));
+const EnhancedCreatableSelect = withSelect(CreatableSelect, true);
+const SearchSelect = withSelect(withSearch(Select));
+const SearchCreatableSelect = (withSelect(withSearch(CreatableSelect), true));
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {

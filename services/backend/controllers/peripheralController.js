@@ -238,6 +238,9 @@ class PeripheralController {
 
     async searchPeripherals (req, res) {
         const { value } = req.body;
+
+        const isBulkSearch = Array.isArray(value) ? true : false;
+        const searchTerm = isBulkSearch ? value : `%${value}%`;
         
         const sql = `
             SELECT 
@@ -245,12 +248,12 @@ class PeripheralController {
                 peripheral_types.peripheral_name AS "peripheralName", 
                 peripheral_types.available_count AS "availableCount" 
             FROM peripheral_types
-            WHERE peripheral_types.peripheral_name ILIKE :peripheralName
-        `
+            WHERE peripheral_types.peripheral_name ${isBulkSearch ? 'IN (:searchTerm)' : 'ILIKE :searchTerm'}
+        `;
 
         try {
             const peripherals = await sequelize.query(sql, {
-                replacements: { peripheralName: `%${value}%` },
+                replacements: { isBulkSearch, searchTerm },
                 type: sequelize.QueryTypes.SELECT
             });
     

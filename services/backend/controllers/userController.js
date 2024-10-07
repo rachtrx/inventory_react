@@ -262,6 +262,9 @@ class UserController {
     
     async searchUsers (req, res) {
         const { value, formType } = req.body;
+
+        const isBulkSearch = Array.isArray(value) ? true : false;
+        const searchTerm = isBulkSearch ? value : `%${value}%`;
     
         let orderByClause;
     
@@ -283,6 +286,14 @@ class UserController {
         } else {
             throw new Error('Invalid form type provided.');
         }
+
+        const bulkCondition = `
+            users.user_name IN (:searchTerm)  -- Bulk search condition
+        `;
+
+        const singleCondition = `
+            users.user_name ILIKE :searchTerm  -- Single search condition
+        `;
         
         const sql = `
             WITH UserLoanCounts AS (
@@ -312,15 +323,16 @@ class UserController {
                     ) AS "reserveCount"
                 FROM users
                 LEFT JOIN user_loans ON users.id = user_loans.user_id
-                LEFT JOIN asset_loans ON asset_loans.id = asset_loans.user_loan_id
+                LEFT JOIN loans ON user_loans.loan_id = loans.id
+                LEFT JOIN asset_loans ON loans.id = asset_loans.loan_id
                 LEFT JOIN events AS delete_event ON users.delete_event_id = delete_event.id
                 LEFT JOIN events AS add_event ON users.add_event_id = add_event.id
-                LEFT JOIN events AS loan_event ON user_loans.loan_event_id = loan_event.id
+                LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
                 LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
-                LEFT JOIN events AS reserve_event ON user_loans.reserve_event_id = reserve_event.id
-                LEFT JOIN events AS cancel_event ON user_loans.cancel_event_id = cancel_event.id
+                LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
+                LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
                 LEFT JOIN departments ON users.dept_id = departments.id
-                WHERE users.user_name ILIKE :userName
+                WHERE ${isBulkSearch ? bulkCondition : singleCondition}
                 GROUP BY 
                     users.id, 
                     users.user_name, 
@@ -336,7 +348,7 @@ class UserController {
     
         try {
             const users = await sequelize.query(sql, {
-                replacements: { userName: `%${value}%` },
+                replacements: { isBulkSearch, searchTerm },
                 type: sequelize.QueryTypes.SELECT
             });
     

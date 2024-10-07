@@ -5,38 +5,46 @@ import React, { useEffect } from "react"
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "../../../context/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
-import { createNewPeripheral, LoanAsset } from "./LoanAsset";
+import { LoanAsset } from "./LoanAsset";
 import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
 import DateInputControl from "../utils/DateInputControl"
+import { useLoans } from "../../../context/LoansProvider"
 
 export const LoanType = Object.freeze({
 	SINGLE: 'SINGLE',
 	SHARED: 'SHARED',
 });
 
-const createNewAsset = (assetTag='', peripherals) => ({ // 1 loan only can have 1 asset
+export const createNewPeripheral = (peripheral=null) => ({
 	'key': uuidv4(),
-	'assetId': assetTag,
-	'assetTag': assetTag,
-	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral.peripheralName, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
+	'id': peripheral?.peripheralId || peripheral?.id || '',
+	'peripheralName': peripheral?.peripheralName || '',
+	'count': peripheral?.count || 1, 
+})
+
+const createNewAsset = (asset, peripherals=[]) => ({ // 1 loan only can have 1 asset
+	'key': uuidv4(),
+	'assetId': asset?.assetId || asset?.id || '',
+	'assetTag': asset?.assetTag || '',
+	'peripherals': peripherals.map(peripheral => createNewPeripheral(peripheral, peripheral.count)) || [], // Peripherals grouped with Asset due to AssetLoan.js, peripherals are tagged to the asset
 	'remarks': '',
 	'shared': false
 })
   
-const createNewUser = (userName='') => ({
+const createNewUser = (user=null) => ({
 	'key': uuidv4(),
-	'userId': userName,
-	'userName': userName,
+	'userId': user?.userId || user?.id || '',
+	'userName': user?.userName || '',
 	'signature': '',
 })
 
 
-export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
+export const createNewLoan = (asset=null, users=[], peripherals=[], loanDate=null, expectedReturnDate='') => ({
 	'key': uuidv4(),
-	'asset': createNewAsset(assetTag, peripherals),
-	'users': userNames.length === 0 ? [createNewUser()] : userNames.map(userName => createNewUser(userName)),
+	'asset': createNewAsset(asset, peripherals),
+	'users': users.length === 0 ? [createNewUser()] : users.map(user => createNewUser(user)),
 	'mode': '',
 	'loanDate': loanDate || new Date(),
 	'expectedReturnDate': expectedReturnDate,
@@ -45,6 +53,7 @@ export const createNewLoan = (assetTag='', userNames=[], peripherals=[], loanDat
 export const Loan = () => {
 
 	const { mode, loan, loanIndex } = useLoan();
+	const { userOptions } = useLoans();
 	const { handleUserSearch } = useFormModal();
 	const { setFieldValue } = useFormikContext();
 
@@ -68,6 +77,7 @@ export const Loan = () => {
 								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
 								placeholder="Select user"
 								updateFields={(selected) => updateUserFields(loanIndex, userIndex, selected)}
+								initialOptions={userOptions}
 							>
 								<RemoveButton
 									ariaLabel="Remove User"

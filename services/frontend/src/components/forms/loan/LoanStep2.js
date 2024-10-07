@@ -3,11 +3,13 @@ import { ResponsiveText } from "../../utils/ResponsiveText";
 import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
+import { useLoans } from "../../../context/LoansProvider";
 
-export const LoanStep2 = ({ prevStep, handleSubmit, userLoans, formData }) => {
+export const LoanStep2 = () => {
 
+	const {prevStep, handleSubmit, userLoans, formData} = useLoans()
 	const parentRef = useRef(null);
-  const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
+    const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
 	console.log(userLoans);
 

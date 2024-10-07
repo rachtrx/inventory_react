@@ -143,17 +143,17 @@ export const ModalProvider = ({ children }) => {
 
   const handleAssetSearch = useCallback(async (value) => {
     console.log(`Asset Search Called: ${value}`);
-    return await assetService.searchAssets(value.trim(), formType);
+    return await assetService.searchAssets(value, formType);
   }, [formType]);
   
   const handleUserSearch = useCallback(async (value) => {
     console.log(`User Search Called: ${value}`);
-    return await userService.searchUsers(value.trim(), formType);
+    return await userService.searchUsers(value, formType);
   }, [formType]);
   
   const handlePeripheralSearch = useCallback(async (value) => {
     console.log(`Peripheral Search Called: ${value}`);
-    return await peripheralService.searchPeripherals(value.trim());
+    return await peripheralService.searchPeripherals(value);
   }, []);
 
   const reinitializeForm = useCallback((formRef, newValues) => {

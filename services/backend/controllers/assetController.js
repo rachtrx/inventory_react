@@ -190,7 +190,10 @@ class AssetController {
     }
     
     async searchAssets(req, res) {
-        const { value, formType, mode } = req.body;
+        const { value, formType } = req.body;
+
+        const isBulkSearch = Array.isArray(value) ? true : false;
+        const searchTerm = isBulkSearch ? value : `%${value}%`;
     
         let orderByClause;
         if (formType === formTypes.LOAN) {
@@ -218,7 +221,15 @@ class AssetController {
         } else {
             throw new Error('Invalid form type provided.');
         }
-                
+
+        const bulkCondition = `
+            assets.asset_tag IN (:searchTerm)  -- Bulk search condition
+        `;
+
+        const singleCondition = `
+            (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)  -- Single search condition
+        `;
+
         const sql = `
             WITH AssetLoanCounts AS (
                 SELECT 
@@ -234,7 +245,6 @@ class AssetController {
                     vendors.vendor_name AS "vendorName",
                     MAX(loan_event.event_date) AS "lastLoan",
                     MAX(return_event.event_date) AS "lastReturn",
-
                     COUNT(
                         CASE 
                             WHEN loan_event.id IS NOT NULL 
@@ -243,7 +253,6 @@ class AssetController {
                             ELSE NULL 
                         END
                     ) AS "loanCount",
-                    
                     COUNT(
                         CASE 
                             WHEN loan_event.id IS NULL 
@@ -262,16 +271,13 @@ class AssetController {
                 LEFT JOIN loans ON asset_loans.loan_id = loans.id
                 LEFT JOIN user_loans ON loans.id = user_loans.loan_id
                 LEFT JOIN users ON user_loans.user_id = users.id
-
                 LEFT JOIN events AS delete_event ON assets.delete_event_id = delete_event.id
                 LEFT JOIN events AS add_event ON assets.add_event_id = add_event.id
-
                 LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
                 LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
                 LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
                 LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
-
-                WHERE (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)
+                WHERE ${isBulkSearch ? bulkCondition : singleCondition}
                 GROUP BY 
                     assets.id, 
                     assets.serial_number, 
@@ -292,7 +298,7 @@ class AssetController {
     
         try {
             const assets = await sequelize.query(sql, {
-                replacements: { searchTerm: `%${value}%` },
+                replacements: { isBulkSearch, searchTerm },
                 type: sequelize.QueryTypes.SELECT
             });
     
@@ -327,7 +333,7 @@ class AssetController {
     
                 return {
                     value: id,
-                    label: `${assetTag}`, // Append status if disabled,
+                    label: assetTag, // Append status if disabled,
                     assetType,
                     variantName, 
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,

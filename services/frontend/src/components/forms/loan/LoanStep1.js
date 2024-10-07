@@ -9,9 +9,11 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, LoanType } from "./Loan";
 import { LoanProvider } from "../../../context/LoanProvider";
 import { createNewPeripheral } from "./LoanAsset";
+import { useLoans } from "../../../context/LoansProvider";
 
-export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
+export const LoanStep1 = () => {
 
+    const { nextStep, formData, setValuesExcel } = useLoans();
     const { setFormType, reinitializeForm } = useFormModal();
     const { setLoading, showToast, handleError } = useUI();
     const [ warnings, setWarnings ] = useState({});
@@ -21,61 +23,6 @@ export const LoanStep1 = ({ nextStep, formData, setFormData }) => {
 		console.log(formData);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
-
-		const processPeripherals = (peripheralsString) => {
-			if (!peripheralsString) return {};
-		
-			return peripheralsString
-				.split(',')
-				.map(peripheral => peripheral.trim())
-				.reduce((acc, peripheral) => {
-					if (acc[peripheral]) {
-						acc[peripheral] += 1;
-					} else {
-						acc[peripheral] = 1;
-					}
-					return acc;
-				}, {});
-		};
-  
-    const setValuesExcel = (records) => {
-      try {
-        const groupedRecords = records.reduce((acc, record) => {
-					const assetTag = record.assetTag?.trim();
-					if (acc[assetTag]) {
-						throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
-					}
-
-					const peripherals = processPeripherals(record.peripherals);
-				
-					acc[assetTag] = {
-						userNames: record.userNames
-							? [...new Set(record.userNames.split(',').map(user => user.trim()))]
-							: [],
-						peripherals: Object.entries(peripherals).map(([name, count]) => ({peripheralName: name, count: count}))
-					};
-				
-					return acc;
-				}, {});
-      
-        // Convert grouped records into loans
-        const loans = Object.entries(groupedRecords).map(([assetTag, { userNames, peripherals }]) =>
-          createNewLoan(
-            assetTag,
-            userNames,
-            peripherals,
-          )
-        );
-      
-        console.log(loans);
-      
-        setFormData({
-          loans: loans
-        });
-      } catch (error) {
-        handleError(error);
-      }
-    };
     
     const validateUniqueAssetIDs = (loans) => {
       const assetIDSet = new Set();

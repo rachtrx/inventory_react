@@ -12,13 +12,8 @@ import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "../../../context/LoanProvider"
 import DateInputControl from "../utils/DateInputControl"
 import { v4 as uuidv4 } from 'uuid';
-
-export const createNewPeripheral = (peripheralName='', count=1) => ({
-	'key': uuidv4(),
-	'id': peripheralName,
-	'peripheralName': peripheralName,
-	'count': count, 
-})
+import { useLoans } from "../../../context/LoansProvider"
+import { createNewPeripheral } from "./Loan"
 
 export const LoanAsset = function({ loanIndex, asset }) {
 
@@ -29,6 +24,7 @@ export const LoanAsset = function({ loanIndex, asset }) {
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
 	const { mode, setMode, warnings } = useLoan();
+	const { assetOptions, peripheralOptions } = useLoans()
 	console.log(warnings);
 
 	useEffect(() => {
@@ -66,6 +62,7 @@ export const LoanAsset = function({ loanIndex, asset }) {
 					updateFields={(selected) => updateAssetFields(loanIndex, selected)}
 					label={`Asset Tag`}
 					placeholder="Asset Tag"
+					initialOptions={assetOptions}
 				/>
 			</Flex>
 			{asset && asset.assetTag && 
@@ -78,7 +75,7 @@ export const LoanAsset = function({ loanIndex, asset }) {
 						<HStack mb={1}>
 							{suggestedOptions && suggestedOptions.length > 0 && (
 								suggestedOptions.map((option) => (
-									<Button onClick={() => peripheralHelpers.push(createNewPeripheral(option.id))}/>
+									<Button onClick={() => peripheralHelpers.push(createNewPeripheral({peripheralId: option.value, peripheralName: option.label}))}/>
 								))
 							)}
 						</HStack>
@@ -92,6 +89,7 @@ export const LoanAsset = function({ loanIndex, asset }) {
 										searchFn={handlePeripheralSearch}
 										updateFields={(selected) => updatePeripheralFields(loanIndex, index, selected)}
 										warning={warnings?.peripherals?.[index]?.id || null}
+										initialOptions={peripheralOptions}
 									>
 										<InputFormControl
 											name={`loans.${loanIndex}.asset.peripherals.${index}.count`} 
