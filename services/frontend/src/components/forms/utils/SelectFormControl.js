@@ -11,7 +11,6 @@ const withSelect = (Component, isCreatable) => ({
   label,
   updateFields = null,
   initialOptions = [],
-  initialOption = null,
   isMulti = false,
   hideSelectedOptions = false,
   warning = null,
@@ -19,7 +18,7 @@ const withSelect = (Component, isCreatable) => ({
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
-  const [selectedOption, setSelectedOption] = useState(initialOption);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [options, setOptions] = useState(initialOptions);
 
   useEffect(() => console.log(options), [options])
@@ -55,7 +54,9 @@ const withSelect = (Component, isCreatable) => ({
 
     // Find the selected option based on whether it's a multi-select or single select
     if (isMulti) {
-      option = options.filter((option) => value.includes(option?.value));
+      console.log(options);
+      console.log(value);
+      option = options.filter((option) => value?.includes(option?.value));
     } else {
       option = options.find((option) => option?.value === value) || null;
     }
@@ -108,8 +109,6 @@ const withSearch = (Component) => ({
   isMulti = false,
   ...props
 }) => {
-  
-  const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const { handleError } = useUI();
 
   const handleSearch = useCallback(

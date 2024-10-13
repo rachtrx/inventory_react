@@ -115,6 +115,13 @@ db.Event.hasOne(db.Loan, { as: 'Reservation', foreignKey: 'reserveEventId' });
 db.Loan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
 db.Event.hasOne(db.Loan, { as: 'Cancellation', foreignKey: 'cancelEventId' });
 db.Loan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
+db.Event.hasOne(db.Loan, { as: 'Loan', foreignKey: 'loanEventId' });
+db.Loan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
+
+db.Event.hasOne(db.AssetLoan, { foreignKey: 'returnEventId' })
+db.AssetLoan.belongsTo(db.Event, { foreignKey: 'returnEventId', targetKey: 'id' });
+db.Event.hasMany(db.PeripheralLoan, { foreignKey: 'returnEventId' })
+db.PeripheralLoan.belongsTo(db.Event, { foreignKey: 'returnEventId', targetKey: 'id' });
 
 db.Event.hasOne(db.Asset, { as: 'AddedAsset', foreignKey: 'addEventId' });
 db.Event.hasOne(db.Asset, { as: 'DeletedAsset', foreignKey: 'deleteEventId' });
@@ -127,12 +134,6 @@ db.User.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'deleteEventId' });
 
 db.Event.hasOne(db.Loan, { foreignKey: 'loanId' });
 db.Loan.belongsTo(db.Event, { foreignKey: 'loanId', targetKey: 'id' });
-
-db.Event.hasOne(db.AssetLoan, { foreignKey: 'returnEventId' })
-db.AssetLoan.belongsTo(db.Event, { foreignKey: 'returnEventId', targetKey: 'id' });
-
-db.Event.hasMany(db.PeripheralLoan, { foreignKey: 'returnEventId' })
-db.PeripheralLoan.belongsTo(db.Event, { foreignKey: 'returnEventId', targetKey: 'id' });
 
 // Event and Admin
 db.Admin.hasMany(db.Event, { foreignKey: 'adminId' })

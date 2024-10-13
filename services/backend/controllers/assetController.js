@@ -418,31 +418,29 @@ class AssetController {
                                     {
                                         model: UserLoan,
                                         attributes: ['filepath'],
-                                        include: [
-                                            {
-                                                model: PeripheralLoan,
-                                                attributes: ['id'],
-                                                include: {
-                                                    model: Peripheral,
-                                                    attributes: ['id'],
-                                                    include: {
-                                                        model: PeripheralType,
-                                                        attributes: ['id', 'peripheralName'],
-                                                    },
-                                                },
-                                                required: false,
+                                        include: {
+                                            model: User,
+                                            attributes: ['id', 'userName', 'bookmarked']
+                                        }
+                                    },
+                                    {
+                                        model: PeripheralLoan,
+                                        attributes: ['id'],
+                                        include: {
+                                            model: Peripheral,
+                                            attributes: ['id'],
+                                            include: {
+                                                model: PeripheralType,
+                                                attributes: ['id', 'name'],
                                             },
-                                            {
-                                                model: User,
-                                                attributes: ['id', 'userName', 'bookmarked']
-                                            }
-                                        ],
+                                        },
+                                        where: { returnEventId: null },
+                                        required: false,
                                     },
                                 ],
                             },
                             {
                                 model: Event,
-                                as: 'ReturnEvent',
                                 attributes: ['eventDate'],
                                 required: false,
                             },

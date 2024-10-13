@@ -6,6 +6,8 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 
 	const actionSet = new Set();
 
+	console.log(asset);
+
 	if (asset.reservation) {
 		// actionSet.add(formTypes.CONFIRM);
 		// actionSet.add(formTypes.CANCEL);

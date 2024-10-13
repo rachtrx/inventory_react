@@ -28,8 +28,16 @@ export const LoansProvider = ({ children }) => {
 
   useEffect(() => {
     if (initialValues) {
+      if(initialValues.asset) setAssetOptions([{value: initialValues.asset.id, label: initialValues.asset.assetTag}])
+      
+      const users = []
+      if(initialValues.user) {
+        users.push(initialValues.user)
+        setUserOptions([{value: initialValues.user.id, label: initialValues.user.userName}])
+      }
+      
       setFormData({
-        loans: [createNewLoan(initialValues.asset, initialValues.user)],
+        loans: [createNewLoan(initialValues.asset, users)],
         signatures: {},
       });
     }

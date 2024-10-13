@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class PeripheralLoan extends Model { 
+	class PeripheralLoan extends Model {
 
         createperipheralLoanObject = function() {
             return {
@@ -10,7 +10,7 @@ module.exports = (sequelize) => {
                 ...(this.ReturnEvent && { returnDate: this.ReturnEvent.eventDate }),
                 ...(this.Peripheral && {
                     peripheralId: this.Peripheral.id,
-                    peripheralName: this.Peripheral.PeripheralType.peripheralName,
+                    peripheralName: this.Peripheral.PeripheralType.name,
                 })
             }
         }

@@ -34,17 +34,10 @@ module.exports = (sequelize) => {
 							return null;  // No ongoing loan found
 						}
 				
-						const userLoans = assetLoan.Loan.UserLoans;
-						const peripheralLoans = assetLoan.Loan.PeripheralLoans;
-				
 						return {
 							...assetLoan.Loan.createLoanObject(),
-							users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
 							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
 							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-							...(peripheralLoans && {
-								peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
-							}),
 						};
 					})(),
 					reservation: (() => {
@@ -56,17 +49,10 @@ module.exports = (sequelize) => {
 							return null;  // No ongoing loan found
 						}
 				
-						const userLoans = assetLoan.Loan.UserLoans;
-						const peripheralLoans = assetLoan.Loan.PeripheralLoans;
-				
 						return {
 							...assetLoan.Loan.createLoanObject(),
-							users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
 							...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
 							...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-							...(peripheralLoans && {
-								peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
-							}),
 						};
 					})(),
 						
@@ -74,17 +60,10 @@ module.exports = (sequelize) => {
 					pastLoans: plainAsset.AssetLoans
 						.filter(assetLoan => assetLoan.returnEventId || assetLoan.ReturnEvent)
 						.map(assetLoan => {
-							const userLoans = assetLoan.Loan.UserLoans;
-							const peripheralLoans = assetLoan.Loan.PeripheralLoans;
-				
 							return {
 								...assetLoan.Loan.createLoanObject(),
-								users: userLoans.map(userLoan => userLoan.createUserLoanObject(userLoan)),
 								...(assetLoan.returnEventId && { returnEventId: assetLoan.returnEventId }),
 								...(assetLoan.ReturnEvent && { returnDate: assetLoan.ReturnEvent.eventDate }),
-								...(peripheralLoans && {
-									peripherals: peripheralLoans.map(peripheralLoan => peripheralLoan.createPeripheralLoanObject(peripheralLoan))
-								}),
 							};
 						}),
 				}),

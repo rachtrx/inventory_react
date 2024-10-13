@@ -8,13 +8,13 @@ module.exports = (sequelize) => {
 		createUserObject = function() {
 			const plainUser = this;
 			// const plainUser = this.get({ plain: true })
-			logger.info(plainUser);
+			// logger.info(plainUser);
 
 			return {
 				id: plainUser.id,
 				userName: plainUser.userName,
 				bookmarked: plainUser.bookmarked && true || false,
-				department: plainUser.Department.deptName,
+				...(plainUser.Department && {department: plainUser.Department.deptName}),
 				...(plainUser.AddEvent && {addedDate: plainUser.AddEvent.eventDate}),
 				...(plainUser.DeleteEvent && {deletedDate: plainUser.DeleteEvent.eventDate}),
 				...(plainUser.UserLoans && {loans: (plainUser.UserLoans.map((userLoan) => {

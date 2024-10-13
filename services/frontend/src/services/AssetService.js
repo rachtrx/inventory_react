@@ -1,5 +1,6 @@
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
+import qs from 'qs';
 
 class AssetService {
     constructor(axiosInstance) {
@@ -36,14 +37,15 @@ class AssetService {
     async loanAsset(formData) {
         console.log('loaning asset');
         console.log(formData);
-        downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/forms/loan`, formData);;
+        // downloadFormData(formData);
+        return await this.axios.post(`${API_URL}/forms/loan`, formData);
     }
 
-    async fetchReturn(assetId) {
+    async fetchReturn(assetIds) {
+        console.log(assetIds);
         return await this.axios.get(`${API_URL}/forms/return`, {
             params: {
-                id: assetId
+                assetIds: assetIds
             }
         });
     }

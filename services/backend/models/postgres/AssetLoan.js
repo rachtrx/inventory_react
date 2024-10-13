@@ -4,6 +4,15 @@ const { DataTypes, Model } = Sequelize;
 module.exports = (sequelize) => {
 	class AssetLoan extends Model { }
 
+    createAssetLoanObject = function() {
+
+        return {
+            ...(this.Asset ? { ...this.Asset.createAssetObject() } : {}),
+            ...(loan.AssetLoan.returnEventId && { returnEventId: loan.AssetLoan.returnEventId }),
+            ...(loan.AssetLoan.ReturnEvent && { returnDate: loan.AssetLoan.ReturnEvent.eventDate }),
+        };
+    }
+
 	AssetLoan.init({
         id: {
             type: DataTypes.STRING,

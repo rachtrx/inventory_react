@@ -122,7 +122,7 @@ class UserController {
                                         attributes: ['id'],
                                         include: {
                                             model: PeripheralType,
-                                            attributes: ['id', 'peripheralName'],
+                                            attributes: ['id', 'name'],
                                         },
                                         required: false,
                                     },
@@ -353,7 +353,7 @@ class UserController {
             });
     
             const response = users.map(user => {
-                logger.info(user)
+                // logger.info(user)
                 if (user.deletedDate) {
                     user.status = 'Deleted';
                 } else if (user.loanCount === 0 && user.reserveCount === 0) {

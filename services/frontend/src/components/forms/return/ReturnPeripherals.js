@@ -1,58 +1,40 @@
 import React, { useState } from 'react';
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox } from '@chakra-ui/react';
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Input } from '@chakra-ui/react';
+import { useReturn } from '../../../context/ReturnProvider';
+import InputFormControl from '../utils/InputFormControl';
 
 const ReturnPeripherals = () => {
-  const [masterChecked, setMasterChecked] = useState(false);
-  const [rowChecked, setRowChecked] = useState([false, false, false, false]); // Example for 4 rows
-
-  // Handle master checkbox toggle
-  const handleMasterCheck = (e) => {
-    const isChecked = e.target.checked;
-    setMasterChecked(isChecked);
-    setRowChecked(rowChecked.map(() => isChecked)); // Check/uncheck all rows
-  };
-
-  // Handle individual row checkbox toggle
-  const handleRowCheck = (index) => (e) => {
-    const isChecked = e.target.checked;
-    const newRowChecked = [...rowChecked];
-    newRowChecked[index] = isChecked;
-    setRowChecked(newRowChecked);
-
-    // If all checkboxes are checked, check the master checkbox, otherwise uncheck it
-    setMasterChecked(newRowChecked.every(Boolean));
-  };
+    const { ret, returnIndex } = useReturn();
 
   return (
     <Box overflowX="auto">
       <Table variant="simple">
         <Thead>
           <Tr>
-            {/* Master Checkbox */}
-            <Th>
-              <Checkbox 
-                isChecked={masterChecked} 
-                onChange={handleMasterCheck}
-              />
-            </Th>
-            <Th>Index</Th>
-            <Th>Data 1</Th>
-            <Th>Data 2</Th>
+            <Th>Peripheral Name</Th>
+            <Th>Count Loaned</Th>
+            <Th>Return Count</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {rowChecked.map((isChecked, index) => (
-            <Tr key={index}>
-              {/* Individual row checkbox */}
+          {ret.peripherals.map((peripheral, peripheralIndex) => (
+            <Tr key={peripheral.id}>
+              {/* Peripheral name */}
+              <Td>{peripheral.peripheralName}</Td>
+              
+              {/* Count of peripherals loaned */}
+              <Td>{peripheral.ids.length}</Td>
+              
+              {/* Input field for the user to enter the return count */}
               <Td>
-                <Checkbox 
-                  isChecked={isChecked} 
-                  onChange={handleRowCheck(index)}
+                <InputFormControl
+                    name={`returns.${returnIndex}.peripherals.${peripheralIndex}.count`}
+                    placeholder="Enter count"
+                    max={peripheral.ids.length}
+                    min={0} 
+                    disabled={peripheral.count === 0}
                 />
               </Td>
-              <Td>{index + 1}</Td>
-              <Td>Row {index + 1} - Data 1</Td>
-              <Td>Row {index + 1} - Data 2</Td>
             </Tr>
           ))}
         </Tbody>

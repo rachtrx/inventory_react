@@ -128,8 +128,6 @@ class FormLoanReturnController {
             //     }
             // }
 
-            logger.info(loans)
-
             const userLoans = {}
 
             // INSERTION
@@ -151,7 +149,7 @@ class FormLoanReturnController {
                     id: loanId,
                     expectedReturnDate: expectedReturnDate,
                     loanEventId: loanEventId
-                })
+                }, { transaction })
 
                 if (asset.remarks !== '') await Remark.create({
                     id: generateSecureID(),
@@ -233,66 +231,76 @@ class FormLoanReturnController {
 
     async loadReturn (req, res) {
 
-        const id = req.query.id;
+        const ids = req.query.assetIds;
 
         try {
-            let query = await Asset.findOne({
-                attributes: ['serialNumber', 'assetTag'],
-                include: [
-                    {
-                        model: AssetTypeVariant,
-                        attributes: ['variantName'],
-                        include: {
-                            model: AssetType,
-                            attributes: ['assetType']
-                        }
-                    },
-                    {
-                        model: AssetLoan,
-                        attributes: ['id'],
-                        include: {
-                            model: Loan,
-                            attributes: ['expectedReturnDate'],
+            const queries = ids.map(async (id) => {
+                const query = await Asset.findOne({
+                    attributes: ['id','serialNumber', 'assetTag'],
+                    include: [
+                        {
+                            model: AssetTypeVariant,
+                            attributes: ['variantName'],
                             include: {
-                                model: UserLoan,
-                                attributes: ['id'],
-                                include: [
-                                    {
+                                model: AssetType,
+                                attributes: ['assetType']
+                            }
+                        },
+                        {
+                            model: AssetLoan,
+                            attributes: ['id'],
+                            include: {
+                                model: Loan,
+                                attributes: ['expectedReturnDate'],
+                                include: [{
+                                    model: UserLoan,
+                                    attributes: ['id'],
+                                    include: {
                                         model: User,
                                         attributes: ['userName', 'id'],
                                         include: {
                                             model: Department,
                                             attributes: ['deptName']
                                         },
-                                        required: false,
-                                    },
-                                    {
-                                        model: PeripheralLoan,
-                                        attributes: ['returnEventId'],
-                                        include: {
-                                            model: Peripheral,
-                                            attributes: ['id'],
-                                            include: {
-                                                model: PeripheralType,
-                                                attributes: ['peripheralName']
-                                            }
-                                        },
-                                        required: false,
+                                        required: true,
                                     }
-                                ]
-                            }
+                                },
+                                {
+                                    model: PeripheralLoan,
+                                    attributes: ['returnEventId'],
+                                    include: {
+                                        model: Peripheral,
+                                        attributes: ['id'],
+                                        include: {
+                                            model: PeripheralType,
+                                            attributes: ['name', 'id'],
+                                        }
+                                    },
+                                    required: false,
+                                }]
+                            },
                         },
+                    ],
+                    where: { 
+                        id: id
                     },
-                ],
-                where: { 
-                    id: id
-                },
-            })
+                });
+        
+                return query.createAssetObject(); 
+            });
+        
+            // Use Promise.all to await all promises and get the array of results
+            const assets = await Promise.all(queries);
 
-            const asset = query.createAssetObject()
-            logger.info('Details for Asset:', asset);
-    
-            res.json(asset);
+            const assetsDict = assets.reduce((dict, asset) => {
+                const { id, ...rest } = asset;
+                dict[id] = rest;
+              
+                return dict;
+            }, {});
+        
+            logger.info('Details for Assets:', assetsDict);
+            res.json(assetsDict);
 
         } catch (error) {
             console.error("Search failed:", error);

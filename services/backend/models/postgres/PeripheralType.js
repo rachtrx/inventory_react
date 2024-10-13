@@ -11,8 +11,8 @@ module.exports = (sequelize) => {
 
 			return {
 				id: this.id,
-				peripheralName: this.peripheralName,
-				availableCount: this.availableCount,
+				peripheralName: this.name,
+				availableCount: this.count,
 				...this.Peripherals?.length > 0 && {
 					totalCount: this.availableCount + this.Peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
 					assets: this.Peripherals.reduce((assetAcc, peripheral) => {
@@ -49,11 +49,11 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			primaryKey: true,
 		},
-		peripheralName: {
+		name: {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
-        availableCount: {
+        count: {
             type: DataTypes.INTEGER,
 			allowNull: false
         }

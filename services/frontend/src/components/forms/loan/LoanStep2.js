@@ -11,7 +11,7 @@ export const LoanStep2 = () => {
 	const parentRef = useRef(null);
     const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
-	console.log(userLoans);
+	console.log(formData);
 
 	const updateSignatureFieldWidth = () => {
     if (parentRef.current) {
@@ -35,35 +35,35 @@ export const LoanStep2 = () => {
 			initialValues={formData}
 			onSubmit={handleSubmit}
 			validateOnChange={true}
+			enableReinitialize={true}
 			// validateOnBlur={true}
-			// enableReinitialize={true}
 		>
 			<Form>
 				<ModalBody ref={parentRef}>
-						{Object.entries(userLoans).map(([userId, userLoan]) => (
-							<Flex 
-								key={userId} 
-								direction="column" 
-								border="1px solid"
-								borderColor="gray.300"
-								borderRadius="md"
-								p={4}
-								mb={4}
-								boxShadow="sm"
-							>
-								<ResponsiveText size='lg'>{userLoan.userName}</ResponsiveText>
-								{userLoan.assets.map((assetLoan) => (
-									<ResponsiveText key={assetLoan.assetTag}>
-										{assetLoan.assetTag} ({assetLoan.peripherals.map(peripheral => `${peripheral.peripheralName} x${peripheral.count}`).join(', ')}) {assetLoan.expectedReturnDate && `Due on ${assetLoan.expectedReturnDate}`}
-									</ResponsiveText>
-								))}
-								<FormikSignatureField
-									name={`signatures.${userId}`}
-									label='Signature'
-									signatureFieldWidth={signatureFieldWidth}
-								/>
-							</Flex>
-						))}
+					{Object.entries(userLoans).map(([userId, userLoan]) => (
+						<Flex 
+							key={userId} 
+							direction="column" 
+							border="1px solid"
+							borderColor="gray.300"
+							borderRadius="md"
+							p={4}
+							mb={4}
+							boxShadow="sm"
+						>
+							<ResponsiveText size='lg'>{userLoan.userName}</ResponsiveText>
+							{userLoan.assets.map((assetLoan) => (
+								<ResponsiveText key={assetLoan.assetTag}>
+									{assetLoan.assetTag} ({assetLoan.peripherals.map(peripheral => `${peripheral.peripheralName} x${peripheral.count}`).join(', ')}) {assetLoan.expectedReturnDate && `Due on ${assetLoan.expectedReturnDate}`}
+								</ResponsiveText>
+							))}
+							<FormikSignatureField
+								name={`signatures.${userId}`}
+								label='Signature'
+								signatureFieldWidth={signatureFieldWidth}
+							/>
+						</Flex>
+					))}
 				</ModalBody>
 			
 				<ModalFooter>

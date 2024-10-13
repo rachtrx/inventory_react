@@ -4,7 +4,15 @@ import { Field } from 'formik';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 
-export default function InputFormControl({ name, label, placeholder, disabled = false }) {
+export default function InputFormControl({
+  name,
+  label,
+  placeholder,
+  disabled = false,
+  type = 'text', // Add type with a default value of 'text'
+  max, // Add max value
+  min, // Add min value
+}) {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   const toggleCollapse = () => {
@@ -46,6 +54,9 @@ export default function InputFormControl({ name, label, placeholder, disabled = 
           as={Input}
           placeholder={placeholder}
           disabled={disabled}
+          type={type} // Set input type
+          max={max} // Set max value
+          min={min} // Set min value
           bg="white"
         />
       )}
