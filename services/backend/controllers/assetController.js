@@ -431,7 +431,7 @@ class AssetController {
                                             attributes: ['id'],
                                             include: {
                                                 model: AccType,
-                                                attributes: ['id', 'name'],
+                                                attributes: ['id', 'accessoryName'],
                                             },
                                         },
                                         where: { returnEventId: null },

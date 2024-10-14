@@ -38,7 +38,7 @@ const Nav = () => {
       </Menu>
       
       <Menu>
-        <NavButton next={() => navigate('/peripherals')} icon={<MdUsb />} label="Peripherals" />
+        <NavButton next={() => navigate('/accessories')} icon={<MdUsb />} label="Accessories" />
       </Menu>
 
       <Menu>

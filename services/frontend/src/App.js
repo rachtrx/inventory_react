@@ -27,7 +27,7 @@ export const App = createBrowserRouter(
         <Route path="/assets" element={<AssetsPage />}/>
         <Route path="/users" element={<UsersPage />}/>
         <Route path="/profile" element={<Profile />}/>
-        <Route path="/peripherals" element={<PeripheralsPage />}/>
+        <Route path="/accessories" element={<PeripheralsPage />}/>
         {/* <Route path="/history" element={<Users />}/> */}
       </Route>
         

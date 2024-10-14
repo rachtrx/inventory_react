@@ -54,15 +54,22 @@ export const DrawerProvider = ({ children }) => {
 			setState(prev => ({ ...prev, loading: true }));
 			try {
 				let service;
+				let id;
 				
 				const key = getDisplayValue(item, true);
 
-				if (key === 'assetTag') service = assetService;
-				else if (key === 'userName') service = userService;
-				else if (key === 'accessoryName') service = accessoryService;
-				else throw new Error();
+				if (key === 'assetTag') {
+					service = assetService;
+					id = item.assetId;
+				} else if (key === 'userName') {
+					service = userService;
+					id = item.userId;
+				} else if (key === 'accessoryName') {
+					service = accessoryService;
+					id = item.accessoryId;
+				} else throw new Error();
 
-				const response = await service.getItem(item.id);
+				const response = await service.getItem(id);
 				console.log(response.data);
 				setState(prev => ({
 					...prev,

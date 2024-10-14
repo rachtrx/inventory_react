@@ -4,7 +4,7 @@ const { getAllOptions } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 
-class PeripheralController {
+class AccessoryController {
 
     updateAssetTypeSuggestion = async (req, res, next) => {
         try {
@@ -384,4 +384,4 @@ class PeripheralController {
     // };
 };
 
-module.exports = new PeripheralController();
+module.exports = new AccessoryController();
