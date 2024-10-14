@@ -18,7 +18,7 @@ const User = ({ user }) => {
     return (
 			<Box p={4}>
 			<Box mb={4}>
-				<Heading as="h1" size="lg" mb={4}>{user.name}</Heading>
+				<Heading as="h1" size="lg" mb={4}>{user.userName}</Heading>
 				<Grid
 					templateColumns="auto 1fr auto"
 					gap={1}
@@ -28,7 +28,7 @@ const User = ({ user }) => {
 					<EditableField
 						label="Name"
 						fieldKey="name"
-						value={user.name}
+						value={user.userName}
 						handleSave={handleSave}
 					/>
 					<EditableField 
@@ -44,8 +44,8 @@ const User = ({ user }) => {
 				<Heading as="h2" size="md" mb="2">PAST ASSETS</Heading>
 				<SimpleGrid columns={3} spacing={4}>
 					{user.pastAssets?.map((asset) => (
-						<Button key={asset.id} onClick={() => handleItemClick(asset)} colorScheme="blue">
-							{asset.assetTag} - {asset.variant}
+						<Button key={asset.assetId} onClick={() => handleItemClick(asset)} colorScheme="blue">
+							{asset.assetTag} - {asset.subTypeName}
 						</Button>
 					))}
 				</SimpleGrid>
@@ -56,7 +56,7 @@ const User = ({ user }) => {
 				{user.currentAssets?.map((asset) => (
 					<Flex alignItems="center" mb="2">
 						<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
-							{asset.assetTag} - {asset.variant}
+							{asset.assetTag} - {asset.subTypeName}
 						</Button>
 						<ActionButton bg="orange.100" onClick={() => setFormType(formTypes.RETURN)}>
 							Return

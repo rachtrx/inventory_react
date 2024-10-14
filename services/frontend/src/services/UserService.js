@@ -7,8 +7,8 @@ class UserService {
     }
 
     defaultFilters = {
-        department: [],
-        name: '',
+        dept: [],
+        userName: '',
         assetCount: [],
     }
 

@@ -13,23 +13,15 @@ import { ReturnStep2 } from "./ReturnStep2";
 import { useUI } from "../../../context/UIProvider";
 import { createNewReturn } from "./Return";
 import assetService from "../../../services/AssetService";
-import { ReturnsProvider } from "../../../context/ReturnsProvider";
+import { ReturnsProvider, useReturns } from "./ReturnsProvider";
 
 const Returns = () => {
 
-  const [step, setStep] = useState(1);
-  const [userReturns, setUserReturns] = useState({});
-
-  const prevStep = () => {
-    setStep(step - 1)
-  };
+    const { step } = useReturns();
 
   return (
     <Box>
-      <ReturnsProvider>
-        {step === 1 && <ReturnStep1/>}
-        {step === 2 && <ReturnStep2/>}
-      </ReturnsProvider>
+      
     </Box>
   );
 };

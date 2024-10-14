@@ -1,27 +1,27 @@
-const { Asset, PeripheralType, User, PeripheralLoan, Loan, sequelize, VariantPeripheral, AssetTypePeripheral, AssetTypeVariant, AssetType } = require('../models/postgres');
+const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType } = require('../models/postgres');
 
 class SearchController {
 
     async searchVariants (req, res) {
         const data = req.body;
-        const variantName = '%' + data + '%';
+        const subTypeName = '%' + data + '%';
         try {
-            const results = await AssetTypeVariant.findAll({
+            const results = await AstSType.findAll({
                 include: [{
-                    model: AssetType,
+                    model: AstType,
                     required: true,
-                    attributes: ['assetType'],
+                    attributes: ['typeName'],
                 }],
                 where: {
-                    variantName: {
-                        [sequelize.Op.iLike]: variantName
+                    subTypeName: {
+                        [sequelize.Op.iLike]: subTypeName
                     }
                 },
                 order: [
                     ['createdAt', 'ASC']
                 ],
                 limit: 20,
-                attributes: ['id', 'variantName']
+                attributes: ['id', 'subTypeName']
             });
             console.log(results);
             const models = results.map(result => result.get({ plain: true }));
@@ -35,14 +35,14 @@ class SearchController {
     async searchUser (req, res) {
         const { assetId } = req.body;
         try {
-            const user = await User.findAll({
+            const user = await Usr.findAll({
                 include: [{
-                    model: Asset,
+                    model: Ast,
                     required: true,
                     attributes: ['id'],
                     where: { id: assetId }
                 }, {
-                    model: Department,
+                    model: Dept,
                     required: true,
                     attributes: ['deptName']
                 }],

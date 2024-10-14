@@ -6,7 +6,7 @@ import { useFormModal, actionTypes } from "../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../context/UIProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
-import peripheralService from "../../services/PeripheralService";
+import accessoryService from "../../services/AccessoryService";
 import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "./utils/ItemButtons";
@@ -26,7 +26,7 @@ const AddPeripheral = () => {
 
   useEffect(() => {
     if (!initialValues) return;
-    reinitializeForm(formRef, {peripherals: [addNewPeripheral(initialValues.peripheralName)]})
+    reinitializeForm(formRef, {peripherals: [addNewPeripheral(initialValues.accessoryName)]})
   }, [reinitializeForm, initialValues])
 
   const initialValuesManual = {
@@ -37,7 +37,7 @@ const AddPeripheral = () => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await peripheralService.addPeripherals(values);
+      await accessoryService.addAccessories(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Peripherals successfully loaned', 'success', 500);
@@ -97,7 +97,7 @@ const AddPeripheral = () => {
             <ModalBody w='100%'>
             <Divider borderColor="black" borderWidth="2px" my={2}/>
             <FieldArray name='peripherals'>
-              {peripheralHelpers => formikProps.values.peripherals.map((peripheral, index, array) => (
+              {accessoryHelpers => formikProps.values.peripherals.map((peripheral, index, array) => (
                 <Box>
                   <Flex key={index} gap={4} alignItems="flex-start">
                     <SearchCreatableSingleSelectFormControl
@@ -111,14 +111,14 @@ const AddPeripheral = () => {
                       />
                       <RemoveButton
                         ariaLabel="Remove Peripheral"
-                        handleClick={() => peripheralHelpers.remove(index)}
+                        handleClick={() => accessoryHelpers.remove(index)}
                         isDisabled={formikProps.values.peripherals.length === 1}
                       />
                     </SearchCreatableSingleSelectFormControl>
                   </Flex>
                 <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
                   {index === array.length - 1 && (
-                    <Button mt={4} type="button" onClick={() => peripheralHelpers.push(addNewPeripheral())}>
+                    <Button mt={4} type="button" onClick={() => accessoryHelpers.push(addNewPeripheral())}>
                       <ResponsiveText>Add Peripheral</ResponsiveText>
                     </Button>
                   )}

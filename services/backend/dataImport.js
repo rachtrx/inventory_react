@@ -27,7 +27,7 @@ async function main(data) {
 			...(item.assetTypeId && {assetTypeId: mappingDict[item.assetTypeId]}),
 			...(item.assetId && {assetId: mappingDict[item.assetId]}),
 			...(item.userId && {userId: mappingDict[item.userId]}),
-			...(item.variantId && {variantId: mappingDict[item.variantId]}),
+			...(item.subTypeId && {subTypeId: mappingDict[item.subTypeId]}),
 			...(item.deptId && {deptId: mappingDict[item.deptId]}),
 		}));
 	}
@@ -145,7 +145,7 @@ async function main(data) {
     sortedTransactionEvents.forEach((event) => {
     
         const {assetId=null, userId=null, eventType} = event;
-        if (!assetId || !userId) throw new Error(`No Asset ID or User ID found!`);
+        if (!assetId || !userId) throw new Error(`No Ast ID or Usr ID found!`);
     
         if (!trackedAssetIds[event.assetId]) {
             if (eventType === 'loaned') {
@@ -157,7 +157,7 @@ async function main(data) {
             const loanEvent = trackedAssetIds[event.assetId];
             const returnEvent = event;
     
-            if (loanEvent.userId !== returnEvent.userId) throw new Error(`Loan User ID ${loanEvent.userId} is not the same as Return User ID ${returnEvent.userId}`);
+            if (loanEvent.userId !== returnEvent.userId) throw new Error(`Loan Usr ID ${loanEvent.userId} is not the same as Return Usr ID ${returnEvent.userId}`);
 
             eventsArr.push(createEvent(loanEvent.id, loanEvent.eventDate))
             eventsArr.push(createEvent(returnEvent.id, returnEvent.eventDate))
@@ -219,16 +219,16 @@ async function main(data) {
     async function importData() {
         await db.sequelize.sync({ force: true }); // Not needed to drop any tables...
         await db.Event.bulkCreate(eventsArr);
-        await db.Department.bulkCreate(newData.depts);
-        await db.User.bulkCreate(newUsers);
-        await db.AssetType.bulkCreate(newData.device_types);
-        await db.AssetTypeVariant.bulkCreate(newData.models);
+        await db.Dept.bulkCreate(newData.depts);
+        await db.Usr.bulkCreate(newUsers);
+        await db.AstType.bulkCreate(newData.device_types);
+        await db.AstSType.bulkCreate(newData.models);
         await db.Vendor.bulkCreate(newData.vendors);
-        await db.Asset.bulkCreate(newAssets);
-        await db.Remark.bulkCreate(remarksArr);
+        await db.Ast.bulkCreate(newAssets);
+        await db.Rmk.bulkCreate(remarksArr);
         await db.Loan.bulkCreate(loansArr);
-        await db.UserLoan.bulkCreate(userLoansArr);
-        await db.AssetLoan.bulkCreate(assetLoansArr);
+        await db.UsrLoan.bulkCreate(userLoansArr);
+        await db.AstLoan.bulkCreate(assetLoansArr);
     }
     
     importData().then(() => {

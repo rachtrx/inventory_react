@@ -1,4 +1,4 @@
-const { Sequelize, Asset, AssetType, AssetTypeVariant, Loan, AssetLoan, User, Department, sequelize } = require('../models/postgres');
+const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController.js');
 
@@ -7,39 +7,39 @@ class DashboardController {
 	async dashboard (req, res, next) {
 		try {
 			// Top devices
-			const topDevicesByCount = await AssetTypeVariant.findAll({
+			const topDevicesByCount = await AstSType.findAll({
 				attributes: [
-					[Sequelize.col('AssetType.asset_type'), 'label'],  // Explicitly name the attribute as used in the GROUP BY and ORDER BY
-					[Sequelize.fn('COUNT', Sequelize.col('AssetType.asset_type')), 'data'] // Count the asset types
+					[Sequelize.col('AstType.type_name'), 'label'],  // Explicitly name the attribute as used in the GROUP BY and ORDER BY
+					[Sequelize.fn('COUNT', Sequelize.col('AstType.type_name')), 'data'] // Count the asset types
 				],
 				include: [{
-					model: AssetType,
-					attributes: [],  // Include only the 'asset_type' from AssetType
+					model: AstType,
+					attributes: [],  // Include only the 'type_name' from AstType
 				},{
-					model: Asset,
-					attributes: [],  // Include only the 'asset_type' from AssetType
+					model: Ast,
+					attributes: [],  // Include only the 'type_name' from AstType
 					where: {
 						deletedDate: { [Op.eq]: null }
 					},
 				}],
 				// where: {
-				// 	'$Assets.status$': { [Op.ne]: 'condemned' }  // Accessing status from the associated Asset model
+				// 	'$Assets.status$': { [Op.ne]: 'condemned' }  // Accessing status from the associated Ast model
 				// },
-				group: ['label'],  // Group by the asset_type of the AssetType model
-				order: [[Sequelize.fn('COUNT', Sequelize.col('AssetType.asset_type')), 'DESC']],  // Order by the count of asset types
+				group: ['label'],  // Group by the type_name of the AstType model
+				order: [[Sequelize.fn('COUNT', Sequelize.col('AstType.type_name')), 'DESC']],  // Order by the count of asset types
 				raw: true,
 				subQuery: false  // May help in certain complex grouping scenarios
 			});
 			
-			// Top Asset Types by Value
-			const topDevicesByValue = await AssetTypeVariant.findAll({
+			// Top Ast Types by Value
+			const topDevicesByValue = await AstSType.findAll({
 				attributes: [
-					[Sequelize.col('AssetType.asset_type'), 'label'],
+					[Sequelize.col('AstType.type_name'), 'label'],
 					[Sequelize.fn('SUM', Sequelize.cast(Sequelize.col('Assets.value'), 'FLOAT')), 'data']
 				],
 				include: [
 					{
-						model: Asset,
+						model: Ast,
 						attributes: [],
 						where: {
 							deletedDate: { [Op.eq]: null }
@@ -47,11 +47,11 @@ class DashboardController {
 						// required: true  // Ensures an inner join, excluding AssetTypeVariants without valid Assets
 					},
 					{
-						model: AssetType,
+						model: AstType,
 						attributes: []  // Including 'id' as you want to group by it
 					}
 				],
-				group: ['label'],  // Group by assetType and id from AssetType
+				group: ['label'],  // Group by typeName and id from AstType
 				having: Sequelize.where(Sequelize.fn('SUM', Sequelize.cast(Sequelize.col('Assets.value'), 'FLOAT')), '!=', 0),
 				order: [[Sequelize.fn('SUM', Sequelize.cast(Sequelize.col('Assets.value'), 'FLOAT')), 'DESC']],
 				raw: true
@@ -59,17 +59,17 @@ class DashboardController {
 				
 			const sql = `
 				SELECT 
-				COUNT(assets.id) AS "data",
+				COUNT(asts.id) AS "data",
 				CASE 
 					WHEN loans.status = 'COMPLETED' THEN 'Unavailable' 
 					WHEN loans.status = 'RESERVED' THEN 'Reserved' 
 					WHEN loans.status IS NULL THEN 'Available' 
 					ELSE 'UNKNOWN'
 				END AS "label"
-				FROM assets
-				LEFT JOIN asset_loans ON assets.id = asset_loans.asset_id
-				LEFT JOIN loans ON asset_loans.event_id = loans.event_id
-				WHERE assets.deleted_date IS NULL
+				FROM asts
+				LEFT JOIN ast_loans ON asts.id = ast_loans.asset_id
+				LEFT JOIN loans ON ast_loans.event_id = loans.event_id
+				WHERE asts.deleted_date IS NULL
 				GROUP BY "label";
 			`;
 	
@@ -78,13 +78,13 @@ class DashboardController {
 			});
 	
 			// Users by department
-			const users = await User.findAll({
+			const users = await Usr.findAll({
 				attributes: [
-					[Sequelize.col('Department.dept_name'), 'label'],
-					[Sequelize.fn('COUNT', Sequelize.col('Department.dept_name')), 'data']
+					[Sequelize.col('Dept.dept_name'), 'label'],
+					[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'data']
 				],
 				include: [{
-					model: Department,
+					model: Dept,
 					attributes: []
 				}],
 				where: {
@@ -93,19 +93,19 @@ class DashboardController {
 					}
 				},
 				group: 'label',
-				order: [[Sequelize.fn('COUNT', Sequelize.col('Department.dept_name')), 'ASC']],
+				order: [[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'ASC']],
 				raw: true
 			});
 	
 			const usersLoanSQL = `
 				SELECT 
 					depts.dept_name AS "label", 
-					COUNT(asset_loans.asset_id) AS "data"
-				FROM users
-				LEFT OUTER JOIN depts ON users.dept_id = depts.id
-				INNER JOIN loans ON users.id = loans.user_id AND loans.status = 'COMPLETED'
-				INNER JOIN asset_loans ON loans.event_id = asset_loans.event_id
-				WHERE users.deleted_date IS NULL
+					COUNT(ast_loans.asset_id) AS "data"
+				FROM usrs
+				LEFT OUTER JOIN depts ON usrs.dept_id = depts.id
+				INNER JOIN loans ON usrs.id = loans.user_id AND loans.status = 'COMPLETED'
+				INNER JOIN ast_loans ON loans.event_id = ast_loans.event_id
+				WHERE usrs.deleted_date IS NULL
 				GROUP BY depts.dept_name
 				ORDER BY "data" ASC;
 			`
@@ -118,7 +118,7 @@ class DashboardController {
 			const devicesAgeQuery = `SELECT 
 				FLOOR(DATE_PART('day', NOW() - added_date) / 365.25) AS label,
 				COUNT(*) AS "data"
-			FROM "assets"
+			FROM asts
 			WHERE "deleted_date" IS NULL
 			GROUP BY FLOOR(DATE_PART('day', NOW() - added_date) / 365.25)
 			ORDER BY label DESC;
@@ -128,35 +128,35 @@ class DashboardController {
 			});
 	
 			// Top Models
-			const topVariantsByCount = await AssetTypeVariant.findAll({
+			const topVariantsByCount = await AstSType.findAll({
 				attributes: [
-						['variant_name', 'label'],
-						[Sequelize.fn('COUNT', Sequelize.col('variant_name')), 'data'],
-						[Sequelize.col('AssetType.asset_type'), 'group']
+						['sub_type_name', 'label'],
+						[Sequelize.fn('COUNT', Sequelize.col('sub_type_name')), 'data'],
+						[Sequelize.col('AstType.type_name'), 'group']
 				],
 				include: [{
-						model: Asset,
-						attributes: [],  // No attributes are needed from the Asset model directly
+						model: Ast,
+						attributes: [],  // No attributes are needed from the Ast model directly
 						where: {
 							deletedDate: { [Op.eq]: null }
 						},
 				}, {
-						model: AssetType,
-						attributes: []  // Including AssetType but not selecting attributes directly here, used in the top-level attributes instead
+						model: AstType,
+						attributes: []  // Including AstType but not selecting attributes directly here, used in the top-level attributes instead
 				}],
 				group: ['group', 'label'], // TODO check...
 				order: [['data', 'DESC']],
 				raw: true
 			});
 	
-			const topVariantsByValue = await AssetTypeVariant.findAll({
+			const topVariantsByValue = await AstSType.findAll({
 				attributes: [
-						['variant_name', 'label'],  
+						['sub_type_name', 'label'],  
 						[Sequelize.fn('SUM', Sequelize.col('Assets.value')), 'data'],
-						[Sequelize.col('AssetType.asset_type'), 'group']
+						[Sequelize.col('AstType.type_name'), 'group']
 				],
 				include: [{
-						model: Asset,
+						model: Ast,
 						as: 'Assets',
 						attributes: [],
 						where: {
@@ -166,7 +166,7 @@ class DashboardController {
 							value: { [Op.ne]: 0 }
 						}
 				}, {
-						model: AssetType,
+						model: AstType,
 						attributes: []
 				}],
 				group: ['group', 'label'],
@@ -178,13 +178,13 @@ class DashboardController {
 			const costPerYearByAssetQuery = `SELECT 
 				EXTRACT(YEAR FROM added_date) AS group,
 				SUM(value) AS data,
-				asset_types.asset_type as label
-				FROM assets
-				JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
-				JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
+				ast_types.type_name as label
+				FROM asts
+				JOIN ast_s_types ON asts.sub_type_id = ast_s_types.id
+				JOIN ast_types ON ast_s_types.asset_type_id = ast_types.id
 				WHERE deleted_date IS NULL
-				GROUP BY added_date, asset_types.asset_type
-				ORDER BY added_date ASC, asset_types.asset_type ASC
+				GROUP BY added_date, ast_types.type_name
+				ORDER BY added_date ASC, ast_types.type_name ASC
 			`;
 			const costPerYearByAsset = await sequelize.query(costPerYearByAssetQuery, {
 				type: Sequelize.QueryTypes.SELECT

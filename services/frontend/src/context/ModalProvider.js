@@ -5,7 +5,7 @@ import userService from '../services/UserService';
 import useDebouncedCallback from '../hooks/useDebounce';
 import useDebounce from '../hooks/useDebounce';
 import { useDisclosure } from '@chakra-ui/react';
-import peripheralService from '../services/PeripheralService';
+import accessoryService from '../services/AccessoryService';
 
 const ModalContext = createContext();
 
@@ -151,9 +151,9 @@ export const ModalProvider = ({ children }) => {
     return await userService.searchUsers(value, formType);
   }, [formType]);
   
-  const handlePeripheralSearch = useCallback(async (value) => {
-    console.log(`Peripheral Search Called: ${value}`);
-    return await peripheralService.searchPeripherals(value);
+  const handleAccessorySearch = useCallback(async (value) => {
+    console.log(`Accessory Search Called: ${value}`);
+    return await accessoryService.searchAccessories(value);
   }, []);
 
   const reinitializeForm = useCallback((formRef, newValues) => {
@@ -165,7 +165,7 @@ export const ModalProvider = ({ children }) => {
   }, []);
 
   return (
-    <ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, handleAssetSearch, handleUserSearch, handlePeripheralSearch, isModalOpen, onModalOpen, onModalClose, reinitializeForm }}>
+    <ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch, isModalOpen, onModalOpen, onModalClose, reinitializeForm }}>
       {children}
     </ModalContext.Provider>
   );

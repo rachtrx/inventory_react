@@ -49,7 +49,7 @@ app.use(express.static('public'));
 const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
-const peripheralRoutes = require('./routes/peripheralRoutes');
+const accessoryRoutes = require('./routes/accessoryRoutes.js');
 const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const formRoutes = require('./routes/formRoutes');
@@ -59,7 +59,7 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/peripherals', peripheralRoutes);
+app.use('/api/accessories', accessoryRoutes);
 app.use('/api/forms', formRoutes);
 
 // Setup global error handling middleware to catch authentication errors

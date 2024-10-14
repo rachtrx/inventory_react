@@ -1,4 +1,4 @@
-const { Asset, AssetType, AssetTypeVariant, Vendor, User, GroupLoan, AssetLoan, Sequelize, sequelize, Event, UserLoan, Peripheral, PeripheralType, PeripheralLoan, Loan } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, Acc, AccType, AccLoan, Loan } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
@@ -18,14 +18,14 @@ class AssetController {
     
         let options;
         try {
-            if (['assetType', 'variantName', 'vendor'].includes(field)) {
+            if (['typeName', 'subTypeName', 'vendor'].includes(field)) {
                 let meta = null;
                 switch(field) {
-                    case 'assetType':
-                        meta = [AssetType, 'id', 'assetType'];
+                    case 'typeName':
+                        meta = [AstType, 'id', 'typeName'];
                         break;
-                    case 'variantName':
-                        meta = [AssetTypeVariant, 'id', 'variantName'];
+                    case 'subTypeName':
+                        meta = [AstSType, 'id', 'subTypeName'];
                         break;
                     case 'vendor':
                         meta = [Vendor, 'id', 'vendorName'];
@@ -36,13 +36,13 @@ class AssetController {
                 logger.info(meta)
                 options = await getAllOptions(meta)
             } else if (field === 'location') {
-                const distinctOptions = await getDistinctOptions(Asset, field);
+                const distinctOptions = await getDistinctOptions(Ast, field);
                 options = createSelection(distinctOptions, field, field);
             } else if (field === 'age') {
                 const devicesAgeQuery = `
                     SELECT DISTINCT 
                         FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
-                    FROM "assets" a
+                    FROM "asts" a
                     JOIN "events" e ON a.add_event_id = e.id;
                 `;
                 const distinctAges = await sequelize.query(devicesAgeQuery, {
@@ -66,7 +66,7 @@ class AssetController {
         const { filters } = req.body
         logger.info(filters)
     
-        const assetsExist = await Asset.count();
+        const assetsExist = await Ast.count();
         if (assetsExist === 0) {
             return res.json([]);
         }
@@ -78,7 +78,7 @@ class AssetController {
         };
     
         try {
-            let query = await Asset.findAll({
+            let query = await Ast.findAll({
                 attributes: [
                     'id',
                     'serialNumber',
@@ -90,13 +90,13 @@ class AssetController {
                 ],
                 include: [
                     {
-                        model: AssetTypeVariant,
-                        attributes:['variantName'],
-                        ...(filters.variantName.length > 0 && { where: { id: { [Op.in]: filters.variantName } } }),
+                        model: AstSType,
+                        attributes: ['subTypeName'],
+                        // ...(filters.subTypeName.length > 0 && { where: { id: { [Op.in]: filters.subTypeName } } }),
                         include: {
-                            model: AssetType,
-                            attributes: ['assetType'],
-                            ...(filters.assetType.length > 0 && { where: { id: { [Op.in]: filters.assetType } } }),
+                            model: AstType,
+                            attributes: ['typeName'],
+                            // ...(filters.typeName.length > 0 && { where: { id: { [Op.in]: filters.typeName } } }),
                             required: true,
                         },
                         required: true,
@@ -118,16 +118,16 @@ class AssetController {
                         ...(filters.vendor.length > 0 && { where: { id: { [Op.in]: filters.vendor } } }),
                     },
                     {
-                        model: AssetLoan,
+                        model: AstLoan,
                         attributes: ['id', 'returnEventId'],
                         include: {
                             model: Loan,
                             attributes: ['id', 'reserveEventId', 'loanEventId'],
                             include: {
-                                model: UserLoan,
+                                model: UsrLoan,
                                 attributes: ['id'],
                                 include: {
-                                    model: User,
+                                    model: Usr,
                                     attributes: ['id', 'userName', 'bookmarked'],
                                 },
                             },
@@ -149,11 +149,11 @@ class AssetController {
     
             if (filters.status.length > 0) {
                 query = query.filter(asset => {
-                    const hasLoan = asset.AssetLoans.some(loan => !loan.UserLoan.returnEventId && loan.UserLoan.loanEventId);
+                    const hasLoan = asset.AstLoans.some(loan => !loan.UsrLoan.returnEventId && loan.UsrLoan.loanEventId);
                     const isShared = asset.shared;
 
                     // next line: dont need to filter out cancelled reservations (done in query already) 
-                    const isReserved = asset.AssetLoans && asset.AssetLoans.some(loan => loan.UserLoan.reserveEventId && !loan.UserLoan.loanEventId);
+                    const isReserved = asset.AstLoans && asset.AstLoans.some(loan => loan.UsrLoan.reserveEventId && !loan.UsrLoan.loanEventId);
                     const isDeleted = asset.DeleteEvent !== null;
         
                     if (filters.status.includes('Condemned') && isDeleted) {
@@ -223,25 +223,25 @@ class AssetController {
         }
 
         const bulkCondition = `
-            assets.asset_tag IN (:searchTerm)  -- Bulk search condition
+            asts.asset_tag IN (:searchTerm)  -- Bulk search condition
         `;
 
         const singleCondition = `
-            (assets.asset_tag ILIKE :searchTerm OR assets.serial_number ILIKE :searchTerm)  -- Single search condition
+            (asts.asset_tag ILIKE :searchTerm OR asts.serial_number ILIKE :searchTerm)  -- Single search condition
         `;
 
         const sql = `
             WITH AssetLoanCounts AS (
                 SELECT 
-                    assets.id, 
-                    assets.serial_number AS "serialNumber", 
-                    assets.asset_tag AS "assetTag", 
-                    assets.bookmarked,
-                    assets.shared,
+                    asts.id, 
+                    asts.serial_number AS "serialNumber", 
+                    asts.asset_tag AS "assetTag", 
+                    asts.bookmarked,
+                    asts.shared,
                     delete_event.event_date AS "deletedDate",
                     add_event.event_date AS "addedDate",
-                    asset_type_variants.variant_name AS "variantName",
-                    asset_types.asset_type AS "assetType",
+                    ast_s_types.sub_type_name AS "subTypeName",
+                    ast_types.type_name AS "typeName",
                     vendors.vendor_name AS "vendorName",
                     MAX(loan_event.event_date) AS "lastLoan",
                     MAX(return_event.event_date) AS "lastReturn",
@@ -249,7 +249,7 @@ class AssetController {
                         CASE 
                             WHEN loan_event.id IS NOT NULL 
                             AND return_event.id IS NULL 
-                            THEN users.id 
+                            THEN usrs.id 
                             ELSE NULL 
                         END
                     ) AS "loanCount",
@@ -259,35 +259,35 @@ class AssetController {
                             AND return_event.id IS NULL 
                             AND cancel_event.id IS NULL 
                             AND reserve_event.id IS NOT NULL
-                            THEN users.id 
+                            THEN usrs.id 
                             ELSE NULL 
                         END
                     ) AS "reserveCount"
-                FROM assets
-                LEFT JOIN asset_type_variants ON assets.variant_id = asset_type_variants.id
-                LEFT JOIN asset_types ON asset_type_variants.asset_type_id = asset_types.id
-                LEFT JOIN vendors ON assets.vendor_id = vendors.id
-                LEFT JOIN asset_loans ON assets.id = asset_loans.asset_id
-                LEFT JOIN loans ON asset_loans.loan_id = loans.id
-                LEFT JOIN user_loans ON loans.id = user_loans.loan_id
-                LEFT JOIN users ON user_loans.user_id = users.id
-                LEFT JOIN events AS delete_event ON assets.delete_event_id = delete_event.id
-                LEFT JOIN events AS add_event ON assets.add_event_id = add_event.id
+                FROM asts
+                LEFT JOIN ast_s_types ON asts.sub_type_id = ast_s_types.id
+                LEFT JOIN ast_types ON ast_s_types.asset_type_id = ast_types.id
+                LEFT JOIN vendors ON asts.vendor_id = vendors.id
+                LEFT JOIN ast_loans ON asts.id = ast_loans.asset_id
+                LEFT JOIN loans ON ast_loans.loan_id = loans.id
+                LEFT JOIN usr_loans ON loans.id = usr_loans.loan_id
+                LEFT JOIN usrs ON usr_loans.user_id = usrs.id
+                LEFT JOIN events AS delete_event ON asts.del_event_id = delete_event.id
+                LEFT JOIN events AS add_event ON asts.add_event_id = add_event.id
                 LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
                 LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
                 LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
-                LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
+                LEFT JOIN events AS return_event ON ast_loans.return_event_id = return_event.id
                 WHERE ${isBulkSearch ? bulkCondition : singleCondition}
                 GROUP BY 
-                    assets.id, 
-                    assets.serial_number, 
-                    assets.asset_tag, 
-                    assets.bookmarked, 
-                    assets.shared, 
+                    asts.id, 
+                    asts.serial_number, 
+                    asts.asset_tag, 
+                    asts.bookmarked, 
+                    asts.shared, 
                     delete_event.event_date, 
                     add_event.event_date, 
-                    asset_type_variants.variant_name, 
-                    asset_types.asset_type, 
+                    ast_s_types.sub_type_name, 
+                    ast_types.type_name, 
                     vendors.vendor_name
             )
             SELECT *
@@ -318,7 +318,7 @@ class AssetController {
                     asset.status = `Available`;
                 }
     
-                const { id, assetTag, serialNumber, shared, status, assetType, variantName } = asset;
+                const { id, assetTag, serialNumber, shared, status, typeName, subTypeName } = asset;
                 logger.info(status)
                 let disabled;
                 switch(formType) {
@@ -334,8 +334,8 @@ class AssetController {
                 return {
                     value: id,
                     label: assetTag, // Append status if disabled,
-                    assetType,
-                    variantName, 
+                    typeName,
+                    subTypeName, 
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
                     assetTag: assetTag,
                     shared: shared,
@@ -355,7 +355,7 @@ class AssetController {
         const assetId = req.params.id;
     
         try {
-            const assetDetails = await Asset.findOne({
+            const assetDetails = await Ast.findOne({
                 attributes: [
                     'id',
                     'serialNumber',
@@ -366,11 +366,11 @@ class AssetController {
                 ],
                 include: [
                     {
-                        model: AssetTypeVariant,
-                        attributes: ['variantName'],
+                        model: AstSType,
+                        attributes: ['subTypeName'],
                         include: {
-                            model: AssetType,
-                            attributes: ['assetType']
+                            model: AstType,
+                            attributes: ['typeName']
                         }
                     },
                     {
@@ -389,7 +389,7 @@ class AssetController {
                         required: false,
                     },
                     {
-                        model: AssetLoan,
+                        model: AstLoan,
                         attributes: ['id'],
                         include: [
                             {
@@ -416,21 +416,21 @@ class AssetController {
                                         required: false,
                                     },
                                     {
-                                        model: UserLoan,
+                                        model: UsrLoan,
                                         attributes: ['filepath'],
                                         include: {
-                                            model: User,
+                                            model: Usr,
                                             attributes: ['id', 'userName', 'bookmarked']
                                         }
                                     },
                                     {
-                                        model: PeripheralLoan,
+                                        model: AccLoan,
                                         attributes: ['id'],
                                         include: {
-                                            model: Peripheral,
+                                            model: Acc,
                                             attributes: ['id'],
                                             include: {
-                                                model: PeripheralType,
+                                                model: AccType,
                                                 attributes: ['id', 'name'],
                                             },
                                         },
@@ -451,11 +451,11 @@ class AssetController {
                 where: { id: assetId }
             });
     
-            if (!assetDetails) return res.status(404).send({ error: "Asset not found" });
+            if (!assetDetails) return res.status(404).send({ error: "Ast not found" });
     
             const asset = assetDetails.createAssetObject()
     
-            logger.info('Details for Asset:', asset);
+            logger.info('Details for Ast:', asset);
     
             res.json(asset);
         } catch (error) {
@@ -469,14 +469,14 @@ class AssetController {
         logger.info(`${id}, ${field}, ${newValue}`);
     
         try {
-            const asset = await Asset.findByPk(id);
+            const asset = await Ast.findByPk(id);
     
             if (asset) {
                 asset[field] = newValue;
                 await asset.save();
-                res.json({ message: "Asset updated successfully" });
+                res.json({ message: "Ast updated successfully" });
             } else {
-                res.status(404).json({ message: "Asset not found" });
+                res.status(404).json({ message: "Ast not found" });
             }
         } catch (error) {
             res.json({ error: "An error occurred while updating the bookmark" });

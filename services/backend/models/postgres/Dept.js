@@ -7,7 +7,7 @@ module.exports = (sequelize) => {
     Dept.init({
     id: {
         type: DataTypes.STRING,
-        primaryKey: true
+        primaryKey: true,
     },
     deptName: {
         type: DataTypes.STRING,

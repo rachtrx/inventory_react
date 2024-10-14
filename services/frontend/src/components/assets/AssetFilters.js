@@ -14,8 +14,8 @@ export default function AssetFilters() { // TODO can have external filters from 
 	const { filters, fetchFilters, onSubmit } = useItems()
 
 	useEffect(() => {
-        fetchFilters('assetType');
-        fetchFilters('variantName');
+        fetchFilters('typeName');
+        fetchFilters('subTypeName');
         fetchFilters('vendor');
         fetchFilters('location');
         fetchFilters('age');
@@ -26,10 +26,10 @@ export default function AssetFilters() { // TODO can have external filters from 
         <Form>
             <FilterContainer>
                 <MultiSelectFormControl
-                    name="assetType"
+                    name="typeName"
                     // label="Asset Type"
                     placeholder="Asset Type"
-                    options={filters.assetType}
+                    options={filters.typeName}
                 />
                 <MultiSelectFormControl
                     name="status"
@@ -55,10 +55,10 @@ export default function AssetFilters() { // TODO can have external filters from 
                     placeholder="Serial Number"
                 />
                 <MultiSelectFormControl
-                    name="variantName"
+                    name="subTypeName"
                     // label="Specific Model"
                     placeholder="Specific Model"
-                    options={filters.variantName}
+                    options={filters.subTypeName}
                 />
                 <MultiSelectFormControl
                     name="vendor"

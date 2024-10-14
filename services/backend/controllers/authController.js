@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const logger = require('../logging.js');
-const { sequelize, User, Admin } = require('../models/postgres');
+const { sequelize, Usr, Admin } = require('../models/postgres');
 const { generateToken } = require('../utils/jwtHelper.js');
 
 const createAdminObject = (admin) => ({
@@ -19,7 +19,7 @@ class AuthController {
     try {
       const admin = await Admin.findOne({ where: { email } });
       if (!admin) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ error: "Usr not found" });
       }
   
       if (admin.authType.includes('local') && bcrypt.compareSync(password, admin.pwd)) {
@@ -105,11 +105,11 @@ class AuthController {
         authType: ['local']
       });
   
-      res.status(201).json({ message: "User created successfully", userId: newUser.id });
+      res.status(201).json({ message: "Usr created successfully", userId: newUser.id });
     } catch (error) {
       console.error('Registration error:', error);
       if (error.name === 'SequelizeUniqueConstraintError') {
-        res.status(409).send('User with this email already exists.');
+        res.status(409).send('Usr with this email already exists.');
       } else {
         res.status(500).send('Internal Server Error');
       }

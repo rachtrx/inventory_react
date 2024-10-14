@@ -1,4 +1,4 @@
-const { Asset, AssetType, AssetTypeVariant, Vendor } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
@@ -7,17 +7,17 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 class FormAssetController {
 
     async getAssetTypes (req, res) {
-        const assetTypes = await AssetType.findAll({
+        const assetTypes = await AstType.findAll({
             where: { id: { [Op.not]: null } },
-            order: [['assetType', 'ASC']],
-            attributes: ['assetType']
+            order: [['typeName', 'ASC']],
+            attributes: ['typeName']
         });
     
-        return res.json(assetTypes.map(a => a.assetType));
+        return res.json(assetTypes.map(a => a.typeName));
     };
     
     async getAssetTypeVariants (req, res) {
-        console.log(`User ID: ${req.session.userId}`);
+        console.log(`Usr ID: ${req.session.userId}`);
         try {
             const vendors = await Vendor.findAll({
                 attributes: [[sequelize.fn('DISTINCT', sequelize.col('vendorName')), 'vendorName']],
@@ -30,63 +30,63 @@ class FormAssetController {
     };
     
     async add (req, res) {
-        const { assetType, isNewAssetType, variants } = req.body;
+        const { typeName, isNewAssetType, variants } = req.body;
     
         try {
             await sequelize.transaction(async (t) => {
                 let assetTypeId;
     
                 if (isNewAssetType) {
-                    const existingAssetType = await AssetType.findOne({
-                        where: { assetType: { [Op.iLike]: assetType } },
+                    const existingAssetType = await AstType.findOne({
+                        where: { typeName: { [Op.iLike]: typeName } },
                         transaction: t
                     });
     
                     if (existingAssetType) {
-                        throw new Error(`Device Type ${assetType} already exists!`);
+                        throw new Error(`Device Type ${typeName} already exists!`);
                     }
     
                     assetTypeId = generateSecureID();
-                    await AssetType.create({
+                    await AstType.create({
                         id: assetTypeId,
-                        assetType: assetType
+                        typeName: typeName
                     }, { transaction: t });
                 } else {
-                    const existingAssetType = await AssetType.findOne({
-                        where: { assetType: { [Op.iLike]: assetType } },
+                    const existingAssetType = await AstType.findOne({
+                        where: { typeName: { [Op.iLike]: typeName } },
                         attributes: ['id'],
                         transaction: t
                     });
     
                     if (!existingAssetType) {
-                        throw new Error(`Device Type ${assetType} not found!`);
+                        throw new Error(`Device Type ${typeName} not found!`);
                     }
     
                     assetTypeId = existingAssetType.id;
                 }
     
-                // Check if variant exists with case-insensitive search
-                const existingVariant = await AssetTypeVariant.findOne({
+                // Check if subTypeName exists with case-insensitive search
+                const existingVariant = await AstSType.findOne({
                     where: {
-                        variantName: { [Op.iLike]: variants.variantName },
+                        subTypeName: { [Op.iLike]: variants.subTypeName },
                         assetTypeId: assetTypeId
                     },
                     transaction: t
                 });
     
                 if (existingVariant) {
-                    throw new Error(`AssetTypeVariant ${variants.variantName} already exists!`);
+                    throw new Error(`AstSType ${variants.subTypeName} already exists!`);
                 }
     
-                // Create the variant
-                await AssetTypeVariant.create({
+                // Create the subTypeName
+                await AstSType.create({
                     id: generateSecureID(),
                     assetTypeId: assetTypeId,
-                    variantName: variants.variantName
+                    subTypeName: variants.subTypeName
                 }, { transaction: t });
             });
     
-            console.log("Asset and its variant created successfully");
+            console.log("Ast and its subTypeName created successfully");
             return res.sendStatus(200);
         } catch (error) {
             console.error("Error during asset creation:", error);
@@ -96,7 +96,7 @@ class FormAssetController {
     
     async register (req, res) {
         const data = req.body;
-        const variantId = data.variantId; // TODO CONVERT TO DICT
+        const subTypeId = data.subTypeId; // TODO CONVERT TO DICT
         const vendorName = data.vendorName; // TODO CONVERT TO DICT
         const value = parseFloat(data.value).toFixed(2); // TODO CONVERT TO DICT
         const assets = data.assets; // TODO CONVERT TO DICT
@@ -104,7 +104,7 @@ class FormAssetController {
     
         try {
             await sequelize.transaction(async (t) => {
-                const curModelId = await AssetTypeVariant.findByPk(variantId);
+                const curModelId = await AstSType.findByPk(subTypeId);
                 if (!curModelId) {
                     return res.status(400).json({ error: "Model Name does not exist!" });
                 }
@@ -138,24 +138,24 @@ class FormAssetController {
                     const { serialNumber, assetTag, remarks } = asset;
                     assetTag = assetTag.toUpperCase()
                     serialNumber = serialNumber.toUpperCase()
-                    if (await Asset.findOne({ where: { assetTag: assetTag }, transaction: t })) {
-                        throw new Error(`Asset Tag ${assetTag} already exists!`);
+                    if (await Ast.findOne({ where: { assetTag: assetTag }, transaction: t })) {
+                        throw new Error(`Ast Tag ${assetTag} already exists!`);
                     }
-                    if (await Asset.findOne({ where: { serialNumber: serialNumber }, transaction: t })) {
+                    if (await Ast.findOne({ where: { serialNumber: serialNumber }, transaction: t })) {
                         throw new Error(`Serial Number ${serialNumber} already exists!`);
                     }
                     if (assetTags.has(assetTag)) {
-                        throw new Error(`Duplicate Asset Tag ${assetTag}!`);
+                        throw new Error(`Duplicate Ast Tag ${assetTag}!`);
                     }
                     if (serialNums.has(serialNumber)) {
                         throw new Error(`Duplicate Serial Number ${serialNumber}!`);
                     }
                     const assetId = generateSecureID();
-                    await Asset.create({
+                    await Ast.create({
                         id: assetId,
                         serialNumber: serialNumber.toUpperCase(),
                         assetTag: assetTag.toUpperCase(),
-                        variantId: variantId,
+                        subTypeId: subTypeId,
                         bookmarked: false,
                         status: 'AVAILABLE',
                         location: 'unknown',
@@ -187,18 +187,18 @@ class FormAssetController {
                     if (assetIds.has(assetId)) {
                         throw new Error("Can't delete the same device!");
                     }
-                    const asset = await Asset.findByPk(assetId, { 
+                    const asset = await Ast.findByPk(assetId, { 
                         attributes: ['status'],
                         transaction: transaction
                     });         
                     if (!asset) {
-                        throw new Error(`Asset tag ${assetTag} not found!`);
+                        throw new Error(`Ast tag ${assetTag} not found!`);
                     }
                     if (asset.status === "loaned") {
-                        throw new Error(`Asset tag ${assetTag} still on loan!`);
+                        throw new Error(`Ast tag ${assetTag} still on loan!`);
                     }
                     if (asset.status === "condemned") {
-                        throw new Error(`Asset tag ${assetTag} is already condemned!`);
+                        throw new Error(`Ast tag ${assetTag} is already condemned!`);
                     }
                     assetIds.add(assetId);
                     

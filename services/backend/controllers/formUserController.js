@@ -1,6 +1,6 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
-const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models/postgres');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 
@@ -9,7 +9,7 @@ class FormUserController {
 
     async getDepts(req, res) {
         try {
-            const depts = await Department.findAll({
+            const depts = await Dept.findAll({
                 order: [['deptName', 'ASC']],
                 attributes: ['deptName']
             });
@@ -29,30 +29,30 @@ class FormUserController {
     
                 // Check if the deptName is new or existing
                 if (isNewDept) {
-                    const existingDept = await Department.findOne({
+                    const existingDept = await Dept.findOne({
                         where: { deptName: { [Op.iLike]: deptName } },
                         transaction: t
                     });
     
                     if (existingDept) {
-                        throw new Error(`Department ${deptName} already exists!`);
+                        throw new Error(`Dept ${deptName} already exists!`);
                     }
     
                     deptId = generateSecureID();
-                    await Department.create({
+                    await Dept.create({
                         id: deptId,
                         deptName: trimmedDept
                     }, { transaction: t });
                 } else {
                     const deptLower = deptName.toLowerCase();
-                    const existingDept = await Department.findOne({
+                    const existingDept = await Dept.findOne({
                         where: { deptName: { [Op.iLike]: deptLower } },
                         attributes: ['id'],
                         transaction: t
                     });
     
                     if (!existingDept) {
-                        throw new Error(`Department ${deptName} not found!`);
+                        throw new Error(`Dept ${deptName} not found!`);
                     }
     
                     deptId = existingDept.id;
@@ -62,17 +62,17 @@ class FormUserController {
                 for (const user of users) {
                     const { userName, remarks } = user;
                     const userNameLower = userName.toLowerCase();
-                    const existingUser = await User.findOne({
+                    const existingUser = await Usr.findOne({
                         where: { userName: { [Op.iLike]: userNameLower } },
                         transaction: t
                     });
     
                     if (existingUser) {
-                        throw new Error(`User Name ${userName} already exists or is duplicated in the request!`);
+                        throw new Error(`Usr Name ${userName} already exists or is duplicated in the request!`);
                     }
     
                     const userId = generateSecureID();
-                    await User.create({
+                    await Usr.create({
                         id: userId,
                         userName: userName,
                         deptId: deptId,
@@ -104,18 +104,18 @@ class FormUserController {
                     if (userIds.has(userId)) {
                         throw new Error("Can't delete the same user!");
                     }
-                    const user = await User.findByPk(userId, { 
+                    const user = await Usr.findByPk(userId, { 
                         attributes: ['deletedDate'],
                         transaction: transaction
                     });
         
                     if (!user) {
-                      throw new Error(`User Name ${userName} doesn't exist!`);
+                      throw new Error(`Usr Name ${userName} doesn't exist!`);
                     }
                     if (user.deletedDate) {
-                        throw new Error("User has already been removed!");
+                        throw new Error("Usr has already been removed!");
                     }
-                    const userDevice = await Asset.findOne({
+                    const userDevice = await Ast.findOne({
                         where: { userId: userId },
                         transaction: t
                     });
@@ -125,7 +125,7 @@ class FormUserController {
                     userIds.add(userId);
             
                     await insertUserEvent(generateSecureID(), 'removed', userId, remarks, t);
-                    await User.update({ deletedDate: 1 }, { // TODO UPDATE!
+                    await Usr.update({ deletedDate: 1 }, { // TODO UPDATE!
                         where: { id: userId },
                         transaction: t
                     });

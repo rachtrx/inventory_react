@@ -49,17 +49,17 @@ const withSelect = (Component, isCreatable) => ({
   );
 
   useEffect(() => {
-    console.log(options);
     let option;
 
     // Find the selected option based on whether it's a multi-select or single select
+    console.log(options);
+    console.log(value);
     if (isMulti) {
-      console.log(options);
-      console.log(value);
       option = options.filter((option) => value?.includes(option?.value));
     } else {
       option = options.find((option) => option?.value === value) || null;
     }
+    console.log(option);
 
     // Handle the case where it's a creatable select and the option is not found
     if (!option && isCreatable && !meta.touched && value) { // TODO warning not appearing because technically shouldnt set ID

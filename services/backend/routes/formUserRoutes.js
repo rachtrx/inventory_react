@@ -4,7 +4,7 @@ const formUserController = require('../controllers/formUserController.js');
 const router = express.Router();
 
 router.get('/depts', formUserController.getDepts);
-router.post('/create', formUserController.createUser); // create a variant
+router.post('/create', formUserController.createUser); // create a subTypeName
 
 // router.patch("/update/:id", formUserController.updateUser);  
 router.delete("/:id/delete", formUserController.deleteUser);

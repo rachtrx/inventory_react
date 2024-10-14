@@ -3,7 +3,7 @@ import assetService from '../services/AssetService';
 import userService from '../services/UserService';
 import { Drawer, useDisclosure } from '@chakra-ui/react';
 import ItemDrawer from '../components/ItemDrawer';
-import peripheralService from '../services/PeripheralService';
+import accessoryService from '../services/AccessoryService';
 import { getDisplayValue } from '../config';
 
 const DrawerContext = createContext();
@@ -59,7 +59,7 @@ export const DrawerProvider = ({ children }) => {
 
 				if (key === 'assetTag') service = assetService;
 				else if (key === 'userName') service = userService;
-				else if (key === 'peripheralName') service = peripheralService;
+				else if (key === 'accessoryName') service = accessoryService;
 				else throw new Error();
 
 				const response = await service.getItem(item.id);

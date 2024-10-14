@@ -37,11 +37,11 @@ export const UserActionButton = ({ user, setHoveredUserId }) => {
 					maxH="50px"
 				>
 					{user.assets.map((asset) => (
-						<Box key={asset.id} w="100%">
+						<Box key={asset.assetId} w="100%">
 							<SplitButton
 								renderLeftButton={() => <ItemLink item={asset}/>}
 								renderRightButton={() => <ActionButton formType={formTypes.RETURN} item={asset}/>}
-								onMouseEnterFn={() => setHoveredUserId(user.id)}
+								onMouseEnterFn={() => setHoveredUserId(user.userId)}
 								onMouseLeaveFn={() => setHoveredUserId(null)}
 							/>
 						</Box>
@@ -52,7 +52,7 @@ export const UserActionButton = ({ user, setHoveredUserId }) => {
 		  <SplitButton
 				renderLeftButton={() => <ActionButton formType={formTypes.LOAN} item={user} />}
 				renderRightButton={() => <ActionButton formType={formTypes.DEL_USER} item={user} />}
-				onMouseEnterFn={() => setHoveredUserId(user.id)}
+				onMouseEnterFn={() => setHoveredUserId(user.userId)}
 				onMouseLeaveFn={() => setHoveredUserId(null)}
 		  />
 		) : (
@@ -69,14 +69,14 @@ export const AssetActionButton = ({ asset, setHoveredAssetId }) => {
         <SplitButton
           renderLeftButton={() => <ItemLink item={asset.user} />}
           renderRightButton={() => <ActionButton formType={formTypes.RETURN} item={asset} />}
-          onMouseEnterFn={() => setHoveredAssetId(asset.id)}
+          onMouseEnterFn={() => setHoveredAssetId(asset.assetId)}
           onMouseLeaveFn={() => setHoveredAssetId(null)}
         />
       ) : !asset.deletedDate ? (
         <SplitButton
           renderLeftButton={() => <ActionButton formType={formTypes.LOAN} item={asset} />}
           renderRightButton={() => <ActionButton formType={formTypes.DEL_ASSET} item={asset} />}
-          onMouseEnterFn={() => setHoveredAssetId(asset.id)}
+          onMouseEnterFn={() => setHoveredAssetId(asset.assetId)}
           onMouseLeaveFn={() => setHoveredAssetId(null)}
         />
       ) : (

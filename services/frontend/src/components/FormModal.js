@@ -24,16 +24,13 @@ import AddPeripheral from './forms/AddPeripheral';
 import Reserve from './forms/Reserve';
 import Loans from './forms/loan/Loans';
 import Returns from './forms/return/Returns';
-import { LoansProvider } from '../context/LoansProvider';
+import { LoansProvider } from './forms/loan/LoansProvider';
+import { ReturnsProvider } from './forms/return/ReturnsProvider';
 
 const formMap = {
     [formTypes.ADD_ASSET]: <AddAsset/>,
-    [formTypes.LOAN]: (
-        <LoansProvider>
-            <Loans />
-        </LoansProvider>
-    ),
-    [formTypes.RETURN]: <Returns/>,
+    [formTypes.LOAN]: <LoansProvider/>,
+    [formTypes.RETURN]: <ReturnsProvider/>,
     [formTypes.DEL_ASSET]: <CondemnAsset/>,
     [formTypes.ADD_USER]: <AddUser/>,
     [formTypes.DEL_USER]: <RemoveUser/>,

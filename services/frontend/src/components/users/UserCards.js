@@ -27,7 +27,7 @@ function UserCards({ items }) {
   return (
     <Cards>
     {items.map((user) => (
-      <Box key={user.id}>
+      <Box key={user.userId}>
         <Card 
           h="100%" 
           w="100%" 
@@ -49,7 +49,7 @@ function UserCards({ items }) {
           
           <StarButton
             position="absolute" top={2} right={2}
-            id={user.id}
+            id={user.userId}
             isBookmarked={user.bookmarked}
           />
         </Card>

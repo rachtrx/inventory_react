@@ -1,4 +1,4 @@
-const { Asset } = require('../models/postgres');
+const { Ast } = require('../models/postgres');
 // const { Event } = require('../models/mongo');
 
 class FormHelperController {
@@ -47,7 +47,7 @@ class FormHelperController {
             const options = {
                 session: session
             };
-            const result = await Asset.findByIdAndUpdate(
+            const result = await Ast.findByIdAndUpdate(
                 assetId,
                 { status: eventType, userId: userId },
                 options

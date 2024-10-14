@@ -8,8 +8,8 @@ class AssetService {
     }
 
     defaultFilters = {
-        "assetType": [],
-        "variantName": [],
+        "typeName": [],
+        "subTypeName": [],
         "vendor": [],
         "status": [],
         "location": [],
@@ -50,8 +50,9 @@ class AssetService {
         });
     }
     
-    async returnAsset(id) {
-        return await this.axios.post(`${API_URL}/assets/return`, id);
+    async returnAsset(formData) {
+        // downloadFormData(formData);
+        return await this.axios.post(`${API_URL}/assets/return`, formData);
     }
 
     async addAsset(asset) {

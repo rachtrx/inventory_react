@@ -1,9 +1,9 @@
-const { sequelize, AssetType, AssetTypeVariant, Asset, AssetLoan, User, UserLoan, PeripheralType, Peripheral, Event, Remark, PeripheralLoan, Department, Loan  } = require('../models/postgres');
+const { sequelize, AstType, AstSType, Ast, AstLoan, Usr, UsrLoan, AccType, Acc, Event, Rmk, AccLoan, Dept, Loan  } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
-const peripheralController = require('./peripheralController.js');
+const accessoryController = require('./accessoryController.js');
 const path = require('path');
 const fs = require('fs');   
 const { omitUndefined } = require('mongoose');
@@ -38,23 +38,23 @@ class FormLoanReturnController {
 
             // Fetch and validate all unique assets in parallel
             const assetsData = await Promise.all(
-                [...uniqueAssetIds].map(assetId => Asset.findByPk(assetId, { transaction }))
+                [...uniqueAssetIds].map(assetId => Ast.findByPk(assetId, { transaction }))
             );
 
             // Fetch and validate all unique users in parallel
             const usersData = await Promise.all(
-                [...uniqueUserIds].map(userId => User.findByPk(userId, { transaction }))
+                [...uniqueUserIds].map(userId => Usr.findByPk(userId, { transaction }))
             );
 
             // VALIDATE all unique users and assets
             await Promise.all(assetsData.map(async (assetData, index) => {
                 if (!assetData) {
-                    throw new Error(`Asset with ID ${[...uniqueAssetIds][index]} not found!`); // TODO CONVERT TO TAG
+                    throw new Error(`Ast with ID ${[...uniqueAssetIds][index]} not found!`); // TODO CONVERT TO TAG
                 }
             
-                const isOnLoan = await Asset.findOne({
+                const isOnLoan = await Ast.findOne({
                     include: {
-                        model: AssetLoan,
+                        model: AstLoan,
                         attributes: [],
                         required: true,
                         where: { returnEventId: { [Op.eq]: null } }
@@ -64,69 +64,52 @@ class FormLoanReturnController {
                 });
         
                 if (isOnLoan) {
-                    throw new Error(`Asset with ID ${assetData.assetTag} is still on loan!`);
+                    throw new Error(`Ast with ID ${assetData.assetTag} is still on loan!`);
                 }
             
-                if (assetData.deleteEventId) {
-                    throw new Error(`Asset Tag ${assetData.assetTag} is condemned!`);
+                if (assetData.delEventId) {
+                    throw new Error(`Ast Tag ${assetData.assetTag} is condemned!`);
                 }
             }));
 
             usersData.forEach((userData, index) => {
                 if (!userData) {
-                    throw new Error(`User with ID ${[...uniqueUserIds][index]} not found.`);
+                    throw new Error(`Usr with ID ${[...uniqueUserIds][index]} not found.`);
                 }
-                if (userData.deleteEventId) {
-                    throw new Error(`User with ID ${userData.userId} is deleted.`);
+                if (userData.delEventId) {
+                    throw new Error(`Usr with ID ${userData.userId} is deleted.`);
                 }
             });
             
-            // CREATE any new peripherals
-            const newPeripherals = {}; // tracks <newPeripheralName>: <newPeripheralId>
-            const peripheralCache = {}; // tracks <peripheralId>: <peripheralTypeObject>
+            // CREATE any new accessories
+            const newAccessories = {}; // tracks <newPeripheralName>: <newPeripheralId>
+            const accessoryCache = {}; // tracks <peripheralId>: <peripheralTypeObject>
             for (const loan of loans) {
-                if (loan.asset.peripherals) {
-                    for (const peripheral of loan.asset.peripherals) {
-                        let peripheralType;
-                        // id === name means new. Check if added to newPeripherals already
-                        if (peripheral.id === peripheral.peripheralName && !newPeripherals[peripheral.peripheralName]) {
-                            peripheralType = await peripheralController.createPeripheralType(
-                                peripheral.peripheralName,
+                if (loan.asset.accessories) {
+                    for (const accessory of loan.asset.accessories) {
+                        let accType;
+
+                        // id === name means new. Check if added to newAccessories already
+                        if (accessory.accessoryTypeId === accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
+                            accType = await accessoryController.createPeripheralType(
+                                accessory.accessoryName,
                                 0,
                                 transaction
                             );
-                            newPeripherals[peripheral.peripheralName] = peripheralType.id;
-                            peripheral.id = peripheralType.id;
-                            peripheralCache[peripheral.id] = peripheralType; // Setup, add count later
-                        } else if (peripheral.id === peripheral.peripheralName) {
-                            // if new but added to newPeripherals already, just need to update the id
-                            peripheral.id = newPeripherals[peripheral.peripheralName];
-                        } else if (!peripheralCache[peripheral.id]) {
-                            // Get existing peripheral type if not found yet and update cache
-                            peripheralType = await PeripheralType.findByPk(peripheral.id, {transaction});
-                            peripheralCache[peripheral.id] = peripheralType; // Setup, add count later
+                            accessoryCache[accType.id] = accType;
+                            newAccessories[accessory.accessoryName] = accType.id;
+                            accessory.accessoryTypeId = accType.id;
+                        } else if (accessory.accessoryTypeId === accessory.accessoryName) {
+                            // if new but added to newAccessories already, just need to update the id
+                            accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
+                        } else if (!accessoryCache[accessory.accessoryTypeId]) {
+                            // Get existing accessory type if not found yet and update cache
+                            accType = await AccType.findByPk(accessory.accessoryTypeId, {transaction});
+                            accessoryCache[accType.id] = accType;
                         }
-                        
-                        // IMPT ALLOW NEGATIVE PERIPHERAL COUNT!
-                        // // Add count now
-                        // peripheralCache[peripheral.id] = {
-                        //     ...peripheralCache[peripheral.id], 
-                        //     count: (peripheralCache[peripheral.id].available || 0) + peripheral.available
-                        // };
                     }
                 }
             }
-            
-            // IMPT ALLOW NEGATIVE PERIPHERAL COUNT!
-            // // TOP UP MISSING PERIPHERALS
-            // for (const peripheralData of Object.values(peripheralCache)) {
-            //     const {peripheralType, count} = peripheralData;
-            //     if (peripheralType.available < count) {
-            //         await peripheralType.update({
-            //             available: peripheralType.available + count
-            //         }, { transaction });
-            //     }
-            // }
 
             const userLoans = {}
 
@@ -151,22 +134,22 @@ class FormLoanReturnController {
                     loanEventId: loanEventId
                 }, { transaction })
 
-                if (asset.remarks !== '') await Remark.create({
+                if (asset.remarks !== '') await Rmk.create({
                     id: generateSecureID(),
                     eventId: loanEventId,
                     remarks: asset.remarks
                 }, { transaction });
 
-                // Create Asset Loan
-                await AssetLoan.create({
+                // Create Ast Loan
+                await AstLoan.create({
                     id: generateSecureID(),
                     loanId: loanId,
                     assetId: asset.assetId,
                 }, { transaction });
                 
-                // User Loans for each user
+                // Usr Loans for each user
                 for (const user of users) {
-                    const userLoan = await UserLoan.create({
+                    const userLoan = await UsrLoan.create({
                         id: generateSecureID(),
                         loanId: loanId,
                         userId: user.userId,
@@ -177,23 +160,23 @@ class FormLoanReturnController {
                     else userLoans[user.userId].push(userLoan);
                 }
 
-                // Peripheral Loans for each count of each type for each user
-                if (asset.peripherals) {
-                    for (const peripheral of asset.peripherals) {
-                        for (let idx = 0; idx < peripheral.available; idx++) {
-                            const newPeripheralOnLoan = await Peripheral.create({
+                // Acc Loans for each count of each type for each user
+                if (asset.accessories) {
+                    for (const accessory of asset.accessories) {
+                        for (let idx = 0; idx < accessory.count; idx++) {
+                            const createdAccessory = await Acc.create({
                                 id: generateSecureID(),
-                                peripheralTypeId: peripheral.id
+                                accessoryTypeId: accessory.accessoryTypeId
                             }, { transaction });
 
-                            await PeripheralLoan.create({
+                            await AccLoan.create({
                                 id: generateSecureID(),
                                 loanId: loanId,
-                                peripheralId: newPeripheralOnLoan.id,
+                                accessoryId: createdAccessory.id,
                             }, { transaction });
                         }
-                        await peripheralCache[peripheral.id].update({
-                            available: peripheralCache[peripheral.id].available - peripheral.count
+                        await accessoryCache[accessory.accessoryTypeId].update({
+                            available: accessoryCache[accessory.accessoryTypeId].available - accessory.count
                         }, { transaction });
                     }
                 }
@@ -235,46 +218,48 @@ class FormLoanReturnController {
 
         try {
             const queries = ids.map(async (id) => {
-                const query = await Asset.findOne({
+                const query = await Ast.findOne({
                     attributes: ['id','serialNumber', 'assetTag'],
                     include: [
                         {
-                            model: AssetTypeVariant,
-                            attributes: ['variantName'],
+                            model: AstSType,
+                            attributes: ['subTypeName'],
                             include: {
-                                model: AssetType,
-                                attributes: ['assetType']
+                                model: AstType,
+                                attributes: ['typeName']
                             }
                         },
                         {
-                            model: AssetLoan,
+                            model: AstLoan,
                             attributes: ['id'],
+                            where: { returnEventId: null },
                             include: {
                                 model: Loan,
                                 attributes: ['expectedReturnDate'],
                                 include: [{
-                                    model: UserLoan,
+                                    model: UsrLoan,
                                     attributes: ['id'],
                                     include: {
-                                        model: User,
+                                        model: Usr,
                                         attributes: ['userName', 'id'],
                                         include: {
-                                            model: Department,
+                                            model: Dept,
                                             attributes: ['deptName']
                                         },
                                         required: true,
                                     }
                                 },
                                 {
-                                    model: PeripheralLoan,
+                                    model: AccLoan,
                                     attributes: ['returnEventId'],
                                     include: {
-                                        model: Peripheral,
+                                        model: Acc,
                                         attributes: ['id'],
                                         include: {
-                                            model: PeripheralType,
-                                            attributes: ['name', 'id'],
-                                        }
+                                            model: AccType,
+                                            attributes: ['accessoryName', 'id'],
+                                        },
+                                        required: true, // TODO CHECK IF ANY ISSUE IF NO ACC
                                     },
                                     required: false,
                                 }]
@@ -293,8 +278,8 @@ class FormLoanReturnController {
             const assets = await Promise.all(queries);
 
             const assetsDict = assets.reduce((dict, asset) => {
-                const { id, ...rest } = asset;
-                dict[id] = rest;
+                const { assetId, ...rest } = asset;
+                dict[assetId] = rest;
               
                 return dict;
             }, {});
@@ -322,12 +307,12 @@ class FormLoanReturnController {
         session.startTransaction();
     
         try {
-            const asset = await Asset.findById(assetId).session(session);
+            const asset = await Ast.findById(assetId).session(session);
             if (!asset) {
-                return res.status(400).json({ error: "Asset not found!" });
+                return res.status(400).json({ error: "Ast not found!" });
             }
             if (asset.status !== "loaned") {
-                return res.status(400).json({ error: "Asset is not on loan!" });
+                return res.status(400).json({ error: "Ast is not on loan!" });
             }
             await FormHelpers.insertAssetEvent(generateSecureID(), assetId, 'returned', req.body.remarks, userId, null, filePath, session);
             await FormHelpers.updateStatus(assetId, 'available', userId, session);

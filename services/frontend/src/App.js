@@ -15,7 +15,7 @@ import { PrivateLayout } from "./components/PrivateLayout";
 import { AuthProvider } from "./context/AuthProvider";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
-import { PeripheralsPage } from "./components/peripherals/Peripherals";
+import { PeripheralsPage } from "./components/accessories/Accessories";
 
 export const App = createBrowserRouter(
   createRoutesFromElements(

@@ -26,8 +26,8 @@ const Asset = ({ asset }) => {
         <Flex justifyContent='space-between'>
         <ResponsiveText size='lg'>Peripherals</ResponsiveText>
           <HStack>
-          {asset.peripherals?.map((peripheral) => (
-            <ResponsiveText>{peripheral.name}</ResponsiveText>
+          {asset.accessories?.map((accessory) => (
+            <ResponsiveText>{accessory.name}</ResponsiveText>
           ))}
           </HStack>
         <ActionButton
@@ -51,14 +51,14 @@ const Asset = ({ asset }) => {
 					/>
 					<EditableField 
 						label="Model"
-            fieldKey="variant"
-            value={asset.variant}
+            fieldKey="subTypeName"
+            value={asset.subTypeName}
             handleSave={handleSave}
 					/>
 					<EditableField 
 						label="Asset Type"
-            fieldKey="assetType"
-            value={asset.assetType}
+            fieldKey="typeName"
+            value={asset.typeName}
             handleSave={handleSave}
 					/>
 					<EditableField 
@@ -89,7 +89,7 @@ const Asset = ({ asset }) => {
           </Heading>
           {currentUsers?.map(user => (
             <>
-              <ItemLink key={user.id} isCopy={false} item={user} />
+              <ItemLink key={user.userId} isCopy={false} item={user} />
               <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
             </>
           ))}
@@ -98,14 +98,14 @@ const Asset = ({ asset }) => {
         <Flex direction="column">
           <Heading as="h2" size="md" mb="2">Past Users:</Heading>
           {pastUsers?.map(user => (
-            <ItemLink key={user.id} isCopy={false} item={user} />
+            <ItemLink key={user.userId} isCopy={false} item={user} />
           ))}
         </Flex>
 
         <Flex direction="column">
           <Heading as="h2" size="md" mb="2">Reserved for:</Heading>
           {reservedUsers?.map(user => (
-            <ItemLink key={user.id} isCopy={false} item={user} />
+            <ItemLink key={user.userId} isCopy={false} item={user} />
           ))}
         </Flex>
       </Flex>
@@ -117,12 +117,12 @@ const Asset = ({ asset }) => {
           aria-label="Bookmark"
           mb={4}
         />
-        {asset.status !== 'condemned' && asset.status !== 'loaned' && (
+        {asset.status !== 'condemned' && asset.status !== 'loaned' && ( // change to deldate?
           <Flex gridGap="2">
             <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
               CONDEMN
             </Button>
-            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.id} colorScheme="green">
+            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
               LOAN
             </Button>
           </Flex>

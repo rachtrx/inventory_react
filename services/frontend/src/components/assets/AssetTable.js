@@ -29,19 +29,19 @@ const AssetTable = ({ items }) => {
       <Tbody>
         {items.map((asset) => (
           <Tr 
-            key={asset.id}
+            key={asset.assetId}
             _hover={{ bg: 'gray.100' }}
             // onClick={() => handleItemClick(asset)}
           >
             <Td>
               <StarButton
-                id={asset.id}
+                id={asset.assetId}
                 isBookmarked={asset.bookmarked}
                 onToggle={handleUpdate}
               />
             </Td>
-            <Td><ResponsiveText>{asset.assetType}</ResponsiveText></Td>
-            <Td><ResponsiveText>{asset.variant}</ResponsiveText></Td>
+            <Td><ResponsiveText>{asset.typeName}</ResponsiveText></Td>
+            <Td><ResponsiveText>{asset.subTypeName}</ResponsiveText></Td>
             <Td><ItemLink item={asset} fontWeight="bold"/></Td>
             <Td>
               <CardActions asset={asset}/>

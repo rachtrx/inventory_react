@@ -3,53 +3,52 @@ import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
-import { useLoan } from "../../../context/LoanProvider"
+import { useLoan } from "../loan/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
 import { MultiSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
 import DateInputControl from "../utils/DateInputControl"
-import { useReturn } from "../../../context/ReturnProvider"
-import ReturnPeripherals from "./ReturnPeripherals"
-import { useReturns } from "../../../context/ReturnsProvider"
+import { useReturn } from "./ReturnProvider"
+import ReturnAccessories from "./ReturnAccessories"
+import { useReturns } from "./ReturnsProvider"
 import { useUI } from "../../../context/UIProvider"
 
-export const createNewPeripheral = (peripheralType) => ({
+export const createNewAccessory = (accessoryType) => ({
 	key: uuidv4(),
-	id: peripheralType.peripheralTypeId || peripheralType.id || '',
-	peripheralName: peripheralType.peripheralName || '',
-	ids: peripheralType.peripherals.map(peripheral => peripheral.peripheralId) || [],
-	count: peripheralType.peripherals.length,
+	accessoryTypeId: accessoryType.accessoryTypeId || '',
+	accessoryName: accessoryType.accessoryName || '',
+	accessoryIds: accessoryType.accessoryDetails?.map(accessory => accessory.accessoryId) || [],
+	count: accessoryType.accessoryDetails.length,
   });
 
 const createNewUsers = (users) => ({
 	key: uuidv4(),
-	userIds: users.map(user => user.userId || user.id || ''),
+	userIds: users.map(user => user.userId || user.userId || ''),
 	userNames: users.map(user => user.userName),  
 })
 
-export const createNewReturn = (asset = null, users = [], peripherals = []) => ({
+export const createNewReturn = (asset = null, users = [], accessories = []) => ({
 	key: uuidv4(),
 	assetId: asset?.assetId || '',
 	assetTag: asset?.assetTag || '',
-	peripherals: peripherals.map((peripheral) => createNewPeripheral(peripheral)),
+	accessories: accessories.map((accessory) => createNewAccessory(accessory)),
 	users: createNewUsers(users),
 	remarks: '',
   });
 
 export const Return = () => {
 
-	const { fetchReturn } = useReturns()
+	const { fetchReturn, assetOptions, userOptions, setUserOptions } = useReturns()
 	const { ret, returnIndex } = useReturn();
 	const { handleAssetSearch } = useFormModal();
 	const { setFieldValue } = useFormikContext();
-	const [ userOptions, setUserOptions ] = useState([]);
 	const { handleError } = useUI();
 
 	const updateUsers = (users) => {
 		const newUserOptions = users.map(user => {
 			return {
-				value: user.userId || user.id,
+				value: user.userId || user.userId,
 				label: user.userName
 			}
 		})
@@ -61,23 +60,23 @@ export const Return = () => {
 			`returns.${returnIndex}.users`,
 			{
 			  userNames: users.map(user => user.userName),
-			  userIds: users.map(user => user.userId || user.id),
+			  userIds: users.map(user => user.userId || user.userId),
 			}
 		)
 	}
 
-	const updatePeripherals = (peripherals) => {
+	const updateAccessories = (accessories) => {
 
-		peripherals.forEach((peripheral, peripheralIndex) => {
-			// Dynamically set the peripheral data in the form
-			setFieldValue(`returns.${returnIndex}.peripherals.${peripheralIndex}`, createNewPeripheral(peripheral));
+		accessories.forEach((accessory, accessoryIndex) => {
+			// Dynamically set the accessory data in the form
+			setFieldValue(`returns.${returnIndex}.accessories.${accessoryIndex}`, createNewAccessory(accessory));
 		});
 	}
 
 	const updateAssetFields = async (returnIndex, selected) => {
 		try {
 			if (!selected?.value) {
-				setFieldValue(`returns.${returnIndex}.peripherals`, [])
+				setFieldValue(`returns.${returnIndex}.accessories`, [])
 				setFieldValue(`returns.${returnIndex}.assetTag`, '')
 				setFieldValue(`returns.${returnIndex}.users`, [])
 				setUserOptions([]);
@@ -85,16 +84,16 @@ export const Return = () => {
 			}
 	
 			const assetId = selected.value;
-			const response = await fetchReturn([assetId]);
-			const assetsDict = await response.data;
+			console.log(assetId);
+			const assetsDict = await fetchReturn([assetId]);
 			console.log(assetsDict);
 
-			setFieldValue(`returns.${returnIndex}.assetTag`, selected?.assetTag || '')
+			setFieldValue(`returns.${returnIndex}.assetTag`, selected?.label || '')
 
 			const loan = assetsDict[assetId].ongoingLoan;
 			console.log(loan);
 			updateUsers(loan.users)
-			if (loan.peripherals) updatePeripherals(loan.peripherals);
+			if (loan.accessories) updateAccessories(loan.accessories);
 		} catch (err) {
 			console.error(err)
 			handleError('Loan not found')
@@ -109,17 +108,18 @@ export const Return = () => {
 					searchFn={value => handleAssetSearch(value)}
 					updateFields={(selected) => updateAssetFields(returnIndex, selected)}
 					label={`Asset Tag`}
+					initialOptions={assetOptions}
 					placeholder="Asset Tag"
 				/>
 				<MultiSelectFormControl
-					key={userOptions.length}
+					key={ret.users.key}
 					name={`returns.${returnIndex}.users.userIds`}
 					label={`User(s)`}
 					placeholder="User(s)"
 					initialOptions={userOptions}
 					isDisabled={true}
 				/>
-				<ReturnPeripherals/>
+				<ReturnAccessories/>
 			</Flex>
 		</Box>
 	);

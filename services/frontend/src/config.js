@@ -15,7 +15,7 @@ export const axiosInstance = axios.create({
 export const itemKeys = {
   ASSET_TAG: 'assetTag',
   USER_NAME: 'userName',
-  PERIPHERAL_NAME: 'peripheralName'
+  ACCESSORY_NAME: 'accessoryName'
 }
 
 export const getDisplayValue = (item, raw=false) => {
@@ -24,8 +24,8 @@ export const getDisplayValue = (item, raw=false) => {
     attr = itemKeys.ASSET_TAG;
   } else if (item.hasOwnProperty(itemKeys.USER_NAME)) {
     attr = itemKeys.USER_NAME;
-  } else if (item.hasOwnProperty(itemKeys.PERIPHERAL_NAME)) {
-    attr = itemKeys.PERIPHERAL_NAME;
+  } else if (item.hasOwnProperty(itemKeys.ACCESSORY_NAME)) {
+    attr = itemKeys.ACCESSORY_NAME;
   } else {
     return '';
   }

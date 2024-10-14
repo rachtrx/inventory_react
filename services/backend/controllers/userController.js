@@ -1,4 +1,4 @@
-const { sequelize, Sequelize, Event, Department, User, AssetType, AssetTypeVariant, Asset, AssetLoan, UserLoan, GroupLoan, PeripheralLoan, PeripheralType, Peripheral } = require('../models/postgres');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Acc } = require('../models/postgres');
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
@@ -10,31 +10,31 @@ class UserController {
     
         let options;
         try {
-            if (field === 'department') {
-                const meta = [Department, 'id', 'deptName'];
+            if (field === 'deptName') {
+                const meta = [Dept, 'id', 'deptName'];
                 logger.info(meta)
                 options = await getAllOptions(meta)
                 
             } else if (field === 'assetCount') {
-                const result = await AssetLoan.findAll({
+                const result = await AstLoan.findAll({
                     attributes: [
-                        Sequelize.col('"UserLoan.user_id"'), // TODO
-                        [Sequelize.fn('COUNT', Sequelize.col('"AssetLoan"."id"')), 'assetCount']
+                        Sequelize.col('"UsrLoan.user_id"'), // TODO
+                        [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
                     ],
                     include: {
                         model: Loan,
                         attributes: [],
                         where: { returnEventId: null },
                         include: {
-                            model: UserLoan,
+                            model: UsrLoan,
                             attributes: ['userId'],
                             include: {
-                                model: User,
+                                model: Usr,
                                 attributes: [],
                             },
                         }
                     },
-                    group: ['"Loan->UserLoan.user_id"'], // TODO
+                    group: ['"Loan->UsrLoan.user_id"'], // TODO
                     raw: true
                 });
                 const counts = result.map(item => item.assetCount);
@@ -58,17 +58,17 @@ class UserController {
             const { filters } = req.body
             logger.info(filters)
     
-            const usersExist = await User.count();
+            const usersExist = await Usr.count();
             
             if (usersExist === 0) {
                 return res.json([]);
             }
     
             const whereClause = {
-                ...(filters.name && { userName: { [Op.iLike]: filters.name } }),
+                ...(filters.userName && { userName: { [Op.iLike]: filters.userName } }),
             };
     
-            let query = await User.findAll({
+            let query = await Usr.findAll({
                 attributes: ['id', 'userName', 'bookmarked'],
                 include: [
                     {
@@ -83,7 +83,7 @@ class UserController {
                         required: false,
                     },
                     {
-                        model: UserLoan,
+                        model: UsrLoan,
                         required: false,
                         attributes: ['id'],
                         include: {
@@ -91,18 +91,18 @@ class UserController {
                             attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
                             include: [
                                 {
-                                    model: AssetLoan,
+                                    model: AstLoan,
                                     attributes: ['id', 'returnEventId'],
                                     include: [
                                         {
-                                            model: Asset,
+                                            model: Ast,
                                             attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
                                             include: {
-                                                model: AssetTypeVariant,
-                                                attributes: ['id', 'variantName'],
+                                                model: AstSType,
+                                                attributes: ['id', 'subTypeName'],
                                                 include: {
-                                                    model: AssetType,
-                                                    attributes: ['id', 'assetType']
+                                                    model: AstType,
+                                                    attributes: ['id', 'typeName']
                                                 }
                                             }
                                         },
@@ -114,15 +114,15 @@ class UserController {
                                     },
                                 },
                                 {
-                                    model: PeripheralLoan,
+                                    model: AccLoan,
                                     attributes: ['id', 'returnEventId'],
                                     required: false,
                                     include: {
-                                        model: Peripheral,
+                                        model: Acc,
                                         attributes: ['id'],
                                         include: {
-                                            model: PeripheralType,
-                                            attributes: ['id', 'name'],
+                                            model: AccType,
+                                            attributes: ['id', 'accessoryName'],
                                         },
                                         required: false,
                                     },
@@ -136,10 +136,10 @@ class UserController {
                         }
                     },
                     {
-                        model: Department,
+                        model: Dept,
                         required: true,
                         attributes: ['deptName'],
-                        ...(filters.department.length > 0 && { where: { id: { [Op.in]: filters.department } } }),
+                        ...(filters.dept.length > 0 && { where: { id: { [Op.in]: filters.dept } } }),
                     }
                 ],
                 where: whereClause,
@@ -150,7 +150,7 @@ class UserController {
             if (filters.assetCount.length > 0) {
                 filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
                 query = query.filter(user => {
-                    return filters.assetCount.includes(user.AssetLoans.length);
+                    return filters.assetCount.includes(user.AstLoans.length);
                 });
             }
             
@@ -171,10 +171,10 @@ class UserController {
         const userId = req.params.id;
     
         try {
-            const userDetailsPromise = User.findByPk(userId, {
+            const userDetailsPromise = Usr.findByPk(userId, {
                 include: [
                     {
-                        model: Department,
+                        model: Dept,
                         attributes: ['deptName']
                     },
                     {
@@ -189,21 +189,21 @@ class UserController {
                         required: false,
                     },
                     {
-                        model: UserLoan,
+                        model: UsrLoan,
                         attributes: ['id', 'filepath'],
                         include: {
                             model: Loan,
                             attributes: ['id', 'expectedReturnDate'],
                             include: [
                                 {
-                                    model: AssetLoan,
+                                    model: AstLoan,
                                     include: [
                                         {
-                                            model: Asset,
+                                            model: Ast,
                                             attributes: ['id', 'assetTag', 'bookmarked'],
                                             include: {
-                                                model: AssetTypeVariant,
-                                                attributes: ['variantName']
+                                                model: AstSType,
+                                                attributes: ['subTypeName']
                                             }
                                         },
                                         {
@@ -243,7 +243,7 @@ class UserController {
     
             const [userDetails, userEvents] = await Promise.all([userDetailsPromise, userEventsPromise]);
     
-            if (!userDetails) return res.status(404).send({ error: "User not found" });
+            if (!userDetails) return res.status(404).send({ error: "Usr not found" });
     
             // Attach events to the user details
     
@@ -251,7 +251,7 @@ class UserController {
     
             user.events = userEvents;
     
-            logger.info('Details for User:', user);
+            logger.info('Details for Usr:', user);
     
             res.json(user);
         } catch (error) {
@@ -288,21 +288,21 @@ class UserController {
         }
 
         const bulkCondition = `
-            users.user_name IN (:searchTerm)  -- Bulk search condition
+            usrs.user_name IN (:searchTerm)  -- Bulk search condition
         `;
 
         const singleCondition = `
-            users.user_name ILIKE :searchTerm  -- Single search condition
+            usrs.user_name ILIKE :searchTerm  -- Single search condition
         `;
         
         const sql = `
             WITH UserLoanCounts AS (
                 SELECT 
-                    users.id, 
-                    users.user_name AS name, 
-                    users.bookmarked, 
+                    usrs.id, 
+                    usrs.user_name AS name, 
+                    usrs.bookmarked, 
                     delete_event.event_date AS "deletedDate",
-                    departments.dept_name AS department,
+                    depts.dept_name AS dept,
                     GREATEST(
                         MAX(delete_event.event_date),
                         MAX(add_event.event_date),
@@ -321,24 +321,24 @@ class UserController {
                             ELSE 0
                         END
                     ) AS "reserveCount"
-                FROM users
-                LEFT JOIN user_loans ON users.id = user_loans.user_id
-                LEFT JOIN loans ON user_loans.loan_id = loans.id
-                LEFT JOIN asset_loans ON loans.id = asset_loans.loan_id
-                LEFT JOIN events AS delete_event ON users.delete_event_id = delete_event.id
-                LEFT JOIN events AS add_event ON users.add_event_id = add_event.id
+                FROM usrs
+                LEFT JOIN usr_loans ON usrs.id = usr_loans.user_id
+                LEFT JOIN loans ON usr_loans.loan_id = loans.id
+                LEFT JOIN ast_loans ON loans.id = ast_loans.loan_id
+                LEFT JOIN events AS delete_event ON usrs.del_event_id = delete_event.id
+                LEFT JOIN events AS add_event ON usrs.add_event_id = add_event.id
                 LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
-                LEFT JOIN events AS return_event ON asset_loans.return_event_id = return_event.id
+                LEFT JOIN events AS return_event ON ast_loans.return_event_id = return_event.id
                 LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
                 LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
-                LEFT JOIN departments ON users.dept_id = departments.id
+                LEFT JOIN depts ON usrs.dept_id = depts.id
                 WHERE ${isBulkSearch ? bulkCondition : singleCondition}
                 GROUP BY 
-                    users.id, 
-                    users.user_name, 
-                    users.bookmarked, 
+                    usrs.id, 
+                    usrs.user_name, 
+                    usrs.bookmarked, 
                     delete_event.event_date,
-                    departments.dept_name
+                    depts.dept_name
             )
             SELECT *
             FROM UserLoanCounts
@@ -363,7 +363,7 @@ class UserController {
                 }
     
                 
-                const { name, department, status } = user;
+                const { name, dept, status } = user;
                 logger.info(status)
                 let disabled;
                 switch(formType) {
@@ -378,7 +378,7 @@ class UserController {
                 return {
                     value: user.id,
                     label: `${name}`, // Capitalize the first letter
-                    description: `${department} ${disabled ? `(${status})` : ''}`,
+                    description: `${dept} ${disabled ? `(${status})` : ''}`,
                     userName: name,
                     isDisabled: disabled // Disable if not in validStatuses
                 };
@@ -396,14 +396,14 @@ class UserController {
         const { id, field, newValue } = req.body;
     
         try {
-            const user = await User.findByPk(id);
+            const user = await Usr.findByPk(id);
     
             if (user) {
                 user[field] = newValue,
                 await user.save();
                 res.json({ message: "Bookmark updated successfully" });
             } else {
-                res.status(404).json({ message: "User not found" });
+                res.status(404).json({ message: "Usr not found" });
             }
         } catch (error) {
             console.error('Error updating user:', error);

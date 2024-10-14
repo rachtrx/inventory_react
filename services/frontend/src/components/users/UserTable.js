@@ -30,11 +30,11 @@ const UserTable = ({ items }) => {
       <Tbody>
         {items.map((user) => (
           <Tr 
-            key={user.id} 
+            key={user.userId} 
             _hover={{ bg: 'gray.100' }}
             // onClick={() => handleItemClick(user)}
           >
-            <Td><StarButton id={user.id} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
+            <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
             <Td><ResponsiveText>{user.department}</ResponsiveText></Td><Td>
               {user.assets?.length > 0 ? 

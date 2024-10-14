@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/types', formAssetController.getAssetTypes);
 router.get('/typeVariants', formAssetController.getAssetTypeVariants);
-router.post('/add', formAssetController.addAsset); // create a variant
+router.post('/add', formAssetController.addAsset); // create a subTypeName
 
 // router.patch("/update/:id", formAssetController.updateAsset);  
 router.delete("/condemn", formAssetController.condemnAsset);

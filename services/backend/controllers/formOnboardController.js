@@ -1,5 +1,5 @@
 const express = require('express');
-const { sequelize, Vendor, Department, User, AssetType, AssetTypeVariant, Asset, Event } = require('../models/postgres');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models/postgres');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
@@ -32,24 +32,24 @@ class FormOnboardController {
                 }
     
                 for (const deptName in usersObj) {
-                    let dept = await Department.findOne({
+                    let dept = await Dept.findOne({
                         where: { deptName: { [Op.iLike]: deptName } },
                         transaction
                     });
                     if (!dept) {
-                        dept = await Department.create({
+                        dept = await Dept.create({
                             id: generateSecureID(),
                             deptName
                         }, { transaction });
                     }
     
                     for (const userName of usersObj[deptName]) {
-                        const userExists = await User.findOne({
+                        const userExists = await Usr.findOne({
                             where: { userName: { [Op.iLike]: userName } },
                             transaction
                         });
                         if (!userExists) {
-                            const newUser = await User.create({
+                            const newUser = await Usr.create({
                                 id: generateSecureID(),
                                 userName,
                                 deptId: dept.id,
@@ -61,38 +61,38 @@ class FormOnboardController {
                     }
                 }
     
-                for (const assetType in modelsObj) {
-                    let type = await AssetType.findOne({
-                        where: { assetType: { [Op.iLike]: assetType } },
+                for (const typeName in modelsObj) {
+                    let type = await AstType.findOne({
+                        where: { typeName: { [Op.iLike]: typeName } },
                         transaction
                     });
                     if (!type) {
-                        type = await AssetType.create({
+                        type = await AstType.create({
                             id: generateSecureID(),
-                            assetType
+                            typeName
                         }, { transaction });
                     }
     
-                    for (const variantName of modelsObj[assetType]) {
-                        const variantExists = await AssetTypeVariant.findOne({
-                            where: { variantName: { [Op.iLike]: variantName }, assetTypeId: type.id },
+                    for (const subTypeName of modelsObj[typeName]) {
+                        const variantExists = await AstSType.findOne({
+                            where: { subTypeName: { [Op.iLike]: subTypeName }, assetTypeId: type.id },
                             transaction
                         });
                         if (!variantExists) {
-                            await AssetTypeVariant.create({
+                            await AstSType.create({
                                 id: generateSecureID(),
                                 assetTypeId: type.id,
-                                variantName
+                                subTypeName
                             }, { transaction });
                         }
                     }
                 }
     
                 for (const asset of assetArr) {
-                    const { serialNumber, assetTag, variantName, userName, vendorName, addedDate, registeredRemarks, loanedDate, loanedRemarks, modelValue, bookmarked, location } = asset;
+                    const { serialNumber, assetTag, subTypeName, userName, vendorName, addedDate, registeredRemarks, loanedDate, loanedRemarks, modelValue, bookmarked, location } = asset;
                 
                     // Check for unique serial number
-                    const existingSerial = await Asset.findOne({
+                    const existingSerial = await Ast.findOne({
                         where: { serialNumber: serialNumber.toUpperCase() },
                         transaction
                     });
@@ -101,34 +101,34 @@ class FormOnboardController {
                     }
                 
                     // Check for unique asset tag
-                    const existingAssetTag = await Asset.findOne({
+                    const existingAssetTag = await Ast.findOne({
                         where: { assetTag: assetTag.toUpperCase() },
                         transaction
                     });
                     if (existingAssetTag) {
-                        throw new Error(`Asset Tag ${assetTag} already exists!`);
+                        throw new Error(`Ast Tag ${assetTag} already exists!`);
                     }
                 
                     if (!addedDate) {
-                        throw new Error(`Asset Tag ${assetTag} has no registered date!`);
+                        throw new Error(`Ast Tag ${assetTag} has no registered date!`);
                     }
                 
                     // Convert registered date from ISO string to Date object
                     const formattedAddedDate = new Date(addedDate);
                 
-                    // Fetch variant ID based on the model name
-                    const variant = await AssetTypeVariant.findOne({
-                        where: { variantName: { [Op.iLike]: variantName } },
+                    // Fetch subTypeName ID based on the model name
+                    const subType = await AstSType.findOne({
+                        where: { subTypeName: { [Op.iLike]: subTypeName } },
                         transaction
                     });
-                    if (!variant) {
-                        throw new Error(`Model ${variantName} for Asset Tag ${assetTag} does not exist!`);
+                    if (!subType) {
+                        throw new Error(`Model ${subTypeName} for Ast Tag ${assetTag} does not exist!`);
                     }
                 
                     // Fetch user ID if username is provided
                     let userId = null;
                     if (userName) {
-                        const user = await User.findOne({
+                        const user = await Usr.findOne({
                             where: { userName: { [Op.iLike]: userName } },
                             transaction
                         });
@@ -144,17 +144,17 @@ class FormOnboardController {
                         transaction
                     });
                     if (!vendor) {
-                        throw new Error(`Vendor ${vendorName} for Asset Tag ${assetTag} does not exist!`);
+                        throw new Error(`Vendor ${vendorName} for Ast Tag ${assetTag} does not exist!`);
                     }
                 
                     const assetId = generateSecureID();
                 
                     // Create new device
-                    await Asset.create({
+                    await Ast.create({
                         id: assetId,
                         serialNumber: serialNumber.toUpperCase(),
                         assetTag: assetTag.toUpperCase(),
-                        variantId: variant.id,
+                        subTypeId: subType.id,
                         bookmarked,
                         status: userId ? 'loaned' : 'AVAILABLE',
                         location,
@@ -220,7 +220,7 @@ class FormOnboardController {
     
         try {
             for (let sn of serialNumArr) {
-                let exists = await Asset.findOne({
+                let exists = await Ast.findOne({
                     where: {
                         serialNumber: {
                             [sequelize.Op.iLike]: sn
@@ -234,7 +234,7 @@ class FormOnboardController {
             }
     
             for (let at of assetTagArr) {
-                let exists = await Asset.findOne({
+                let exists = await Ast.findOne({
                     where: {
                         assetTag: {
                             [sequelize.Op.iLike]: at
@@ -243,50 +243,50 @@ class FormOnboardController {
                     raw: true
                 });
                 if (exists) {
-                    return res.status(400).json({ error: `Duplicate Asset Tag ${at.toUppercase()}` });
+                    return res.status(400).json({ error: `Duplicate Ast Tag ${at.toUppercase()}` });
                 }
             }
     
-            for (let assetType of assetTypeArr) {
-                let exists = await AssetType.findOne({
+            for (let typeName of assetTypeArr) {
+                let exists = await AstType.findOne({
                     where: {
-                        assetType: {
-                            [sequelize.Op.iLike]: assetType  // Using ILIKE
+                        typeName: {
+                            [sequelize.Op.iLike]: typeName  // Using ILIKE
                         }
                     },
                     raw: true
                 });
                 if (exists) {
-                    curAssetTypeArr.push(assetType);
+                    curAssetTypeArr.push(typeName);
                 }
             }
     
             // Check for existing variants and correct type associations
-            for (let [assetType, variantArr] of Object.entries(modelsObj)) {
-                for (let variant of variantArr) {
-                    let found = await AssetTypeVariant.findOne({
+            for (let [typeName, variantArr] of Object.entries(modelsObj)) {
+                for (let subTypeName of variantArr) {
+                    let found = await AstSType.findOne({
                         include: [{
-                            model: AssetType,
-                            attributes: ['assetType']
+                            model: AstType,
+                            attributes: ['typeName']
                         }],
                         where: {
-                            variantName: {
-                                [sequelize.Op.iLike]: variant
+                            subTypeName: {
+                                [sequelize.Op.iLike]: subTypeName
                             }
                         },
                         raw: true
                     });
-                    if (found && assetType.toLowerCase() !== found['AssetType.assetType'].toLowerCase()) {
-                        return res.status(400).json({ error: `${variant} is already registered as a ${found['AssetType.assetType']}` });
+                    if (found && typeName.toLowerCase() !== found['AstType.typeName'].toLowerCase()) {
+                        return res.status(400).json({ error: `${subTypeName} is already registered as a ${found['AstType.typeName']}` });
                     } else if (found) {
-                        curVariantArr.push(variant);
+                        curVariantArr.push(subTypeName);
                     }
                 }
             }
     
             // Check for existing departments
             for (let dept of deptArr) {
-                let exists = await Department.findOne({
+                let exists = await Dept.findOne({
                     where: {
                         deptName: {
                             [sequelize.Op.iLike]: dept  // Using ILIKE
@@ -302,9 +302,9 @@ class FormOnboardController {
             // Check for existing users and department consistency
             for (let [dept, userNames] of Object.entries(usersObj)) { // Allow users with same name?
                 for (let userName of userNames) {
-                    let foundUser = await User.findOne({
+                    let foundUser = await Usr.findOne({
                         include: [{
-                            model: Department,
+                            model: Dept,
                             attributes: ['deptName']
                         }],
                         where: {
@@ -314,8 +314,8 @@ class FormOnboardController {
                         },
                         raw: true
                     });
-                    if (foundUser && dept.toLowerCase() !== foundUser['Department.deptName'].toLowerCase()) {
-                        return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Department.deptName']}` });
+                    if (foundUser && dept.toLowerCase() !== foundUser['Dept.deptName'].toLowerCase()) {
+                        return res.status(400).json({ error: `${userName} is already a user in ${foundUser['Dept.deptName']}` });
                     } else if (foundUser) {
                         curUserArr.push(userName);
                     }

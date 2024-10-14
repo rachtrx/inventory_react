@@ -1,67 +1,71 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
+import { useReturns } from "./ReturnsProvider";
 
-export const ReturnStep2 = ({ prevStep, handleSubmit, userLoans, formData }) => {
+export const ReturnStep2 = () => {
 
-	const parentRef = useRef(null);
-  const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
+  const { userReturns, formData, handleSubmit, prevStep } = useReturns()
 
-	console.log(userLoans);
-
-	const updateSignatureFieldWidth = () => {
-    if (parentRef.current) {
-      const parentWidth = parentRef.current.offsetWidth; // Get total parent width
-      setSignatureFieldWidth(parentWidth - 95);
-    }
-  };
-
-	useLayoutEffect(() => {
-		updateSignatureFieldWidth();
-	
-		window.addEventListener('resize', updateSignatureFieldWidth);
-	
-		return () => {
-			window.removeEventListener('resize', updateSignatureFieldWidth);
-		};
-	}, []);
+	console.log(userReturns);
 
 	return (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
 			validateOnChange={true}
+			enableReinitialize={true}
 			// validateOnBlur={true}
-			// enableReinitialize={true}
 		>
 			<Form>
-				<ModalBody ref={parentRef}>
-						{Object.entries(userLoans).map(([userId, userLoan]) => (
-							<Flex 
-								key={userId} 
-								direction="column" 
-								border="1px solid"
-								borderColor="gray.300"
-								borderRadius="md"
-								p={4}
-								mb={4}
-								boxShadow="sm"
-							>
-								<ResponsiveText size='lg'>{userLoan.userName}</ResponsiveText>
-								{userLoan.assets.map((assetLoan) => (
-									<ResponsiveText key={assetLoan.assetTag}>
-										{assetLoan.assetTag} ({assetLoan.peripherals.map(peripheral => `${peripheral.peripheralName} x${peripheral.count}`).join(', ')}) {assetLoan.expectedReturnDate && `Due on ${assetLoan.expectedReturnDate}`}
-									</ResponsiveText>
-								))}
-								<FormikSignatureField
-									name={`signatures.${userId}`}
-									label='Signature'
-									signatureFieldWidth={signatureFieldWidth}
-								/>
-							</Flex>
-						))}
+				<ModalBody>
+				{Object.entries(userReturns).map(([assetTag, assetReturn]) => (
+					<Flex 
+						key={assetTag}
+						direction="column"
+						border="1px solid"
+						borderColor="gray.300"
+						borderRadius="md"
+						p={4}
+						mb={4}
+						boxShadow="sm"
+					>
+						{/* Display Asset Information */}
+						<ResponsiveText size="lg" fontWeight="bold">
+						Asset Tag: {assetTag}
+						</ResponsiveText>
+
+						{/* Display Users Associated with This Asset */}
+						{assetReturn.users.userNames.length > 0 && (
+						<Box mt={2}>
+							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
+							<UnorderedList>
+							{assetReturn.users.userNames.map((userName, index) => (
+								<ListItem key={assetReturn.users.userIds[index]}>
+								{userName}
+								</ListItem>
+							))}
+							</UnorderedList>
+						</Box>
+						)}
+
+						{/* Display Accessories Associated with This Asset */}
+						{assetReturn.accessories.length > 0 && (
+						<Box mt={2}>
+							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
+							<UnorderedList>
+							{assetReturn.accessories.map(accessory => (
+								<ListItem key={accessory.accessoryTypeId}>
+								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryIds.length} returned
+								</ListItem>
+							))}
+							</UnorderedList>
+						</Box>
+						)}
+					</Flex>
+					))}
 				</ModalBody>
 			
 				<ModalFooter>

@@ -1,8 +1,8 @@
 const logger = require('../../logging.js');
 const Sequelize = require('sequelize');
-const AssetLoan = require('./AssetLoan.js');
-const UserLoan = require('./UserLoan.js');
-const PeripheralLoan = require('./PeripheralLoan.js');
+const AstLoan = require('./AstLoan.js');
+const UsrLoan = require('./UsrLoan.js');
+const AccLoan = require('./AccLoan.js');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
@@ -11,8 +11,8 @@ module.exports = (sequelize) => {
 		createLoanObject = function() {
 
             return {
-				...(this.AssetLoan && {asset: this.AssetLoan.createAssetLoanObject()}),
-				...(this.UserLoans && {users: this.UserLoans.map(userLoan => userLoan.createUserLoanObject())}),
+				...(this.AstLoan && {asset: this.AstLoan.createAssetLoanObject()}),
+				...(this.UsrLoans && {users: this.UsrLoans.map(userLoan => userLoan.createUserLoanObject())}),
                 ...(this.ReserveEvent && { reserveDate: this.ReserveEvent.eventDate }),
 				...(this.reserveEventId && { reserveEventId: this.reserveEventId }),
 				...(this.CancelEvent && { cancelDate: this.CancelEvent.eventDate }),
@@ -21,46 +21,46 @@ module.exports = (sequelize) => {
 				...(this.loanEventId && { loanEventId: this.loanEventId }),
 				...(this.expectedReturnDate && { expectedReturnDate: this.expectedReturnDate }),
 				...(this.expectedLoanDate && { expectedLoanDate: this.expectedLoanDate }),
-				// PERIPHERALS MUST BE AGGREGATED, CANNOT PASS TO OBJECT CLASS
-				...(this.PeripheralLoans && this.PeripheralLoans.length > 0 && {
-					peripherals: this.aggPeripherals()
+				// ACCESSORIES MUST BE AGGREGATED, CANNOT PASS TO OBJECT CLASS
+				...(this.AccLoans && this.AccLoans.length > 0 && {
+					accessories: this.aggAccessories()
 				})
             }
         }
 
-		aggPeripherals = function() {
-			const peripheralMap = new Map();
+		aggAccessories = function() {
+			const accessoryMap = new Map();
 		
-			this.PeripheralLoans.forEach((peripheralLoan) => {
-				const peripheral = peripheralLoan.Peripheral;
-				const peripheralTypeId = peripheral.PeripheralType.id;
-				logger.info(peripheral.PeripheralType.peripheralName)
+			this.AccLoans.forEach((accLoan) => {
+				const accessory = accLoan.Acc;
+				const accessoryTypeId = accessory.AccType.id;
+				logger.info(accessory.AccType.accessoryName)
 		
-				if (!peripheralMap.has(peripheralTypeId)) {
-					// Create a new entry if the peripheral type id is not in the map
-					peripheralMap.set(peripheralTypeId, {
-						peripheralName: peripheral.PeripheralType.peripheralName,
-						peripherals: [{
-							peripheralId: peripheral.id,
-							...(peripheralLoan.returnEventId && { returnEventId: peripheralLoan.eventDate }),
-							...(peripheralLoan.ReturnEvent && { returnDate: peripheralLoan.ReturnEvent.eventDate }),
+				if (!accessoryMap.has(accessoryTypeId)) {
+					// Create a new entry if the accessory type id is not in the map
+					accessoryMap.set(accessoryTypeId, {
+						accessoryName: accessory.AccType.accessoryName,
+						accessoryDetails: [{
+							accessoryId: accessory.id,
+							...(accLoan.returnEventId && { returnEventId: accLoan.eventDate }),
+							...(accLoan.ReturnEvent && { returnDate: accLoan.ReturnEvent.eventDate }),
 						}],
 					});
 				} else {
-					// Append to the existing peripherals array if peripheral type already exists
-					peripheralMap.get(peripheralTypeId).peripherals.push({
-						peripheralId: peripheral.id,
-						...(peripheralLoan.returnEventId && { returnEventId: peripheralLoan.eventDate }),
-						...(peripheralLoan.ReturnEvent && { returnDate: peripheralLoan.ReturnEvent.eventDate }),
+					// Append to the existing accessorys array if accessory type already exists
+					accessoryMap.get(accessoryTypeId).accessories.push({
+						accessoryId: accessory.id,
+						...(accLoan.returnEventId && { returnEventId: accLoan.eventDate }),
+						...(accLoan.ReturnEvent && { returnDate: accLoan.ReturnEvent.eventDate }),
 					});
 				}
 			});
 
-			logger.info(peripheralMap)
+			logger.info(accessoryMap)
 		
-			// Convert Map to an array, adding peripheralTypeId back into the structure dynamically
-			return Array.from(peripheralMap, ([peripheralTypeId, details]) => ({
-				peripheralTypeId, // Add the id back when converting to array
+			// Convert Map to an array, adding accessoryTypeId back into the structure dynamically
+			return Array.from(accessoryMap, ([accessoryTypeId, details]) => ({
+				accessoryTypeId, // Add the id back when converting to array
 				...details,
 			}));
 		}

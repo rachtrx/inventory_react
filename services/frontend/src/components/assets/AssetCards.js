@@ -28,9 +28,9 @@ function AssetCards({items}) {
     return (
         <Cards>
             {items.map((asset) => (
-            <Box key={asset.id}>
+            <Box key={asset.assetId}>
                 <Card 
-                    h="100%" 
+                    h="100%"
                     w="100%" 
                     bg="transparent" 
                     _hover={{ bg:  'gray.100' }}
@@ -41,23 +41,23 @@ function AssetCards({items}) {
                             <VStack align="start" flex='1'>
                                 <ItemLink item={asset} size={'lg'} fontWeight="bold"/>
                                 <Box>
-                                    <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.assetType}</ResponsiveText>
-                                    <ResponsiveText size={'sm'}>{asset.variant}</ResponsiveText>
+                                    <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.typeName}</ResponsiveText>
+                                    <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
                                 <Box display="inline-flex" flexWrap="wrap" gap={2}>
                                     {asset.ongoingLoan?.users.map((user) => (
-                                        <ItemLink key={user.id} item={user} />
+                                        <ItemLink key={user.userId} item={user} />
                                     ))}
                                 </Box>
                             </VStack>
                             
                             <VStack alignSelf='flex-start'>
                                 <StarButton
-                                    id={asset.id}
+                                    id={asset.assetId}
                                     isBookmarked={asset.bookmarked}
                                 />
                                 <SharedButton
-                                    id={asset.id}
+                                    id={asset.assetId}
                                     isShared={asset.shared}
                                     userCount={asset.users?.length || 0}
                                 />

@@ -5,13 +5,13 @@ import SelectFormControl from "../utils/SelectFormControl";
 import DateInputControl from "../utils/DateInputControl";
 import { formTypes, useFormModal } from "../../../context/ModalProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createNewPeripheral, createNewReturn } from "./Return";
+import { createNewAccessory, createNewReturn } from "./Return";
 import { useUI } from "../../../context/UIProvider";
 import { FieldArray, Form, Formik } from "formik";
-import { ReturnProvider } from "../../../context/ReturnProvider";
+import { ReturnProvider } from "./ReturnProvider";
 import assetService from "../../../services/AssetService";
 import { v4 as uuidv4 } from 'uuid';
-import { useReturns } from "../../../context/ReturnsProvider";
+import { useReturns } from "./ReturnsProvider";
 
 const ReturnStep1 = () => {
 
@@ -20,10 +20,38 @@ const ReturnStep1 = () => {
     const { setFormType, reinitializeForm, initialValues } = useFormModal();
     const { handleError } = useUI()
     const { nextStep, formData, setValuesExcel } = useReturns();
-
     const formRef = useRef(null);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
+
+    const validate = (values) => {
+      const errors = {};
+      const assetIds = new Set();
+  
+      // Validate 'returns' for duplicate assetIds and assetTag !== assetId
+      values.returns.forEach((ret, returnIndex) => {
+        // Check for duplicate assetIds
+        if (ret.assetId && assetIds.has(ret.assetId)) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            assetId: `Duplicate Asset Tag ${ret.assetTag} found`
+          };
+        } else {
+          assetIds.add(ret.assetId);
+        }
+  
+        // Check if assetTag equals assetId
+        if (ret.assetTag === ret.assetId) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            ...errors.returns[returnIndex],
+            assetId: `Asset Tag ${ret.assetTag} was not found`
+          };
+        }
+      });
+  
+      return errors;
+    }
   
     return (
       <Box>
@@ -34,6 +62,7 @@ const ReturnStep1 = () => {
           validateOnChange={true}
           // validateOnBlur={true}
           innerRef={formRef}
+          validate={validate}
           // enableReinitialize={true}
         >
           {({ values, errors }) => {
@@ -51,7 +80,7 @@ const ReturnStep1 = () => {
                         ret={ret}
                         returnIndex={returnIndex}
                         returnHelpers={returnHelpers}
-                        assetOption={ret.assetId ? assetOptions[ret.assetId] : []}
+                        isLast={returnIndex === array.length - 1}
                         // warnings={warnings?.loans?.[loanIndex]}
                         // isLast={loanIndex === array.length - 1}
                       >
@@ -62,7 +91,7 @@ const ReturnStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.loans}>Next</Button>
+                  <Button colorScheme="blue" type="submit" isDisabled={errors.returns}>Next</Button>
                 </ModalFooter>
               </Form>
             );
