@@ -11,10 +11,10 @@ module.exports = (sequelize) => {
 
 			return {
 				id: this.id,
-				peripheralName: this.name,
-				availableCount: this.count,
+				peripheralName: this.peripheralName,
+				available: this.available,
 				...this.Peripherals?.length > 0 && {
-					totalCount: this.availableCount + this.Peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
+					totalCount: this.available + this.Peripherals.reduce((count, peripheral) => count += peripheral.count, 0),
 					assets: this.Peripherals.reduce((assetAcc, peripheral) => {
 
 						// Each peripheral on loan can only be tagged to 1 asset
@@ -49,11 +49,11 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			primaryKey: true,
 		},
-		name: {
+		peripheralName: {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
-        count: {
+        available: {
             type: DataTypes.INTEGER,
 			allowNull: false
         }

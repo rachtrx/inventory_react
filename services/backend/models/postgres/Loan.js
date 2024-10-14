@@ -34,12 +34,12 @@ module.exports = (sequelize) => {
 			this.PeripheralLoans.forEach((peripheralLoan) => {
 				const peripheral = peripheralLoan.Peripheral;
 				const peripheralTypeId = peripheral.PeripheralType.id;
-				logger.info(peripheral.PeripheralType.name)
+				logger.info(peripheral.PeripheralType.peripheralName)
 		
 				if (!peripheralMap.has(peripheralTypeId)) {
 					// Create a new entry if the peripheral type id is not in the map
 					peripheralMap.set(peripheralTypeId, {
-						peripheralName: peripheral.PeripheralType.name,
+						peripheralName: peripheral.PeripheralType.peripheralName,
 						peripherals: [{
 							peripheralId: peripheral.id,
 							...(peripheralLoan.returnEventId && { returnEventId: peripheralLoan.eventDate }),

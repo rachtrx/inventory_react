@@ -106,8 +106,8 @@ class PeripheralController {
         // Map to the desired structure
         const peripherals = uniquePeripherals.map((match) => ({
             id: match.PeripheralType.id,
-            peripheralName: match.PeripheralType.name,
-            availableCount: match.PeripheralType.count
+            peripheralName: match.PeripheralType.peripheralName,
+            available: match.PeripheralType.available
         }));
 
         console.log(peripherals.slice(1, 10));
@@ -245,10 +245,10 @@ class PeripheralController {
         const sql = `
             SELECT 
                 peripheral_types.id, 
-                peripheral_types.name AS "name", 
-                peripheral_types.count AS "count" 
+                peripheral_types.peripheral_name AS "peripheralName", 
+                peripheral_types.available AS "available" 
             FROM peripheral_types
-            WHERE peripheral_types.name ${isBulkSearch ? 'IN (:searchTerm)' : 'ILIKE :searchTerm'}
+            WHERE peripheral_types.peripheral_name ${isBulkSearch ? 'IN (:searchTerm)' : 'ILIKE :searchTerm'}
         `;
 
         try {
@@ -259,12 +259,12 @@ class PeripheralController {
     
             const response = peripherals.map((peripheral) => {
     
-                const { id, name, count } = peripheral;
+                const { id, name, available } = peripheral;
     
                 return {
                     value: id,
                     label: name,
-                    availableCount: count,
+                    available: available,
                 };
             })
     
@@ -287,7 +287,7 @@ class PeripheralController {
 
     async addPeripheral (peripheralTypeId, count) {
         const type = await PeripheralType.findByPk(peripheralTypeId);
-        type.count += count;
+        type.available += count;
         await type.save();
         return type;
     };
@@ -296,7 +296,7 @@ class PeripheralController {
     async loanPeripheral (loanId, peripheralTypeId) {
         let type = await this.getType(peripheralTypeId);
 
-        if (type && type.count <= 0) {
+        if (type && type.available <= 0) {
             throw new Error('Peripheral type not available');
         }
 
@@ -309,7 +309,7 @@ class PeripheralController {
             peripheralTypeId: type.id
         });
 
-        type.count -= 1;
+        type.available -= 1;
         await type.save();
 
         return newPeripheral;
@@ -319,12 +319,12 @@ class PeripheralController {
     async reducePeripheralCount(peripheralTypeId, count) {
         const type = await PeripheralType.findByPk(peripheralTypeId);
 
-        if (!type || type.count < count) {
+        if (!type || type.available < count) {
             throw new Error('Not enough peripherals available to reduce');
         }
 
         // Reduce the available count
-        type.count -= count;
+        type.available -= count;
         await type.save();
 
         return { message: `${count} peripherals reduced successfully` };
@@ -338,7 +338,7 @@ class PeripheralController {
             for (const peripheral of peripherals) {
                 if (peripheral.id !== peripheral.peripheralName) {
                     const type = await this.getType(peripheral.id, { transaction });
-                    type.count += peripheral.count;
+                    type.available += peripheral.count;
                     await type.save({ transaction });
                 } else {
                     // Ensure you await the call to createPeripheralType and pass the transaction

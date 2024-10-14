@@ -10,7 +10,7 @@ module.exports = (sequelize) => {
                 ...(this.ReturnEvent && { returnDate: this.ReturnEvent.eventDate }),
                 ...(this.Peripheral && {
                     peripheralId: this.Peripheral.id,
-                    peripheralName: this.Peripheral.PeripheralType.name,
+                    peripheralName: this.Peripheral.PeripheralType.peripheralName,
                 })
             }
         }
@@ -56,10 +56,10 @@ module.exports = (sequelize) => {
 	// 	  });
 	  
 	// 	  if (peripheralType) {
-	// 		peripheralType.availableCount += PeripheralLoan.count;
+	// 		peripheralType.available += PeripheralLoan.count;
 	// 		await peripheralType.save();
 	  
-	// 		console.log(`PeripheralType with ID: ${peripheralType.id} updated, availableCount increased by ${PeripheralLoan.count}`);
+	// 		console.log(`PeripheralType with ID: ${peripheralType.id} updated, available increased by ${PeripheralLoan.count}`);
 	// 	  }
 	// 	}
 	//   });

@@ -1,0 +1,329 @@
+[33mcommit 3273b44a1e36b60aa99280e930948810dc42125c[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Oct 14 01:51:28 2024 +0800
+
+    Return Form constructed
+
+[33mcommit b54418572ff0500fd5e3f8de9f7f9ce4b114661e[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Tue Oct 8 02:54:24 2024 +0800
+
+    Bulk search implementation
+
+[33mcommit ff4115ced951947edfed3c6d081b8559d7d83882[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Tue Oct 8 00:21:01 2024 +0800
+
+    Reset code
+
+[33mcommit e4a23e4b1e3519e6803019f1128f3d2a35cd578e[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Oct 7 23:08:22 2024 +0800
+
+    Updated database schema
+
+[33mcommit 00b2bd1a6695e27f2b86570639a94a6a2b09cc30[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Oct 2 10:03:41 2024 +0800
+
+    Return Draft
+
+[33mcommit 07f1c9a9f1a189c454862cd2d123894e03ca9b06[m
+Merge: 48c4499 94cccff
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Oct 2 10:02:26 2024 +0800
+
+    Merge branch 'main' of https://github.com/rachtrx/inventory_react
+
+[33mcommit 48c449952d8d6f65fa343b1a5f40621192fa17df[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Oct 2 09:57:14 2024 +0800
+
+    Return draft
+
+[33mcommit 94cccffa770587e59d93342f2a46fd9e02eb12e6[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Oct 2 01:25:33 2024 +0800
+
+    Starting on return form
+
+[33mcommit f05bae1dae5bdbcb198b8cf43fa8c6e5256116d4[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Fri Sep 27 00:42:17 2024 +0800
+
+    Starting on Return Form
+
+[33mcommit 286bcfe7f2ae39e36c4074bb3e909c2f8bcd589c[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Thu Sep 26 19:52:45 2024 +0800
+
+    Last update before changing peripheral schema
+
+[33mcommit a87e8b07727b19a221ac86ff20aff7e9a76347a8[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Sep 16 03:06:40 2024 +0800
+
+    Loan Backend Logic
+
+[33mcommit 50a9360c178c43dd791f77d9c8b4365bc6507bef[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Sep 15 14:52:21 2024 +0800
+
+    Updated Loan to 2 parts
+
+[33mcommit 040d2d1fce72d6d4228fa6cc1439a8416bef2b50[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sat Sep 14 17:15:40 2024 +0800
+
+    Last update before separating signatures
+
+[33mcommit 28b46f889a0f1b6d81075074c65c5b36f1d3e4f9[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Sep 9 09:00:25 2024 +0800
+
+    Updated Database Schema to consolidate Reservation and Cancellation
+
+[33mcommit e58f6c654821bac7dadf22e2ba2be7fb68d4ba00[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Sep 2 04:24:09 2024 +0800
+
+    Updated gitignore
+
+[33mcommit 7070974b566bf81a7c08fb5a92b27889c8429ff4[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Sep 2 03:56:47 2024 +0800
+
+    Updated Database Schema
+
+[33mcommit ec7ff6eae7ee7e97bedefa7059a1e28a39c94700[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Aug 26 01:21:36 2024 +0800
+
+    Finalised Loan form
+
+[33mcommit 5adaa86ffeafad0f7282676b06d46310d4955f62[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 25 19:15:44 2024 +0800
+
+    Fixing Validation
+
+[33mcommit fc55b0caa7fe7a28a0cb0b98f49722fced5cc09c[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 25 18:02:48 2024 +0800
+
+    Updated Select Input Logix
+
+[33mcommit 7d770a749c18c6ceda5d90a80012d3b80f7b2174[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 25 14:40:17 2024 +0800
+
+    Fixed auto filling of loan forms
+
+[33mcommit ddcce1263d8631c3ac7b9e6b2c41a53c5133033b[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 25 12:04:45 2024 +0800
+
+    Using setFieldValue to update the form
+
+[33mcommit 9156606806478fdd264e95cbd715ee27a94ac062[m
+Merge: b2e35d2 12d92b2
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 01:23:56 2024 +0800
+
+    Updating gitignore
+
+[33mcommit b2e35d2170a2d8078f1bc16022468c3c6a8e7fd9[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 01:21:42 2024 +0800
+
+    Updating gitignore
+
+[33mcommit 12d92b2a6fda338a20071455004ad8a941411063[m
+Merge: 5a2ec7a 1ac3477
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 01:13:04 2024 +0800
+
+    Resolving merge conflicts final
+
+[33mcommit 4af0649f7523659c60443045506e6fcc348f1cb7[m
+Merge: b03f4f4 1ac3477
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 01:13:04 2024 +0800
+
+    Resolving merge conflicts final
+
+[33mcommit 5a2ec7ae242042052e351ef9c9a6239a2b080ab5[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:41:04 2024 +0800
+
+    Resolve Merge Conflict for backend
+
+[33mcommit b03f4f41de7d3e8ab145ba210bf31fdd3b65042f[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:41:04 2024 +0800
+
+    Resolve Merge Conflict for backend
+
+[33mcommit d3bf709865e7dcd6eb98ef91a31e571abafc6c6d[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:23:48 2024 +0800
+
+    Resolving merge conflicts
+
+[33mcommit 36e63617e93063635f2bbf2c2b7fd87f2105f207[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:23:48 2024 +0800
+
+    Resolving merge conflicts
+
+[33mcommit de112829fc481bd23bf6ad93bf81bfe4aac03860[m
+Merge: f316d09 1ac3477
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:20:51 2024 +0800
+
+    Resolving merge conflicts
+
+[33mcommit 0409822805034c2f123ce30f4d143f75cc608aed[m
+Merge: ae90f51 1ac3477
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:20:51 2024 +0800
+
+    Resolving merge conflicts
+
+[33mcommit f316d0925381c8f8558463387c6ce02a362fffaa[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:04:32 2024 +0800
+
+    Updated part of searches
+
+[33mcommit ae90f515598b541bec09758767e580485d4ffd2b[m[33m ([m[1;31morigin/backup-branch[m[33m, [m[1;32mbackup-branch[m[33m)[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 18 00:04:32 2024 +0800
+
+    Updated part of searches
+
+[33mcommit ac7022ae6645e689f2852b2e844d90310fc74426[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sat Aug 17 23:55:08 2024 +0800
+
+    Remove .env
+
+[33mcommit 2739f6a2ef4b70c3cda4005d0c1e259c0a29ed78[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sat Aug 17 23:49:40 2024 +0800
+
+    Updated part of searches
+
+[33mcommit ca721bb42b0247f072d42171376e77272cb87402[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sat Aug 17 23:49:40 2024 +0800
+
+    Updated part of searches
+
+[33mcommit c3916a68836c20e3848874b860672dc34f9daa74[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 11 04:36:33 2024 +0800
+
+    Updated Leave form, still has errors
+
+[33mcommit 9ff1b81694bf2cb769987a682ac769b810a41216[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Sun Aug 11 04:36:33 2024 +0800
+
+    Updated Leave form, still has errors
+
+[33mcommit a948044c4ffa271e7d708fe82d82ced8f4b67cc3[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 24 23:17:43 2024 +0800
+
+    Updated Loan Form, prep for Azure authentication
+
+[33mcommit 9ae4025c88c38a1b19247081fa6eb73cbc6c1143[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 24 23:17:43 2024 +0800
+
+    Updated Loan Form, prep for Azure authentication
+
+[33mcommit e9317bb9bea19b80d2a372c8ffc7a5fafeb983c6[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 24 03:16:47 2024 +0800
+
+    Creating loan form
+
+[33mcommit 497865d86f8d922d9f33f287292421637cc4b809[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 24 03:16:47 2024 +0800
+
+    Creating loan form
+
+[33mcommit 1ac347703148b4b83916e8d8a916ec33123551be[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Jul 22 16:11:39 2024 +0800
+
+    Updated Assets Page
+
+[33mcommit d705caaee26cf3b353343c4734e39b660bf5542e[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Jul 22 16:11:39 2024 +0800
+
+    Updated Assets Page
+
+[33mcommit c4582968db9fee5ab7d773a210addc7f82113415[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Fri Jul 19 14:11:19 2024 +0800
+
+    Updated for searching assets
+
+[33mcommit adebdcaf15668210d3c7f8f1f0687dd0a1475a68[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Fri Jul 19 14:11:19 2024 +0800
+
+    Updated for searching assets
+
+[33mcommit d0acba92f677859cef8aae063567c44df90c4254[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 17 22:36:47 2024 +0800
+
+    Updatiing Drawer for User and Asset
+
+[33mcommit 8dbe2f5468cc661015bc2b4b4231d76e6e1f01d1[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Wed Jul 17 22:36:47 2024 +0800
+
+    Updatiing Drawer for User and Asset
+
+[33mcommit c996264617e940c0dc6dcb7201b491264a7e574f[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Tue Jul 16 11:58:05 2024 +0800
+
+    Added Drawer to display items
+
+[33mcommit b32a564d0b694c299277223204a9716947513b41[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Tue Jul 16 11:58:05 2024 +0800
+
+    Added Drawer to display items
+
+[33mcommit 0d91cb3f44603869924b691743c4799c2e968b11[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Jul 15 18:49:32 2024 +0800
+
+    updated assets and users page
+
+[33mcommit c489ce658370fb0fca206463d746cf634719c9bf[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon Jul 15 18:49:32 2024 +0800
+
+    updated assets and users page
+
+[33mcommit 37aa1b775fd2c385c3fd024d3ebb9b515242236f[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon May 6 02:42:34 2024 +0800
+
+    first commit
+
+[33mcommit 6f7f805f85603f2a6ee5225c68421d8adf918224[m
+Author: rachtrx <rachmielteorenxiang@gmail.com>
+Date:   Mon May 6 02:42:34 2024 +0800
+
+    first commit

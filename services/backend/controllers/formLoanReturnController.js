@@ -111,7 +111,7 @@ class FormLoanReturnController {
                         // // Add count now
                         // peripheralCache[peripheral.id] = {
                         //     ...peripheralCache[peripheral.id], 
-                        //     count: (peripheralCache[peripheral.id].count || 0) + peripheral.count
+                        //     count: (peripheralCache[peripheral.id].available || 0) + peripheral.available
                         // };
                     }
                 }
@@ -121,9 +121,9 @@ class FormLoanReturnController {
             // // TOP UP MISSING PERIPHERALS
             // for (const peripheralData of Object.values(peripheralCache)) {
             //     const {peripheralType, count} = peripheralData;
-            //     if (peripheralType.availableCount < count) {
+            //     if (peripheralType.available < count) {
             //         await peripheralType.update({
-            //             availableCount: peripheralType.availableCount + count
+            //             available: peripheralType.available + count
             //         }, { transaction });
             //     }
             // }
@@ -180,7 +180,7 @@ class FormLoanReturnController {
                 // Peripheral Loans for each count of each type for each user
                 if (asset.peripherals) {
                     for (const peripheral of asset.peripherals) {
-                        for (let idx = 0; idx < peripheral.count; idx++) {
+                        for (let idx = 0; idx < peripheral.available; idx++) {
                             const newPeripheralOnLoan = await Peripheral.create({
                                 id: generateSecureID(),
                                 peripheralTypeId: peripheral.id
@@ -193,7 +193,7 @@ class FormLoanReturnController {
                             }, { transaction });
                         }
                         await peripheralCache[peripheral.id].update({
-                            availableCount: peripheralCache[peripheral.id].availableCount - peripheral.count
+                            available: peripheralCache[peripheral.id].available - peripheral.count
                         }, { transaction });
                     }
                 }
