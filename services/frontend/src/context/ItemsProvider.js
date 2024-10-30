@@ -11,7 +11,7 @@ export const ItemsProvider = ({ children, service }) => {
   const [items, setItems] = useState([]);
   const { loading, setLoading, handleError } = useUI();
 
-  const [filters, setFilters] = useState(service.defaultFilters)
+  const [filters, setFilters] = useState(service.defaultFilters);
 
   console.log("rendering items provider");
 

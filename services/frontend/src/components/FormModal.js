@@ -22,8 +22,6 @@ import Toggle from './forms/utils/Toggle';
 import { ResponsiveText } from './utils/ResponsiveText';
 import AddPeripheral from './forms/AddPeripheral';
 import Reserve from './forms/Reserve';
-import Loans from './forms/loan/Loans';
-import Returns from './forms/return/Returns';
 import { LoansProvider } from './forms/loan/LoansProvider';
 import { ReturnsProvider } from './forms/return/ReturnsProvider';
 

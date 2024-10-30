@@ -6,7 +6,7 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import assetService from "../../../services/AssetService";
 import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createNewLoan, LoanType } from "./Loan";
+import { createNewLoan, Loan, LoanType } from "./Loan";
 import { LoanProvider } from "./LoanProvider";
 import { createNewAccessory } from "./LoanAsset";
 import { useLoans } from "./LoansProvider";
@@ -183,7 +183,7 @@ export const LoanStep1 = () => {
                   {loanHelpers => (
                     values.loans.map((loan, loanIndex, array) => (
 											// Change to single asset only
-                      <LoanProvider
+                      <Loan
                         key={loan.key}
                         loan={loan}
                         loanIndex={loanIndex}
@@ -191,7 +191,7 @@ export const LoanStep1 = () => {
                         warnings={warnings?.loans?.[loanIndex]}
                         isLast={loanIndex === array.length - 1}
                       >
-                      </LoanProvider>
+                      </Loan>
                     ))
                   )}
                   </FieldArray>

@@ -1,4 +1,4 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Acc } = require('../models/postgres');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType } = require('../models/postgres');
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
@@ -115,16 +115,11 @@ class UserController {
                                 },
                                 {
                                     model: AccLoan,
-                                    attributes: ['id', 'returnEventId'],
                                     required: false,
+                                    attributes: ['id', 'returnEventId'],
                                     include: {
-                                        model: Acc,
-                                        attributes: ['id'],
-                                        include: {
-                                            model: AccType,
-                                            attributes: ['id', 'accessoryName'],
-                                        },
-                                        required: false,
+                                        model: AccType,
+                                        attributes: ['id', 'accessoryName'],
                                     },
                                     where: {
                                         returnEventId: {

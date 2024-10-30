@@ -3,7 +3,6 @@ import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
-import { useLoan } from "../loan/LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
 import { MultiSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useFormModal } from "../../../context/ModalProvider"
@@ -18,8 +17,8 @@ export const createNewAccessory = (accessoryType) => ({
 	key: uuidv4(),
 	accessoryTypeId: accessoryType.accessoryTypeId || '',
 	accessoryName: accessoryType.accessoryName || '',
-	accessoryIds: accessoryType.accessoryDetails?.map(accessory => accessory.accessoryId) || [],
-	count: accessoryType.accessoryDetails.length,
+	accessoryLoanIds: accessoryType.loanDetails?.map(loan => loan.accessoryLoanId) || [],
+	count: accessoryType.loanDetails.length,
   });
 
 const createNewUsers = (users) => ({
@@ -59,8 +58,8 @@ export const Return = () => {
 		setFieldValue(
 			`returns.${returnIndex}.users`,
 			{
-			  userNames: users.map(user => user.userName),
-			  userIds: users.map(user => user.userId || user.userId),
+				userNames: users.map(user => user.userName),
+				userIds: users.map(user => user.userId || user.userId),
 			}
 		)
 	}

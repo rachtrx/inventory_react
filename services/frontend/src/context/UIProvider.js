@@ -23,35 +23,40 @@ export const UIProvider = ({ children }) => {
   }, [toast]);
 
   const handleError = useCallback((error) => {
-    let errorMessage = 'An unexpected error occurred. Please try again later.';
+    console.log(error);  
+    let errorMessage = error.response?.data?.error;
 
-    if (error.response) {
-      const status = error.response.status;
-      switch (status) {
-        case 400:
-          errorMessage = 'There was a problem with your request. Please check your data and try again.';
-          break;
-        case 401:
-          errorMessage = 'You are not authorized. Please login and try again.';
-          break;
-        case 403:
-          errorMessage = 'Access denied. You do not have permission to perform this action.';
-          break;
-        case 404:
-          errorMessage = 'The requested resource was not found.';
-          break;
-        case 500:
-          errorMessage = 'An issue with the server has occurred. Please try again later.';
-          break;
-        default:
-          errorMessage = `Received unexpected response from the server: ${status}`;
+    if (!errorMessage) { 
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 400:
+            errorMessage = 'There was a problem with your request. Please check your data and try again.';
+            break;
+          case 401:
+            errorMessage = 'You are not authorized. Please login and try again.';
+            break;
+          case 403:
+            errorMessage = 'Access denied. You do not have permission to perform this action.';
+            break;
+          case 404:
+            errorMessage = 'The requested resource was not found.';
+            break;
+          case 500:
+            errorMessage = 'An issue with the server has occurred. Please try again later.';
+            break;
+          default:
+            errorMessage = `Received unexpected response from the server: ${status}`;
+        }
+      } else if (error.request) {
+        errorMessage = 'No response was received from the server. Please check your network connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else {
+        errorMessage = 'An unexpected error occurred. Please try again later.'
       }
-    } else if (error.request) {
-      errorMessage = 'No response was received from the server. Please check your network connection.';
-    } else if (error.message) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = error;
     }
 
     setError(errorMessage);

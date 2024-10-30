@@ -27,6 +27,8 @@ export default function InputFormControl({
             <ResponsiveText>{label}</ResponsiveText>
           </FormLabel>
         )}
+
+        {/* logic to add which chevron icon given remarks */}
         {name.includes('remarks') && (
           <IconButton
             aria-label={isCollapsed ? 'Expand remarks' : 'Collapse remarks'}
@@ -37,6 +39,8 @@ export default function InputFormControl({
           />
         )}
       </Box>
+
+      {/* Logic to render type of input (Text Area for Remarks) */}
       {name.includes('remarks') ? (
         <Collapse in={!isCollapsed}>
           <Field

@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLoans } from "./LoansProvider"
 import { createNewAccessory } from "./Loan"
 
-export const LoanAsset = function({ loanIndex, asset }) {
+export const LoanAsset = function({ loanIndex, asset, mode, warnings }) {
 
 	// console.log('loan asset');
 
@@ -23,7 +23,6 @@ export const LoanAsset = function({ loanIndex, asset }) {
 	const [ suggestedOptions, setSuggestedOptions ] = useState()
 	const { values, setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
-	const { mode, setMode, warnings } = useLoan();
 	const { assetOptions, accessoryOptions } = useLoans()
 	console.log(warnings);
 

@@ -147,10 +147,8 @@ export const ReturnsProvider = ({ children }) => {
       newUserReturns[ret.assetTag] = {
         assetId: ret.assetId,
         accessories: ret.accessories,
-        users: {
-          userIds: [...ret.users.userIds], // shallow copy
-          userNames: [...ret.users.userNames], // shallow copy
-        }
+        userIds: ret.users.userIds,
+        userNames: ret.users.userNames,
       };
     });
     setUserReturns(newUserReturns);

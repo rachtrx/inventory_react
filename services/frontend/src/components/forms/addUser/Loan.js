@@ -1,7 +1,7 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
@@ -50,63 +50,125 @@ export const createNewLoan = (asset=null, users=[], accessories=[], loanDate=nul
 	'expectedReturnDate': expectedReturnDate,
 })
 
-export const Loan = () => {
+const LoanMode = ({ mode }) => {
+	return (
+	  <Flex direction="row" alignItems="center" position='absolute' right='1'>
+		<Flex
+		  p={1}
+		  gap={1}
+		  borderRadius="md"
+		  bg="teal.500"
+		  color="white"
+		  display="inline-flex"
+		  alignItems="center"
+		  justifyContent="center"
+		>
+		  <Box as="span" fontSize="xs">
+			{mode === LoanType.SHARED ? <FaUsers size="10px" /> : <FaUser size="10px" />}
+		  </Box>
+		  <ResponsiveText fontSize="xs">{mode} MODE</ResponsiveText>
+		</Flex>
+	  </Flex>
+	);
+};
 
-	const { mode, loan, loanIndex } = useLoan();
+export const Loan = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
+	
 	const { userOptions } = useLoans();
 	const { handleUserSearch } = useFormModal();
-	const { setFieldValue } = useFormikContext();
+	const [ mode, setMode ] = useState(null);
+	const { values, setFieldValue } = useFormikContext();
+
+	console.log(values);
 
 	const updateUserFields = (loanIndex, userIndex, selected) => {
 		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userName`, selected?.userName || '')
 	}
 
+	useEffect(() => {
+		setFieldValue(`loans.${loanIndex}.mode`, mode);
+	  }, [mode, setFieldValue, loanIndex])
+	
+	useEffect(() => {
+		const noAsset = loan.asset.assetId === '';
+		if (noAsset && loan.users.length === 1) setMode('');
+		else if (!loan.asset.shared) setMode(LoanType.SINGLE);
+		else setMode(LoanType.SHARED);
+	}, [loan, setMode])
+
 	return (
-		<Box position='relative'>
-			<Flex direction="column" key={loan.key}>
-				<LoanAsset
-					loanIndex={loanIndex}
-					asset={loan.asset}
-				/>
-				<FieldArray name={`loans.${loanIndex}.users`}>
-					{ userHelpers => loan.users.map((user, userIndex, array) => (
-						<VStack key={user.key}>
-							<SearchSingleSelectFormControl
-								name={`loans.${loanIndex}.users.${userIndex}.userId`}
-								searchFn={handleUserSearch}
-								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
-								placeholder="Select user"
-								updateFields={(selected) => updateUserFields(loanIndex, userIndex, selected)}
-								initialOptions={userOptions}
-							>
-								<RemoveButton
-									ariaLabel="Remove User"
-									onClick={() => {
-										userHelpers.remove(userIndex);
-									}}
-									isDisabled={loan.users.length === 1}
-								/>
-							</SearchSingleSelectFormControl>
-							
-							<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
-								{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
-								(
-									<AddButton
-										handleClick={() => {
-											userHelpers.push(createNewUser());
+		<>
+			{mode && <LoanMode mode={mode}/>}
+			<ResponsiveText size="md" fontWeight="bold" align="center">{`Asset #${loanIndex + 1}`}</ResponsiveText>
+
+			<Box position='relative'>
+				<Flex direction="column" key={loan.key}>
+					<LoanAsset
+						loanIndex={loanIndex}
+						asset={loan.asset}
+						mode={mode}
+						warnings={warnings}
+					/>
+					<FieldArray name={`loans.${loanIndex}.users`}>
+						{ userHelpers => loan.users.map((user, userIndex, array) => (
+							<VStack key={user.key}>
+								<SearchSingleSelectFormControl
+									name={`loans.${loanIndex}.users.${userIndex}.userId`}
+									searchFn={handleUserSearch}
+									label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
+									placeholder="Select user"
+									updateFields={(selected) => updateUserFields(loanIndex, userIndex, selected)}
+									initialOptions={userOptions}
+								>
+									<RemoveButton
+										ariaLabel="Remove User"
+										onClick={() => {
+											userHelpers.remove(userIndex);
 										}}
-										label={'Add User'}
+										isDisabled={loan.users.length === 1}
 									/>
-								)}
-							</Flex>
-						</VStack>
-					))}
-				</FieldArray>
-				<Flex mt={2}>
-					<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.loanDate`} />
-					<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.expectedReturnDate`} />
+								</SearchSingleSelectFormControl>
+								
+								<Flex alignSelf={'flex-start'} justifyContent={'space-between'} gap={4}>
+									{userIndex === array.length - 1 && mode !== LoanType.SINGLE &&
+									(
+										<AddButton
+											handleClick={() => {
+												userHelpers.push(createNewUser());
+											}}
+											label={'Add User'}
+										/>
+									)}
+								</Flex>
+							</VStack>
+						))}
+					</FieldArray>
+					<Flex mt={2}>
+						<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.loanDate`} />
+						<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.expectedReturnDate`} />
+					</Flex>
 				</Flex>
+			</Box>
+
+			<Flex mt={2} gap={4} justifyContent="space-between">
+				{values.loans.length > 1 && (
+				<Button
+				type="button"
+				onClick={() => loanHelpers.remove(loanIndex)}
+				alignSelf="flex-start"
+				colorScheme="red"
+				>
+				<ResponsiveText>Remove</ResponsiveText>
+				</Button>
+				)}
 			</Flex>
-		</Box>
+			<Divider borderColor="black" borderWidth="2px" my={4} />
+			{isLast && (
+				<AddButton
+				handleClick={() => loanHelpers.push(createNewLoan())}
+				label="Add Asset"
+				/>
+			)}
+		</>
 	);
 }

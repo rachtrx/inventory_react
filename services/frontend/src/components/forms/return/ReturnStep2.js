@@ -7,7 +7,7 @@ import { useReturns } from "./ReturnsProvider";
 
 export const ReturnStep2 = () => {
 
-  const { userReturns, formData, handleSubmit, prevStep } = useReturns()
+  const { userReturns, formData, handleSubmit, prevStep } = useReturns();
 
 	console.log(userReturns);
 
@@ -38,12 +38,12 @@ export const ReturnStep2 = () => {
 						</ResponsiveText>
 
 						{/* Display Users Associated with This Asset */}
-						{assetReturn.users.userNames.length > 0 && (
+						{assetReturn.userNames.length > 0 && (
 						<Box mt={2}>
 							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
 							<UnorderedList>
-							{assetReturn.users.userNames.map((userName, index) => (
-								<ListItem key={assetReturn.users.userIds[index]}>
+							{assetReturn.userNames.map((userName, index) => (
+								<ListItem key={assetReturn.userIds[index]}>
 								{userName}
 								</ListItem>
 							))}
@@ -58,7 +58,7 @@ export const ReturnStep2 = () => {
 							<UnorderedList>
 							{assetReturn.accessories.map(accessory => (
 								<ListItem key={accessory.accessoryTypeId}>
-								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryIds.length} returned
+								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryLoanIds.length} returned
 								</ListItem>
 							))}
 							</UnorderedList>

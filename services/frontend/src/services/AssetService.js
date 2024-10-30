@@ -26,6 +26,10 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets/filters`, {field});
     }
 
+    async getSubTypeFilters(typeField) {
+        return await this.axios.post(`${API_URL}/assets/filters/subTypes`, {typeField});
+    }
+
     async loadItems(filters = this.defaultFilters) {
         return await this.axios.post(`${API_URL}/assets`, {filters});
     }
@@ -52,7 +56,8 @@ class AssetService {
     
     async returnAsset(formData) {
         // downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/assets/return`, formData);
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/return`, formData);
     }
 
     async addAsset(asset) {

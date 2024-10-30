@@ -9,7 +9,7 @@ import { useUI } from '../../../context/UIProvider';
 const withSelect = (Component, isCreatable) => ({
   name,
   label,
-  updateFields = null,
+  updateFields = null, // function
   initialOptions = [],
   isMulti = false,
   hideSelectedOptions = false,
@@ -36,7 +36,7 @@ const withSelect = (Component, isCreatable) => ({
       }
 
       const newOptions = isMulti ? selected : [selected];
-      newOptions.forEach((option) => {
+      newOptions.forEach((option) => { // TODO duplicated?
         if (option && !options.some((o) => o.value === option.value)) {
           setOptions((prevOptions) => [...prevOptions, { value: option.value, label: option.label }]);
         }
@@ -145,7 +145,7 @@ const withSearch = (Component) => ({
 const EnhancedSelect = withSelect(Select);
 const EnhancedCreatableSelect = withSelect(CreatableSelect, true);
 const SearchSelect = withSelect(withSearch(Select));
-const SearchCreatableSelect = (withSelect(withSearch(CreatableSelect), true));
+const SearchCreatableSelect = withSelect(withSearch(CreatableSelect), true);
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {

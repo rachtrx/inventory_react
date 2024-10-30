@@ -4,14 +4,12 @@ const { DataTypes, Model } = Sequelize;
 module.exports = (sequelize) => {
 	class AccLoan extends Model {
 
-        createperipheralLoanObject = function() {
+        createAccLoanObject = function() {
             return {
                 ...(this.returnEventId && { returnEventId: this.eventDate }),
                 ...(this.ReturnEvent && { returnDate: this.ReturnEvent.eventDate }),
-                ...(this.Acc && {
-                    accessoryId: this.Acc.id,
-                    accessoryName: this.Acc.AccType.accessoryName,
-                })
+                ...(this.AccLoan && { accLoanId: this.id }),
+                ...(this.AccType && { accessoryName: this.AccType.accessoryName })
             }
         }
     }
@@ -28,10 +26,10 @@ module.exports = (sequelize) => {
                 key: 'id'
             },
         },
-        accessoryId: {
+        accessoryTypeId: {
             type: DataTypes.STRING,
             references: {
-                model: 'accs',
+                model: 'acc_types',
                 key: 'id'
             },
         },

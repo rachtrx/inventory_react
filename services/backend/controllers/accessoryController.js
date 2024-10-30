@@ -1,7 +1,8 @@
-const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Acc, UsrLoan, AstLoan, Event } = require('../models/postgres/index.js');
+const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType, UsrLoan, AstLoan, Event } = require('../models/postgres/index.js');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
+const { model } = require('mongoose');
 
 
 class AccessoryController {
@@ -116,9 +117,9 @@ class AccessoryController {
         res.status(200).json({ message: 'Acc created successfully' });
     }
 
-    getType = async (peripheralId, options = {}) => {
+    getType = async (accTypeId, options = {}) => {
         return await AccType.findOne({
-            where: { id: peripheralId },
+            where: { id: accTypeId },
             ...options
         });
     }
@@ -155,72 +156,75 @@ class AccessoryController {
 
         try {
             let query = await AccType.findAll({
-                attributes: ['id', 'name', 'count'],
+                attributes: ['id', 'accessoryName', 'count'],
                 ...(filters.accessoryName.length > 0 && { where: { id: { [Op.in]: filters.accessoryName } } }),
-                include: {
-                    model: Acc,
+                include: [{
+                    model: AccTxn,
+                    attributes: ['id', 'txn'],
+                },
+                {
+                    model: AccLoan,
+                    where: { returnEventId: null },
                     attributes: ['id'],
-                    include: [
-                        {
-                            model: AccLoan,
-                            where: { returnEventId: null },
-                            attributes: ['id'],
-                            include: {
+                    include: {
+                        model: Loan,
+                        attributes: ['id'],
+                        where: { cancelEventId: null },
+                        include: [
+                            {
                                 model: UsrLoan,
                                 attributes: ['id'],
-                                where: { cancelEventId: null },
-                                include: [
-                                    {
-                                        model: Usr,
-                                        attributes: ['id', 'userName', 'bookmarked'],
-                                    },
-                                    {
-                                        model: Event,
-                                        as: 'ReserveEvent',
-                                        attributes: ['eventDate'],
-                                        required: false,
-                                    },
-                                    {
-                                        model: Event,
-                                        as: 'LoanEvent',
-                                        attributes: ['eventDate'],
-                                        required: false,
-                                    },
-                                    {
-                                        model: AstLoan,
-                                        attributes: ['id'],
-                                        required: false,
-                                        include: {
-                                            model: Ast,
-                                            attributes: ['id', 'assetTag'],
-                                        }
-                                    },
-                                ]
+                                include: {
+                                    model: Usr,
+                                    attributes: ['id', 'userName', 'bookmarked'],
+                                }
+                            },
+                            {
+                                model: AstLoan,
+                                attributes: ['id'],
+                                required: false,
+                                include: {
+                                    model: Ast,
+                                    attributes: ['id', 'assetTag'],
+                                }
+                            },
+                            {
+                                model: Event,
+                                as: 'ReserveEvent',
+                                attributes: ['eventDate'],
+                                required: false,
+                            },
+                            {
+                                model: Event,
+                                as: 'LoanEvent',
+                                attributes: ['eventDate'],
+                                required: false,
                             }
-                            
-                        },
-                    ]
-                },
+                        ]
+                    }
+                }],
                 group: [
                     // AccType attributes
                     '"AccType"."id"',
                     '"AccType"."name"',
                     '"AccType"."count"',
                     // Acc attributes
-                    '"Peripherals"."id"',
+                    '"AccTxns"."id"',
+                    '"AccTxns"."txn"',
                     // AccLoan attributes
-                    '"Peripherals->PeripheralLoans"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->Usr"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->Usr"."user_name"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->Usr"."bookmarked"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->LoanEvent"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->ReserveEvent"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->LoanEvent"."event_date"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->ReserveEvent"."event_date"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->AstLoan"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->AstLoan->Ast"."id"',
-                    '"Peripherals->PeripheralLoans->UsrLoan->AstLoan->Ast"."asset_tag"',
+                    '"AccLoans"."id"',
+                    '"AccLoans->Loan"."id"',
+                    '"AccLoans->Loan->UsrLoans"."id"',
+                    '"AccLoans->Loan->UsrLoans->Usr"."id"',
+                    '"AccLoans->Loan->UsrLoans->Usr"."user_name"',
+                    '"AccLoans->Loan->UsrLoans->Usr"."bookmarked"',
+                    '"AccLoans->Loan->AstLoan"."id"',
+                    '"AccLoans->Loan->AstLoan->Ast"."id"',
+                    '"AccLoans->Loan->AstLoan->Ast"."asset_tag"',
+                    '"AccLoans->Loan->LoanEvent"."id"',
+                    '"AccLoans->Loan->ReserveEvent"."id"',
+                    '"AccLoans->Loan->LoanEvent"."event_date"',
+                    '"AccLoans->Loan->ReserveEvent"."event_date"',
                 ],
                 order: [['updatedAt', 'DESC']],
             });
@@ -277,7 +281,7 @@ class AccessoryController {
         }
     }
 
-    async createPeripheralType(accessoryName, count, transaction) {
+    async createAccessoryType(accessoryName, count, transaction) {
         console.log("Creating Acc");
         return await AccType.create({ 
             id: generateSecureID(), 
@@ -302,7 +306,7 @@ class AccessoryController {
         }
 
         if (!type) { // TODO check for the name first?
-            type = this.createPeripheralType(peripheralTypeId, 1);
+            type = this.createAccessoryType(peripheralTypeId, 1);
         }
 
         const newPeripheral = AccLoan.build({
@@ -342,8 +346,8 @@ class AccessoryController {
                     type.available += peripheral.count;
                     await type.save({ transaction });
                 } else {
-                    // Ensure you await the call to createPeripheralType and pass the transaction
-                    await this.createPeripheralType(peripheral.id, peripheral.count, transaction);
+                    // Ensure you await the call to createAccessoryType and pass the transaction
+                    await this.createAccessoryType(peripheral.id, peripheral.count, transaction);
                 }
             }
             await transaction.commit(); // Commit only after all peripherals are processed
@@ -364,6 +368,29 @@ class AccessoryController {
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
+    }
+
+    async validateAccessories(accLoanIds, transaction) {
+        return await Promise.all(
+            [...accLoanIds].map(accLoanId => AccLoan.findByPk(accLoanId, { 
+                transaction,
+                attributes: ['returnEventId'],
+                include: [{
+                    model: Loan,
+                    include: {
+                        model: AstLoan,
+                        include: {
+                            model: Ast,
+                            attributes: ['assetTag']
+                        },
+                        required: false
+                    }
+                },{
+                    model: AccType,
+                    attributes:['accessoryName']
+                }]
+            }))
+        );
     }
 
     // async bookmarkPeripheral(req, res) {

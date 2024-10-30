@@ -1,26 +1,48 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { LoanStep2 } from "./LoanStep2";
-import { LoanStep1 } from "./LoanStep1";
+import { LoanStep2 } from "./AddAssetStep2";
+import { LoanStep1 } from "./AddAssetStep1";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
-import { createNewLoan } from "./Loan";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
+import { v4 as uuidv4 } from 'uuid';
+
+export const createNewType = (type={}) => ({
+  'key': uuidv4(),
+  'typeId': type.typeId || '',
+  'typeName': type.typeName || '',
+  'subTypes': (type.subType || [{}]).map(subType => createNewSubType(subType))
+})
+
+export const createNewSubType = (subType={}) => ({
+  'key': uuidv4(),
+  'subTypeId': subType.subTypeId || '',
+  'subTypeName': subType.subTypeName || '',
+  'assets': (subType.assets || [{}]).map(asset => createNewAsset(asset)),
+})
+
+export const createNewAsset = (asset={}) => ({
+  'key': uuidv4(),
+  'assetTag': asset.assetTag || '',
+  'serialNumber': asset.serialNumber || '',
+  'vendor': asset.vender || '',
+  'cost': asset.cost || 0,
+  'remarks': '',
+})
 
 // Create a context
-const LoansContext = createContext();
+const AddAssetsContext = createContext();
 
 // Create a provider component
-export const LoansProvider = ({ children }) => {
+export const AddAssetsProvider = ({ children }) => {
   const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch } = useFormModal();
+  const { setFormType, initialValues, handleAssetSearch } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
-  const [assetOptions, setAssetOptions] = useState([]);
-  const [userOptions, setUserOptions] = useState([]);
-  const [accessoryOptions, setAccessoryOptions] = useState([]);
+  const [vendorOptions, setVendorOptions] = useState([]);
+
   const [formData, setFormData] = useState({
-    loans: [createNewLoan()],
+    types: [createNewType()],
     signatures: {},
   });
   const [userLoans, setUserLoans] = useState({});
@@ -42,8 +64,7 @@ export const LoansProvider = ({ children }) => {
       }
       
       setFormData({
-        loans: [createNewLoan(asset, users)],
-        signatures: {},
+        types: [createNewType(asset, users)],
       });
     }
   }, [initialValues, setFormData]);
@@ -94,19 +115,9 @@ export const LoansProvider = ({ children }) => {
         });
 
         const assetResponse = await handleAssetSearch([...assetTags])
-        const userResponse = await handleUserSearch([...userNames])
         const newAssetOptions = assetResponse.data;
-        const newUserOptions = userResponse.data;
-
-        let newAccessoryoptions = [];
-        if (accessoryNames.size !== 0) {
-          const accessoryResponse = await handleAccessorySearch([...accessoryNames]);
-          newAccessoryoptions = accessoryResponse.data;
-        }
 
         setAssetOptions(newAssetOptions);
-        setUserOptions(newUserOptions);
-        setAccessoryOptions(newAccessoryoptions);
     
         // Convert grouped records into loans
         const loans = records.map(({ assetTag, userNames, accessoryTypes }) => {
@@ -118,33 +129,9 @@ export const LoansProvider = ({ children }) => {
                 assetTag: assetTag // Pass assetTag regardless of whether id is found
             };
         
-            // Find the user IDs based on userNames (assuming userNames is an array of names)
-            const userObjs = userNames.map(userName => {
-                const matchedUserOption = newUserOptions.find(option => option.label === userName);
-                console.log(matchedUserOption);
-                return {
-                    userId: matchedUserOption ? matchedUserOption.value : null,
-                    userName: userName // Pass userName regardless of whether id is found
-                };
-            });
-        
-            // Find the accessoryType IDs based on accessoryType names (assuming accessoryTypes is an array of names)
-            const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
-                const matchedAccessoryOption = newAccessoryoptions.find(option => option.label === accessoryName);
-                return {
-                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.value : accessoryName,
-                  accessoryName: accessoryName, // Pass accessoryName regardless of whether id is found
-                  count: count
-                };
-            });
-
-            console.log(accessoryObjs);
-        
             // Create a new loan using the objects with both id and original values
             return createNewLoan(
                 assetObj,    // Pass object with assetId and assetTag
-                userObjs,    // Pass array of objects with userId and userName
-                accessoryObjs // Pass array of objects with accessoryTypeId and accessoryName
             );
         });
     
@@ -159,19 +146,6 @@ export const LoansProvider = ({ children }) => {
   };
 
   const prevStep = () => {
-    // const resetLoans = formData.loans.map(loan => {
-    //   return createNewLoan(
-    //     loan.asset, 
-    //     loan.users,
-    //     loan.asset.accessoryTypes,
-    //     loan.loanDate,
-    //     loan.expectedReturnDate
-    //   );
-    // })
-    // setFormData((prevData) => ({
-    //   ...prevData,
-    //   loans: resetLoans
-    // }));
     setStep(step - 1)
   };
 
@@ -219,15 +193,11 @@ export const LoansProvider = ({ children }) => {
 
   // The context value includes all the states and functions to be shared
   const value = {
-    assetOptions,
-    userOptions,
-    accessoryOptions,
+    vendorOptions,
     formData,
     userLoans,
     step,
-    setAssetOptions,
-    setUserOptions,
-    setAccessoryOptions,
+    setVendorOptions,
     setFormData,
     setUserLoans,
     setStep,
@@ -241,18 +211,18 @@ export const LoansProvider = ({ children }) => {
   };
 
   return (
-    <LoansContext.Provider value={value}>
+    <AddAssetsContext.Provider value={value}>
       <Box style={{ display: step === 1 ? 'block' : 'none' }}>
         <LoanStep1/>
       </Box>
       <Box style={{ display: step === 2 ? 'block' : 'none' }}>
         <LoanStep2/>
       </Box>
-    </LoansContext.Provider>
+    </AddAssetsContext.Provider>
   )
 };
 
 // Hook to use the LoanContext in child components
-export const useLoans = () => {
-  return useContext(LoansContext);
+export const useAddAssets = () => {
+  return useContext(AddAssetsContext);
 };

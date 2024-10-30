@@ -1,4 +1,4 @@
-const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, Acc, AccType, AccLoan, Loan } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, AccType, AccLoan, Loan } = require('../models/postgres');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
@@ -31,10 +31,10 @@ class AssetController {
                         meta = [Vendor, 'id', 'vendorName'];
                         break;
                     default:
-                        meta = null
+                        meta = null;
                 }
-                logger.info(meta)
-                options = await getAllOptions(meta)
+                logger.info(meta);
+                options = await getAllOptions(meta);
             } else if (field === 'location') {
                 const distinctOptions = await getDistinctOptions(Ast, field);
                 options = createSelection(distinctOptions, field, field);
@@ -427,12 +427,8 @@ class AssetController {
                                         model: AccLoan,
                                         attributes: ['id'],
                                         include: {
-                                            model: Acc,
-                                            attributes: ['id'],
-                                            include: {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                            },
+                                            model: AccType,
+                                            attributes: ['id', 'accessoryName'],
                                         },
                                         where: { returnEventId: null },
                                         required: false,

@@ -32,24 +32,22 @@ module.exports = (sequelize) => {
 			const accessoryMap = new Map();
 		
 			this.AccLoans.forEach((accLoan) => {
-				const accessory = accLoan.Acc;
-				const accessoryTypeId = accessory.AccType.id;
-				logger.info(accessory.AccType.accessoryName)
+				const accType = accLoan.AccType;
 		
-				if (!accessoryMap.has(accessoryTypeId)) {
+				if (!accessoryMap.has(accType.id)) {
 					// Create a new entry if the accessory type id is not in the map
-					accessoryMap.set(accessoryTypeId, {
-						accessoryName: accessory.AccType.accessoryName,
-						accessoryDetails: [{
-							accessoryId: accessory.id,
+					accessoryMap.set(accType.id, {
+						accessoryName: accType.accessoryName,
+						loanDetails: [{
+							accessoryLoanId: accLoan.id,
 							...(accLoan.returnEventId && { returnEventId: accLoan.eventDate }),
 							...(accLoan.ReturnEvent && { returnDate: accLoan.ReturnEvent.eventDate }),
 						}],
 					});
 				} else {
 					// Append to the existing accessorys array if accessory type already exists
-					accessoryMap.get(accessoryTypeId).accessories.push({
-						accessoryId: accessory.id,
+					accessoryMap.get(accType.id).loanDetails.push({
+						accessoryLoanId: accLoan.id,
 						...(accLoan.returnEventId && { returnEventId: accLoan.eventDate }),
 						...(accLoan.ReturnEvent && { returnDate: accLoan.ReturnEvent.eventDate }),
 					});

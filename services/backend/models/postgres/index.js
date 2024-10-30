@@ -22,7 +22,7 @@ const AssetModel = require('./Ast.js');
 const AssetLoanModel = require('./AstLoan.js');
 
 const AccessoryTypeModel = require('./AccType.js');
-const AccessoryModel = require('./Acc.js');
+const AccessoryTxnModel = require('./AccTxn.js');
 const AccessoryLoanModel = require('./AccLoan.js');
 
 const SubTypeAccessoryModel = require('./AstSTypeAcc.js');
@@ -52,7 +52,7 @@ const db = {
   AstLoan: AssetLoanModel(sequelize),
 
   AccType: AccessoryTypeModel(sequelize),
-  Acc: AccessoryModel(sequelize),
+  AccTxn: AccessoryTxnModel(sequelize),
   AccLoan: AccessoryLoanModel(sequelize),
 
   AstSTypeAcc: SubTypeAccessoryModel(sequelize),
@@ -74,12 +74,12 @@ db.Vendor.hasMany(db.Ast, { foreignKey: 'vendorId' });
 db.Ast.belongsTo(db.Vendor, { foreignKey: 'vendorId', targetKey: 'id' });
 
 // PERIPHERALS
-db.AccType.hasMany(db.Acc, { foreignKey: 'accessoryTypeId' })
-db.Acc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' })
+db.AccType.hasMany(db.AccTxn, { foreignKey: 'accessoryTypeId' })
+db.AccTxn.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' })
 
 // LOANS
-db.Acc.hasOne(db.AccLoan, { foreignKey: 'accessoryId' })
-db.AccLoan.belongsTo(db.Acc, { foreignKey: 'accessoryId', targetKey: 'id' })
+db.AccType.hasMany(db.AccLoan, { foreignKey: 'accessoryTypeId' })
+db.AccLoan.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' })
 
 db.Ast.hasMany(db.AstLoan, { foreignKey: 'assetId' });
 db.AstLoan.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' });

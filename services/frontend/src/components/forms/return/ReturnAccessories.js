@@ -23,16 +23,16 @@ const ReturnAccessories = () => {
               <Td>{accessory.accessoryName}</Td>
               
               {/* Count of accessories loaned */}
-              <Td>{accessory.accessoryIds.length}</Td>
+              <Td>{accessory.accessoryLoanIds.length}</Td>
               
               {/* Input field for the user to enter the return count */}
               <Td>
                 <InputFormControl
                     name={`returns.${returnIndex}.accessories.${accessoryIndex}.count`}
                     placeholder="Enter count"
-                    max={accessory.accessoryIds.length}
+                    max={accessory.accessoryLoanIds.length}
                     min={0} 
-                    disabled={accessory.accessoryIds.length === 0}
+                    disabled={accessory.accessoryLoanIds.length === 0}
                 />
               </Td>
             </Tr>

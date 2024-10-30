@@ -8,8 +8,8 @@ import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewLoan, LoanType } from "./Loan";
 import { LoanProvider } from "./LoanProvider";
-import { createNewAccessory } from "./LoanAsset";
 import { useLoans } from "./LoansProvider";
+import { setFieldError } from "../utils/validation";
 
 export const LoanStep1 = () => {
 
@@ -68,18 +68,6 @@ export const LoanStep1 = () => {
       // console.log(duplicates);
       return duplicates;
     }
-  
-    // Helper function to set field error in a nested object
-    const setFieldError = (obj, path, error) => {
-      path.reduce((acc, key, index) => {
-        if (index === path.length - 1) {
-          acc[key] = error;
-        } else {
-          acc[key] = acc[key] || {};
-        }
-        return acc[key];
-      }, obj);
-    };
     
     const validateUser = (user, userIDDuplicates) => {
       if (userIDDuplicates.has(user['userId'])) return 'Users must be unique for each loan';
