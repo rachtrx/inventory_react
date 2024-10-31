@@ -267,8 +267,9 @@ class AccessoryController {
                 const { id, accessoryName, available } = accessory;
     
                 return {
-                    value: id,
+                    accessoryTypeId: id,
                     label: accessoryName,
+                    value: accessoryName,
                     available: available,
                 };
             })

@@ -4,7 +4,7 @@ import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
 import { AddButton } from "../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../utils/SelectFormControl"
-import { createNewAsset, createNewSubType, createNewType, useLoans } from "./AddAssetsProvider"
+import { createNewAsset, createNewSubType, createNewType, useAddAssets, useLoans } from "./AddAssetsProvider"
 import { AddSubType } from "./AddSubType"
 import assetService from "../../../services/AssetService"
 import { AddAsset } from "./AddAsset"
@@ -12,35 +12,37 @@ import InputFormControl from "../utils/InputFormControl"
 
 export const AddType = ({type, typeIndex, children}) => {
 
-	const { values, setFieldValue } = useFormikContext();
-    const [ subTypeOptions, setSubTypeOptions ] = useState([])
-    const [ typeOptions, setTypeOptions ] = useState([])
+    const { typeOptions, subTypeOptionsDict, setSubTypeOptionsDict } = useAddAssets();
+	const { setFieldValue } = useFormikContext();
 
-    useEffect(() => {
-        const getTypeFilters = async () => {
-            const response = await assetService.getFilters('typeName');
-            return response.data;
-        }
-        setTypeOptions(getTypeFilters());
-    }, [])
+    const handleTypeUpdate = async (selected) => {
+        if (!selected || selected.typeId) { // IMPT dont update for new created types
+            setFieldValue(`types.${typeIndex}.typeId`, selected?.typeId || '');
+            setFieldValue(`types.${typeIndex}.subTypes`, [createNewSubType()]);
 
-    useEffect(() => {
-        if (type.typeId === null || type.typeId === "") return;
-        const getSubTypeFilters = async (typeId) => {
-            const response = await assetService.getSubTypeFilters(typeId);
-            return response.data;
-        }
-        setSubTypeOptions(getSubTypeFilters(type.typeId));
-    }, [type.typeId])
+            if (!selected) return;
+
+            const getSubTypeFilters = async (typeId) => {
+                const response = await assetService.getSubTypeFilters([typeId]);
+                return response.data;
+            }
+            const subTypeOptions = await getSubTypeFilters(selected.typeId);
+            setSubTypeOptionsDict(oldDict => ({
+                ...oldDict,
+                [selected.typeId]: subTypeOptions[selected.typeId]
+            }));
+        } 
+    };
 
 	return (
         <>
             <Box position='relative'>
-                <Flex direction="column" key={type.key}>
+                <Flex direction="column" gap={2} key={type.key}>
                     <CreatableSingleSelectFormControl
-                        name={`types.${typeIndex}.typeId`}
+                        name={`types.${typeIndex}.typeName`}
+                        label={`Type`} 
                         placeholder="Select Type"
-                        updateFields={(selected) => setFieldValue(`types.${typeIndex}.typeName`, selected?.typeName || '')}
+                        updateFields={handleTypeUpdate}
                         initialOptions={typeOptions}
                     />
                     <FieldArray name={`types.${typeIndex}.subTypes`}>
@@ -49,36 +51,36 @@ export const AddType = ({type, typeIndex, children}) => {
                                 <AddSubType
                                     key={subType.key}
                                     field={`types.${typeIndex}.subTypes.${subTypeIndex}`}
-                                    subTypeOptions={subTypeOptions}
+                                    subType={subType}
+                                    subTypeOptions={subTypeOptionsDict[type.typeId] || []}
                                 >
                                     {/* chilften are the helper functions */}
                                     <Flex mt={2} gap={4} justifyContent="space-between">
-                                        {values.loans.length > 1 && (
+                                        {subTypeArray.length > 1 && (
                                             <Button
                                                 type="button"
                                                 onClick={() => subTypeHelpers.remove(subTypeIndex)}
                                                 alignSelf="flex-start"
                                                 colorScheme="red"
                                             >
-                                            <ResponsiveText>Remove</ResponsiveText>
+                                            <ResponsiveText>{`Remove ${subType.subTypeName ? ` ${subType.subTypeName}` : ''}`}</ResponsiveText>
                                             </Button>
                                         )}
                                     </Flex>
                                     <Divider borderColor="black" borderWidth="2px" my={4} />
                                     {subTypeIndex === subTypeArray.length - 1 && (
                                         <AddButton
+                                            alignSelf="flex-start"
                                             handleClick={() => subTypeHelpers.push(createNewSubType())}
-                                            label="Add Asset"
+                                            label={`Add Subtype${type.typeName ? ` for ${type.typeName}` : ''}`}
                                         />
-                                    )};
+                                    )}
                                 </AddSubType>
                             ))
                         )}
                     </FieldArray>
-                    
                 </Flex>
             </Box>
-
             {children}
         </>
 	);

@@ -13,6 +13,32 @@ const dateTimeObject = {
 }
 class AssetController {
 
+    async getSubTypeFilters(req, res) {
+        const { typeIds } = req.body;
+
+        try {
+            const result = {};
+
+            for (const typeId of typeIds) {
+                const options = await AstSType.findAll({
+                    attributes: ['id', 'subTypeName'],
+                    where: { assetTypeId: typeId }
+                });
+
+                result[typeId] = options.map(option => ({
+                    value: option.subTypeName, 
+                    label: option.subTypeName,
+                    subTypeId: option.id
+                }));
+            }
+
+            return res.json(result);
+        } catch (error) {
+            console.error("Error fetching options:", error);
+            return res.status(500).json({ error: "An error occurred." });
+        }
+    }
+
     async getFilters(req, res) {
         const { field } = req.body;
     
@@ -22,23 +48,23 @@ class AssetController {
                 let meta = null;
                 switch(field) {
                     case 'typeName':
-                        meta = [AstType, 'id', 'typeName'];
+                        meta = [AstType, 'typeName', 'id'];
                         break;
                     case 'subTypeName':
-                        meta = [AstSType, 'id', 'subTypeName'];
+                        meta = [AstSType, 'subTypeName', 'id'];
                         break;
                     case 'vendor':
-                        meta = [Vendor, 'id', 'vendorName'];
+                        meta = [Vendor, 'vendorName', 'id'];
                         break;
                     default:
                         meta = null;
                 }
                 logger.info(meta);
                 options = await getAllOptions(meta);
-            } else if (field === 'location') {
+            } else if (field === 'location') { // no id
                 const distinctOptions = await getDistinctOptions(Ast, field);
                 options = createSelection(distinctOptions, field, field);
-            } else if (field === 'age') {
+            } else if (field === 'age') { // no id
                 const devicesAgeQuery = `
                     SELECT DISTINCT 
                         FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
@@ -332,12 +358,12 @@ class AssetController {
                 }
     
                 return {
-                    value: id,
+                    value: assetTag,
                     label: assetTag, // Append status if disabled,
+                    assetId: id,
                     typeName,
                     subTypeName, 
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
-                    assetTag: assetTag,
                     shared: shared,
                     isDisabled: disabled // Disable if not in valid statuses or already included
                 };

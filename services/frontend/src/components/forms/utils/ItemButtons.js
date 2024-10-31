@@ -20,6 +20,8 @@ export const withItemButton = (IconComponent, colorScheme) => ({
             variant="ghost"
             colorScheme={colorScheme}
             isDisabled={isDisabled}
+            whiteSpace="normal"
+            textAlign="left"
             {...props}
         >
             <ResponsiveText>{label}</ResponsiveText>

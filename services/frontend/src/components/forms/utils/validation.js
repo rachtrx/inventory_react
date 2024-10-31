@@ -31,6 +31,9 @@ export const validateUniqueValues = (data, path) => { // data should be an array
         const key = path[depth];
         const next = item[key];
 
+        // console.log(key);
+        // console.log(next);
+
         if (Array.isArray(next)) {
             next.forEach(subItem => findDuplicates(subItem, depth + 1));
         } else {

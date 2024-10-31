@@ -44,19 +44,20 @@ export const LoanAsset = function({ loanIndex, asset, mode, warnings }) {
 	}, [asset, handleError, setFieldValue]);
 
 	const updateAssetFields = (loanIndex, selected) => {
-		setFieldValue(`loans.${loanIndex}.asset.assetTag`, selected?.assetTag || '');
+		setFieldValue(`loans.${loanIndex}.asset.assetId`, selected?.assetId || '');
 		setFieldValue(`loans.${loanIndex}.asset.shared`, selected?.shared || '');
 	}
 
 	const updateAccessoryFields = (loanIndex, accessoryIndex, selected) => {
-		setFieldValue(`loans.${loanIndex}.asset.accessories.${accessoryIndex}.accessoryName`, selected?.accessoryName || '');
+		setFieldValue(`loans.${loanIndex}.asset.accessories.${accessoryIndex}.accessoryTypeId`, selected?.accessoryTypeId || '');
+		console.log("UPDATING FIELDS");
 	}
 
 	return (
 		<>
 			<Flex gap={4} alignItems={'flex-start'}>
 				<SearchSingleSelectFormControl
-					name={`loans.${loanIndex}.asset.assetId`}
+					name={`loans.${loanIndex}.asset.assetTag`}
 					searchFn={value => handleAssetSearch(value, mode)}
 					updateFields={(selected) => updateAssetFields(loanIndex, selected)}
 					label={`Asset Tag`}
@@ -83,7 +84,7 @@ export const LoanAsset = function({ loanIndex, asset, mode, warnings }) {
 							return (
 								<Box key={accessory.key}>
 									<SearchCreatableSingleSelectFormControl
-										name={`loans.${loanIndex}.asset.accessories.${index}.accessoryTypeId`}
+										name={`loans.${loanIndex}.asset.accessories.${index}.accessoryName`}
 										defaultOptions={suggestedOptions}
 										searchFn={handleAccessorySearch}
 										updateFields={(selected) => updateAccessoryFields(loanIndex, index, selected)}

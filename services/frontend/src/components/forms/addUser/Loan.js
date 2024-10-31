@@ -82,7 +82,7 @@ export const Loan = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
 	console.log(values);
 
 	const updateUserFields = (loanIndex, userIndex, selected) => {
-		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userName`, selected?.userName || '')
+		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userId`, selected?.userId || '')
 	}
 
 	useEffect(() => {
@@ -113,7 +113,7 @@ export const Loan = ({loan, loanIndex, loanHelpers, warnings, isLast}) => {
 						{ userHelpers => loan.users.map((user, userIndex, array) => (
 							<VStack key={user.key}>
 								<SearchSingleSelectFormControl
-									name={`loans.${loanIndex}.users.${userIndex}.userId`}
+									name={`loans.${loanIndex}.users.${userIndex}.userName`}
 									searchFn={handleUserSearch}
 									label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
 									placeholder="Select user"

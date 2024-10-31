@@ -46,10 +46,10 @@ export const ReturnsProvider = ({ children }) => {
         try {
           console.log(initialValues);
           const {assetId, assetTag} = initialValues
-          setAssetOptions([{value: assetId, label: assetTag}]);
+          setAssetOptions([{value: assetTag, label: assetTag, assetId: assetId}]);
           const assetsDict = await fetchReturn([assetId]);
           const ongoingLoan = assetsDict[assetId].ongoingLoan;
-          setUserOptions(ongoingLoan.users.map(user => ({value: user.userId, label: user.userName})))
+          setUserOptions(ongoingLoan.users.map(user => ({value: user.userName, label: user.userName, userId: user.userId})))
 
           setFormData({
             returns: [createNewReturn(
@@ -83,8 +83,9 @@ export const ReturnsProvider = ({ children }) => {
       });
 
       const assetResponse = await handleAssetSearch([...assetTags])
-      const newAssetOptions = assetResponse.data;
-      const assetsDict = await fetchReturn(newAssetOptions.map(option => option.value));
+      const newAssetOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
+      
+      const assetsDict = await fetchReturn(newAssetOptions.map(option => option.assetId)); // gets all ongoing loans of the subset of asset tags
 
       setAssetOptions(newAssetOptions);
       
@@ -92,22 +93,27 @@ export const ReturnsProvider = ({ children }) => {
       const newUserOptions = []
 
       const returns = records.map(({assetTag}) => {
-        const matchedAssetOption = newAssetOptions.find(option => option.label === assetTag);
-        const matchedAssetId = matchedAssetOption?.value || null;
+        const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
+
+        if (!matchedAssetOption) {
+          throw new Error(`Unable to find asset tag ${assetTag}`);
+        }
+
+        const matchedAssetId = matchedAssetOption.assetId || null;
+        if (!assetsDict[matchedAssetId]?.ongoingLoan) {
+          throw new Error(`Unable to find ongoing loan for asset tag ${assetTag}`);
+        }
+
         const assetObj = {
-          assetId: matchedAssetId || assetTag,
+          assetId: matchedAssetId,
           assetTag: assetTag // Pass assetTag regardless of whether id is found
         };
-
-        if (!matchedAssetId || !assetsDict[matchedAssetId]?.ongoingLoan) {
-          return createNewReturn(assetObj);
-        }
 
         const ongoingLoan = assetsDict[matchedAssetId].ongoingLoan;
 
         ongoingLoan.users.forEach(user => {
           if (!userIdSet.has(user.userId)) {
-            newUserOptions.push({ value: user.userId, label: user.userName });
+            newUserOptions.push({ value: user.userName, label: user.userName, userId: user.userId });
             userIdSet.add(user.userId);
           }
         });

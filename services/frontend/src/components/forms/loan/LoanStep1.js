@@ -54,15 +54,15 @@ export const LoanStep1 = () => {
       return duplicates;
     };
   
-    const validateUniqueAccessoryIDs = (accessories) => {
-      const accessoryIDSet = new Set();
+    const validateUniqueAccessoryNames = (accessories) => {
+      const accessoryNameSet = new Set();
       const duplicates = new Set();
       accessories.forEach(accessory => {
-        if (accessory['accessoryTypeId'] === '') return;
-          if (accessoryIDSet.has(accessory['accessoryTypeId'])) {
-            duplicates.add(accessory['accessoryTypeId']);
+        if (accessory['accessoryName'] === '') return;
+          if (accessoryNameSet.has(accessory['accessoryName'])) {
+            duplicates.add(accessory['accessoryName']);
           }
-          accessoryIDSet.add(accessory['accessoryTypeId']);
+          accessoryNameSet.add(accessory['accessoryName']);
       });
       // console.log('Duplicate Accessories');
       // console.log(duplicates);
@@ -71,22 +71,22 @@ export const LoanStep1 = () => {
     
     const validateUser = (user, userIDDuplicates) => {
       if (userIDDuplicates.has(user['userId'])) return 'Users must be unique for each loan';
+      if (!user['userId'] && user['userName']) return `${user['userName']} is not found / ambiguous.`;
       if (!user['userId']) return 'User is Required';
-      if (user['userId'] === '' && user['userName'] !== user['userId']) return `${user['userName']} is not found / ambiguous.`;
       return null;
     };
     
     const validateAsset = (asset, assetIDDuplicates, mode, userCount) => {
       if (assetIDDuplicates.has(asset['assetId'])) return 'Asset must be unique for each loan';
+      if (!asset['assetId'] && asset['assetTag']) return `${asset['assetTag']} is not found / is ambiguous`;
       if (!asset['assetId']) return 'Asset is Required';
       if (mode === LoanType.SINGLE && userCount > 1) return `${asset.assetTag} is not a shared asset.`;
-      if (asset['assetId'] === '' && asset['assetTag'] !== asset['assetId']) return `${asset['assetTag']} is not found / ambiguous.`;
       return null;
     };
     
-    const validateAccessory = (accessory, accessoryIDDuplicates) => {
-      if (accessoryIDDuplicates.has(accessory['accessoryTypeId'])) return 'Accessories must be unique';
-      if (!accessory['accessoryTypeId']) return 'Accessory is Required';
+    const validateAccessory = (accessory, accessoryNameDuplicates) => {
+      if (accessoryNameDuplicates.has(accessory['accessoryName'])) return 'Accessories must be unique'; // TODO maybe indicate with isNew on SelectFormControl
+      if (!accessory['accessoryName']) return 'Accessory is Required';
       return null;
     };
     
@@ -95,7 +95,7 @@ export const LoanStep1 = () => {
       return loans.reduce((acc, loan, loanIndex) => {
           loan.asset.accessories.forEach((accessory, accessoryIndex) => {
             if (newAccessories[accessory.id]) {
-              setFieldError(acc, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryTypeId'], 
+              setFieldError(acc, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryTypeName'], 
                 `New accessory will be created (${newAccessories[accessory.id]}x found in this form)`);
             }
           });
@@ -118,22 +118,22 @@ export const LoanStep1 = () => {
         loan.users.forEach((user, userIndex) => {
           const userError = validateUser(user, userIDDuplicates);
           if (userError) {
-            setFieldError(errors, ['loans', loanIndex, 'users', userIndex, 'userId'], userError);
+            setFieldError(errors, ['loans', loanIndex, 'users', userIndex, 'userName'], userError);
           }
         });
     
         // Validate unique Asset IDs across all loans
 				const assetError = validateAsset(loan.asset, assetIDDuplicates, mode, loan.users.length);
 				if (assetError) {
-					setFieldError(errors, ['loans', loanIndex, 'asset', 'assetId'], assetError);
+					setFieldError(errors, ['loans', loanIndex, 'asset', 'assetTag'], assetError);
 				}
 	
 				// Validate unique Accessory IDs within each asset
-				const accessoryIDDuplicates = validateUniqueAccessoryIDs(loan.asset.accessories);
+				const accessoryIDDuplicates = validateUniqueAccessoryNames(loan.asset.accessories);
 				loan.asset.accessories.forEach((accessory, accessoryIndex) => {
 					const accessoryError = validateAccessory(accessory, accessoryIDDuplicates);
 					if (accessoryError) {
-						setFieldError(errors, ['loans', loanIndex, 'asset', 'accessories', accessoryIndex, 'accessoryTypeId'], accessoryError);
+						setFieldError(errors, ['loans', loanIndex, 'asset', 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
 					}
 					// Track new accessories for warnings
 					if (accessory.id !== '' && (accessory.id !== accessory.accessoryName)) {

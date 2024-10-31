@@ -31,11 +31,11 @@ exports.createSelection = (arr, labelField, valueField) => {
 
 exports.getAllOptions = async (meta) => {
     try {
-        const [table, valueField, labelField] = meta;
+        const [table, labelField, valueField] = meta;
         const options = await table.findAll({
             attributes: [
-                labelField,
                 valueField,
+                labelField,
             ]
         });
         return this.createSelection(options, labelField, valueField);

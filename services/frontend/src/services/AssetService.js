@@ -26,8 +26,8 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets/filters`, {field});
     }
 
-    async getSubTypeFilters(typeField) {
-        return await this.axios.post(`${API_URL}/assets/filters/subTypes`, {typeField});
+    async getSubTypeFilters(typeIds) {
+        return await this.axios.post(`${API_URL}/assets/filters/subTypes`, {typeIds});
     }
 
     async loadItems(filters = this.defaultFilters) {

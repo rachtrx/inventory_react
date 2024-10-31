@@ -47,7 +47,7 @@ export const Return = () => {
 	const updateUsers = (users) => {
 		const newUserOptions = users.map(user => {
 			return {
-				value: user.userId || user.userId,
+				value: user.userName,
 				label: user.userName
 			}
 		})
@@ -75,8 +75,8 @@ export const Return = () => {
 	const updateAssetFields = async (returnIndex, selected) => {
 		try {
 			if (!selected?.value) {
+				setFieldValue(`returns.${returnIndex}.assetId`, '')
 				setFieldValue(`returns.${returnIndex}.accessories`, [])
-				setFieldValue(`returns.${returnIndex}.assetTag`, '')
 				setFieldValue(`returns.${returnIndex}.users`, [])
 				setUserOptions([]);
 				return;
@@ -87,11 +87,11 @@ export const Return = () => {
 			const assetsDict = await fetchReturn([assetId]);
 			console.log(assetsDict);
 
-			setFieldValue(`returns.${returnIndex}.assetTag`, selected?.label || '')
+			setFieldValue(`returns.${returnIndex}.assetId`, selected?.assetId || '')
 
 			const loan = assetsDict[assetId].ongoingLoan;
 			console.log(loan);
-			updateUsers(loan.users)
+			updateUsers(loan.users);
 			if (loan.accessories) updateAccessories(loan.accessories);
 		} catch (err) {
 			console.error(err)
@@ -103,7 +103,7 @@ export const Return = () => {
 		<Box position='relative'>
 			<Flex direction="column" key={ret.key}>
 				<SearchSingleSelectFormControl
-					name={`returns.${returnIndex}.assetId`}
+					name={`returns.${returnIndex}.assetTag`}
 					searchFn={value => handleAssetSearch(value)}
 					updateFields={(selected) => updateAssetFields(returnIndex, selected)}
 					label={`Asset Tag`}
@@ -112,7 +112,7 @@ export const Return = () => {
 				/>
 				<MultiSelectFormControl
 					key={ret.users.key}
-					name={`returns.${returnIndex}.users.userIds`}
+					name={`returns.${returnIndex}.users.userNames`}
 					label={`User(s)`}
 					placeholder="User(s)"
 					initialOptions={userOptions}

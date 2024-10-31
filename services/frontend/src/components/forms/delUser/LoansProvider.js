@@ -32,13 +32,13 @@ export const LoansProvider = ({ children }) => {
       let asset = null;
       if(initialValues.assetId) {
         asset = initialValues;
-        setAssetOptions([{value: initialValues.assetId, label: initialValues.assetTag}])
+        setAssetOptions([{value: initialValues.assetTag, label: initialValues.assetTag, assetId: initialValues.assetId}])
       }
       
       const users = []
       if(initialValues.userId) {
         users.push(initialValues)
-        setUserOptions([{value: initialValues.userId, label: initialValues.userName}])
+        setUserOptions([{value: initialValues.userName, label: initialValues.userName, userId: initialValues.userId}])
       }
       
       setFormData({

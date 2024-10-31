@@ -5,6 +5,7 @@ import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel } from '
 import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
+import { ResponsiveText } from '../../utils/ResponsiveText';
 
 const withSelect = (Component, isCreatable) => ({
   name,
@@ -19,9 +20,14 @@ const withSelect = (Component, isCreatable) => ({
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [options, setOptions] = useState(initialOptions);
+  const [options, setOptions] = useState(initialOptions); // TODO maybe create branch to test passing this down as props
 
-  useEffect(() => console.log(options), [options])
+  useEffect(() => {
+    console.log(options.length);
+    if (options.length === 0 && initialOptions.length !== 0) {
+      setOptions(initialOptions);
+    }
+  }, [initialOptions, options]);
   
   const handleChange = useCallback(
     (selected) => {
@@ -73,8 +79,10 @@ const withSelect = (Component, isCreatable) => ({
 
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
-      {label && <FormLabel htmlFor={name}>{label}</FormLabel>}
-      <Flex alignItems="center" gap={4}>
+      {label && <FormLabel htmlFor={name}>
+        <ResponsiveText>{label}</ResponsiveText>
+      </FormLabel>}
+      <Flex alignItems="center">
         <Component
           classNamePrefix="react-select"
           name={name}

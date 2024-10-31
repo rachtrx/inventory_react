@@ -32,13 +32,13 @@ export const LoansProvider = ({ children }) => {
       let asset = null;
       if(initialValues.assetId) {
         asset = initialValues;
-        setAssetOptions([{value: initialValues.assetId, label: initialValues.assetTag}])
+        setAssetOptions([{value: initialValues.assetTag, label: initialValues.assetTag}])
       }
       
       const users = []
       if(initialValues.userId) {
         users.push(initialValues)
-        setUserOptions([{value: initialValues.userId, label: initialValues.userName}])
+        setUserOptions([{value: initialValues.userName, label: initialValues.userName}])
       }
       
       setFormData({
@@ -111,28 +111,28 @@ export const LoansProvider = ({ children }) => {
         // Convert grouped records into loans
         const loans = records.map(({ assetTag, userNames, accessoryTypes }) => {
             // Find the asset ID based on assetTag
-            const matchedAssetOption = newAssetOptions.find(option => option.label === assetTag);
+            const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
             console.log(matchedAssetOption);
             const assetObj = {
-                assetId: matchedAssetOption ? matchedAssetOption.value : null,
+                assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
                 assetTag: assetTag // Pass assetTag regardless of whether id is found
             };
         
             // Find the user IDs based on userNames (assuming userNames is an array of names)
             const userObjs = userNames.map(userName => {
-                const matchedUserOption = newUserOptions.find(option => option.label === userName);
+                const matchedUserOption = newUserOptions.find(option => option.value === userName);
                 console.log(matchedUserOption);
                 return {
-                    userId: matchedUserOption ? matchedUserOption.value : null,
+                    userId: matchedUserOption ? matchedUserOption.userId : null,
                     userName: userName // Pass userName regardless of whether id is found
                 };
             });
         
             // Find the accessoryType IDs based on accessoryType names (assuming accessoryTypes is an array of names)
             const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
-                const matchedAccessoryOption = newAccessoryoptions.find(option => option.label === accessoryName);
+                const matchedAccessoryOption = newAccessoryoptions.find(option => option.value === accessoryName);
                 return {
-                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.value : accessoryName,
+                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.accessoryTypeId : null,
                   accessoryName: accessoryName, // Pass accessoryName regardless of whether id is found
                   count: count
                 };

@@ -23,7 +23,7 @@ export default function InputFormControl({
     <FormControl id={name}>
       <Box display="flex" alignItems="center">
         {label && (
-          <FormLabel htmlFor={name} mb={0}>
+          <FormLabel htmlFor={name}>
             <ResponsiveText>{label}</ResponsiveText>
           </FormLabel>
         )}

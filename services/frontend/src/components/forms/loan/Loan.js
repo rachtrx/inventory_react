@@ -58,7 +58,7 @@ export const Loan = () => {
 	const { setFieldValue } = useFormikContext();
 
 	const updateUserFields = (loanIndex, userIndex, selected) => {
-		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userName`, selected?.userName || '')
+		setFieldValue(`loans.${loanIndex}.users.${userIndex}.userId`, selected?.userId || '')
 	}
 
 	return (
@@ -72,7 +72,7 @@ export const Loan = () => {
 					{ userHelpers => loan.users.map((user, userIndex, array) => (
 						<VStack key={user.key}>
 							<SearchSingleSelectFormControl
-								name={`loans.${loanIndex}.users.${userIndex}.userId`}
+								name={`loans.${loanIndex}.users.${userIndex}.userName`}
 								searchFn={handleUserSearch}
 								label={mode === LoanType.SHARED ? `User #${userIndex + 1}` : 'User'}
 								placeholder="Select user"

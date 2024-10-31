@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { LoanStep2 } from "./AddAssetStep2";
-import { LoanStep1 } from "./AddAssetStep1";
+import { AddAssetStep2 } from "./AddAssetStep2";
+import { AddAssetStep1 } from "./AddAssetStep1";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
@@ -11,7 +11,7 @@ export const createNewType = (type={}) => ({
   'key': uuidv4(),
   'typeId': type.typeId || '',
   'typeName': type.typeName || '',
-  'subTypes': (type.subType || [{}]).map(subType => createNewSubType(subType))
+  'subTypes': (type.subTypes || [{}]).map(subType => createNewSubType(subType))
 })
 
 export const createNewSubType = (subType={}) => ({
@@ -26,7 +26,7 @@ export const createNewAsset = (asset={}) => ({
   'assetTag': asset.assetTag || '',
   'serialNumber': asset.serialNumber || '',
   'vendor': asset.vender || '',
-  'cost': asset.cost || 0,
+  'cost': asset.cost || '',
   'remarks': '',
 })
 
@@ -36,110 +36,145 @@ const AddAssetsContext = createContext();
 // Create a provider component
 export const AddAssetsProvider = ({ children }) => {
   const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch } = useFormModal();
+  const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [vendorOptions, setVendorOptions] = useState([]);
 
+  const [typeOptions, setTypeOptions] = useState([]);
+  const [subTypeOptionsDict, setSubTypeOptionsDict] = useState([]);
+
   const [formData, setFormData] = useState({
     types: [createNewType()],
-    signatures: {},
   });
-  const [userLoans, setUserLoans] = useState({});
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (initialValues) {
-      console.log(initialValues);
-      let asset = null;
-      if(initialValues.assetId) {
-        asset = initialValues;
-        setAssetOptions([{value: initialValues.assetId, label: initialValues.assetTag}])
-      }
-      
-      const users = []
-      if(initialValues.userId) {
-        users.push(initialValues)
-        setUserOptions([{value: initialValues.userId, label: initialValues.userName}])
-      }
-      
-      setFormData({
-        types: [createNewType(asset, users)],
-      });
-    }
-  }, [initialValues, setFormData]);
+    console.log(typeOptions);
+    console.log(vendorOptions);
+  }, [typeOptions, vendorOptions])
 
-  const processAccessories = (accessoryTypesStr) => {
-    if (!accessoryTypesStr) return {};
-    return accessoryTypesStr.split(',').map(accessoryType => accessoryType.trim()).reduce((acc, accessoryType) => {
-      if (acc[accessoryType]) {
-        acc[accessoryType] += 1;
-      } else {
-        acc[accessoryType] = 1;
-      }
-      return acc;
-    }, {});
+  useEffect(() => {
+    const fetchFilters = async () => {
+        const typeFilters = await getTypeFilters();
+        const vendorFilters = await getVendorFilters();
+        
+        setTypeOptions(typeFilters);
+        setVendorOptions(vendorFilters);
+    };
+
+    fetchFilters();
+  }, []);
+
+  const getTypeFilters = async () => {
+      const response = await assetService.getFilters('typeName');
+      const options = response.data;
+      return options.map(option => ({
+          typeId: option.value,
+          value: option.label,
+          label: option.label
+      }));
+  };
+
+  const getVendorFilters = async () => {
+      const response = await assetService.getFilters('vendor');
+      const options = response.data;
+      return options.map(option => ({
+          vendorId: option.value,
+          value: option.label,
+          label: option.label
+      }));
   };
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
     try {
+      const assetTags = new Set();
+      const serialNumbers = new Set();
+      const typeSet = new Set();
+      const subTypeSet = new Set();
 
-        const assetTags = new Set();
-        const userNames = new Set();
-        const accessoryNames = new Set();
+      const recordsMap = {};
 
-        records.forEach(record => {
-            // Trim and add asset tags to the set
-            record.assetTag = record.assetTag?.trim();
-            if (record.assetTag) {
-                if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
-                else assetTags.add(record.assetTag);
-            } 
-            
-            // Process and add user names to the set
-            record.userNames = record.userNames 
-                ? [...new Set(record.userNames.split(',').map(user => {
-                    const trimmedUser = user.trim();
-                    userNames.add(trimmedUser); // Add each user to the userNames set
-                    return trimmedUser;
-                }))]
-                : [];
-        
-            // Process accessoryTypes
-            const accessoryTypes = processAccessories(record.accessoryTypes);
-            record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
-                accessoryNames.add(name);
-                return { accessoryName: name, count: count };
-            });
+      records.forEach((record, idx) => {
+
+        Object.keys(record).forEach(field => {
+          record[field] = record[field]?.trim();
         });
 
-        const assetResponse = await handleAssetSearch([...assetTags])
-        const newAssetOptions = assetResponse.data;
+        const { type, subType, assetTag, serialNumber, vendor, cost, remarks } = record;
 
-        setAssetOptions(newAssetOptions);
-    
-        // Convert grouped records into loans
-        const loans = records.map(({ assetTag, userNames, accessoryTypes }) => {
-            // Find the asset ID based on assetTag
-            const matchedAssetOption = newAssetOptions.find(option => option.label === assetTag);
-            console.log(matchedAssetOption);
-            const assetObj = {
-                assetId: matchedAssetOption ? matchedAssetOption.value : null,
-                assetTag: assetTag // Pass assetTag regardless of whether id is found
-            };
-        
-            // Create a new loan using the objects with both id and original values
-            return createNewLoan(
-                assetObj,    // Pass object with assetId and assetTag
-            );
+        [type, subType, assetTag, serialNumber].forEach(field => {
+          if (!field) throw new Error(`Missing ${field} at index ${idx + 1}`);
         });
-    
-      console.log(loans);
+
+        if (assetTags.has(assetTag)) throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
+        else assetTags.add(assetTag);
+        
+        if (serialNumbers.has(serialNumber)) throw new Error(`Duplicate records for Serial Number: ${serialNumber} were found`);
+        else serialNumbers.add(serialNumber);     
+
+        if (!recordsMap[type]) {
+          if (typeSet.has(type)) throw new Error(`Duplicate types are not allowed: ${type}`)
+          else typeSet.add(type);
+          recordsMap[type] = {};
+        }
+        
+        if (!recordsMap[type][subType]) {
+          if (subTypeSet.has(subType)) throw new Error(`Duplicate subTypes are not allowed: ${subType}`)
+          else subTypeSet.add(subType);
+          recordsMap[type][subType] = [];
+        }
+        
+        recordsMap[type][subType].push({
+          assetTag,
+          serialNumber,
+          vendor,
+          cost,
+          remarks
+        });
+      });
+
+      const typeIds = typeOptions.map(option => option.value);
+
+      const subTypesResponse = await assetService.getSubTypeFilters(typeIds);
+      const subTypeOptionsMap = subTypesResponse.data;
+
+      const types = [];
+
+      Object.keys(recordsMap).forEach(type => {
+        const typeId = typeOptions.find(option => option.value === type) || '';
+
+        const subTypes = [];
+
+        Object.keys(type).forEach(subType => {
+          let subTypeId = '';
+          if (typeId) {
+            subTypeId = subTypeOptionsMap[typeId].find(option => option.value === subType);
+          }
+          
+          subTypes.push({
+            subTypeId: subTypeId,
+            subTypeName: subType,
+            assets: subType.assets,
+          });
+        })
+
+        types.push({
+          typeId: typeId,
+          typeName: type,
+          subTypes: subTypes,
+        })
+      })
+
+      console.log(subTypeOptionsMap);
+
+      setSubTypeOptionsDict(subTypeOptionsMap);
     
       setFormData({
-        loans: loans
+        types: types
       });
+
     } catch (error) {
       handleError(error);
     }
@@ -149,28 +184,7 @@ export const AddAssetsProvider = ({ children }) => {
     setStep(step - 1)
   };
 
-  const nextStep = (values, actions) => {
-    console.log('Manual Form Values:', values);
-    const userLoans = {}
-    const signatures = {};
-
-    values.loans.forEach((loan) =>
-      loan.users?.forEach((user) => {
-        if (!userLoans[user.userId]) {
-          userLoans[user.userId] = {}
-          userLoans[user.userId].assets = [loan.asset];
-          userLoans[user.userId].userName = user.userName;
-          signatures[user.userId] = ''
-          console.log(signatures);
-        } else userLoans[user.userId].assets.push(loan.asset)
-      })
-    );
-    setUserLoans(userLoans);
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values,
-      signatures: signatures,
-    }));
+  const nextStep = () => {
     setStep(step + 1);
   };
 
@@ -178,7 +192,7 @@ export const AddAssetsProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await assetService.loanAsset(values);
+      // await assetService.loanAsset(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);
@@ -193,15 +207,14 @@ export const AddAssetsProvider = ({ children }) => {
 
   // The context value includes all the states and functions to be shared
   const value = {
+    typeOptions,
     vendorOptions,
+    subTypeOptionsDict,
     formData,
-    userLoans,
     step,
-    setVendorOptions,
+    setSubTypeOptionsDict,
     setFormData,
-    setUserLoans,
     setStep,
-    processAccessories,
     setValuesExcel,
     prevStep,
     nextStep,
@@ -213,10 +226,10 @@ export const AddAssetsProvider = ({ children }) => {
   return (
     <AddAssetsContext.Provider value={value}>
       <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <LoanStep1/>
+        <AddAssetStep1/>
       </Box>
       <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <LoanStep2/>
+        <AddAssetStep2/>
       </Box>
     </AddAssetsContext.Provider>
   )

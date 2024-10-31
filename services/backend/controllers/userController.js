@@ -371,10 +371,10 @@ class UserController {
                 }
             
                 return {
-                    value: user.id,
+                    value: name,
                     label: `${name}`, // Capitalize the first letter
+                    userId: user.id,
                     description: `${dept} ${disabled ? `(${status})` : ''}`,
-                    userName: name,
                     isDisabled: disabled // Disable if not in validStatuses
                 };
             });
