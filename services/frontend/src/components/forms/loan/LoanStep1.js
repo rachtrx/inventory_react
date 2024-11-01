@@ -1,12 +1,11 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
 import ExcelFormControl from '../utils/ExcelFormControl';
-import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import assetService from "../../../services/AssetService";
 import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createNewLoan, LoanType } from "./Loan";
+import { LoanType } from "./Loan";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
 import { setFieldError } from "../utils/validation";
@@ -112,6 +111,12 @@ export const LoanStep1 = () => {
       
       values.loans.forEach((loan, loanIndex) => {
         const mode = loan.mode;
+
+        if(!loan.loanDate) setFieldError(errors, ['loans', loanIndex, 'loanDate'], 'Loan Date Required');
+        else if (loan.expectedReturnDate && loan.expectedReturnDate < loan.loanDate) {
+          setFieldError(errors, ['loans', loanIndex, 'expectedReturnDate'], 'Est. Return Date < Loan Date');
+          setFieldError(errors, ['loans', loanIndex, 'loanDate'], 'Loan Date > Est. Return Date');
+        }
   
         // Validate unique User IDs within each loan
         const userIDDuplicates = validateUniqueUserIDs(loan.users);
@@ -141,6 +146,8 @@ export const LoanStep1 = () => {
 					}
 				});
       });
+
+      console.log(errors);
     
       // Set warnings based on new accessories
       const updatedWarnings = generateWarnings(values.loans, newAccessories);
@@ -165,7 +172,7 @@ export const LoanStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userNames', 'accessoryTypes']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userNames', 'accessoryTypes', 'expectedReturnDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="loans">
                   {loanHelpers => (

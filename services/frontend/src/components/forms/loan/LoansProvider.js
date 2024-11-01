@@ -6,6 +6,7 @@ import assetService from "../../../services/AssetService";
 import { createNewLoan } from "./Loan";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
+import { convertExcelDate } from "../utils/validation";
 
 // Create a context
 const LoansContext = createContext();
@@ -68,33 +69,50 @@ export const LoansProvider = ({ children }) => {
         const userNames = new Set();
         const accessoryNames = new Set();
 
-        records.forEach(record => {
-            // Trim and add asset tags to the set
-            record.assetTag = record.assetTag?.trim();
-            if (record.assetTag) {
-                if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
-                else assetTags.add(record.assetTag);
-            } 
-            
-            // Process and add user names to the set
-            record.userNames = record.userNames 
-                ? [...new Set(record.userNames.split(',').map(user => {
-                    const trimmedUser = user.trim();
-                    userNames.add(trimmedUser); // Add each user to the userNames set
-                    return trimmedUser;
-                }))]
-                : [];
-        
-            // Process accessoryTypes
-            const accessoryTypes = processAccessories(record.accessoryTypes);
-            record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
-                accessoryNames.add(name);
-                return { accessoryName: name, count: count };
-            });
+        records.forEach((record) => {
+          // Trim and add asset tags to the set
+          record.assetTag = record.assetTag?.trim();
+          if (record.assetTag) {
+              if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
+              else assetTags.add(record.assetTag);
+          } else throw new Error (`Asset Tag required at line ${record.__rowNum__}`)
+          
+          // Process and add user names to the set
+          if (!record.userNames) throw new Error (`Usernames required at line ${record.__rowNum__}`)
+          record.userNames = record.userNames 
+              ? [...new Set(record.userNames.split(',').map(user => {
+                  const trimmedUser = user.trim();
+                  userNames.add(trimmedUser); // Add each user to the userNames set
+                  return trimmedUser;
+              }))]
+              : [];
+      
+          // Process accessoryTypes
+          const accessoryTypes = processAccessories(record.accessoryTypes);
+          record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
+              accessoryNames.add(name);
+              return { accessoryName: name, count: count };
+          });
+
+          if (
+            record.loanDate && 
+            record.expectedReturnDate && 
+            typeof record.loanDate !== typeof record.expectedReturnDate // Excel will treat Date type as Number 
+          ) {
+            throw new Error(`Data Type mismatch between Est. Return Date and Loan Date at line ${record.__rowNum__}. Hint: Check excel column formatting and set both columns to "Text" instead of "General" or "Date".`);
+          } 
+          
+          if (!record.loanDate) record.loanDate = new Date()
+          else record.loanDate = convertExcelDate(record.loanDate, record.__rowNum__); // TODO pass in recordIdx too to inform user about any errors?
+          
+          if (record.expectedReturnDate) {
+            record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
+            if (record.expectedReturnDate < record.loanDate) throw new Error(`Est. Return Date earlier than Loan Date at line ${record.__rowNum__}. Hint: Excel sets dates in the form MM/dd/YYYY instead of dd/MM/YYYY. Try setting column types to "Text" instead of "General" or "Date".`);
+          }
         });
 
-        const assetResponse = await handleAssetSearch([...assetTags])
-        const userResponse = await handleUserSearch([...userNames])
+        const assetResponse = await handleAssetSearch([...assetTags]);
+        const userResponse = await handleUserSearch([...userNames]);
         const newAssetOptions = assetResponse.data;
         const newUserOptions = userResponse.data;
 
@@ -109,7 +127,7 @@ export const LoansProvider = ({ children }) => {
         setAccessoryOptions(newAccessoryoptions);
     
         // Convert grouped records into loans
-        const loans = records.map(({ assetTag, userNames, accessoryTypes }) => {
+        const loans = records.map(({ assetTag, userNames, accessoryTypes, expectedReturnDate, remarks }) => {
             // Find the asset ID based on assetTag
             const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
             console.log(matchedAssetOption);
@@ -144,7 +162,9 @@ export const LoansProvider = ({ children }) => {
             return createNewLoan(
                 assetObj,    // Pass object with assetId and assetTag
                 userObjs,    // Pass array of objects with userId and userName
-                accessoryObjs // Pass array of objects with accessoryTypeId and accessoryName
+                accessoryObjs, // Pass array of objects with accessoryTypeId and accessoryName
+                expectedReturnDate,
+                remarks
             );
         });
     

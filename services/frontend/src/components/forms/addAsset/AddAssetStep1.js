@@ -25,10 +25,9 @@ export const AddAssetStep1 = () => {
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
     
-    const validateFieldWithId = (idDuplicates, labelField, idField, fieldName) => {
-      if (idDuplicates.has(idField)) return `${fieldName} names should be unique`;
-      if (!labelField) return `${fieldName} is Required`;
-      if (idField === '' && labelField !== idField) return `${fieldName} is not found / ambiguous.`;
+    const validateFieldName = (nameDuplicates, field, fieldName) => {
+      if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
+      if (!field) return `${fieldName} is Required`;
       return null;
     };
     
@@ -42,21 +41,21 @@ export const AddAssetStep1 = () => {
 			// console.log(formRef.current?.values);
       const errors = {};
   
-      const tIdDuplicates = validateUniqueValues(values.types, ['typeId']);
+      const tNameDuplicates = validateUniqueValues(values.types, ['typeName']);
       const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'assetTag']);
       const snDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'serialNumber']);
 
       values.types.forEach((type, typeIndex) => {
-        const typeError = validateFieldWithId(tIdDuplicates, type['typeName'], type['typeId'], "Type");
+        const typeError = validateFieldName(tNameDuplicates, type['typeName'], "Type");
         if (typeError) {
-          setFieldError(errors, ['types', typeIndex, 'typeId'], typeError);
+          setFieldError(errors, ['types', typeIndex, 'typeName'], typeError);
         }
-        const stIdDuplicates = validateUniqueValues(type.subTypes, ['subTypeId']);
+        const stNameDuplicates = validateUniqueValues(type.subTypes, ['subTypeName']);
   
         type.subTypes.forEach((subType, subTypeIndex) => {
-          const subTypeError = validateFieldWithId(stIdDuplicates, subType['subTypeName'], subType['subTypeId'], "Sub Type");
+          const subTypeError = validateFieldName(stNameDuplicates, subType['subTypeName'], "Sub Type");
           if (subTypeError) {
-            setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'subTypeId'], subTypeError);
+            setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'subTypeName'], subTypeError);
           }
 
           subType.assets.forEach((asset, assetIndex) => {
@@ -90,7 +89,7 @@ export const AddAssetStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendor', 'cost', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendor', 'cost', 'addDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="types">
                   {typeHelpers => (

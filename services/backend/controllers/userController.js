@@ -11,7 +11,7 @@ class UserController {
         let options;
         try {
             if (field === 'deptName') {
-                const meta = [Dept, 'id', 'deptName'];
+                const meta = [Dept, 'deptName', 'id'];
                 logger.info(meta)
                 options = await getAllOptions(meta)
                 
@@ -358,7 +358,7 @@ class UserController {
                 }
     
                 
-                const { name, dept, status } = user;
+                const { name, dept, status, lastEventDate } = user;
                 logger.info(status)
                 let disabled;
                 switch(formType) {
@@ -375,7 +375,8 @@ class UserController {
                     label: `${name}`, // Capitalize the first letter
                     userId: user.id,
                     description: `${dept} ${disabled ? `(${status})` : ''}`,
-                    isDisabled: disabled // Disable if not in validStatuses
+                    isDisabled: disabled, // Disable if not in validStatuses
+                    lastEventDate
                 };
             });
     

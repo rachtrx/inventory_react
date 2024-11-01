@@ -48,6 +48,7 @@ const withSelect = (Component, isCreatable) => ({
         }
       });
       
+      console.log(newValue);
       setValue(newValue);
       setTouched(true);
     },
@@ -61,9 +62,9 @@ const withSelect = (Component, isCreatable) => ({
     console.log(options);
     console.log(value);
     if (isMulti) {
-      option = options.filter((option) => value?.includes(option?.value));
+      option = options.filter((option) => value?.map(val => val.trim().toLowerCase()).includes(option?.value.trim().toLowerCase()));
     } else {
-      option = options.find((option) => option?.value === value) || null;
+      option = options.find((option) => option?.value.trim().toLowerCase() === value.trim().toLowerCase()) || null;
     }
     console.log(option);
 

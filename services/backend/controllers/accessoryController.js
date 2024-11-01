@@ -130,7 +130,7 @@ class AccessoryController {
         let options;
         try {
             if (field === 'accessoryName') {
-                const meta = [AccType, 'id', 'accessoryName'];
+                const meta = [AccType, 'accessoryName', 'id'];
                 options = await getAllOptions(meta);
             }
             

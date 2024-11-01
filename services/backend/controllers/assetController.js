@@ -222,7 +222,7 @@ class AssetController {
         const searchTerm = isBulkSearch ? value : `%${value}%`;
     
         let orderByClause;
-        if (formType === formTypes.LOAN) {
+        if (formType === formTypes.LOAN || formType === formTypes.DEL_ASSET) {
             orderByClause = `
                 ORDER BY 
                     CASE 
@@ -269,6 +269,14 @@ class AssetController {
                     ast_s_types.sub_type_name AS "subTypeName",
                     ast_types.type_name AS "typeName",
                     vendors.vendor_name AS "vendorName",
+                    GREATEST(
+                        MAX(delete_event.event_date),
+                        MAX(add_event.event_date),
+                        MAX(loan_event.event_date),
+                        MAX(return_event.event_date),
+                        MAX(reserve_event.event_date),
+                        MAX(cancel_event.event_date)
+                    ) AS "lastEventDate",
                     MAX(loan_event.event_date) AS "lastLoan",
                     MAX(return_event.event_date) AS "lastReturn",
                     COUNT(
@@ -344,7 +352,7 @@ class AssetController {
                     asset.status = `Available`;
                 }
     
-                const { id, assetTag, serialNumber, shared, status, typeName, subTypeName } = asset;
+                const { id, assetTag, serialNumber, shared, status, typeName, subTypeName, lastEventDate } = asset;
                 logger.info(status)
                 let disabled;
                 switch(formType) {
@@ -365,7 +373,8 @@ class AssetController {
                     subTypeName, 
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
                     shared: shared,
-                    isDisabled: disabled // Disable if not in valid statuses or already included
+                    isDisabled: disabled, // Disable if not in valid statuses or already included
+                    lastEventDate
                 };
             })
     

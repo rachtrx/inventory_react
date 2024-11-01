@@ -45,3 +45,24 @@ export const validateUniqueValues = (data, path) => { // data should be an array
 
     return duplicates;
 }
+
+function excelDateToJSDate(serial) {
+    // Adjust for Excel's date system starting on Jan 1, 1900
+    const excelStartDate = new Date(Date.UTC(1899, 11, 30));
+    return new Date(excelStartDate.getTime() + serial * 86400000); // 86400000 ms in a day
+}
+
+function parseDateString(dateStr) {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day); // month is zero-indexed in JavaScript
+}
+
+export function convertExcelDate(value, rowNum=null) {
+    if (typeof value === 'number') {
+        return excelDateToJSDate(value);
+    } else if (typeof value === 'string') {
+        return parseDateString(value);
+    } else {
+        throw new Error(`Invalid date format ${value}${rowNum !== null ? ` at line ${rowNum}` : ''}`);
+    }
+}

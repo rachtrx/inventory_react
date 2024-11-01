@@ -4,6 +4,7 @@ import { useFormikContext } from 'formik';
 import { CreatableSingleSelectFormControl } from "../utils/SelectFormControl";
 import { useAddAssets } from "./AddAssetsProvider";
 import { Flex } from "@chakra-ui/react";
+import DateInputControl from "../utils/DateInputControl";
 
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
@@ -48,7 +49,8 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				type="number"
 				placeholder="Enter cost" 
 			/>
-			<InputFormControl name={`${field}.remarks`} label={`Remarks for asset`}/>
+			<DateInputControl label="Added Date" name={`${field}.addDate`} />
+			<InputFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
 			{/* Include the helper functions */}
 			{children}
 		</Flex>

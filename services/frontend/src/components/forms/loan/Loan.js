@@ -29,7 +29,6 @@ const createNewAsset = (asset, accessories=[]) => ({ // 1 loan only can have 1 a
 	'assetId': asset?.assetId || '',
 	'assetTag': asset?.assetTag || '',
 	'accessories': accessories.map(accessory => createNewAccessory(accessory, accessory.count)) || [], // Accessories grouped with Asset due to AssetLoan.js, accessories are tagged to the asset loan
-	'remarks': '',
 	'shared': false
 })
   
@@ -41,13 +40,19 @@ const createNewUser = (user=null) => ({
 })
 
 
-export const createNewLoan = (asset=null, users=[], accessories=[], loanDate=null, expectedReturnDate='') => ({
+export const createNewLoan = (
+	asset=null, 
+	users=[], 
+	accessories=[], 
+	expectedReturnDate=null, 
+	remarks=null
+) => ({
 	'key': uuidv4(),
 	'asset': createNewAsset(asset, accessories),
 	'users': users.length === 0 ? [createNewUser()] : users.map(user => createNewUser(user)),
 	'mode': '',
-	'loanDate': loanDate || new Date(),
-	'expectedReturnDate': expectedReturnDate,
+	'expectedReturnDate': expectedReturnDate || '',
+	'remarks': remarks || '',
 })
 
 export const Loan = () => {
@@ -68,6 +73,7 @@ export const Loan = () => {
 					loanIndex={loanIndex}
 					asset={loan.asset}
 				/>
+
 				<FieldArray name={`loans.${loanIndex}.users`}>
 					{ userHelpers => loan.users.map((user, userIndex, array) => (
 						<VStack key={user.key}>

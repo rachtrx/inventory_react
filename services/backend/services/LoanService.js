@@ -87,9 +87,10 @@ class LoanService extends ValidationService {
     async createLoans() {
         const userLoans = {}
 
+        const loanDate = new Loan();
+
         for (const loan of this.loans) {
-            const { asset, users, loanDate } = loan;
-            const expectedReturnDate = loan.expectedReturnDate === "" ? null : loan.expectedReturnDate;
+            const { asset, users, mode, expectedReturnDate } = loan; // TODO use mode for future validation?
 
             const loanId = generateSecureID(); // PK for loan instance
             const loanEventId = generateSecureID(); // Attribute of loan instance
@@ -103,14 +104,15 @@ class LoanService extends ValidationService {
 
             await Loan.create({
                 id: loanId,
-                expectedReturnDate: expectedReturnDate,
+                expectedReturnDate: expectedReturnDate || null,
                 loanEventId: loanEventId
             }, { transaction: this.transaction })
 
             if (asset.remarks !== '') await Rmk.create({
                 id: generateSecureID(),
                 eventId: loanEventId,
-                remarks: asset.remarks
+                remarks: asset.remarks,
+                remarkDate: loanDate,
             }, { transaction: this.transaction });
 
             // Create Ast Loan

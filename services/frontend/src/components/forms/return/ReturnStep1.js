@@ -69,7 +69,7 @@ const ReturnStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'returnDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="returns">
                   {returnHelpers => (

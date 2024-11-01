@@ -14,8 +14,6 @@ import {
 import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
-import CondemnAsset from './forms/CondemnAsset';
-import AddUser from './forms/AddUser';
 import RemoveUser from './forms/RemoveUser';
 import Toggle from './forms/utils/Toggle';
 import { ResponsiveText } from './utils/ResponsiveText';
@@ -24,13 +22,15 @@ import Reserve from './forms/Reserve';
 import { LoansProvider } from './forms/loan/LoansProvider';
 import { ReturnsProvider } from './forms/return/ReturnsProvider';
 import { AddAssetsProvider } from './forms/addAsset/AddAssetsProvider';
+import { AddUsersProvider } from './forms/addUser/AddUsersProvider';
+import { DelAssetsProvider } from './forms/delAsset/DelAssetsProvider';
 
 const formMap = {
     [formTypes.ADD_ASSET]: <AddAssetsProvider/>,
     [formTypes.LOAN]: <LoansProvider/>,
     [formTypes.RETURN]: <ReturnsProvider/>,
-    [formTypes.DEL_ASSET]: <CondemnAsset/>,
-    [formTypes.ADD_USER]: <AddUser/>,
+    [formTypes.DEL_ASSET]: <DelAssetsProvider/>,
+    [formTypes.ADD_USER]: <AddUsersProvider/>,
     [formTypes.DEL_USER]: <RemoveUser/>,
     [formTypes.ADD_PERIPHERAL]: <AddPeripheral/>,
     [formTypes.RESERVE]: <Reserve/>,

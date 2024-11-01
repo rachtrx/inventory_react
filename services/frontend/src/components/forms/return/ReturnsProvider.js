@@ -1,12 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
-import { createNewLoan } from "../loan/Loan";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { createNewAccessory, createNewReturn } from "./Return";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
+import { convertExcelDate } from "../utils/validation";
 
 // Create a context
 const ReturnsContext = createContext();
@@ -75,11 +75,18 @@ export const ReturnsProvider = ({ children }) => {
 
       records.forEach(record => {
           // Trim and add asset tags to the set
-          record.assetTag = record.assetTag?.trim();
-          if (record.assetTag) {
-              if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
-              else assetTags.add(record.assetTag);
-          } 
+          Object.keys(record).forEach(field => {
+            record[field] = field !== 'returnDate'
+              ? record[field]?.toString().trim()
+              : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
+          });
+  
+          ['assetTag'].forEach(field => {
+            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+          });
+          
+          if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
+          else assetTags.add(record.assetTag);
       });
 
       const assetResponse = await handleAssetSearch([...assetTags])
@@ -92,7 +99,7 @@ export const ReturnsProvider = ({ children }) => {
       const userIdSet = new Set();
       const newUserOptions = []
 
-      const returns = records.map(({assetTag}) => {
+      const returns = records.map(({assetTag, remarks, returnDate}) => {
         const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
 
         if (!matchedAssetOption) {
@@ -121,7 +128,9 @@ export const ReturnsProvider = ({ children }) => {
         return createNewReturn(
           assetObj,
           ongoingLoan.users,
-          ongoingLoan.accessories
+          ongoingLoan.accessories,
+          returnDate,
+          remarks,
         )
       })
 

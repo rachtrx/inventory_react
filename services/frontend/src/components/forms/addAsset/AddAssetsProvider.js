@@ -6,6 +6,7 @@ import assetService from "../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
+import { convertExcelDate } from "../utils/validation";
 
 export const createNewType = (type={}) => ({
   'key': uuidv4(),
@@ -27,7 +28,8 @@ export const createNewAsset = (asset={}) => ({
   'serialNumber': asset.serialNumber || '',
   'vendor': asset.vender || '',
   'cost': asset.cost || '',
-  'remarks': '',
+  'remarks': asset.remarks || '',
+  'addDate': asset.addDate || new Date(),
 })
 
 // Create a context
@@ -91,23 +93,24 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       const assetTags = new Set();
       const serialNumbers = new Set();
-      const typeSet = new Set();
       const subTypeSet = new Set();
 
       const recordsMap = {};
 
-      records.forEach((record, idx) => {
+      records.forEach((record) => {
 
         Object.keys(record).forEach(field => {
-          record[field] = record[field]?.trim();
+          record[field] = field !== 'addDate'
+            ? record[field]?.toString().trim()
+            : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
         });
 
-        const { type, subType, assetTag, serialNumber, vendor, cost, remarks } = record;
-
-        [type, subType, assetTag, serialNumber].forEach(field => {
-          if (!field) throw new Error(`Missing ${field} at index ${idx + 1}`);
+        ['type', 'subType', 'assetTag', 'serialNumber'].forEach(field => {
+          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
         });
 
+        const { type, subType, assetTag, serialNumber, vendor, cost, remarks, addDate } = record;
+        
         if (assetTags.has(assetTag)) throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
         else assetTags.add(assetTag);
         
@@ -115,13 +118,11 @@ export const AddAssetsProvider = ({ children }) => {
         else serialNumbers.add(serialNumber);     
 
         if (!recordsMap[type]) {
-          if (typeSet.has(type)) throw new Error(`Duplicate types are not allowed: ${type}`)
-          else typeSet.add(type);
           recordsMap[type] = {};
         }
         
         if (!recordsMap[type][subType]) {
-          if (subTypeSet.has(subType)) throw new Error(`Duplicate subTypes are not allowed: ${subType}`)
+          if (subTypeSet.has(subType)) throw new Error(`Error for ${subType}: Subtype names must be different across types`)
           else subTypeSet.add(subType);
           recordsMap[type][subType] = [];
         }
@@ -131,40 +132,41 @@ export const AddAssetsProvider = ({ children }) => {
           serialNumber,
           vendor,
           cost,
+          addDate,
           remarks
         });
       });
 
-      const typeIds = typeOptions.map(option => option.value);
+      const typeIds = typeOptions.map(option => option.typeId); // type options loaded upon form creation
 
       const subTypesResponse = await assetService.getSubTypeFilters(typeIds);
       const subTypeOptionsMap = subTypesResponse.data;
 
       const types = [];
 
-      Object.keys(recordsMap).forEach(type => {
+      Object.entries(recordsMap).forEach(([type, subTypeObjs]) => {
         const typeId = typeOptions.find(option => option.value === type) || '';
 
         const subTypes = [];
 
-        Object.keys(type).forEach(subType => {
+        Object.entries(subTypeObjs).forEach(([subType, assetObjs]) => {
           let subTypeId = '';
           if (typeId) {
             subTypeId = subTypeOptionsMap[typeId].find(option => option.value === subType);
           }
           
-          subTypes.push({
+          subTypes.push(createNewSubType({
             subTypeId: subTypeId,
             subTypeName: subType,
-            assets: subType.assets,
-          });
+            assets: assetObjs,
+          }));
         })
 
-        types.push({
+        types.push(createNewType({
           typeId: typeId,
           typeName: type,
           subTypes: subTypes,
-        })
+        }))
       })
 
       console.log(subTypeOptionsMap);

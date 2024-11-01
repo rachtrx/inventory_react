@@ -10,10 +10,10 @@ import { ResponsiveText } from "../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
 import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
-import DateInputControl from "../utils/DateInputControl"
 import { v4 as uuidv4 } from 'uuid';
 import { useLoans } from "./LoansProvider"
 import { createNewAccessory } from "./Loan"
+import DateInputControl from "../utils/DateInputControl"
 
 export const LoanAsset = function({ loanIndex, asset }) {
 
