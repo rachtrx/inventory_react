@@ -2,17 +2,7 @@ const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class AccLoan extends Model {
-
-        createAccLoanObject = function() {
-            return {
-                ...(this.returnEventId && { returnEventId: this.eventDate }),
-                ...(this.ReturnEvent && { returnDate: this.ReturnEvent.eventDate }),
-                ...(this.AccLoan && { accLoanId: this.id }),
-                ...(this.AccType && { accessoryName: this.AccType.accessoryName })
-            }
-        }
-    }
+	class AccLoan extends Model {}
 
 	AccLoan.init({
 		id: {
@@ -33,14 +23,9 @@ module.exports = (sequelize) => {
                 key: 'id'
             },
         },
-        returnEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-            allowNull: true,
-        },
+		count: {
+			type: DataTypes.INTEGER
+		}
 	}, {
 		sequelize,
 		modelName: 'AccLoan',

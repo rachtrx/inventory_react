@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const logger = require('../logging.js');
-const { sequelize, Usr, Admin } = require('../models/postgres');
+const { sequelize, Usr, Admin } = require('../models');
 const { generateToken } = require('../utils/jwtHelper.js');
 
 const createAdminObject = (admin) => ({

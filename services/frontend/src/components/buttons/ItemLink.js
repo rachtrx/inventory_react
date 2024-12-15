@@ -27,7 +27,7 @@ export const ItemLink = ({ item, isCopy=true, bg=null, ...props }) => {
             gap={1} 
             cursor="pointer"
             bg={bg || 'gray.200'}
-            p={0.5}
+            p={2}
             display="inline-flex"
             {...props}
         >

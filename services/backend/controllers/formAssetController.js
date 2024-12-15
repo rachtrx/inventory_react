@@ -1,4 +1,4 @@
-const { Ast, AstType, AstSType, Vendor } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
@@ -16,7 +16,7 @@ class FormAssetController {
         return res.json(assetTypes.map(a => a.typeName));
     };
     
-    async getAssetTypeVariants (req, res) {
+    async getVendors (req, res) {
         console.log(`Usr ID: ${req.session.userId}`);
         try {
             const vendors = await Vendor.findAll({
@@ -24,6 +24,19 @@ class FormAssetController {
                 order: [['vendorName', 'ASC']]
             });
             return res.json(vendors.map(v => v.vendorName));
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    };
+
+    async getAssetSubTypes (req, res) {
+        console.log(`Usr ID: ${req.session.userId}`);
+        try {
+            const sTypes = await AstSType.findAll({
+                attributes: [[sequelize.fn('DISTINCT', sequelize.col('subTypeName')), 'subTypeName']],
+                order: [['subTypeName', 'ASC']]
+            });
+            return res.json(sTypes.map(subType => subType.subTypeName));
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

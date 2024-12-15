@@ -6,7 +6,7 @@ import { useFormModal } from "../../../context/ModalProvider";
 import { createNewAccessory, createNewReturn } from "./Return";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
-import { convertExcelDate } from "../utils/validation";
+import { compareStrings, convertExcelDate } from "../utils/validation";
 
 // Create a context
 const ReturnsContext = createContext();
@@ -45,17 +45,23 @@ export const ReturnsProvider = ({ children }) => {
       const loadPresetValues = async () => {
         try {
           console.log(initialValues);
-          const {assetId, assetTag} = initialValues
+          const {assetId, assetTag} = initialValues;
           setAssetOptions([{value: assetTag, label: assetTag, assetId: assetId}]);
           const assetsDict = await fetchReturn([assetId]);
-          const ongoingLoan = assetsDict[assetId].ongoingLoan;
-          setUserOptions(ongoingLoan.users.map(user => ({value: user.userName, label: user.userName, userId: user.userId})))
+          console.log(assetsDict);
+          const loan = assetsDict[assetId].ongoingLoan?.loan;
+          const users = loan.userLoans.map(userLoan => userLoan.user)
+          setUserOptions(users.map(user => ({
+            value: user.userName, 
+            label: user.userName, 
+            userId: user.userId
+          })));
 
           setFormData({
             returns: [createNewReturn(
               {assetId, assetTag},
-              ongoingLoan.users,
-              ongoingLoan.accessories
+              users,
+              loan.accLoans
             )]
           });
         } catch (err) {
@@ -76,9 +82,7 @@ export const ReturnsProvider = ({ children }) => {
       records.forEach(record => {
           // Trim and add asset tags to the set
           Object.keys(record).forEach(field => {
-            record[field] = field !== 'returnDate'
-              ? record[field]?.toString().trim()
-              : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
+            record[field] = record[field]?.toString().trim();
           });
   
           ['assetTag'].forEach(field => {
@@ -99,8 +103,8 @@ export const ReturnsProvider = ({ children }) => {
       const userIdSet = new Set();
       const newUserOptions = []
 
-      const returns = records.map(({assetTag, remarks, returnDate}) => {
-        const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
+      const returns = records.map(({assetTag, remarks}) => {
+        const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, assetTag));
 
         if (!matchedAssetOption) {
           throw new Error(`Unable to find asset tag ${assetTag}`);
@@ -113,12 +117,14 @@ export const ReturnsProvider = ({ children }) => {
 
         const assetObj = {
           assetId: matchedAssetId,
-          assetTag: assetTag // Pass assetTag regardless of whether id is found
+          assetTag: matchedAssetOption?.value || assetTag // Pass assetTag regardless of whether id is found
         };
 
-        const ongoingLoan = assetsDict[matchedAssetId].ongoingLoan;
+        const loan = assetsDict[matchedAssetId].ongoingLoan.loan;
+        console.log(loan);
+        const users = loan.userLoans.map(userLoan => userLoan.user)
 
-        ongoingLoan.users.forEach(user => {
+        users.forEach(user => {
           if (!userIdSet.has(user.userId)) {
             newUserOptions.push({ value: user.userName, label: user.userName, userId: user.userId });
             userIdSet.add(user.userId);
@@ -127,9 +133,8 @@ export const ReturnsProvider = ({ children }) => {
 
         return createNewReturn(
           assetObj,
-          ongoingLoan.users,
-          ongoingLoan.accessories,
-          returnDate,
+          users.filter(user => userIdSet.has(user.userId)),
+          loan.accLoans,
           remarks,
         )
       })
@@ -161,7 +166,7 @@ export const ReturnsProvider = ({ children }) => {
 
       newUserReturns[ret.assetTag] = {
         assetId: ret.assetId,
-        accessories: ret.accessories,
+        accessoryTypes: ret.accessoryTypes,
         userIds: ret.users.userIds,
         userNames: ret.users.userNames,
       };

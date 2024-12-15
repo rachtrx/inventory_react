@@ -9,7 +9,7 @@ import assetService from "../../services/AssetService";
 export const AssetsPage = () => {
 
   return (
-    <ItemsProvider service={assetService}>
+    <ItemsProvider service={assetService} idField="assetId">
       <RecordsLayout
         header="Assets"
         Filters={AssetFilters}

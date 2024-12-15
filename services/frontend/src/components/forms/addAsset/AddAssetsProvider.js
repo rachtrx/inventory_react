@@ -6,7 +6,7 @@ import assetService from "../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
-import { convertExcelDate } from "../utils/validation";
+import { compareStrings, convertExcelDate } from "../utils/validation";
 
 export const createNewType = (type={}) => ({
   'key': uuidv4(),
@@ -26,7 +26,7 @@ export const createNewAsset = (asset={}) => ({
   'key': uuidv4(),
   'assetTag': asset.assetTag || '',
   'serialNumber': asset.serialNumber || '',
-  'vendor': asset.vender || '',
+  'vendorName': asset.vendorName || '',
   'cost': asset.cost || '',
   'remarks': asset.remarks || '',
   'addDate': asset.addDate || new Date(),
@@ -109,7 +109,7 @@ export const AddAssetsProvider = ({ children }) => {
           if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
         });
 
-        const { type, subType, assetTag, serialNumber, vendor, cost, remarks, addDate } = record;
+        const { type, subType, assetTag, serialNumber, vendorName, cost, remarks, addDate } = record;
         
         if (assetTags.has(assetTag)) throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
         else assetTags.add(assetTag);
@@ -130,7 +130,7 @@ export const AddAssetsProvider = ({ children }) => {
         recordsMap[type][subType].push({
           assetTag,
           serialNumber,
-          vendor,
+          vendorName,
           cost,
           addDate,
           remarks
@@ -144,27 +144,51 @@ export const AddAssetsProvider = ({ children }) => {
 
       const types = [];
 
-      Object.entries(recordsMap).forEach(([type, subTypeObjs]) => {
-        const typeId = typeOptions.find(option => option.value === type) || '';
+      Object.entries(recordsMap).forEach(([typeName, subTypeObjs]) => {
+        let typeId = '';
+        const type = typeOptions.find(option => compareStrings(option.value, typeName));
+        if (type) {
+          typeId = type.typeId;
+          typeName = type.value; // update the typename
+        }
 
         const subTypes = [];
 
-        Object.entries(subTypeObjs).forEach(([subType, assetObjs]) => {
+        Object.entries(subTypeObjs).forEach(([subTypeName, assetObjs]) => {
           let subTypeId = '';
           if (typeId) {
-            subTypeId = subTypeOptionsMap[typeId].find(option => option.value === subType);
+            const subType = subTypeOptionsMap[typeId].find(option => compareStrings(option.value, subTypeName));
+            if (subType) {
+              subTypeId = subType.subTypeId;
+              subTypeName = subType.value;
+            }
           }
+
+          const assets = assetObjs.map(asset => {
+            let vendorId = '';
+            let vendorName = asset.vendorName;
+            const vendor = vendorOptions.find(option => compareStrings(option.value, vendorName));
+            if (vendor) {
+              vendorId = vendor.vendorId;
+              vendorName = vendor.value; // update the typename
+            }
+            return {
+              ...asset,
+              vendorId,
+              vendorName
+            }
+          })
           
           subTypes.push(createNewSubType({
             subTypeId: subTypeId,
-            subTypeName: subType,
-            assets: assetObjs,
+            subTypeName: subTypeName,
+            assets: assets,
           }));
         })
 
         types.push(createNewType({
           typeId: typeId,
-          typeName: type,
+          typeName: typeName,
           subTypes: subTypes,
         }))
       })
@@ -194,7 +218,7 @@ export const AddAssetsProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      // await assetService.loanAsset(values);
+      await assetService.addAsset(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);

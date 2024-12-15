@@ -6,7 +6,7 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewDept, useAddUsers } from "./AddUsersProvider";
-import { validateUniqueValues } from "../utils/validation";
+import { compareDates, validateUniqueValues } from "../utils/validation";
 import { setFieldError } from "../utils/validation";
 import { AddDeptUsers } from "./AddDeptUsers";
 import { ResponsiveText } from "../../utils/ResponsiveText";
@@ -50,6 +50,10 @@ export const AddUserStep1 = () => {
           if (userNameError) {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'userName'], userNameError);
           }
+          
+          if (compareDates(user['addDate'])) {
+            setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'addDate'], "Date cannot be after today");
+          }
         })
       });
     
@@ -82,7 +86,6 @@ export const AddUserStep1 = () => {
                         dept={dept}
                         deptIndex={deptIndex}
                         deptHelpers={deptHelpers}
-                        isLast={deptIndex === array.length - 1}
                       >
                         {/* children are the helper functions */}
                         <Flex mt={2} gap={4} justifyContent="space-between">

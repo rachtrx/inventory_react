@@ -4,15 +4,17 @@ import {
     useColorModeValue,
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
-import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb } from 'react-icons/md'; // react-icons
+import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdEvent } from 'react-icons/md'; // react-icons
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { useCallback } from 'react';
 import authService from '../services/AuthService';
+import { useUI } from '../context/UIProvider';
 
 const Nav = () => {
   const navigate = useNavigate();
   const linkHoverColor = useColorModeValue('gray.800', 'white');
+  const {handleDevError} = useUI();
 
   return (
     <Flex
@@ -43,6 +45,10 @@ const Nav = () => {
 
       <Menu>
         <NavButton next={() => navigate('/users')} icon={<MdPeople />} label="Users" />
+      </Menu>
+
+      <Menu>
+        <NavButton next={handleDevError} icon={<MdEvent />} label="Reservations" />
       </Menu>
 
       <Menu>

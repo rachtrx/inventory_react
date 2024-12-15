@@ -16,6 +16,7 @@ const root = ReactDOM.createRoot(rootElement);
 const GlobalStyles = () => (
   <Global
     styles={css`
+          
 			.chakra-collapse {
 				overflow: visible !important;
 			}

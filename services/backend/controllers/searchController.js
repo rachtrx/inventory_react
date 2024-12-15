@@ -1,4 +1,4 @@
-const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType } = require('../models/postgres');
+const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType } = require('../models');
 
 class SearchController {
 

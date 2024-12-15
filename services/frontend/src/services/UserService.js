@@ -24,7 +24,7 @@ class UserService {
         return await this.axios.post(`${API_URL}/users`, {filters});
     }
     
-    async update(id, field, newValue) {
+    async updateItem(id, field, newValue) {
         return await this.axios.patch(`${API_URL}/users/update`, {id, field, newValue});
     }
 

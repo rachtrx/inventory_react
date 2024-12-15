@@ -60,12 +60,14 @@ class AssetService {
         return await this.axios.post(`${API_URL}/forms/return`, formData);
     }
 
-    async addAsset(asset) {
-        return await this.axios.post(`${API_URL}/assets/add`, asset);;
+    async addAsset(formData) {
+        // downloadFormData(formData);
+        return await this.axios.post(`${API_URL}/assets/add`, formData);;
     }
 
-    async condemnAsset(assetIds) {
-        return await this.axios.delete(`${API_URL}/assets/condemn`, assetIds);;
+    async delAsset(formData) {
+        downloadFormData(formData);
+        return await this.axios.delete(`${API_URL}/assets/condemn`, formData);;
     }
 
     async searchAssets(value, formType, mode) {

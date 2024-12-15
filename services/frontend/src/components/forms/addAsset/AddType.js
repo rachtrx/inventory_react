@@ -16,7 +16,11 @@ export const AddType = ({type, typeIndex, children}) => {
 	const { setFieldValue } = useFormikContext();
 
     const handleTypeUpdate = async (selected) => {
+        console.log(selected?.typeId);
+        console.log(type?.typeId);
+
         if (!selected || selected.typeId) { // IMPT dont update for new created types
+
             setFieldValue(`types.${typeIndex}.typeId`, selected?.typeId || '');
             setFieldValue(`types.${typeIndex}.subTypes`, [createNewSubType()]);
 

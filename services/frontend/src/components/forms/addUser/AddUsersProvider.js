@@ -7,7 +7,7 @@ import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import userService from "../../../services/UserService";
-import { convertExcelDate } from "../utils/validation";
+import { compareStrings, convertExcelDate } from "../utils/validation";
 
 export const createNewDept = (dept={}) => ({
   'key': uuidv4(),
@@ -102,11 +102,11 @@ export const AddUsersProvider = ({ children }) => {
       const depts = [];
 
       Object.entries(recordsMap).forEach(([deptName, users]) => {
-        const deptId = deptOptions.find(option => option.value === deptName) || '';
+        const dept = deptOptions.find(option => compareStrings(option.value, deptName)) || '';
 
         depts.push(createNewDept({
-          deptId: deptId,
-          deptName: deptName,
+          deptId: dept?.deptId || '',
+          deptName: dept?.deptName || deptName,
           users: users,
         }))
       })

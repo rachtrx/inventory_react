@@ -54,7 +54,7 @@ function excelDateToJSDate(serial) {
 
 function parseDateString(dateStr) {
     const [day, month, year] = dateStr.split('/').map(Number);
-    return new Date(year, month - 1, day); // month is zero-indexed in JavaScript
+    return new Date(Date.UTC(year, month - 1, day)); // month is zero-indexed in JavaScript
 }
 
 export function convertExcelDate(value, rowNum=null) {
@@ -65,4 +65,16 @@ export function convertExcelDate(value, rowNum=null) {
     } else {
         throw new Error(`Invalid date format ${value}${rowNum !== null ? ` at line ${rowNum}` : ''}`);
     }
+}
+
+export function compareDates(date1, date2=new Date()) {
+    // console.log(date1.setHours(0, 0, 0, 0));
+    // console.log(date2.setHours(0, 0, 0, 0));
+    return date1.setHours(0, 0, 0, 0) > date2.setHours(0, 0, 0, 0);
+}
+
+export function compareStrings(str1, str2) {
+    // console.log(str1.trim().toLowerCase());
+    // console.log(str2.trim().toLowerCase());
+    return str1.trim().toLowerCase() === str2.trim().toLowerCase();
 }

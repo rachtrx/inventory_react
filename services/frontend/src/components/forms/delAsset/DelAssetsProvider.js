@@ -6,9 +6,9 @@ import assetService from "../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
-import { convertExcelDate } from "../utils/validation";
+import { compareStrings, convertExcelDate } from "../utils/validation";
 
-export const createNewAsset = (asset={}) => ({
+export const delNewAsset = (asset={}) => ({
   'key': uuidv4(),
   'assetId': asset.assetId || '',
   'assetTag': asset.assetTag || '',
@@ -30,7 +30,7 @@ export const DelAssetsProvider = ({ children }) => {
   const [assetOptions, setAssetOptions] = useState([]);
 
   const [formData, setFormData] = useState({
-    assets: [createNewAsset()],
+    assets: [delNewAsset()],
   });
   const [step, setStep] = useState(1);
 
@@ -44,7 +44,7 @@ export const DelAssetsProvider = ({ children }) => {
       }
       
       setFormData({
-        assets: [createNewAsset(asset)]
+        assets: [delNewAsset(asset)]
       });
     }
   }, [initialValues, setFormData]);
@@ -77,7 +77,7 @@ export const DelAssetsProvider = ({ children }) => {
 
       const assets = records.map((record) => {
         const { assetTag, remarks, delDate } = record;
-        const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
+        const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, assetTag));
         
         return {
             assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
@@ -89,7 +89,7 @@ export const DelAssetsProvider = ({ children }) => {
       })
     
       setFormData({
-        assets: assets.map(asset => createNewAsset(asset))
+        assets: assets.map(asset => delNewAsset(asset))
       });
 
     } catch (error) {
@@ -130,7 +130,7 @@ export const DelAssetsProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      // await assetService.loanAsset(values);
+      await assetService.delAsset(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);

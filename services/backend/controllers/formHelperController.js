@@ -1,4 +1,4 @@
-const { Ast } = require('../models/postgres');
+const { Ast } = require('../models');
 // const { Event } = require('../models/mongo');
 
 class FormHelperController {

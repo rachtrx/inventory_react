@@ -38,7 +38,7 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 			/>
 			<CreatableSingleSelectFormControl
 				label={`Vendor`} 
-				name={`${field}.vendor`} 
+				name={`${field}.vendorName`} 
 				updateFields={(selected) => setFieldValue(`${field}.vendorId`, selected?.vendorId || '')}
 				initialOptions={vendorOptions} 
 				placeholder="Enter vendor" 

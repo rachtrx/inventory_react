@@ -6,7 +6,7 @@ import assetService from "../../../services/AssetService";
 import { createNewLoan } from "./Loan";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
-import { convertExcelDate } from "../utils/validation";
+import { compareStrings, convertExcelDate } from "../utils/validation";
 
 // Create a context
 const LoansContext = createContext();
@@ -93,21 +93,9 @@ export const LoansProvider = ({ children }) => {
               accessoryNames.add(name);
               return { accessoryName: name, count: count };
           });
-
-          if (
-            record.loanDate && 
-            record.expectedReturnDate && 
-            typeof record.loanDate !== typeof record.expectedReturnDate // Excel will treat Date type as Number 
-          ) {
-            throw new Error(`Data Type mismatch between Est. Return Date and Loan Date at line ${record.__rowNum__}. Hint: Check excel column formatting and set both columns to "Text" instead of "General" or "Date".`);
-          } 
-          
-          if (!record.loanDate) record.loanDate = new Date()
-          else record.loanDate = convertExcelDate(record.loanDate, record.__rowNum__); // TODO pass in recordIdx too to inform user about any errors?
           
           if (record.expectedReturnDate) {
             record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
-            if (record.expectedReturnDate < record.loanDate) throw new Error(`Est. Return Date earlier than Loan Date at line ${record.__rowNum__}. Hint: Excel sets dates in the form MM/dd/YYYY instead of dd/MM/YYYY. Try setting column types to "Text" instead of "General" or "Date".`);
           }
         });
 
@@ -129,29 +117,29 @@ export const LoansProvider = ({ children }) => {
         // Convert grouped records into loans
         const loans = records.map(({ assetTag, userNames, accessoryTypes, expectedReturnDate, remarks }) => {
             // Find the asset ID based on assetTag
-            const matchedAssetOption = newAssetOptions.find(option => option.value === assetTag);
+            const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, assetTag));
             console.log(matchedAssetOption);
             const assetObj = {
-                assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
-                assetTag: assetTag // Pass assetTag regardless of whether id is found
+                assetId: matchedAssetOption ? matchedAssetOption.assetId : '',
+                assetTag: matchedAssetOption?.value || assetTag // Pass assetTag regardless of whether id is found
             };
         
             // Find the user IDs based on userNames (assuming userNames is an array of names)
             const userObjs = userNames.map(userName => {
-                const matchedUserOption = newUserOptions.find(option => option.value === userName);
+                const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
                 console.log(matchedUserOption);
                 return {
-                    userId: matchedUserOption ? matchedUserOption.userId : null,
-                    userName: userName // Pass userName regardless of whether id is found
+                    userId: matchedUserOption ? matchedUserOption.userId : '',
+                    userName: matchedUserOption?.value || userName // Pass userName regardless of whether id is found
                 };
             });
         
             // Find the accessoryType IDs based on accessoryType names (assuming accessoryTypes is an array of names)
             const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
-                const matchedAccessoryOption = newAccessoryoptions.find(option => option.value === accessoryName);
+                const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
                 return {
-                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.accessoryTypeId : accessoryName,
-                  accessoryName: accessoryName, // Pass accessoryName regardless of whether id is found
+                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.accessoryTypeId : '',
+                  accessoryName: matchedAccessoryOption?.value || accessoryName, // Pass accessoryName regardless of whether id is found
                   count: count
                 };
             });

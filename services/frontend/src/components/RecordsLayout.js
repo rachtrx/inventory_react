@@ -12,10 +12,12 @@ import { FaDownload } from 'react-icons/fa';
 import { useResponsive } from '../context/ResponsiveProvider';
 
 import { useItems } from '../context/ItemsProvider';
+import { useUI } from '../context/UIProvider';
 
 export default function RecordsLayout({ header, Filters, Actions, Cards, Table }) {
 
   const { headerSize, isIpad, isMobile } = useResponsive()
+  const { handleDevError } = useUI();
 
   const { items, loading, error } = useItems();
 
@@ -49,10 +51,10 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           >
             <Heading as="h1" size={headerSize}>{header}</Heading>
             <Actions/>
-            { isIpad ? (<Button colorScheme="blue" iconSpacing={0}>
+            { isIpad ? (<Button colorScheme="blue" iconSpacing={0} onClick={handleDevError}>
               <FaDownload/>
             </Button>) : (
-              <Button colorScheme="blue">Export to Excel</Button>
+              <Button colorScheme="blue" onClick={handleDevError}>Export to Excel</Button>
             )}
           </Flex>
         </Box>

@@ -1,4 +1,4 @@
-const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize } = require('../models/postgres');
+const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController.js');
 

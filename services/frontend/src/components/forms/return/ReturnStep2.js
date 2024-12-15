@@ -52,13 +52,13 @@ export const ReturnStep2 = () => {
 						)}
 
 						{/* Display Accessories Associated with This Asset */}
-						{assetReturn.accessories.length > 0 && (
+						{assetReturn.accessoryTypes.length > 0 && (
 						<Box mt={2}>
 							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
 							<UnorderedList>
-							{assetReturn.accessories.map(accessory => (
-								<ListItem key={accessory.accessoryTypeId}>
-								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryLoanIds.length} returned
+							{assetReturn.accessoryTypes.map(accessoryType => (
+								<ListItem key={accessoryType.accessoryTypeId}>
+								{accessoryType.accessoryName} - {accessoryType.count}/{accessoryType.unreturned} returned
 								</ListItem>
 							))}
 							</UnorderedList>

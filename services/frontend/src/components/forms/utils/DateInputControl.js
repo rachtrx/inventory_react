@@ -21,7 +21,10 @@ const DateInputControl = ({ label, name }) => {
     setFieldTouched(name, true);
   }
 
-  useEffect(() => console.log(meta.error), [meta.error])
+  useEffect(() => {
+    console.log(meta.error);
+    console.log(meta.touched);
+  }, [meta])
 
   return (
     <FormControl isInvalid={meta.touched && !!meta.error}>
@@ -32,6 +35,7 @@ const DateInputControl = ({ label, name }) => {
         onChange={val => setValue(name, val)}
         customInput={<Input />}
         dateFormat="MMMM d, yyyy"
+        portal 
       />
       {meta.error && (
         <FormErrorMessage>{meta.error}</FormErrorMessage>

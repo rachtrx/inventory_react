@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, useContext, useState, useCallback } from 'react';
+import React, { createContext, useReducer, useEffect, useContext, useState, useCallback, useRef } from 'react';
 import { useUI } from './UIProvider';
 import assetService from '../services/AssetService';
 import userService from '../services/UserService';
@@ -134,9 +134,11 @@ export const ModalProvider = ({ children }) => {
   const [ formType, setFormType ] = useState(null);
   const [ initialValues, setInitialValues ] = useState(null);
   const { setLoading } = useUI();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (!formType) setInitialValues(null);
+    isFirstRender.current = true;
   }, [formType]);
 
   console.log("Modal rendered");
@@ -156,13 +158,34 @@ export const ModalProvider = ({ children }) => {
     return await accessoryService.searchAccessories(value);
   }, []);
 
-  const reinitializeForm = useCallback((formRef, newValues) => {
-    if (formRef.current) {
-      formRef.current.setTouched({});
-      formRef.current.setValues(newValues);
-      formRef.current.validateForm();
+  const createTouchedStructure = useCallback((values) => {
+    if (Array.isArray(values)) {
+      return values.map((item) => createTouchedStructure(item));
+    } else if (typeof values === 'object' && values !== null) {
+      return Object.keys(values).reduce((acc, key) => {
+        acc[key] = createTouchedStructure(values[key]);
+        return acc;
+      }, {});
+    } else {
+      return true;
     }
   }, []);
+
+  const reinitializeForm = (formRef, newValues) => {
+    if (formRef.current) {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
+
+      formRef.current.setValues(newValues);
+
+      const touchedFields = createTouchedStructure(newValues);
+      formRef.current.setTouched(touchedFields, true);
+
+      formRef.current.validateForm();
+    }
+  };
 
   return (
     <ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch, isModalOpen, onModalOpen, onModalClose, reinitializeForm }}>

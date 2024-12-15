@@ -5,7 +5,7 @@ import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createNewAsset, useDelAssets } from "./DelAssetsProvider";
+import { delNewAsset, useDelAssets } from "./DelAssetsProvider";
 import { validateUniqueValues } from "../utils/validation";
 import { setFieldError } from "../utils/validation";
 import { ResponsiveText } from "../../utils/ResponsiveText";
@@ -25,7 +25,8 @@ export const DelAssetStep1 = () => {
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
     
-    const validateField = (fieldDuplicates, fieldValue, fieldName) => {
+    const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
+      if (fieldValue && !idValue) return `${fieldName} not found`;
       if (fieldDuplicates.has(fieldValue)) return `${fieldName}s should be unique`;
       if (!fieldValue || fieldValue === '') return `${fieldName} is Required`;
       return null;
@@ -38,18 +39,21 @@ export const DelAssetStep1 = () => {
       const atDuplicates = validateUniqueValues(values.assets, ['assetTag']);
 
       values.assets.forEach((asset, assetIndex) => {
-        const atError = validateField(atDuplicates, asset['assetTag'], "Asset Tag");
+        const atError = validateFieldWithId(atDuplicates, asset['assetTag'], asset['assetId'], "Asset Tag");
         if (atError) {
           setFieldError(errors, ['assets', assetIndex, 'assetTag'], atError);
         }
 
-        if (asset.assetTag && !asset.lastEventDate) setFieldError(errors, ['assets', assetIndex, 'delDate'], "Error retrieving last event date");
+        if (asset.assetId && !asset.lastEventDate) setFieldError(errors, ['assets', assetIndex, 'delDate'], "Error retrieving last event date");
 
-        if (asset.lastEventDate > asset.delDate) {
-          setFieldError(errors, ['assets', assetIndex, 'delDate'], `Last event date ${asset.lastEventDate} > Delete date`); // TODO convert to string
+        console.log(asset.lastEventDate);
+        console.log(asset.delDate);
+        if (new Date(asset.lastEventDate) > asset.delDate) {
+          setFieldError(errors, ['assets', assetIndex, 'delDate'], `Date must be after last event date ${asset.lastEventDate}`); // TODO convert to string
         }
       });
     
+      console.log(errors);
       return errors;
     };
   
@@ -78,7 +82,6 @@ export const DelAssetStep1 = () => {
                         key={asset.key}
                         field={`assets.${assetIndex}`}
                         asset={asset}
-                        isLast={assetIndex === array.length - 1}
                       >
                         {/* children are the helper functions */}
                         <Flex mt={2} gap={4} justifyContent="space-between">
@@ -96,7 +99,7 @@ export const DelAssetStep1 = () => {
                         <Divider borderColor="black" borderWidth="2px" my={4} />
                         {assetIndex === array.length - 1 && (
                         <AddButton
-                            handleClick={() => assetHelpers.push(createNewAsset())}
+                            handleClick={() => assetHelpers.push(delNewAsset())}
                             label="Add Asset"
                         />
                         )}

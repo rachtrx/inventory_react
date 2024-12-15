@@ -2,26 +2,29 @@ import { CheckIcon, EditIcon } from "@chakra-ui/icons";
 import { Button, Input, Text, Textarea } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
 
-function EditableField({ label, fieldKey,	value, handleSave }) {
+function EditableField({ label, fieldKey, value }) {
 
-	const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
+	const { editKey, editedValue, handleEdit, handleChange, handleSave } = useDrawer()
 
 	return (
 		<>
 			<Text fontSize="md">{label}:</Text>
-			<Text fontSize="md">{editKey === fieldKey ? 
-			label === 'Remarks' ? (
-				<Textarea
-					value={editedValue}
-					onChange={e => handleChange(e)}
-					autoFocus
-				/>) : (
-				<Input
-					value={editedValue}
-					onChange={e => handleChange(e)}
-					autoFocus
-				/>
-			) : value}</Text>
+			<Text fontSize="md">
+				{editKey === fieldKey ? 
+					label === 'Remarks' ? (
+						<Textarea
+							value={editedValue}
+							onChange={e => handleChange(e)}
+							autoFocus
+					/>) : (
+						<Input
+							value={editedValue}
+							onChange={e => handleChange(e)}
+							autoFocus
+						/>
+					) : value
+				}
+			</Text>
 			{editKey === fieldKey ? (
 				<Button leftIcon={<CheckIcon />} colorScheme="green" onClick={() => handleSave()}>
 					Save

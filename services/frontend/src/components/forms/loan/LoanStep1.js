@@ -53,15 +53,16 @@ export const LoanStep1 = () => {
       return duplicates;
     };
   
-    const validateUniqueAccessoryNames = (accessories) => {
-      const accessoryNameSet = new Set();
+    const validateUniqueAccessoryIDs = (accessories) => {
+      const accessoryIDSet = new Set();
       const duplicates = new Set();
       accessories.forEach(accessory => {
-        if (accessory['accessoryName'] === '') return;
-          if (accessoryNameSet.has(accessory['accessoryName'])) {
-            duplicates.add(accessory['accessoryName']);
-          }
-          accessoryNameSet.add(accessory['accessoryName']);
+        if (accessory['accessoryTypeId'] === '') return;
+
+        if (accessoryIDSet.has(accessory['accessoryTypeId'])) {
+          duplicates.add(accessory['accessoryTypeId']);
+        }
+        accessoryIDSet.add(accessory['accessoryTypeId']);
       });
       // console.log('Duplicate Accessories');
       // console.log(duplicates);
@@ -83,8 +84,8 @@ export const LoanStep1 = () => {
       return null;
     };
     
-    const validateAccessory = (accessory, accessoryNameDuplicates) => {
-      if (accessoryNameDuplicates.has(accessory['accessoryName'])) return 'Accessories must be unique'; // TODO maybe indicate with isNew on SelectFormControl
+    const validateAccessory = (accessory, accessoryIDDuplicates) => {
+      if (accessoryIDDuplicates.has(accessory['accessoryTypeId'])) return 'Accessories must be unique'; // TODO maybe indicate with isNew on SelectFormControl
       if (!accessory['accessoryName']) return 'Accessory is Required';
       return null;
     };
@@ -93,9 +94,9 @@ export const LoanStep1 = () => {
     const generateWarnings = (loans, newAccessories) => {
       return loans.reduce((acc, loan, loanIndex) => {
           loan.asset.accessories.forEach((accessory, accessoryIndex) => {
-            if (newAccessories[accessory.id]) {
-              setFieldError(acc, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryTypeName'], 
-                `New accessory will be created (${newAccessories[accessory.id]}x found in this form)`);
+            if (newAccessories[accessory.accessoryName]) {
+              setFieldError(acc, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], 
+                `New accessory will be created (${newAccessories[accessory.accessoryName]}x found in this form)`);
             }
           });
         return acc;
@@ -112,10 +113,8 @@ export const LoanStep1 = () => {
       values.loans.forEach((loan, loanIndex) => {
         const mode = loan.mode;
 
-        if(!loan.loanDate) setFieldError(errors, ['loans', loanIndex, 'loanDate'], 'Loan Date Required');
-        else if (loan.expectedReturnDate && loan.expectedReturnDate < loan.loanDate) {
-          setFieldError(errors, ['loans', loanIndex, 'expectedReturnDate'], 'Est. Return Date < Loan Date');
-          setFieldError(errors, ['loans', loanIndex, 'loanDate'], 'Loan Date > Est. Return Date');
+        if (loan.expectedReturnDate && loan.expectedReturnDate < new Date()) {
+          setFieldError(errors, ['loans', loanIndex, 'expectedReturnDate'], 'Only future dates allowed');
         }
   
         // Validate unique User IDs within each loan
@@ -134,15 +133,15 @@ export const LoanStep1 = () => {
 				}
 	
 				// Validate unique Accessory IDs within each asset
-				const accessoryIDDuplicates = validateUniqueAccessoryNames(loan.asset.accessories);
+				const accessoryIDDuplicates = validateUniqueAccessoryIDs(loan.asset.accessories);
 				loan.asset.accessories.forEach((accessory, accessoryIndex) => {
 					const accessoryError = validateAccessory(accessory, accessoryIDDuplicates);
 					if (accessoryError) {
 						setFieldError(errors, ['loans', loanIndex, 'asset', 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
 					}
 					// Track new accessories for warnings
-					if (accessory.id !== '' && (accessory.id !== accessory.accessoryName)) {
-						newAccessories[accessory.id] = (newAccessories[accessory.id] || 0) + parseInt(accessory.count, 10);
+					if (accessory.id === '' && accessory.accessoryName) {
+						newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
 					}
 				});
       });

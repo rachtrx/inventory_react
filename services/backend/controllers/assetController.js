@@ -1,7 +1,9 @@
-const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, AccType, AccLoan, Loan } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, AccType, AccLoan, AccReturn, Loan, Admin, Rmk } = require('../models/index.js');
 const { Op } = require('sequelize');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
+const AssetDTO = require('../dtos/ast.dto.js');
+const EventDTO = require('../dtos/event.dto.js');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -10,6 +12,24 @@ const dateTimeObject = {
     day: 'numeric',
     month: 'short',
     year: '2-digit'
+}
+class AssetAction {
+    static ADD = 'AVAILABLE';
+    static LOAN = 'LOAN';
+    static RETURN = 'RETURN';
+    static RESERVE = 'RESERVE';
+    static CANCEL = 'CANCEL';
+    static DELETED = 'DELETED';
+  
+    // Convert a string to enum (e.g., 'available' -> StatusEnum.AVAILABLE)
+    static fromString(status) {
+      return Object.values(AssetAction).includes(status) ? status : null;
+    }
+  
+    // Convert an enum to string (if needed)
+    static toString(enumValue) {
+      return Object.values(AssetAction).includes(enumValue) ? enumValue : null;
+    }
 }
 class AssetController {
 
@@ -202,11 +222,12 @@ class AssetController {
                 });
             }
     
-            const result = query.map(asset => {
-                return asset.createAssetObject();
+            const result = query.map(assetRow => {
+                const asset = new AssetDTO(assetRow);
+                return asset;
             });
     
-            // logger.info(result.slice(100, 110));
+            logger.info(result.slice(100, 110));
             res.json(result);
         } catch (error) {
             logger.error(error)
@@ -374,7 +395,7 @@ class AssetController {
                     description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
                     shared: shared,
                     isDisabled: disabled, // Disable if not in valid statuses or already included
-                    lastEventDate
+                    lastEventDate,
                 };
             })
     
@@ -386,7 +407,7 @@ class AssetController {
         }
     };
     
-    async getAsset (req, res) {
+    getAsset = async (req, res) => {
         const assetId = req.params.id;
     
         try {
@@ -415,85 +436,273 @@ class AssetController {
                     {
                         model: Event,
                         as: 'AddEvent',
-                        attributes: ['eventDate']
+                        attributes: ['id', 'eventDate'],
+                        include: [
+                            {
+                                model: Admin,
+                                attributes: ['adminName']
+                            },
+                            {
+                                model: Rmk,
+                                attributes: ['text', 'remarkDate'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['adminName']
+                                }
+                            }
+                        ]
                     },
                     {
                         model: Event,
                         as: 'DeleteEvent',
-                        attributes: ['eventDate'],
+                        attributes: ['id', 'eventDate'],
                         required: false,
-                    },
-                    {
-                        model: AstLoan,
-                        attributes: ['id'],
                         include: [
                             {
-
-                                model: Loan,
-                                attributes: ['expectedLoanDate', 'expectedReturnDate'],
-                                include: [
-                                    {
-                                        model: Event,
-                                        as: 'ReserveEvent',
-                                        attributes: ['eventDate'],
-                                        required: false
-                                    },
-                                    {
-                                        model: Event,
-                                        as: 'CancelEvent',
-                                        attributes: ['eventDate'],
-                                        required: false
-                                    },
-                                    {
-                                        model: Event,
-                                        as: 'LoanEvent',
-                                        attributes: ['eventDate'],
-                                        required: false,
-                                    },
-                                    {
-                                        model: UsrLoan,
-                                        attributes: ['filepath'],
-                                        include: {
-                                            model: Usr,
-                                            attributes: ['id', 'userName', 'bookmarked']
-                                        }
-                                    },
-                                    {
-                                        model: AccLoan,
-                                        attributes: ['id'],
-                                        include: {
-                                            model: AccType,
-                                            attributes: ['id', 'accessoryName'],
-                                        },
-                                        where: { returnEventId: null },
-                                        required: false,
-                                    },
-                                ],
+                                model: Admin,
+                                attributes: ['adminName']
                             },
                             {
-                                model: Event,
-                                attributes: ['eventDate'],
-                                required: false,
-                            },
-                        ],
-                        required: false
+                                model: Rmk,
+                                attributes: ['text', 'remarkDate'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['adminName']
+                                }
+                            }
+                        ]
                     }
                 ],
                 where: { id: assetId }
             });
-    
+            
             if (!assetDetails) return res.status(404).send({ error: "Ast not found" });
-    
-            const asset = assetDetails.createAssetObject()
-    
+            
+            const asset = new AssetDTO(assetDetails);
+
+            const events = await this.getAllEvents(asset.assetId);
+
+            asset.loans = await this.getAllLoans(asset.assetId);
+
+            if (asset.loans && asset.loans.length > 0) {
+
+                asset.currentUsers = asset.loans.find(
+                    loan => loan.loanEvent !== null && !loan.returnEvents.some(event => event.isAsset === true)
+                )?.users || [];
+
+                asset.pastUsers = Array.from(
+                    new Map(
+                        asset.loans
+                            .filter(loan => loan.loanEvent !== null && loan.returnEvents.some(event => event.isAsset === true))
+                            .map(loan => loan.usrLoans)
+                            .map(usrLoans => usrLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
+                    ).values
+                );
+            }
+
             logger.info('Details for Ast:', asset);
-    
             res.json(asset);
         } catch (error) {
             logger.error("Error fetching asset details:", error);
             res.status(500).send({ error: "Internal server error" });
         }
     };
+
+    async getAllEvents(assetId) {
+        const eventRows = await Event.findAll({
+            attributes: ['id', 'adminId', 'eventDate'],
+            where: {
+                [Op.or]: [
+                    { '$AddedAsset.id$': assetId },
+                    { '$DeletedAsset.id$': assetId },
+                    { '$Loan->AstLoan.asset_id$': assetId },
+                    { '$Reservation->AstLoan.asset_id$': assetId }
+                ]
+            },
+            include: [
+                {
+                    model: Rmk,
+                    attributes: ['id', 'text'],
+                    include: {
+                        model: Admin,
+                        attributes: ['id', 'adminName'],
+                        required: false
+                    },
+                    required: false
+                },
+                {
+                    model: Admin,
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: Ast,
+                    as: 'AddedAsset',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: Ast,
+                    as: 'DeletedAsset',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: Loan,
+                    as: 'Loan',
+                    required: false,
+                    include: [
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            include: {
+                                model: Event,
+                                as: 'ReturnEvent',
+                                attributes: ['id', 'eventDate'],
+                                required: false
+                            }
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName']
+                                },
+                                {
+                                    model: AccReturn,
+                                    attributes: ['id', 'count'],
+                                    include: {
+                                        model: Event,
+                                        as: 'ReturnEvent',
+                                        attributes: ['id', 'eventDate'],
+                                        required: false
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    model: Loan,
+                    required: false,
+                    as: 'Reservation',
+                    include: [
+                        {
+                            model: Event,
+                            as: 'CancelEvent',
+                            attributes: ['id', 'eventDate'],
+                            required: false
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            order: [['eventDate', 'ASC']]
+        });
+
+        const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects
+        logger.info(events);
+
+        return eventRows;
+    }
+
+    async getAllLoans(assetId) {
+
+        const loanRows = await Loan.findAll({
+            attributes: ['id', 'reserveEventId', 'cancelEventId', 'loanEventId', 'expectedLoanDate', 'expectedReturnDate'],
+            include: [
+                {
+                    model: AstLoan,
+                    attributes: ['id', 'returnEventId'],
+                    where: { assetId }, // ensures only one for each
+                    include: [
+                        {
+                            model: Event,
+                            as: 'ReturnEvent',
+                            attributes: ['id', 'eventDate'],
+                            required: false,
+                        },
+                    ],
+                    required: false
+                },
+                {
+                    model: AccLoan,
+                    attributes: ['id', 'count'],
+                    include: [
+                        {
+                            model: AccType,
+                            attributes: ['id', 'accessoryName'],
+                        },
+                        {
+                            model: AccReturn,
+                            attributes: ['id', 'count'],
+                            include: {
+                                model: Event,
+                                as: 'ReturnEvent',
+                                attributes: ['id', 'eventDate'],
+                                required: false,
+                            }
+                        }
+                    ],
+                    required: false,
+                },
+                {
+                    model: Event,
+                    as: 'ReserveEvent',
+                    attributes: ['id', 'eventDate'],
+                    required: false,
+                },
+                {
+                    model: Event,
+                    as: 'CancelEvent',
+                    attributes: ['id', 'eventDate'],
+                    required: false,
+                },
+                {
+                    model: Event,
+                    as: 'LoanEvent',
+                    attributes: ['id', 'eventDate'],
+                    required: false,
+                },
+                {
+                    model: UsrLoan,
+                    attributes: ['filepath'],
+                    include: {
+                        model: Usr,
+                        attributes: ['id', 'userName', 'bookmarked']
+                    }
+                }
+            ]
+        });
+        
+        const loans = loanRows.map(loanRow => {
+            new LoanDTO(loanRow);
+        })
+
+        loans.sort((a, b) => 
+            new Date(a.reserveEvent?.eventDate || a.loanEvent?.eventDate) - 
+            new Date(b.reserveEvent?.eventDate || b.loanEvent?.eventDate)
+        );
+
+        return loans;
+    }
     
     async updateAsset(req, res) {
         const { id, field, newValue } = req.body;

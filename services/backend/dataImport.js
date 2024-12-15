@@ -1,4 +1,4 @@
-const db = require('./models/postgres');
+const db = require('./models');
 const data = require('./data_export.json');
 const fs = require('fs');
 const { generateSecureID } = require('./utils/nanoidValidation');

@@ -1,4 +1,4 @@
-const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType, UsrLoan, AstLoan, Event } = require('../models/postgres/index.js');
+const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType, UsrLoan, AstLoan, Event } = require('../models/index.js');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
@@ -117,9 +117,9 @@ class AccessoryController {
         res.status(200).json({ message: 'Acc created successfully' });
     }
 
-    getType = async (accTypeId, options = {}) => {
+    getType = async (accessoryTypeId, options = {}) => {
         return await AccType.findOne({
-            where: { id: accTypeId },
+            where: { id: accessoryTypeId },
             ...options
         });
     }
@@ -230,7 +230,7 @@ class AccessoryController {
             });
 
             const result = query.map(accType => {
-                return accType.createAccessoryTypeObject();
+                // return accType.createAccessoryTypeObject();
             });
     
             logger.info(result);

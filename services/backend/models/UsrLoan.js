@@ -1,19 +1,10 @@
-const logger = require('../../logging.js');
+const logger = require('../logging.js');
 const Sequelize = require('sequelize');
 const AstLoan = require('./AstLoan.js');
 const { DataTypes, Model } = Sequelize;
 
 module.exports = (sequelize) => {
-	class UsrLoan extends Model { 
-
-		createUserLoanObject = function() {
-
-			return {
-				...(this.Usr ? { ...this.Usr.createUserObject() } : {}),
-				...(this.Loan && this.Loan.createLoanObject()),
-			}
-		}
-	}
+	class UsrLoan extends Model {}
 
 	UsrLoan.init({
 		id: {

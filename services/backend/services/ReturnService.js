@@ -3,7 +3,8 @@ const ValidationService = require("./ValidationService");
 const logger = require('../logging.js');
 const { generateSecureID } = require("../utils/nanoidValidation.js");
 const { getSingaporeDateTime } = require("../utils/utils.js");
-const { Event, Rmk, Ast, AccLoan } = require("../models/postgres/index.js");
+const { Event, Rmk, Ast, AccLoan, AccReturn } = require("../models/index.js");
+const AssetDTO = require("../dtos/ast.dto.js");
 
 class ReturnService extends ValidationService{
 
@@ -16,52 +17,42 @@ class ReturnService extends ValidationService{
     async processReturns() {
         await Promise.all(
             this.returns.map(async _return => {
-                const asset = await this.validate(_return);
-                await this.returnAsset(asset);
+                const validatedAssetRow = await this.validate(_return);
+                await this.returnAsset(validatedAssetRow, _return);
             })
         );
     }
 
     async validate(_return) {
-        const { assetId, assetTag, users, accessories } = _return;
+        const { assetId, assetTag, users, accessoryTypes } = _return;
 
-        const trueAsset = await this.getAsset(assetId, assetTag);
+        const validatedAssetRow = await this.getAsset(assetId, assetTag);
 
-        if(!trueAsset.AstLoans) throw new Error(`No loans found for ${assetTag}`);
-        else if (trueAsset.AstLoans.length > 1) throw new Error(`Multiple loans found for ${assetTag}, please fix corrupted data.`);
+        const asset = new AssetDTO(validatedAssetRow);
 
-        const loan = trueAsset.AstLoans[0].Loan;
+        logger.info(asset);
 
-        const allUsersMatch = loan.UsrLoans.every(usrLoan => {
+        const allUsersMatch = asset.ongoingLoan.loan.userLoans.every(usrLoan => {
             return users.userIds.some(userId => userId === usrLoan.userId);
         });
 
-        if (!allUsersMatch) throw new Error(`Unexpected mismatch of users for ${trueAsset.assetTag}`);
+        if (!allUsersMatch) throw new Error(`Unexpected mismatch of users for ${asset.assetTag}`);
 
-        // Ensure matching accessories and sufficient to return
-        const accMap = accessories.reduce((acc, accType) => {
-            acc[accType.accessoryTypeId] = accType.count;
-            return acc;
-        }, {});
+        asset.ongoingLoan.accLoans?.every(accLoan => {
 
-        loan.AccLoans?.every(accLoan => {
-            const foundAccType = accessories.find(accType => 
-                accType.accessoryLoanIds.some(accLoanId => accLoanId === accLoan.id)
-            );
+            const foundAccType = accessoryTypes.find(accType => accLoan.accessoryTypeId === accType.accessoryTypeId);
+
             if (foundAccType) {
-                accLoan.isReturning = accMap[foundAccType.accessoryTypeId] > 0 ? true : false;
-                accMap[foundAccType.accessoryTypeId]--;
-                return true;
-            }
-            throw new Error(`Unexpected mismatch of accessories for ${trueAsset.assetTag}`);
+                if (accLoan.unreturned < accType.count) throw new Error(`Returning more (${accType.count}) ${accType.accessoryName} than loaned (${accLoan.count}) for ${asset.assetTag}`);
+            } else throw new Error(`Missing Return Count for Accessory ID ${accLoan.accessoryTypeId} for ${asset.assetTag}`);
         });
-        
-        if(Object.values(accMap).some(count => count > 0)) throw new Error(`Insufficient accessories to return for ${trueAsset.assetTag}`);
 
-        return trueAsset;
+        return validatedAssetRow;
     }
 
-    async returnAsset(asset, remarks = '') {
+    async returnAsset(assetRow, _return) {
+        const { accessoryTypes, remarks } = _return;
+
         const returnEventId = generateSecureID(); // Attribute of loan instance
     
         try {
@@ -75,25 +66,35 @@ class ReturnService extends ValidationService{
                 await Rmk.create({
                     id: generateSecureID(),
                     eventId: returnEventId,
+                    remarkDate: this.returnDate,
                     remarks: remarks,
+                    adminId: this.authId
                 }, { transaction: this.transaction });
             }
-    
-            // Update the asset and accLoans with returnEventId
-            asset.AstLoans[0].returnEventId = returnEventId;
-            asset.AstLoans[0].Loan.AccLoans.forEach(accLoan => {
-                if (accLoan.isReturning) accLoan.returnEventId = returnEventId;
-            });
 
-            console.log(asset instanceof Ast);  // Should be true
-            asset.AstLoans[0].Loan.AccLoans.forEach(accLoan => {
+            const ongoingAssetLoan = assetRow.AstLoans[0];
+
+            ongoingAssetLoan.returnEventId = returnEventId;
+            for (const accLoan of ongoingAssetLoan.Loan.AccLoans) {
+                const returnCount = accessoryTypes.find(accType => accType.accessoryTypeId === accLoan.accessoryTypeId).count;
+                
+                await AccReturn.create({
+                    id: generateSecureID(),
+                    count: returnCount,
+                    accLoanId: accLoan.id,
+                    returnEventId: returnEventId
+                }, { transaction: this.transaction });
+            }
+
+            console.log(assetRow instanceof Ast);  // Should be true
+            ongoingAssetLoan.Loan.AccLoans.forEach(accLoan => {
                 console.log(accLoan instanceof AccLoan);  // Should be true
             });
 
-            await asset.AstLoans[0].save({ transaction: this.transaction });
-            await Promise.all(asset.AstLoans[0].Loan.AccLoans.map(accLoan => accLoan.save({ transaction: this.transaction })));
+            await ongoingAssetLoan.save({ transaction: this.transaction });
+            await Promise.all(ongoingAssetLoan.Loan.AccLoans.map(accLoan => accLoan.save({ transaction: this.transaction })));
         } catch (error) {
-            throw new Error(`Failed to return asset ${asset.assetTag}: ${error.message}`);
+            throw new Error(`Failed to return asset ${assetRow.assetTag}: ${error.message}`);
         }
     }
 }

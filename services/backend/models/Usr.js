@@ -1,29 +1,9 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
-const logger = require('../../logging.js');
+const logger = require('../logging.js');
 
 module.exports = (sequelize) => {
-	class Usr extends Model {
-
-		createUserObject = function() {
-			const plainUser = this;
-			// const plainUser = this.get({ plain: true })
-			// logger.info(plainUser);
-
-			return {
-				userId: plainUser.id,
-				userName: plainUser.userName,
-				bookmarked: plainUser.bookmarked && true || false,
-				...(plainUser.Dept && {dept: plainUser.Dept.deptName}),
-				...(plainUser.AddEvent && {addedDate: plainUser.AddEvent.eventDate}),
-				...(plainUser.DeleteEvent && {deletedDate: plainUser.DeleteEvent.eventDate}),
-				...(plainUser.UsrLoans && {loans: (plainUser.UsrLoans.map((userLoan) => {
-					const loan = userLoan.Loan;
-					return loan ? loan.createLoanObject() : {}
-				}))})
-			}
-		}
-	}
+	class Usr extends Model {}
 
 	Usr.init({
 		id: {

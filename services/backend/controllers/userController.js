@@ -1,7 +1,8 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType } = require('../models/postgres');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan } = require('../models');
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
+const { UserDTO } = require('../dtos/usr.dto.js');
 
 class UserController {
 
@@ -18,23 +19,25 @@ class UserController {
             } else if (field === 'assetCount') {
                 const result = await AstLoan.findAll({
                     attributes: [
-                        Sequelize.col('"UsrLoan.user_id"'), // TODO
+                        [Sequelize.col('"Loan->UsrLoans"."user_id"'), 'userId'], // Get userId instead of Loan->UsrLoans.id
                         [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
                     ],
                     include: {
                         model: Loan,
                         attributes: [],
-                        where: { returnEventId: null },
                         include: {
                             model: UsrLoan,
-                            attributes: ['userId'],
+                            attributes: [], // We don't need the id here since we’re focusing on userId
                             include: {
                                 model: Usr,
                                 attributes: [],
                             },
                         }
                     },
-                    group: ['"Loan->UsrLoan.user_id"'], // TODO
+                    where: { returnEventId: null },
+                    group: [
+                        '"Loan->UsrLoans"."user_id"' // Only group by userId
+                    ],
                     raw: true
                 });
                 const counts = result.map(item => item.assetCount);
@@ -88,7 +91,13 @@ class UserController {
                         attributes: ['id'],
                         include: {
                             model: Loan,
-                            attributes: ['id', 'reserveEventId', 'cancelEventId', 'expectedReturnDate', 'loanEventId'],
+                            attributes: [
+                                'id', 
+                                'reserveEventId', 
+                                'cancelEventId', 
+                                'expectedReturnDate', 
+                                'loanEventId'
+                            ],
                             include: [
                                 {
                                     model: AstLoan,
@@ -151,10 +160,10 @@ class UserController {
             
             // Mapping over the result to modify each user object
             const result = query.map(user => {
-                return user.createUserObject();
+                return new UserDTO(user);
             });
     
-            // logger.info(result.slice(10, 20));
+            logger.info(result.slice(10, 20));
             res.json(result);
         } catch (error) {
             console.error('Error fetching user views:', error);
@@ -242,7 +251,7 @@ class UserController {
     
             // Attach events to the user details
     
-            const user = userDetails.createUserObject()
+            // const user = userDetails.createUserObject()
     
             user.events = userEvents;
     
@@ -395,7 +404,7 @@ class UserController {
             const user = await Usr.findByPk(id);
     
             if (user) {
-                user[field] = newValue,
+                user[field] = newValue;
                 await user.save();
                 res.json({ message: "Bookmark updated successfully" });
             } else {

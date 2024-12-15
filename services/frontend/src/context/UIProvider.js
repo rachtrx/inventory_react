@@ -24,7 +24,7 @@ export const UIProvider = ({ children }) => {
 
   const handleError = useCallback((error) => {
     console.log(error);  
-    let errorMessage = error.response?.data?.error;
+    let errorMessage = error?.response?.data?.error;
 
     if (!errorMessage) { 
       if (error.response) {
@@ -63,8 +63,12 @@ export const UIProvider = ({ children }) => {
     showToast(errorMessage, 'error');
   }, [showToast])
 
+  const handleDevError = useCallback(() => {
+    handleError("This feature is under development");
+  }, [handleError])
+
   return (
-    <UIContext.Provider value={{ loading, setLoading, error, setError, showToast, handleError }}>
+    <UIContext.Provider value={{ loading, setLoading, error, setError, showToast, handleError, handleDevError }}>
       {children}
     </UIContext.Provider>
   );

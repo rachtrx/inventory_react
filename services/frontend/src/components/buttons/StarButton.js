@@ -5,8 +5,9 @@ import { useItems } from '../../context/ItemsProvider';
 const StarButton = ({ id, isBookmarked, ...props }) => {
   const { handleUpdate } = useItems();
 
-  const handleClick = () => {
-    handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
+  const handleClick = async () => {
+    const response = await handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
+    console.log(response);
   };
 
   return (

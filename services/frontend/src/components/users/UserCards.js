@@ -22,8 +22,6 @@ import { ItemLink } from "../buttons/ItemLink";
 
 function UserCards({ items }) {
 
-  const { handleUpdate } = useItems()
-
   return (
     <Cards>
     {items.map((user) => (

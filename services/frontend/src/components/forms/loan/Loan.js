@@ -28,7 +28,7 @@ const createNewAsset = (asset, accessories=[]) => ({ // 1 loan only can have 1 a
 	'key': uuidv4(),
 	'assetId': asset?.assetId || '',
 	'assetTag': asset?.assetTag || '',
-	'accessories': accessories.map(accessory => createNewAccessory(accessory, accessory.count)) || [], // Accessories grouped with Asset due to AssetLoan.js, accessories are tagged to the asset loan
+	'accessories': accessories.map(accessory => createNewAccessory(accessory)) || [], // Accessories grouped with Asset due to AssetLoan.js, accessories are tagged to the asset loan
 	'shared': false
 })
   
@@ -109,7 +109,6 @@ export const Loan = () => {
 					))}
 				</FieldArray>
 				<Flex mt={2}>
-					<DateInputControl label="Loaned Date" name={`loans.${loanIndex}.loanDate`} />
 					<DateInputControl label="Expected Return Date" name={`loans.${loanIndex}.expectedReturnDate`} />
 				</Flex>
 			</Flex>

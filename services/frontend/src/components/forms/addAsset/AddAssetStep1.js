@@ -6,7 +6,7 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createNewType, useAddAssets } from "./AddAssetsProvider";
-import { validateUniqueValues } from "../utils/validation";
+import { compareDates, validateUniqueValues } from "../utils/validation";
 import { setFieldError } from "../utils/validation";
 import { AddType } from "./AddType";
 import { ResponsiveText } from "../../utils/ResponsiveText";
@@ -19,11 +19,15 @@ export const AddAssetStep1 = () => {
     const { setLoading, showToast, handleError } = useUI();
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
-  
-    console.log('add asset form rendered');
-		console.log(formData);
 
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
+    useEffect(() => {
+      console.log("Asset Add Form");
+      console.log(formData);
+    }, [formData]);
+
+    useEffect(() => {
+      reinitializeForm(formRef, formData);
+    }, [formData, reinitializeForm]);
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -59,6 +63,8 @@ export const AddAssetStep1 = () => {
           }
 
           subType.assets.forEach((asset, assetIndex) => {
+            if (!asset['vendorName']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], 'Vendor is required');
+
             const atError = validateField(atDuplicates, asset['assetTag'], "Asset Tag");
             if (atError) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'assetTag'], atError);
@@ -67,9 +73,15 @@ export const AddAssetStep1 = () => {
             if (snError) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'serialNumber'], snError);
             }
+
+            if (compareDates(asset['addDate'])) {
+              setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'addDate'], "Date cannot be after today");
+            }
           })
         });
       });
+
+      console.log(errors);  
     
       return errors;
     };
@@ -89,7 +101,7 @@ export const AddAssetStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendor', 'cost', 'addDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendorName', 'cost', 'addDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="types">
                   {typeHelpers => (
@@ -100,7 +112,6 @@ export const AddAssetStep1 = () => {
                         type={type}
                         typeIndex={typeIndex}
                         typeHelpers={typeHelpers}
-                        isLast={typeIndex === array.length - 1}
                       >
                         {/* children are the helper functions */}
                         <Flex mt={2} gap={4} justifyContent="space-between">

@@ -1,4 +1,4 @@
-const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize } = require('../models/postgres');
+const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize } = require('../models');
 
 exports.formTypes = {
     ADD_ASSET: 'ADD_ASSET',

@@ -5,6 +5,7 @@ import { Drawer, useDisclosure } from '@chakra-ui/react';
 import ItemDrawer from '../components/ItemDrawer';
 import accessoryService from '../services/AccessoryService';
 import { getDisplayValue } from '../config';
+import { useUI } from './UIProvider';
 
 const DrawerContext = createContext();
 
@@ -19,6 +20,7 @@ const initialState = {
 export const DrawerProvider = ({ children }) => {
 	console.log("In drawer provider");
 
+	const { handleDevError } = useUI();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
 	const [editedValue, setEditedValue] = useState(null);
@@ -102,12 +104,6 @@ export const DrawerProvider = ({ children }) => {
 		setEditedValue(null); // Clear edited remarks
 	}
 
-	const handleSave = () => {
-		// Update the currentItem's events
-		const updatedCurrentItem = { ...state.currentItem, [editKey]: editedValue };
-		updateState(updatedCurrentItem)
-	};
-
 	const handleAddRemark = (id, remark, dateTime) => {
 		const eventIndex = state.currentItem.events.findIndex(event => event.id === id);
 		if (eventIndex === -1) {
@@ -133,20 +129,29 @@ export const DrawerProvider = ({ children }) => {
 		updateState(updatedCurrentItem);
 	}
 
+	const handleSave = () => {
+		handleDevError();
+		// Update the currentItem's events
+		// const updatedCurrentItem = { ...state.currentItem, [editKey]: editedValue };
+		// updateState(updatedCurrentItem)
+	};
+
 	const handleEdit = (key, value) => {
 		console.log(`setting key as ${key} and value as ${value}`);
-    setEditKey(key);  // Set current edit mode to the field name
-		setEditedValue(value)
-  };
+		handleDevError();
+    	// setEditKey(key);  // Set current edit mode to the field name
+		// setEditedValue(value);
+  	};
 
-  const handleChange = (e) => {
-    setEditedValue(e.target.value);
-  };
+	const handleChange = (e) => {
+		handleDevError();
+		// setEditedValue(e.target.value);
+	};
 
 	const handleClose = () => {
-    onDrawerClose();
-    resetBreadcrumbs();
-  };
+		onDrawerClose();
+		resetBreadcrumbs();
+	};
 
   return (
     <DrawerContext.Provider value={{ ...state, setState, editKey, editedValue, handleItemClick, handleSave, handleAddRemark, handleEdit, handleChange, handleClose, isDrawerOpen }}>

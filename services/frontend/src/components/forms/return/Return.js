@@ -13,12 +13,12 @@ import ReturnAccessories from "./ReturnAccessories"
 import { useReturns } from "./ReturnsProvider"
 import { useUI } from "../../../context/UIProvider"
 
-export const createNewAccessory = (accessoryType) => ({
+export const createNewAccessory = (accLoan) => ({
 	key: uuidv4(),
-	accessoryTypeId: accessoryType.accessoryTypeId || '',
-	accessoryName: accessoryType.accessoryName || '',
-	accessoryLoanIds: accessoryType.loanDetails?.map(loan => loan.accessoryLoanId) || [],
-	count: accessoryType.loanDetails.length,
+	accessoryTypeId: accLoan.accessoryTypeId || '',
+	accessoryName: accLoan.accessoryName || '',
+	unreturned: accLoan.unreturned,
+	count: accLoan.unreturned,
   });
 
 const createNewUsers = (users) => ({
@@ -27,13 +27,13 @@ const createNewUsers = (users) => ({
 	userNames: users.map(user => user.userName),  
 })
 
-export const createNewReturn = (asset = null, users = [], accessories = []) => ({
+export const createNewReturn = (asset = null, users = [], accLoans = [], remarks = null) => ({
 	key: uuidv4(),
 	assetId: asset?.assetId || '',
 	assetTag: asset?.assetTag || '',
-	accessories: accessories.map((accessory) => createNewAccessory(accessory)),
+	accessoryTypes: accLoans.map((accLoan) => createNewAccessory(accLoan)),
 	users: createNewUsers(users),
-	remarks: '',
+	remarks: remarks || '',
   });
 
 export const Return = () => {
@@ -64,40 +64,42 @@ export const Return = () => {
 		)
 	}
 
-	const updateAccessories = (accessories) => {
+	const updateAccessories = (accessoryTypes) => {
 
-		accessories.forEach((accessory, accessoryIndex) => {
+		accessoryTypes.forEach((accessoryType, accessoryTypeIndex) => {
 			// Dynamically set the accessory data in the form
-			setFieldValue(`returns.${returnIndex}.accessories.${accessoryIndex}`, createNewAccessory(accessory));
+			setFieldValue(`returns.${returnIndex}.accessoryTypes.${accessoryTypeIndex}`, createNewAccessory(accessoryType));
 		});
 	}
 
 	const updateAssetFields = async (returnIndex, selected) => {
 		try {
 			if (!selected?.value) {
-				setFieldValue(`returns.${returnIndex}.assetId`, '')
-				setFieldValue(`returns.${returnIndex}.accessories`, [])
-				setFieldValue(`returns.${returnIndex}.users`, [])
+				setFieldValue(`returns.${returnIndex}.assetId`, '');
+				setFieldValue(`returns.${returnIndex}.accessoryTypes`, []);
+				setFieldValue(`returns.${returnIndex}.users`, []);
 				setUserOptions([]);
 				return;
 			}
 	
-			const assetId = selected.value;
+			const assetId = selected.assetId;
 			console.log(assetId);
 			const assetsDict = await fetchReturn([assetId]);
 			console.log(assetsDict);
 
-			setFieldValue(`returns.${returnIndex}.assetId`, selected?.assetId || '')
+			setFieldValue(`returns.${returnIndex}.assetId`, selected?.assetId || '');
 
 			const loan = assetsDict[assetId].ongoingLoan;
 			console.log(loan);
 			updateUsers(loan.users);
-			if (loan.accessories) updateAccessories(loan.accessories);
+			if (loan.accessoryTypes) updateAccessories(loan.accessoryTypes);
 		} catch (err) {
-			console.error(err)
-			handleError('Loan not found')
+			console.error(err);
+			handleError('Loan not found');
 		}
 	}
+
+	// TODO add validation to not exceed unreturned
 
 	return (
 		<Box position='relative'>

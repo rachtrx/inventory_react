@@ -1,6 +1,6 @@
 require('dotenv/config');
 const app = require('./app.js');
-const db = require('./models/postgres');
+const db = require('./models');
 // const connectDB = require('./models/mongo');
 
 const printRoutes = (app) => {

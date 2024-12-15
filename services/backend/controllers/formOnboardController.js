@@ -1,5 +1,5 @@
 const express = require('express');
-const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models/postgres');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');

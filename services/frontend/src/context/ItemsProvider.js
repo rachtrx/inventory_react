@@ -7,7 +7,7 @@ import { useUI } from './UIProvider';
 const ItemsContext = createContext();
 
 // Devices Provider component
-export const ItemsProvider = ({ children, service }) => {
+export const ItemsProvider = ({ children, service, idField }) => {
   const [items, setItems] = useState([]);
   const { loading, setLoading, handleError } = useUI();
 
@@ -52,11 +52,12 @@ export const ItemsProvider = ({ children, service }) => {
 
   const handleUpdate = useCallback(async (id, field, newValue) => {
     const value = newValue;
+    console.log(value);
     setLoading(true);
     try {
       await service.updateItem(id, field, newValue);
       setItems(prevItems => 
-        prevItems.map(item =>item.id === id ? { ...item, [field]: value } : item)
+        prevItems.map(item =>item[idField] === id ? { ...item, [field]: value } : item)
       );
     } catch (err) {
       console.log(err);
@@ -64,7 +65,7 @@ export const ItemsProvider = ({ children, service }) => {
     } finally {
       setLoading(false);
     }
-  }, [handleError, service, setLoading]);
+  }, [handleError, service, setLoading, idField]);
 
   const fetchFilters = useCallback(async (filterName) => {
     try {

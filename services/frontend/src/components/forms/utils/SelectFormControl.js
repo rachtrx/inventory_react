@@ -31,6 +31,20 @@ const withSelect = (Component, isCreatable) => ({
   
   const handleChange = useCallback(
     (selected) => {
+      if (isMulti) {
+        const selectedValues = (selected || []).map((option) => option.value.trim());
+        const currentValues = value.map((val) => val.trim());
+        if (JSON.stringify(selectedValues) === JSON.stringify(currentValues)) {
+          return;
+        }
+      } else {
+        console.log(selected?.value);
+        console.log(value);
+        if (selected?.value.trim() === value.trim()) {
+          return;
+        }
+      }
+
       console.log(selected);
       if (updateFields) updateFields(selected);
 
@@ -41,18 +55,19 @@ const withSelect = (Component, isCreatable) => ({
         newValue = selected?.value.trim() || '';
       }
 
-      const newOptions = isMulti ? selected : [selected];
-      newOptions.forEach((option) => { // TODO duplicated?
-        if (option && !options.some((o) => o.value === option.value)) {
-          setOptions((prevOptions) => [...prevOptions, { value: option.value, label: option.label }]);
-        }
-      });
+      //TODO what is this for actually?
+      // const newOptions = isMulti ? selected : [selected];
+      // newOptions.forEach((option) => { // TODO duplicated?
+      //   if (option && !options.some((o) => o.value === option.value)) {
+      //     setOptions((prevOptions) => [...prevOptions, { value: option.value, label: option.label }]);
+      //   }
+      // });
       
       console.log(newValue);
       setValue(newValue);
       setTouched(true);
     },
-    [updateFields, setTouched, setValue, options, isMulti]
+    [updateFields, value, setValue, setTouched, isMulti]
   );
 
   useEffect(() => {
@@ -62,20 +77,22 @@ const withSelect = (Component, isCreatable) => ({
     console.log(options);
     console.log(value);
     if (isMulti) {
-      option = options.filter((option) => value?.map(val => val.trim().toLowerCase()).includes(option?.value.trim().toLowerCase()));
+      option = options.filter((option) => value?.map(val => val.trim()).includes(option?.value));
     } else {
-      option = options.find((option) => option?.value.trim().toLowerCase() === value.trim().toLowerCase()) || null;
+      option = options.find((option) => option?.value === value.trim()) || null;
     }
     console.log(option);
+    console.log(meta.touched);
 
     // Handle the case where it's a creatable select and the option is not found
-    if (!option && isCreatable && !meta.touched && value) { // TODO warning not appearing because technically shouldnt set ID
+    if (!option && isCreatable && value) { // TODO warning not appearing because technically shouldnt set ID
       console.log(value);
       option = { value: value.trim(), label: value.trim() };
       setOptions((prevOptions) => [...prevOptions, option]); // Add the new creatable option
     }
 
     setSelectedOption(option); // Set the selected option (whether found or newly created)
+    
   }, [value, options, isMulti, meta.touched]);
 
   return (

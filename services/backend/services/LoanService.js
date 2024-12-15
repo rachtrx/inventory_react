@@ -1,9 +1,10 @@
 const { formTypes } = require("../controllers/utils");
-const { Event, Loan, Rmk, AstLoan, UsrLoan, AccLoan } = require("../models/postgres");
+const { Event, Loan, Rmk, AstLoan, UsrLoan, AccLoan } = require("../models");
 const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
 const fs = require('fs');
+const accessoryController = require("../controllers/accessoryController");
 
 class LoanService extends ValidationService {
 
@@ -67,7 +68,7 @@ class LoanService extends ValidationService {
                     let accType;
 
                     // id === name means new. Check if added to newAccessories already
-                    if (accessory.accessoryTypeId === accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
+                    if (!accessory.accessoryTypeId && accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
                         accType = await accessoryController.createAccessoryType(
                             accessory.accessoryName,
                             0,
@@ -75,7 +76,7 @@ class LoanService extends ValidationService {
                         );
                         newAccessories[accessory.accessoryName] = accType.id;
                         accessory.accessoryTypeId = accType.id;
-                    } else if (accessory.accessoryTypeId === accessory.accessoryName) {
+                    } else if (newAccessories[accessory.accessoryName]) {
                         // if new but added to newAccessories already, just need to update the id
                         accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
                     }
@@ -87,7 +88,7 @@ class LoanService extends ValidationService {
     async createLoans() {
         const userLoans = {}
 
-        const loanDate = new Loan();
+        const loanDate = new Date();
 
         for (const loan of this.loans) {
             const { asset, users, mode, expectedReturnDate } = loan; // TODO use mode for future validation?
@@ -138,13 +139,12 @@ class LoanService extends ValidationService {
             // Acc Loans for each count of each type for each user
             if (asset.accessories) {
                 for (const accessory of asset.accessories) {
-                    for (let idx = 0; idx < accessory.count; idx++) {
-                        await AccLoan.create({
-                            id: generateSecureID(),
-                            loanId: loanId,
-                            accessoryTypeId: accessory.accessoryTypeId,
-                        }, { transaction: this.transaction });
-                    }
+                    await AccLoan.create({
+                        id: generateSecureID(),
+                        loanId: loanId,
+                        accessoryTypeId: accessory.accessoryTypeId,
+                        count: accessory.count
+                    }, { transaction: this.transaction });
                 }
             }
         }

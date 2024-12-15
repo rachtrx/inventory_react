@@ -1,6 +1,6 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
-const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models/postgres');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event } = require('../models');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 

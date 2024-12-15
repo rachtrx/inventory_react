@@ -85,7 +85,6 @@ export const LoanAsset = function({ loanIndex, asset }) {
 								<Box key={accessory.key}>
 									<SearchCreatableSingleSelectFormControl
 										name={`loans.${loanIndex}.asset.accessories.${index}.accessoryName`}
-										defaultOptions={suggestedOptions}
 										searchFn={handleAccessorySearch}
 										updateFields={(selected) => updateAccessoryFields(loanIndex, index, selected)}
 										warning={warnings?.accessories?.[index]?.id || null}

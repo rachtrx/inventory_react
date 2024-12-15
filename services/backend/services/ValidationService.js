@@ -1,5 +1,5 @@
 const { formTypes } = require("../controllers/utils");
-const { AccLoan, Usr, UsrLoan, Ast, AstLoan, Loan } = require("../models/postgres");
+const { AccLoan, Usr, UsrLoan, Ast, AstLoan, Loan, AccReturn } = require("../models");
 const { Op } = require('sequelize');
 
 class ValidationService {
@@ -50,8 +50,8 @@ class ValidationService {
                 required: false, // device is returned if not found
                 include: {
                     model: Loan,
-                    attributes: ['id'],
-                    ...(this.formType == formTypes.RETURN && {
+                    attributes: ['id', 'loanEventId'],
+                    ...(this.formType === formTypes.RETURN && {
                         include: [
                             {
                                 model: UsrLoan,
@@ -59,8 +59,13 @@ class ValidationService {
                             },
                             {
                                 model: AccLoan,
-                                attributes: ['id', 'accessoryTypeId'],
-                                where: { returnEventId: { [Op.eq]: null } },
+                                attributes: ['id', 'accessoryTypeId', 'count'],
+                                include: {
+                                    model: AccReturn,
+                                    attributes: ['count'],
+                                    where: { returnEventId: { [Op.eq]: null } },
+                                    required: false,
+                                },
                                 required: false,
                             }
                         ]

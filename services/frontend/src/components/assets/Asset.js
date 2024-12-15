@@ -8,33 +8,26 @@ import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { ItemLink } from '../buttons/ItemLink';
 import { AssetActionButton, UserActionButton } from '../buttons/SplitButton';
+import { AssetStatus } from '../../constants/AssetStatus';
 
 const Asset = ({ asset }) => {
-  const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
+  const { editKey, editedValue, handleItemClick, handleEdit, handleChange } = useDrawer()
   const { setFormType } = useFormModal()
 
-  const currentUsers = asset.users?.filter(user => !user.returnDate);
-  const pastUsers = asset.users?.filter(user => user.returnDate);
-  const reservedUsers = asset.users?.filter(user => user.reserveDate && !user.cancelDate && !user.loanDate);
+  const activeUsers = asset.activeUsers;
+  const pastUsers = asset.pastUsers;
+  const reservedUsers = asset.reservedUsers;
+
+  const status = asset.delEventId ? AssetStatus.DELETED : 
+    asset.activeUsers && asset.activeUsers.length > 0 ? AssetStatus.LOANED : 
+    asset.reservedUsers && asset.reservedUsers.length > 0 ? AssetStatus.RESERVED : 
+    AssetStatus.AVAILABLE;
 
 	return (
 		<Box p={4}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
-				<Heading as="h2" size="md" mb="2">Status: {asset.status}</Heading>	
-
-        <Flex justifyContent='space-between'>
-        <ResponsiveText size='lg'>Peripherals</ResponsiveText>
-          <HStack>
-          {asset.accessories?.map((accessory) => (
-            <ResponsiveText>{accessory.name}</ResponsiveText>
-          ))}
-          </HStack>
-        <ActionButton
-          formType={formTypes.TAG}
-          item={asset}
-        />
-        </Flex>
+				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
@@ -47,67 +40,72 @@ const Asset = ({ asset }) => {
 						label="Serial Number"
             fieldKey="serialNumber"
             value={asset.serialNumber}
-            handleSave={handleSave}
 					/>
 					<EditableField 
 						label="Model"
             fieldKey="subTypeName"
             value={asset.subTypeName}
-            handleSave={handleSave}
 					/>
 					<EditableField 
 						label="Asset Type"
             fieldKey="typeName"
             value={asset.typeName}
-            handleSave={handleSave}
 					/>
 					<EditableField 
 						label="Vendor"
             fieldKey="vendor"
             value={asset.vendor}
-            handleSave={handleSave}
 					/>
           <EditableField
             label="Value"
             fieldKey="value"
             value={asset.value}
-            handleSave={handleSave}
           />
           <EditableField
             label="Location"
             fieldKey="location"
             value={asset.location}
-            handleSave={handleSave}
           />
         </Grid>
       </Box>
 
       <Flex mb={4} gap={4}>
-        <Flex direction="column">
-          <Heading as="h2" size="md" mb="2">
-            {asset.shared ? 'Current Users: ' : 'Current User: '}
-          </Heading>
-          {currentUsers?.map(user => (
-            <>
+        <Grid 
+          templateColumns="20% 80%"
+          templateRows="repeat(3, 1fr)"
+          gap={4}
+          width="100%"
+        >
+            <Heading as="h2" size="sm" mb="2">
+              {asset.shared ? 'Current Users: ' : 'Current User: '}
+            </Heading>
+            <Box>
+            {activeUsers?.map(user => (
+              <>
+                <ItemLink key={user.userId} isCopy={false} item={user} />
+                <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
+              </>
+            ))}
+            </Box>
+
+            <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
+            <Flex gap={1}>
+              {pastUsers?.map((pastUsersGroup, index) => (
+                <Box key={index}> {/* Use index or a unique identifier here */}
+                  {pastUsersGroup.map((user, innerIndex) => 
+                    <ItemLink key={innerIndex} isCopy={false} item={user} />
+                  )}
+                </Box>
+              ))}
+            </Flex>
+
+            <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
+            <Box>
+            {reservedUsers?.map(user => (
               <ItemLink key={user.userId} isCopy={false} item={user} />
-              <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
-            </>
-          ))}
-        </Flex>
-
-        <Flex direction="column">
-          <Heading as="h2" size="md" mb="2">Past Users:</Heading>
-          {pastUsers?.map(user => (
-            <ItemLink key={user.userId} isCopy={false} item={user} />
-          ))}
-        </Flex>
-
-        <Flex direction="column">
-          <Heading as="h2" size="md" mb="2">Reserved for:</Heading>
-          {reservedUsers?.map(user => (
-            <ItemLink key={user.userId} isCopy={false} item={user} />
-          ))}
-        </Flex>
+            ))}
+            </Box>
+        </Grid>
       </Flex>
 
       <Box>
@@ -117,7 +115,7 @@ const Asset = ({ asset }) => {
           aria-label="Bookmark"
           mb={4}
         />
-        {asset.status !== 'condemned' && asset.status !== 'loaned' && ( // change to deldate?
+        {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
           <Flex gridGap="2">
             <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
               CONDEMN
@@ -131,7 +129,7 @@ const Asset = ({ asset }) => {
 
 			{asset.events && 
 				<Timeline 
-					events={asset.events} 
+					events={asset.events}
 				/>
 			}
 		</Box>

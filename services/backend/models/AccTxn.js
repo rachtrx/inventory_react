@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
-const logger = require('../../logging.js');
+const logger = require('../logging.js');
 
 module.exports = (sequelize) => {
 	class AccTxn extends Model { }

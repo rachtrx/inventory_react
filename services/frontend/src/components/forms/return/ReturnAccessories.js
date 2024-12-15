@@ -17,22 +17,22 @@ const ReturnAccessories = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {ret.accessories.map((accessory, accessoryIndex) => (
-            <Tr key={accessory.key}>
+          {ret.accessoryTypes.map((accessoryType, accessoryIndex) => (
+            <Tr key={accessoryType.key}>
               {/* accessory name */}
-              <Td>{accessory.accessoryName}</Td>
+              <Td>{accessoryType.accessoryName}</Td>
               
               {/* Count of accessories loaned */}
-              <Td>{accessory.accessoryLoanIds.length}</Td>
+              <Td>{accessoryType.unreturned}</Td>
               
               {/* Input field for the user to enter the return count */}
               <Td>
                 <InputFormControl
-                    name={`returns.${returnIndex}.accessories.${accessoryIndex}.count`}
+                    name={`returns.${returnIndex}.accessoryTypes.${accessoryIndex}.count`}
                     placeholder="Enter count"
-                    max={accessory.accessoryLoanIds.length}
+                    max={accessoryType.unreturned}
                     min={0} 
-                    disabled={accessory.accessoryLoanIds.length === 0}
+                    disabled={accessoryType.unreturned === 0}
                 />
               </Td>
             </Tr>
