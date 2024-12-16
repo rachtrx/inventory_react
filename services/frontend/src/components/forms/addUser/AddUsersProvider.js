@@ -132,7 +132,7 @@ export const AddUsersProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      // await assetService.loanAsset(values);
+      await userService.addUser(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);

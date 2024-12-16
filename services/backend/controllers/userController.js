@@ -1,8 +1,8 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan } = require('../models');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan, AccReturn } = require('../models');
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
-const { UserDTO } = require('../dtos/usr.dto.js');
+const UserDTO = require('../dtos/usr.dto.js');
 
 class UserController {
 
@@ -91,6 +91,7 @@ class UserController {
                         attributes: ['id'],
                         include: {
                             model: Loan,
+                            required: true,
                             attributes: [
                                 'id', 
                                 'reserveEventId', 
@@ -101,6 +102,7 @@ class UserController {
                             include: [
                                 {
                                     model: AstLoan,
+                                    required: false,
                                     attributes: ['id', 'returnEventId'],
                                     include: [
                                         {
@@ -125,16 +127,23 @@ class UserController {
                                 {
                                     model: AccLoan,
                                     required: false,
-                                    attributes: ['id', 'returnEventId'],
-                                    include: {
-                                        model: AccType,
-                                        attributes: ['id', 'accessoryName'],
-                                    },
-                                    where: {
-                                        returnEventId: {
-                                            [Op.is]: null
+                                    attributes: ['id', 'count'],
+                                    include: [
+                                        {
+                                            model: AccType,
+                                            required: true,
+                                            attributes: ['id', 'accessoryName'],
+                                        },
+                                        {
+                                            model: AccReturn,
+                                            required: false,
+                                            where: {
+                                                returnEventId: {
+                                                    [Op.is]: null
+                                                }
+                                            }
                                         }
-                                    },
+                                    ],
                                 },
                             ],
                         }
@@ -150,6 +159,8 @@ class UserController {
                 // TODO
                 // order: [['addedDate', 'DESC']],
             });
+
+            logger.info(query.slice(1, 10).map(user => user.get({plain: true})));
     
             if (filters.assetCount.length > 0) {
                 filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));

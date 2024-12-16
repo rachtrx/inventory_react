@@ -36,11 +36,11 @@ const UserTable = ({ items }) => {
           >
             <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
-            <Td><ResponsiveText>{user.department}</ResponsiveText></Td><Td>
-              {user.assets?.length > 0 ? 
+            <Td><ResponsiveText>{user.department.deptName}</ResponsiveText></Td><Td>
+              {user.userLoans?.length > 0 ? 
                 <AssetList user={user}/> : 
                 <Flex>
-                  <ActionButton formType={user.deletedDate ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
+                  <ActionButton formType={user.deleteEvent ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
                 </Flex>
               }
             </Td>

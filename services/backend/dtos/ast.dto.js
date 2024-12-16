@@ -10,7 +10,7 @@ class AssetDTO {
         bookmarked,
         shared,
         value,
-        vendor,
+        Vendor,
         location,
         AstSType,
         AstLoans,
@@ -37,7 +37,10 @@ class AssetDTO {
 
         this.shared = shared;
         this.value = value && String(parseFloat(this.value));
-        this.vendor = vendor;
+        if (Vendor) {
+            if (Vendor.vendorName) this.vendorName = Vendor.vendorName;
+            if (Vendor.id) this.vendorId = Vendor.id;
+        }
         this.location = location;
 
         if (AstLoans) {

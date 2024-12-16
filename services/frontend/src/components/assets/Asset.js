@@ -3,7 +3,7 @@ import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
-import Timeline from '../Timeline';
+import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { ItemLink } from '../buttons/ItemLink';
@@ -14,17 +14,17 @@ const Asset = ({ asset }) => {
   const { editKey, editedValue, handleItemClick, handleEdit, handleChange } = useDrawer()
   const { setFormType } = useFormModal()
 
-  const activeUsers = asset.activeUsers;
+  const currentUsers = asset.currentUsers;
   const pastUsers = asset.pastUsers;
   const reservedUsers = asset.reservedUsers;
 
   const status = asset.delEventId ? AssetStatus.DELETED : 
-    asset.activeUsers && asset.activeUsers.length > 0 ? AssetStatus.LOANED : 
+    asset.currentUsers && asset.currentUsers.length > 0 ? AssetStatus.LOANED : 
     asset.reservedUsers && asset.reservedUsers.length > 0 ? AssetStatus.RESERVED : 
     AssetStatus.AVAILABLE;
 
 	return (
-		<Box p={4}>
+		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
 				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
@@ -54,7 +54,7 @@ const Asset = ({ asset }) => {
 					<EditableField 
 						label="Vendor"
             fieldKey="vendor"
-            value={asset.vendor}
+            value={asset.vendorName}
 					/>
           <EditableField
             label="Value"
@@ -80,7 +80,7 @@ const Asset = ({ asset }) => {
               {asset.shared ? 'Current Users: ' : 'Current User: '}
             </Heading>
             <Box>
-            {activeUsers?.map(user => (
+            {currentUsers?.map(user => (
               <>
                 <ItemLink key={user.userId} isCopy={false} item={user} />
                 <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
@@ -90,12 +90,8 @@ const Asset = ({ asset }) => {
 
             <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
             <Flex gap={1}>
-              {pastUsers?.map((pastUsersGroup, index) => (
-                <Box key={index}> {/* Use index or a unique identifier here */}
-                  {pastUsersGroup.map((user, innerIndex) => 
-                    <ItemLink key={innerIndex} isCopy={false} item={user} />
-                  )}
-                </Box>
+              {pastUsers?.map((user, index) => (
+                <ItemLink key={index} isCopy={false} item={user} />
               ))}
             </Flex>
 
@@ -127,12 +123,12 @@ const Asset = ({ asset }) => {
         )}
       </Box>
 
-			{asset.events && 
+			{asset.history && 
 				<Timeline 
-					events={asset.events}
+					events={asset.history}
 				/>
 			}
-		</Box>
+		</VStack>
 	);
 }
 

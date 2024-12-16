@@ -71,10 +71,11 @@ class LoanDTO {
                             eventDate: accReturn.returnEvent.eventDate,
                             remarks: accReturn.returnEvent.remarks,
                             isAsset: true,
-                            accessories: [accReturn]
+                            accessories: [{...accReturn, accessoryName: loanItem.accessoryName}]
                         }
+                        logger.info(loanItem.accessoryName)
                     } else {
-                        returns[accReturn.returnEvent.eventId].accessories.push(accReturn);
+                        returns[accReturn.returnEvent.eventId].accessories.push({...accReturn, accessoryName: loanItem.accessoryName});
                     }
                 })
             }

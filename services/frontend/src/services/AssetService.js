@@ -55,7 +55,6 @@ class AssetService {
     }
     
     async returnAsset(formData) {
-        // downloadFormData(formData);
         console.log(formData);
         return await this.axios.post(`${API_URL}/forms/return`, formData);
     }
@@ -67,7 +66,7 @@ class AssetService {
 
     async delAsset(formData) {
         downloadFormData(formData);
-        return await this.axios.delete(`${API_URL}/assets/condemn`, formData);;
+        // return await this.axios.delete(`${API_URL}/assets/condemn`, formData);
     }
 
     async searchAssets(value, formType, mode) {

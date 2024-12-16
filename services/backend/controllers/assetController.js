@@ -432,45 +432,6 @@ class AssetController {
                     {
                         model: Vendor,
                         attributes: ['vendorName']
-                    },
-                    {
-                        model: Event,
-                        as: 'AddEvent',
-                        attributes: ['id', 'eventDate'],
-                        include: [
-                            {
-                                model: Admin,
-                                attributes: ['adminName']
-                            },
-                            {
-                                model: Rmk,
-                                attributes: ['text', 'remarkDate'],
-                                include: {
-                                    model: Admin,
-                                    attributes: ['adminName']
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['id', 'eventDate'],
-                        required: false,
-                        include: [
-                            {
-                                model: Admin,
-                                attributes: ['adminName']
-                            },
-                            {
-                                model: Rmk,
-                                attributes: ['text', 'remarkDate'],
-                                include: {
-                                    model: Admin,
-                                    attributes: ['adminName']
-                                }
-                            }
-                        ]
                     }
                 ],
                 where: { id: assetId }
@@ -480,27 +441,29 @@ class AssetController {
             
             const asset = new AssetDTO(assetDetails);
 
-            const events = await this.getAllEvents(asset.assetId);
+            asset.history = await this.getAllEvents(asset.assetId);
 
-            asset.loans = await this.getAllLoans(asset.assetId);
+            if (asset.history && asset.history.length > 0) {
 
-            if (asset.loans && asset.loans.length > 0) {
-
-                asset.currentUsers = asset.loans.find(
-                    loan => loan.loanEvent !== null && !loan.returnEvents.some(event => event.isAsset === true)
-                )?.users || [];
+                asset.currentUsers = asset.history.find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.loan.userLoans.map(userLoan => userLoan.user) || [];
 
                 asset.pastUsers = Array.from(
                     new Map(
-                        asset.loans
-                            .filter(loan => loan.loanEvent !== null && loan.returnEvents.some(event => event.isAsset === true))
-                            .map(loan => loan.usrLoans)
-                            .map(usrLoans => usrLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
+                        asset.history
+                            .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent) // Filter events with returnEvent
+                            .flatMap(event => event.loan.userLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
+                    ).values()
+                );
+
+                asset.reservedUsers = Array.from(
+                    new Map(
+                        asset.history
+                            .filter(event => event.reservation && !event.reservation.cancelEvent)
+                            .flatMap(event => event.reservation.userLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
                     ).values
                 );
             }
 
-            logger.info('Details for Ast:', asset);
             res.json(asset);
         } catch (error) {
             logger.error("Error fetching asset details:", error);
@@ -538,7 +501,7 @@ class AssetController {
                 {
                     model: Ast,
                     as: 'AddedAsset',
-                    attributes: [],
+                    attributes: [], // todo add details so timeline can display
                     required: false
                 },
                 {
@@ -582,6 +545,14 @@ class AssetController {
                                     }
                                 }
                             ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName', 'bookmarked']
+                            }
                         }
                     ]
                 },
@@ -610,6 +581,14 @@ class AssetController {
                                     attributes: ['id', 'accessoryName']
                                 }
                             ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName', 'bookmarked']
+                            }
                         }
                     ]
                 }
@@ -620,88 +599,7 @@ class AssetController {
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects
         logger.info(events);
 
-        return eventRows;
-    }
-
-    async getAllLoans(assetId) {
-
-        const loanRows = await Loan.findAll({
-            attributes: ['id', 'reserveEventId', 'cancelEventId', 'loanEventId', 'expectedLoanDate', 'expectedReturnDate'],
-            include: [
-                {
-                    model: AstLoan,
-                    attributes: ['id', 'returnEventId'],
-                    where: { assetId }, // ensures only one for each
-                    include: [
-                        {
-                            model: Event,
-                            as: 'ReturnEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false,
-                        },
-                    ],
-                    required: false
-                },
-                {
-                    model: AccLoan,
-                    attributes: ['id', 'count'],
-                    include: [
-                        {
-                            model: AccType,
-                            attributes: ['id', 'accessoryName'],
-                        },
-                        {
-                            model: AccReturn,
-                            attributes: ['id', 'count'],
-                            include: {
-                                model: Event,
-                                as: 'ReturnEvent',
-                                attributes: ['id', 'eventDate'],
-                                required: false,
-                            }
-                        }
-                    ],
-                    required: false,
-                },
-                {
-                    model: Event,
-                    as: 'ReserveEvent',
-                    attributes: ['id', 'eventDate'],
-                    required: false,
-                },
-                {
-                    model: Event,
-                    as: 'CancelEvent',
-                    attributes: ['id', 'eventDate'],
-                    required: false,
-                },
-                {
-                    model: Event,
-                    as: 'LoanEvent',
-                    attributes: ['id', 'eventDate'],
-                    required: false,
-                },
-                {
-                    model: UsrLoan,
-                    attributes: ['filepath'],
-                    include: {
-                        model: Usr,
-                        attributes: ['id', 'userName', 'bookmarked']
-                    }
-                }
-            ]
-        });
-        
-        const loans = loanRows.map(loanRow => {
-            new LoanDTO(loanRow);
-        })
-
-        loans.sort((a, b) => 
-            new Date(a.reserveEvent?.eventDate || a.loanEvent?.eventDate) - 
-            new Date(b.reserveEvent?.eventDate || b.loanEvent?.eventDate)
-        );
-
-        return loans;
+        return events;
     }
     
     async updateAsset(req, res) {

@@ -15,34 +15,40 @@ export const AssetList = ({ user }) => {
 					align="center"
 					display="inline-flex"
 				>
-					{user.loans
+					{user.userLoans
+						.map(userLoan => userLoan.loan)
 						.map((loan) => {
-							if (loan.asset && loan.peripherals && loan.peripherals.length > 0) {
+							if (loan.astLoan && loan.accLoans && loan.accLoans.length > 0) {
 								return (
-									<OverlappingCircles>
-										<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
-											<CircleText text={loan.asset.typeName} />
+									<OverlappingCircles key={loan.astLoan.asset.assetId}>
+										<Tooltip label={loan.astLoan.asset.typeName} placement="top" hasArrow>
+											<CircleText text={loan.astLoan.asset.typeName} />
 										</Tooltip>
-										{loan.peripherals.map((peripheral) => (
-											<Tooltip label={peripheral.accessoryName} placement="top" hasArrow>
-												<CircleText text={peripheral.count} />
+										{loan.accLoans.map((accLoan) => (
+											<Tooltip 
+												key={accLoan.accessoryLoanId} 
+												label={accLoan.accessoryName} 
+												placement="top" 
+												hasArrow
+											>
+												<CircleText text={accLoan.unreturned} />
 											</Tooltip>
 										))}
 									</OverlappingCircles>
 								);
-							} else if (loan.asset) {
+							} else if (loan.astLoan) {
 								return (
-									<WrapItem key={loan.asset.assetId}>
-										<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
-											<CircleText text={loan.asset.typeName} />
+									<WrapItem key={loan.astLoan.asset.assetId}>
+										<Tooltip label={loan.astLoan.asset.typeName} placement="top" hasArrow>
+											<CircleText text={loan.astLoan.asset.typeName} />
 										</Tooltip>
 									</WrapItem>
 								);
 							} else {
-								return (loan.peripherals.map((peripheral) => 
-									(<WrapItem key={peripheral.id}>
-										<Tooltip label={peripheral.accessoryName} placement="top" hasArrow>
-											<CircleText text={peripheral.count} />
+								return (loan.accLoans.map((accLoan) => 
+									(<WrapItem key={accLoan.accessoryLoanId}>
+										<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
+											<CircleText text={accLoan.unreturned} />
 										</Tooltip>
 									</WrapItem>)
 								))
@@ -59,7 +65,7 @@ export const AssetList = ({ user }) => {
 				<PopoverHeader>
 					<Flex gap={2} alignItems={'center'}>
 						<ResponsiveText size="sm" fontWeight="bold">Assets</ResponsiveText>
-						<ActionButton formType={formTypes.RETURN} item={user.loans} />
+						<ActionButton formType={formTypes.RETURN} item={user.userLoans} />
 					</Flex>
 				</PopoverHeader>
 				<PopoverBody
@@ -67,13 +73,13 @@ export const AssetList = ({ user }) => {
 					overflowY={'auto'}  // Enable vertical scrolling
 				>
 					<VStack>
-						{user.loans.map((loan) => (
-							<Flex gap={2} width="100%" alignItems="center" justifyContent="space-between">
-								<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
-									<CircleText text={loan.asset.typeName}/>
+						{user.userLoans.map(userLoan => userLoan.loan).map((loan) => (
+							<Flex key={loan.astLoan.asset.assetId} gap={2} width="100%" alignItems="center" justifyContent="space-between">
+								<Tooltip label={loan.astLoan.asset.typeName} placement="top" hasArrow>
+									<CircleText text={loan.astLoan.asset.typeName}/>
 								</Tooltip>
-								<ItemLink item={loan.asset} />
-								<ActionButton formType={formTypes.RETURN} item={loan.asset} />
+								<ItemLink item={loan.astLoan.asset} />
+								<ActionButton formType={formTypes.RETURN} item={loan.astLoan.asset} />
 							</Flex>
 						))}
 					</VStack>

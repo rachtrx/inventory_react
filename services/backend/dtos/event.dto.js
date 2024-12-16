@@ -21,11 +21,13 @@ class EventDTO {
         if (Admin) this.adminName = Admin.adminName;
         if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
 
-        if (Loan) this.loan = new LoanDTO(Loan)
+        if (Loan) {this.loan = new LoanDTO(Loan)}
         if (Reservation) this.reservation = new LoanDTO(Reservation);
 
-        if (AddedAsset) this.addedAsset = AddedAsset;
-        if (DeletedAsset) this.deletedAsset = DeletedAsset;
+        
+
+        // if (AddedAsset) this.addedAsset = AddedAsset;
+        // if (DeletedAsset) this.deletedAsset = DeletedAsset;
     }
 }
 

@@ -6,6 +6,7 @@ import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../utils/validation";
+import userService from "../../../services/UserService";
 
 export const delNewUser = (user={}) => ({
   'key': uuidv4(),
@@ -70,6 +71,8 @@ export const DelUsersProvider = ({ children }) => {
         else userNames.add(record.userName);
       });
 
+      if (userNames.size === 0) throw new Error("No user names found!")
+
       const userResponse = await handleUserSearch([...userNames]);
       const newUserOptions = userResponse.data;
       setUserOptions(newUserOptions);
@@ -129,7 +132,7 @@ export const DelUsersProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      // await userService.loanUser(values);
+      await userService.removeUser(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Users successfully loaned', 'success', 500);

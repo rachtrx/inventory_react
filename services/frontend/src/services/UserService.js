@@ -33,13 +33,27 @@ class UserService {
     }
 
     async addUser(data) {
-        return await this.axios.get(`${API_URL}/users/add`, data);
+        downloadFormData(data);
+        // return await this.axios.get(`${API_URL}/users/add`, data);
     }
 
-    async removeUser(id) {
-        return await this.axios.get(`${API_URL}/users/remove`, id);
+    async removeUser(data) {
+        downloadFormData(data);
+        // return await this.axios.get(`${API_URL}/users/remove`, data);
     }
 }
+
+const downloadFormData = (formData) => {
+    const data = JSON.stringify(formData, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'formData.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+  
 
 const userService = new UserService(axiosInstance);
 export default userService;

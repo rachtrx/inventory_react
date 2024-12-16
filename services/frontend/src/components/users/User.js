@@ -3,7 +3,7 @@ import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/i
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
-import Timeline from '../Timeline';
+import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { useEffect } from 'react';
 
