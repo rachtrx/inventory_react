@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useField } from 'formik';
 import SignatureCanvas from 'react-signature-canvas';
-import { FormControl, FormLabel, Button, Box, Flex, IconButton, Collapse } from '@chakra-ui/react';
+import { Field as ChakraField, Button, Box, Flex, IconButton } from '@chakra-ui/react';
 import { ResponsiveText } from '../../utils/ResponsiveText';
-import { RepeatIcon } from '@chakra-ui/icons';
+import { FiRepeat } from 'react-icons/fi';
 
 export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...props }) => {
   const [, , helpers] = useField(name);
@@ -24,15 +24,15 @@ export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...prop
   };
 
   return (
-    <FormControl>
+    <ChakraField>
       <Flex direction='column' alignItems="flex-start">
         {label && (
-          <FormLabel htmlFor={name} display="flex" alignItems="center" justifyContent="space-between" mb={0}>
+          <Flex htmlFor={name} display="flex" alignItems="center" justifyContent="space-between" mb={0}>
             <ResponsiveText>{label}</ResponsiveText>
             
             <IconButton
               aria-label="Clear Signature"
-              icon={<RepeatIcon />} 
+              icon={<FiRepeat />} 
               size="sm"
               variant="ghost"
               onClick={() => {
@@ -40,7 +40,7 @@ export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...prop
                 helpers.setValue('');
             }}
           />
-        </FormLabel>
+        </Flex>
         )}
         <Box border="2px" borderColor="gray.200" p={1}>
           <SignatureCanvas
@@ -57,6 +57,6 @@ export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...prop
           />
         </Box>
       </Flex>
-    </FormControl>
+    </ChakraField>
   );
 };

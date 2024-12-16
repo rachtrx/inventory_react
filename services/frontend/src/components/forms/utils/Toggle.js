@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Flex, FormLabel, HStack, Switch } from '@chakra-ui/react';
+import { Flex, HStack, Switch } from '@chakra-ui/react';
 
-export default function Toggle({label, check_fn, uncheck_fn}) {
+export default function Toggle({check_fn, uncheck_fn}) {
     const [isChecked, setIsChecked] = useState(false);
 
     // useEffect(() => {
@@ -35,7 +35,6 @@ export default function Toggle({label, check_fn, uncheck_fn}) {
       // Pass the toggle state and handleChange as props to the wrapped component
       return (
         <Flex alignItems={'center'} gap={2}>
-            <FormLabel mb="0">{label}</FormLabel>
             <Switch height='50%' isChecked={isChecked} onChange={handleChange} />
         </Flex>
     );    

@@ -1,4 +1,4 @@
-import { useToast } from '@chakra-ui/react';
+import { Toast } from "@chakra-ui/react"
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
 const UIContext = createContext(false);
@@ -9,18 +9,16 @@ export const UIProvider = ({ children }) => {
   const [error, setError] = useState(null);
   // TODO toaster
 
-  const toast = useToast();
-
   const showToast = useCallback((description, status = 'error', duration = 5000) => {
-    toast({
+    Toast({
       title: status.charAt(0).toUpperCase() + status.slice(1),
       description: description,
       status: status,
       duration: duration,
-      isClosable: true,
+      closable: true,
       position: "bottom"
     });
-  }, [toast]);
+  }, []);
 
   const handleError = useCallback((error) => {
     console.log(error);  

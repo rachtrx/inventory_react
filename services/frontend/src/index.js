@@ -4,11 +4,12 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from "react-router-dom";
 import { App } from './App';
-import { ChakraProvider } from '@chakra-ui/react';
+import { defaultSystem, ChakraProvider } from '@chakra-ui/react';
 import { UIProvider } from './context/UIProvider';
 import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Global, css } from '@emotion/react';
+import { ThemeProvider } from 'next-themes';
 
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
@@ -56,15 +57,17 @@ const GlobalStyles = () => (
 root.render(
   <>
     <GlobalStyles/>
-    <ChakraProvider>
-      <ResponsiveProvider>
-        <UIProvider>
-          <LoadingSpinner/>
-          <RouterProvider router={App}/>
-        {/* Insert footer here? */}
-        </UIProvider>
-      </ResponsiveProvider>
-    </ChakraProvider>
+    <ThemeProvider attribute="class" defaultTheme="system">
+      <ChakraProvider value={defaultSystem}>
+        <ResponsiveProvider>
+          <UIProvider>
+            <LoadingSpinner/>
+            <RouterProvider router={App}/>
+          {/* Insert footer here? */}
+          </UIProvider>
+        </ResponsiveProvider>
+      </ChakraProvider>
+    </ThemeProvider>
   </>
 );
 

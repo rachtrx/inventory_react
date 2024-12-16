@@ -1,4 +1,4 @@
-import { CheckIcon, EditIcon } from "@chakra-ui/icons";
+import { FiCheck, FiEdit } from "react-icons/fi";
 import { Button, Input, Text, Textarea } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
 
@@ -26,12 +26,12 @@ function EditableField({ label, fieldKey, value }) {
 				}
 			</Text>
 			{editKey === fieldKey ? (
-				<Button leftIcon={<CheckIcon />} colorScheme="green" onClick={() => handleSave()}>
+				<Button leftIcon={<FiCheck />} colorPalette="green" onClick={() => handleSave()}>
 					Save
 				</Button>
 			) : (
 				<Button
-					leftIcon={<EditIcon />}
+					leftIcon={<FiEdit />}
 					onClick={() => handleEdit(fieldKey, value)}
 					disabled={editKey !== null}
 				>

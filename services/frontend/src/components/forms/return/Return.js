@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
+import { Box, Button, Separator, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"

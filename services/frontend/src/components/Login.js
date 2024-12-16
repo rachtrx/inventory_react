@@ -6,18 +6,17 @@ import { useAuth } from '../context/AuthProvider';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from "yup";
 import authService from '../services/AuthService';
+import { useTheme } from 'next-themes';
 
 import {
   Box,
-  FormControl,
-  FormLabel,
+  Field as ChakraField,
   Input,
-  FormErrorMessage,
   Button,
   Image,
   Center,
-  useColorModeValue,
-  VStack
+  VStack,
+  Text
 } from '@chakra-ui/react';
 import { useUI } from '../context/UIProvider';
 import { ResponsiveText } from './utils/ResponsiveText';
@@ -34,6 +33,7 @@ export default function Login() {
   const { admin, setAdmin } = useAuth();
   const { loading, setLoading, handleError } = useUI()
   const navigate = useNavigate()
+  const theme = useTheme();
 
   const { instance, accounts } = useMsal();
 
@@ -129,7 +129,7 @@ export default function Login() {
         <Box
           maxW={'40vw'}
           w={'full'}
-          bg={useColorModeValue('white', 'gray.900')}
+          bg={theme === "dark" ? "gray.800" : "white"}
           boxShadow={'2xl'}
           rounded={'lg'}
           p={6}
@@ -150,31 +150,29 @@ export default function Login() {
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
-                <VStack spacing={5}>
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.email && touched.email} position="relative">
-                    <FormLabel htmlFor="email">Email</FormLabel>
+                <VStack gap={5}>
+                  <ChakraField label="Email" required mt="4" mb="5" invalid={errors.email && touched.email} position="relative">
                     <Field name="email" as={Input} id="email"/>
-                    <FormErrorMessage position="absolute" mt={1}>
+                    <Text position="absolute" mt={1}>
                       <ErrorMessage name="email"/>
-                    </FormErrorMessage>
-                  </FormControl>
+                    </Text>
+                  </ChakraField>
 
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.password && touched.password} position="relative">
-                    <FormLabel htmlFor="password">Password</FormLabel>
+                  <ChakraField label="Password" required mt="4" mb="5" invalid={errors.password && touched.password} position="relative">
                     <Field name="password" as={Input} id="password" type="password"/>
-                    <FormErrorMessage position="absolute" mt={1}>
+                    <Text position="absolute" mt={1}>
                       <ErrorMessage name="password"/>
-                    </FormErrorMessage>
-                  </FormControl>
+                    </Text>
+                  </ChakraField>
 
-                  <Button colorScheme="blue" type="submit" isLoading={isSubmitting}>
+                  <Button colorPalette="blue" type="submit" isLoading={isSubmitting}>
                     {isSubmitting ? "Logging in..." : "Login"}
                   </Button>
                 </VStack>
               </Form>
             )}
           </Formik>
-          <Button colorScheme="blue" onClick={handleSSOLogin}>
+          <Button colorPalette="blue" onClick={handleSSOLogin}>
             <ResponsiveText>Login with Azure</ResponsiveText>
           </Button>
           </Box>

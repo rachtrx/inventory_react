@@ -2,11 +2,11 @@ import { Badge, HStack } from "@chakra-ui/react"
 
 const AccessoryBadge = ({ accessories }) => {
     return (
-        <HStack spacing={2}>
+        <HStack gap={2}>
             {accessories.map((accReturn, idx) => (
                 <Badge
                     key={idx}
-                    colorScheme="purple"
+                    colorPalette="purple"
                     borderRadius="md"
                     px={2}
                     py={1}

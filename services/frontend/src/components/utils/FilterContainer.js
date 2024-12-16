@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, forwardRef } from 'react';
 import ReactDOM from 'react-dom';
-import { Grid, Button, Collapse, useDisclosure, Box, Flex, useStyleConfig } from '@chakra-ui/react';
-import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { Grid, Button, Collapsible, useDisclosure, Box, Flex, useStyleConfig } from '@chakra-ui/react';
+import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
 
 const FilterContainer = ({ children }) => {
-    const { isOpen, onToggle } = useDisclosure();
+    const { open, onToggle } = useDisclosure();
     const [mainFilters, setMainFilters] = useState([]);
     const [subFilters, setSubFilters] = useState([]);
     const containerRef = useRef(null);
@@ -52,7 +52,7 @@ const FilterContainer = ({ children }) => {
             <Grid ref={containerRef} templateColumns="repeat(auto-fill, 200px)" gap="10px" width="full" mb={4} alignItems="stretch">
                 {mainFilters}
             </Grid>
-            <Collapse in={isOpen} animateOpacity sx={{ overflow: isOpen ? 'visible' : 'hidden' }}>
+            <Collapsible open={open} animateOpacity sx={{ overflow: open ? 'visible' : 'hidden' }}>
                 <Grid
                     templateColumns="repeat(auto-fill, 200px)"
                     gap="10px"
@@ -61,15 +61,15 @@ const FilterContainer = ({ children }) => {
                 >
                     {subFilters}
                 </Grid>
-            </Collapse>
+            </Collapsible>
             <Flex gap={6}>
-                <Button colorScheme="blue" type="submit">Search</Button>
-                <Button colorScheme="gray" variant="outline" type="reset">Reset</Button>
+                <Button colorPalette="blue" type="submit">Search</Button>
+                <Button colorPalette="gray" variant="outline" type="reset">Reset</Button>
                 
                 { subFilters.length > 0 ?
-                    (<Button onClick={onToggle} variant="outline" aria-label={isOpen ? "Hide Filters" : "Show Filters"}>
-                        {isOpen ? <ChevronUpIcon mr={2} /> : <ChevronDownIcon mr={2} />}
-                        {isOpen ? "Less Filters" : "More Filters"}
+                    (<Button onClick={onToggle} variant="outline" aria-label={open ? "Hide Filters" : "Show Filters"}>
+                        {open ? <FiChevronUp mr={2} /> : <FiChevronDown mr={2} />}
+                        {open ? "Less Filters" : "More Filters"}
                     </Button>) : '' }
             </Flex>
         </Box>

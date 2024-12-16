@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Input } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/table";
 import { useReturn } from './ReturnProvider';
 import InputFormControl from '../utils/InputFormControl';
 

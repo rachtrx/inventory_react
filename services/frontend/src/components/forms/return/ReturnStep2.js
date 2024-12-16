@@ -1,4 +1,5 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ListItem, List } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
@@ -41,13 +42,13 @@ export const ReturnStep2 = () => {
 						{assetReturn.userNames.length > 0 && (
 						<Box mt={2}>
 							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
-							<UnorderedList>
+							<List>
 							{assetReturn.userNames.map((userName, index) => (
 								<ListItem key={assetReturn.userIds[index]}>
 								{userName}
 								</ListItem>
 							))}
-							</UnorderedList>
+							</List>
 						</Box>
 						)}
 
@@ -55,13 +56,13 @@ export const ReturnStep2 = () => {
 						{assetReturn.accessoryTypes.length > 0 && (
 						<Box mt={2}>
 							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
-							<UnorderedList>
+							<List>
 							{assetReturn.accessoryTypes.map(accessoryType => (
 								<ListItem key={accessoryType.accessoryTypeId}>
 								{accessoryType.accessoryName} - {accessoryType.count}/{accessoryType.unreturned} returned
 								</ListItem>
 							))}
-							</UnorderedList>
+							</List>
 						</Box>
 						)}
 					</Flex>
@@ -70,7 +71,7 @@ export const ReturnStep2 = () => {
 			
 				<ModalFooter>
 					<Button onClick={prevStep}>Back</Button>
-					<Button colorScheme="blue" type="submit">Submit</Button>
+					<Button colorPalette="blue" type="submit">Submit</Button>
 				</ModalFooter>
 			</Form>
 		</Formik>

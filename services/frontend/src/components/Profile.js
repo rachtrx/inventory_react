@@ -34,7 +34,7 @@ const Profile = () => {
 
   return (
     <Container maxW="container.md" centerContent p={4}>
-      <VStack spacing={4} align="stretch">
+      <VStack gap={4} align="stretch">
         <Box p={5} shadow="md" borderWidth="1px" borderRadius="lg" w="100%">
           <Heading fontSize="xl">Profile Details</Heading>
           <Text mt={4}><b>ID:</b> {admin.id}</Text>

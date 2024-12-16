@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
+import { Field as ChakraField, Input, Text } from '@chakra-ui/react';
 import { chakra } from "@chakra-ui/react";
 import { useField, useFormikContext } from 'formik';
 import { ResponsiveText } from '../../utils/ResponsiveText';
@@ -27,8 +27,7 @@ const DateInputControl = ({ label, name }) => {
   }, [meta])
 
   return (
-    <FormControl isInvalid={meta.touched && !!meta.error}>
-      <FormLabel><ResponsiveText>{label}</ResponsiveText></FormLabel>
+    <ChakraField label={label} isInvalid={meta.touched && !!meta.error}>
       <ChakraDatePicker
         {...field}
         selected={(field.value && new Date(field.value)) || null}
@@ -38,9 +37,9 @@ const DateInputControl = ({ label, name }) => {
         portal 
       />
       {meta.error && (
-        <FormErrorMessage>{meta.error}</FormErrorMessage>
+        <Text>{meta.error}</Text>
       )}
-    </FormControl>
+    </ChakraField>
   );
 };
 

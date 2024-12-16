@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import { Field, useField, useFormikContext } from 'formik';
 import Select, { components } from 'react-select';
-import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel } from '@chakra-ui/react';
+import { Flex, Field as ChakraField, Text } from '@chakra-ui/react';
 import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
@@ -96,10 +96,7 @@ const withSelect = (Component, isCreatable) => ({
   }, [value, options, isMulti, meta.touched]);
 
   return (
-    <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
-      {label && <FormLabel htmlFor={name}>
-        <ResponsiveText>{label}</ResponsiveText>
-      </FormLabel>}
+    <ChakraField id={name} isInvalid={meta.touched && !!meta.error} label={label} helperText={!meta.error && warning}>
       <Flex alignItems="center">
         <Component
           classNamePrefix="react-select"
@@ -121,9 +118,8 @@ const withSelect = (Component, isCreatable) => ({
         />
         {children}
       </Flex>
-      <FormErrorMessage>{meta.error}</FormErrorMessage>
-      {!meta.error && warning && <FormHelperText color="orange.400">{warning}</FormHelperText>}
-    </FormControl>
+      <Text>{meta.error}</Text>
+    </ChakraField>
   );
 };
 

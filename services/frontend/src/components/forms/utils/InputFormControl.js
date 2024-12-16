@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { FormControl, FormLabel, Input, Textarea, Collapse, IconButton, Box, FormErrorMessage } from '@chakra-ui/react';
+import { Field as ChakraField, Input, Textarea, Collapsible, IconButton, Box, Text } from '@chakra-ui/react';
 import { Field, useField } from 'formik';
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 
 export default function InputFormControl({
@@ -21,19 +21,14 @@ export default function InputFormControl({
   };
 
   return (
-    <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
+    <ChakraField id={name} label={label} isInvalid={meta.touched && !!meta.error}>
       <Box display="flex" alignItems="center">
-        {label && (
-          <FormLabel htmlFor={name}>
-            <ResponsiveText>{label}</ResponsiveText>
-          </FormLabel>
-        )}
 
         {/* logic to add which chevron icon given remarks */}
         {name.includes('remarks') && (
           <IconButton
             aria-label={isCollapsed ? 'Expand remarks' : 'Collapse remarks'}
-            icon={isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
+            icon={isCollapsed ? <FiChevronDown /> : <FiChevronUp />}
             size="sm"
             variant="ghost"
             onClick={toggleCollapse}
@@ -43,16 +38,18 @@ export default function InputFormControl({
 
       {/* Logic to render type of input (Text Area for Remarks) */}
       {name.includes('remarks') ? (
-        <Collapse in={!isCollapsed}>
-          <Field
-            name={name}
-            as={Textarea}
-            placeholder={placeholder}
-            disabled={disabled}
-            bg="white"
-            mt={2}
-          />
-        </Collapse>
+        <Collapsible.Root in={!isCollapsed}>
+          <Collapsible.Content>
+            <Field
+              name={name}
+              as={Textarea}
+              placeholder={placeholder}
+              disabled={disabled}
+              bg="white"
+              mt={2}
+            />
+          </Collapsible.Content>
+        </Collapsible.Root>
       ) : (
         <Field
           name={name}
@@ -66,8 +63,8 @@ export default function InputFormControl({
         />
       )}
       {meta.error && (
-        <FormErrorMessage>{meta.error}</FormErrorMessage>
+        <Text>{meta.error}</Text>
       )}
-    </FormControl>
+    </ChakraField>
   );
 }

@@ -3,7 +3,7 @@ import { dateTimeObject } from '../../../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from '../../../context/UIProvider';
 import { useFormikContext } from 'formik';
-import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
+import { Box, Button, Separator, Flex, Spacer } from '@chakra-ui/react';
 import { createNewLoan, Loan, LoanType } from './Loan';
 import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../../utils/ResponsiveText';
@@ -70,13 +70,13 @@ export const LoanProvider = ({loan, loanIndex, loanHelpers, warnings, isLast}) =
           type="button"
           onClick={() => removeLoan()}
           alignSelf="flex-start"
-          colorScheme="red"
+          colorPalette="red"
           >
           <ResponsiveText>Remove</ResponsiveText>
           </Button>
         )}
       </Flex>
-      <Divider borderColor="black" borderWidth="2px" my={4} />
+      <Separator borderColor="black" borderWidth="2px" my={4} />
       {isLast && (
         <AddButton
           handleClick={() => loanHelpers.push(createNewLoan())}

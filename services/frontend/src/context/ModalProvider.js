@@ -130,7 +130,7 @@ const getInitialValues = (formType) => {
 
 export const ModalProvider = ({ children }) => {
 
-  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+  const { open: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
   const [ initialValues, setInitialValues ] = useState(null);
   const { setLoading } = useUI();

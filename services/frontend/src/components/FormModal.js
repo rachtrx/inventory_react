@@ -1,16 +1,13 @@
 import {
+    Separator
+} from '@chakra-ui/react';
+import {
     Modal,
     ModalOverlay,
     ModalContent,
     ModalHeader,
     ModalCloseButton,
-    ModalBody,
-    ModalFooter,
-    Button,
-    useDisclosure,
-    Box,
-    Divider
-} from '@chakra-ui/react';
+} from "@chakra-ui/modal";
 import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
@@ -34,7 +31,7 @@ const formMap = {
     [formTypes.ADD_USER]: <AddUsersProvider/>,
     [formTypes.DEL_USER]: <DelUsersProvider/>,
     [formTypes.UPDATE_PERIPHERAL]: <AddPeripheral/>,
-    [formTypes.RESERVE]: <Reserve/>,
+    // [formTypes.RESERVE]: <Reserve/>,
 }
 
 const headerMap = {
@@ -45,12 +42,12 @@ const headerMap = {
     [formTypes.ADD_USER]: "Add User",
     [formTypes.DEL_USER]: "Remove User",
     [formTypes.UPDATE_PERIPHERAL]: "Add Peripheral",
-    [formTypes.RESERVE]: "Reserve Items",
+    // [formTypes.RESERVE]: "Reserve Items",
 }
 
 export default function FormModal() { 
 
-    const { setFormType, formType, isModalOpen, onModalOpen, onModalClose } = useFormModal();
+    const { setFormType, formType, modalOpen, onModalOpen, onModalClose } = useFormModal();
 
     useEffect(() => {
         if (formType) {
@@ -62,7 +59,7 @@ export default function FormModal() {
 
     return (
         <Modal 
-            isOpen={isModalOpen} 
+            open={modalOpen} 
             onClose={() => setFormType(null)} 
             scrollBehavior='outside' 
             size="xl" 
@@ -72,7 +69,7 @@ export default function FormModal() {
                 <ModalCloseButton/>
                 <ModalHeader display="flex" alignItems="center" gap={4}>
                     <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>
-                    <Divider orientation="vertical" height='20px'/>
+                    <Separator orientation="vertical" height='20px'/>
                 </ModalHeader>
                 {formMap[formType]}
             </ModalContent>

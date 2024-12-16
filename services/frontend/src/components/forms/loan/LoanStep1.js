@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Separator } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
@@ -172,7 +173,7 @@ export const LoanStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'userNames', 'accessoryTypes', 'expectedReturnDate', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="loans">
                   {loanHelpers => (
                     values.loans.map((loan, loanIndex, array) => (
@@ -192,7 +193,7 @@ export const LoanStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.loans}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.loans}>Next</Button>
                 </ModalFooter>
               </Form>
             );

@@ -6,12 +6,12 @@ import {
     VStack,
     HStack,
     Badge,
-    Divider,
+    Separator,
     Stack,
     Heading,
     Icon,
 } from "@chakra-ui/react";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
+import { FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 
 const ReserveEvent = ({ event }) => {
     const { accLoans } = event.reservation;
@@ -32,7 +32,7 @@ const ReserveEvent = ({ event }) => {
                     <Heading as="h3" size="md" mb={4} color="blue.600">
                         Accessories Loaned
                     </Heading>
-                    <VStack spacing={4} align="stretch">
+                    <VStack gap={4} align="stretch">
                         {accLoans && accLoans.length > 0 && accLoans.map((accLoan, index) => (
                             <Box
                                 key={index}
@@ -50,20 +50,20 @@ const ReserveEvent = ({ event }) => {
                                     <HStack>
                                         {/* Returned Count */}
                                         <Badge
-                                            colorScheme="green"
+                                            colorPalette="green"
                                             fontSize="0.8em"
                                             borderRadius="md"
                                         >
-                                            <Icon as={CheckCircleIcon} mr={1} />
+                                            <Icon as={FiCheckCircle} mr={1} />
                                             Returned: {accLoan.returned}
                                         </Badge>
                                         {/* Unreturned Count */}
                                         <Badge
-                                            colorScheme="red"
+                                            colorPalette="red"
                                             fontSize="0.8em"
                                             borderRadius="md"
                                         >
-                                            <Icon as={WarningIcon} mr={1} />
+                                            <Icon as={FiAlertTriangle} mr={1} />
                                             Unreturned: {accLoan.unreturned}
                                         </Badge>
                                     </HStack>

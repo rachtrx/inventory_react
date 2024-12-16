@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Separator } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import InputFormControl from '../utils/InputFormControl';
 import SelectFormControl from "../utils/SelectFormControl";
@@ -70,7 +71,7 @@ const ReturnStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="returns">
                   {returnHelpers => (
                     values.returns.map((ret, returnIndex, array) => (
@@ -91,7 +92,7 @@ const ReturnStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.returns}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.returns}>Next</Button>
                 </ModalFooter>
               </Form>
             );

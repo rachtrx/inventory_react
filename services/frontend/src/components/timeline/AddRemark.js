@@ -1,26 +1,26 @@
-import { Box, Text, List, ListItem, Flex, Divider, HStack, Icon, IconButton, Collapse, Textarea, Button } from "@chakra-ui/react";
-import { ChatIcon, CalendarIcon, InfoOutlineIcon, AddIcon } from "@chakra-ui/icons";
+import { Box, Text, List, ListItem, Flex, Separator, HStack, Icon, IconButton, Collapsible, Textarea, Button } from "@chakra-ui/react";
+import { FiMessageCircle, FiCalendar, FiInfo, FiPlusCircle } from "react-icons/fi";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
 
 const AddRemark = ({ eventId, handleAddRemark }) => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [open, setIsOpen] = useState(false);
 
     return (
         <Box>
             {/* Toggle Button */}
             <IconButton
-                icon={<AddIcon />}
+                icon={<FiPlusCircle />}
                 size="sm"
                 aria-label="Add Remark"
-                onClick={() => setIsOpen(!isOpen)}
-                colorScheme="blue"
+                onClick={() => setIsOpen(!open)}
+                colorPalette="blue"
                 variant="ghost"
                 mb={2}
             />
 
             {/* Collapsible Textarea */}
-            <Collapse in={isOpen} animateOpacity>
+            <Collapsible open={open} animateOpacity>
                 <Formik
                     initialValues={{ remark: "" }}
                     onSubmit={(values, { setSubmitting, resetForm }) => {
@@ -51,7 +51,7 @@ const AddRemark = ({ eventId, handleAddRemark }) => {
                             <Button
                                 size="sm"
                                 type="submit"
-                                colorScheme="blue"
+                                colorPalette="blue"
                                 isLoading={isSubmitting}
                             >
                                 Submit
@@ -59,7 +59,7 @@ const AddRemark = ({ eventId, handleAddRemark }) => {
                         </Form>
                     )}
                 </Formik>
-            </Collapse>
+            </Collapsible>
         </Box>
     );
 };

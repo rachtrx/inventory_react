@@ -4,27 +4,30 @@ import {
     VStack,
     HStack,
     IconButton,
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
     PopoverArrow,
-    PopoverCloseButton,
-    PopoverHeader,
-    PopoverBody,
-    Button,
-    Textarea,
+	PopoverBody,
+	PopoverCloseTrigger,
+	PopoverContent,
+	PopoverRoot,
+	PopoverHeader,
+	PopoverFooter,
+	PopoverTrigger
 } from "@chakra-ui/react";
-import { ChatIcon, AddIcon } from "@chakra-ui/icons";
+import { FiMessageCircle } from "react-icons/fi";
 import { Formik, Form, Field } from "formik";
 import AddRemark from "./AddRemark";
 import { useDrawer } from "../../context/DrawerProvider";
+import { useRef } from "react"
 
 const RemarksPopover = ({ remarks = [] }) => {
+
+    const ref = useRef(null)
+
     return (
-        <Popover placement="right" isLazy>
+        <PopoverRoot placement="right" initialFocusEl={() => ref.current} isLazy>
             <PopoverTrigger>
                 <IconButton
-                    icon={<ChatIcon />}
+                    icon={<FiMessageCircle />}
                     aria-label="View Remarks"
                     variant="ghost" // Subtle appearance
                     size="sm"
@@ -33,13 +36,13 @@ const RemarksPopover = ({ remarks = [] }) => {
             </PopoverTrigger>
             <PopoverContent borderRadius="md" boxShadow="md">
                 <PopoverArrow />
-                <PopoverCloseButton />
+                <PopoverCloseTrigger />
                 <PopoverHeader fontWeight="bold" borderBottom="1px solid" borderColor="gray.200">
                     Remarks
                 </PopoverHeader>
                 <PopoverBody>
                     {/* Existing Remarks */}
-                    <VStack align="stretch" spacing={3} mb={4}>
+                    <VStack align="stretch" gap={3} mb={4}>
                         {remarks.length > 0 ? (
                             remarks.map((remark, idx) => (
                                 <Text
@@ -64,7 +67,7 @@ const RemarksPopover = ({ remarks = [] }) => {
                     <AddRemark />
                 </PopoverBody>
             </PopoverContent>
-        </Popover>
+        </PopoverRoot>
     );
 };
 

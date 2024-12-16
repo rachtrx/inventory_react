@@ -11,7 +11,7 @@ const DeleteEvent = ({ event }) => {
             {/* Timeline Point */}
             <Flex align="center" position="relative">
                 <HStack>
-                    <DateText colorScheme="green" date={event.eventDate}/>
+                    <DateText colorPalette="green" date={event.eventDate}/>
                     <ResponsiveText fontWeight="bold" size="lg" color="green.600">
                         Condemned
                     </ResponsiveText>

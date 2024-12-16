@@ -8,7 +8,6 @@ import {
     Button,
     Flex
 } from "@chakra-ui/react";
-import { AddIcon, DownloadIcon } from "@chakra-ui/icons";
 import { Formik, Form, Field } from "formik";
 import AddRemark from "./AddRemark";
 import AddEvent from "./AddEvent";
@@ -18,7 +17,7 @@ import ReserveEvent from "./ReserveEvent";
 
 const Timeline = ({ events, handleAddRemark }) => {
     return (
-        <VStack spacing={2} align="stretch">
+        <VStack gap={2} align="stretch">
         {events.map((ev, id, arr) => (
             <Box
                 key={id}

@@ -3,7 +3,7 @@ import { dateTimeObject } from '../../../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from '../../../context/UIProvider';
 import { useFormikContext } from 'formik';
-import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
+import { Box, Button, Separator, Flex, Spacer } from '@chakra-ui/react';
 import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 import { AddButton } from '../utils/ItemButtons';
@@ -36,13 +36,13 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
             type="button"
             onClick={() => removeReturn()}
             alignSelf="flex-start"
-            colorScheme="red"
+            colorPalette="red"
           >
           <ResponsiveText>Remove</ResponsiveText>
           </Button>
         )}
       </Flex>
-      <Divider borderColor="black" borderWidth="2px" my={4} />
+      <Separator borderColor="black" borderWidth="2px" my={4} />
       {isLast && (
         <AddButton
           handleClick={() => returnHelpers.push(createNewReturn())}

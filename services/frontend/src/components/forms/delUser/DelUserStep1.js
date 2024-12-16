@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Separator, Flex } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
@@ -73,7 +74,7 @@ export const DelUserStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['userName', 'delDate', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="users">
                   {userHelpers => (
                     values.users.map((user, userIndex, array) => (
@@ -90,13 +91,13 @@ export const DelUserStep1 = () => {
                               type="button"
                               onClick={() => userHelpers.remove(userIndex)}
                               alignSelf="flex-start"
-                              colorScheme="red"
+                              colorPalette="red"
                             >
                             <ResponsiveText>{`Remove ${user.userName ? ` ${user.userName}` : ''}`}</ResponsiveText>
                             </Button>
                           )}
                         </Flex>
-                        <Divider borderColor="black" borderWidth="2px" my={4} />
+                        <Separator borderColor="black" borderWidth="2px" my={4} />
                         {userIndex === array.length - 1 && (
                         <AddButton
                             handleClick={() => userHelpers.push(delNewUser())}
@@ -110,7 +111,7 @@ export const DelUserStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.users}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.users}>Next</Button>
                 </ModalFooter>
               </Form>
             );

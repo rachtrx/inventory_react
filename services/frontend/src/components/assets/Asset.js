@@ -1,5 +1,5 @@
 import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { FiInfo } from 'react-icons/fi';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
 import ActionButton from '../buttons/ActionButton';
@@ -24,14 +24,14 @@ const Asset = ({ asset }) => {
     AssetStatus.AVAILABLE;
 
 	return (
-		<VStack align="stretch" p={4} spacing={2}>
+		<VStack align="stretch" p={4} gap={2}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
 				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
-					gap={1}  // This is the spacing between columns
+					gap={1}  // This is the gap between columns
 					p={4}
 					alignItems='center'
 				>
@@ -106,17 +106,17 @@ const Asset = ({ asset }) => {
 
       <Box>
         <IconButton
-          icon={<InfoOutlineIcon />}
+          icon={<FiInfo />}
           isRound
           aria-label="Bookmark"
           mb={4}
         />
         {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
           <Flex gridGap="2">
-            <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
+            <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorPalette="red">
               CONDEMN
             </Button>
-            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
+            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.assetId} colorPalette="green">
               LOAN
             </Button>
           </Flex>

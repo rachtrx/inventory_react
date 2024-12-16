@@ -1,4 +1,4 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/table";
 import { useDrawer } from '../../context/DrawerProvider';
 import { useItems } from '../../context/ItemsProvider';
 import StarButton from '../buttons/StarButton';

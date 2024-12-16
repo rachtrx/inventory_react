@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Separator, Flex } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
@@ -102,7 +103,7 @@ export const AddAssetStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendorName', 'cost', 'addDate', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="types">
                   {typeHelpers => (
                     values.types.map((type, typeIndex, array) => (
@@ -120,13 +121,13 @@ export const AddAssetStep1 = () => {
                               type="button"
                               onClick={() => typeHelpers.remove(typeIndex)}
                               alignSelf="flex-start"
-                              colorScheme="red"
+                              colorPalette="red"
                             >
                             <ResponsiveText>{`Remove ${type.typeName ? ` ${type.typeName}` : ''}`}</ResponsiveText>
                             </Button>
                           )}
                         </Flex>
-                        <Divider borderColor="black" borderWidth="2px" my={4} />
+                        <Separator borderColor="black" borderWidth="2px" my={4} />
                         {typeIndex === array.length - 1 && (
                         <AddButton
                             handleClick={() => typeHelpers.push(createNewType())}
@@ -140,7 +141,7 @@ export const AddAssetStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.types}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.types}>Next</Button>
                 </ModalFooter>
               </Form>
             );

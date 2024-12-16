@@ -1,4 +1,5 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, VStack } from "@chakra-ui/react";
+import { ModalFooter, ModalBody } from "@chakra-ui/modal";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
@@ -68,7 +69,7 @@ export const LoanStep2 = () => {
 			
 				<ModalFooter>
 					<Button onClick={prevStep}>Back</Button>
-					<Button colorScheme="blue" type="submit">Submit</Button>
+					<Button colorPalette="blue" type="submit">Submit</Button>
 				</ModalFooter>
 			</Form>
 		</Formik>

@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Separator, Flex } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
@@ -76,7 +77,7 @@ export const AddUserStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['deptName', 'userName', 'addDate', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="depts">
                   {deptHelpers => (
                     values.depts.map((dept, deptIndex, array) => (
@@ -94,13 +95,13 @@ export const AddUserStep1 = () => {
                               type="button"
                               onClick={() => deptHelpers.remove(deptIndex)}
                               alignSelf="flex-start"
-                              colorScheme="red"
+                              colorPalette="red"
                             >
                             <ResponsiveText>{`Remove ${dept.deptName ? ` ${dept.deptName}` : ''}`}</ResponsiveText>
                             </Button>
                           )}
                         </Flex>
-                        <Divider borderColor="black" borderWidth="2px" my={4} />
+                        <Separator borderColor="black" borderWidth="2px" my={4} />
                         {deptIndex === array.length - 1 && (
                         <AddButton
                             handleClick={() => deptHelpers.push(createNewDept())}
@@ -114,7 +115,7 @@ export const AddUserStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.depts}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.depts}>Next</Button>
                 </ModalFooter>
               </Form>
             );

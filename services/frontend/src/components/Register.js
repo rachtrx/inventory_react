@@ -1,12 +1,14 @@
 import React from 'react';
-import { Box, Button, Center, FormControl, FormLabel, Input, FormErrorMessage, VStack, useColorModeValue } from '@chakra-ui/react';
+import { Box, Button, Center, Field as ChakraField, Input, Text, VStack } from '@chakra-ui/react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { useAuth } from '../context/AuthProvider';
+import { useTheme } from "next-themes";
 
 export default function Register() {
 
+  const { theme } = useTheme();
 	const { register } = useAuth();
 
   const initialValues = {
@@ -46,7 +48,7 @@ export default function Register() {
         <Box
           maxW={'40vw'}
           w={'full'}
-          bg={useColorModeValue('white', 'gray.900')}
+          bg={theme === "dark" ? "gray.900" : "white"}
           boxShadow={'2xl'}
           rounded={'lg'}
           p={6}
@@ -59,32 +61,20 @@ export default function Register() {
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
-                <VStack spacing={5}>
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.adminName && touched.adminName} position="relative">
-                    <FormLabel htmlFor="adminName">Admin Name</FormLabel>
+                <VStack gap={5}>
+                  <ChakraField label="Admin Name" required mt="4" mb="5" invalid={errors.adminName && touched.adminName} position="relative" errorText={touched.adminName && errors.adminName}>
                     <Field name="adminName" as={Input} id="adminName"/>
-                    <FormErrorMessage position="absolute" mt={1}>
-                      <ErrorMessage name="adminName"/>
-                    </FormErrorMessage>
-                  </FormControl>
+                  </ChakraField>
 
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.email && touched.email} position="relative">
-                    <FormLabel htmlFor="email">Email</FormLabel>
+                  <ChakraField label="Email" required mt="4" mb="5" invalid={errors.email && touched.email} position="relative" errorText={touched.email && errors.email}>
                     <Field name="email" as={Input} id="email"/>
-                    <FormErrorMessage position="absolute" mt={1}>
-                      <ErrorMessage name="email"/>
-                    </FormErrorMessage>
-                  </FormControl>
+                  </ChakraField>
 
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.password && touched.password} position="relative">
-                    <FormLabel htmlFor="password">Password</FormLabel>
+                  <ChakraField label="Password" required mt="4" mb="5" invalid={errors.password && touched.password} position="relative" errorText={touched.password && errors.password}>
                     <Field name="password" as={Input} id="password" type="password"/>
-                    <FormErrorMessage position="absolute" mt={1}>
-                      <ErrorMessage name="password"/>
-                    </FormErrorMessage>
-                  </FormControl>
+                  </ChakraField>
 
-                  <Button colorScheme="blue" type="submit" isLoading={isSubmitting}>
+                  <Button colorPalette="blue" type="submit" isLoading={isSubmitting}>
                     {isSubmitting ? "Registering..." : "Register"}
                   </Button>
                 </VStack>

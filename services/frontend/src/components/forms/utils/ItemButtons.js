@@ -1,9 +1,9 @@
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { FiPlusCircle, FiTrash } from "react-icons/fi";
 import { Button, IconButton } from "@chakra-ui/react";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 import { FaEdit } from "react-icons/fa";
 
-export const withItemButton = (IconComponent, colorScheme) => ({ 
+export const withItemButton = (IconComponent, colorPalette) => ({ 
     ariaLabel, 
     handleClick, 
     isDisabled = false, 
@@ -18,7 +18,7 @@ export const withItemButton = (IconComponent, colorScheme) => ({
             onClick={handleClick}
             size="sm"
             variant="ghost"
-            colorScheme={colorScheme}
+            colorPalette={colorPalette}
             isDisabled={isDisabled}
             whiteSpace="normal"
             textAlign="left"
@@ -33,13 +33,13 @@ export const withItemButton = (IconComponent, colorScheme) => ({
             onClick={handleClick}
             size="sm"
             variant="ghost"
-            colorScheme={colorScheme}
+            colorPalette={colorPalette}
             isDisabled={isDisabled}
             {...props}
         />
     );
 };
 
-export const AddButton = withItemButton(AddIcon, "teal");
-export const RemoveButton = withItemButton(DeleteIcon, "red");
+export const AddButton = withItemButton(FiPlusCircle, "teal");
+export const RemoveButton = withItemButton(FiTrash, "red");
 export const EditButton = withItemButton(FaEdit, 'yellow')

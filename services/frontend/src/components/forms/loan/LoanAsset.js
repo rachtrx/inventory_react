@@ -3,7 +3,7 @@ import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl }
 import { useFormModal } from "../../../context/ModalProvider"
 import { useUI } from "../../../context/UIProvider"
 import accessoryService from "../../../services/AccessoryService"
-import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton } from "@chakra-ui/react";
+import { Button, Flex, VStack, IconButton, Box, HStack, CloseButton } from "@chakra-ui/react";
 import { FieldArray } from "formik"
 import InputFormControl from "../utils/InputFormControl"
 import { ResponsiveText } from "../../utils/ResponsiveText"

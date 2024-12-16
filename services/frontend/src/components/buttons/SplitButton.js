@@ -32,7 +32,7 @@ export const UserActionButton = ({ user, setHoveredUserId }) => {
 		  <>
 				<VStack
 					align="stretch"
-					spacing={2}
+					gap={2}
 					overflowY="auto"
 					maxH="50px"
 				>

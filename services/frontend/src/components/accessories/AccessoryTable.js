@@ -1,19 +1,22 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
+import { IconButton, VStack, Flex } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/table";
 import { ResponsiveText } from '../utils/ResponsiveText';
 import StarButton from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { ItemLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
+import { useTheme } from "next-themes";
 
 const AccessoryTable = ({ items }) => {
 
+  const { theme } = useTheme();
   const { loading, setLoading, error, setError }  = useUI();
   const { handleUpdate } = useItems()
 
   return (
     <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
+      <Thead position="sticky" top="0" zIndex="1" bg={theme === "dark" ? "gray.700" : "gray.100"}>
         <Tr>
           <Th></Th>
           <Th>Name</Th>

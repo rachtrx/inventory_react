@@ -6,12 +6,12 @@ import {
     VStack,
     HStack,
     Badge,
-    Divider,
+    Separator,
     Icon,
-    Collapse,
+    Collapsible,
     Button,
 } from "@chakra-ui/react";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
+import { FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import DateText from "./DateText";
 import AccessoryBadge from "./AccessoryBadge";
 import { ResponsiveText } from "../utils/ResponsiveText";
@@ -20,27 +20,27 @@ const LoanEvent = ({ event }) => {
     console.log(event);
     const { accLoans, returnEvents } = event.loan;
 
-    const [isOpen, setIsOpen] = useState(false); // State to control collapse
+    const [open, setIsOpen] = useState(false); // State to control collapse
 
     return (
-        <VStack align="stretch" spacing={6}>
+        <VStack align="stretch" gap={6}>
             {/* Left Panel: Accessory Details */}
-            <VStack spacing={4} align="stretch">
+            <VStack gap={4} align="stretch">
                 <HStack>
                     <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
                         Loan
                     </ResponsiveText>
-                    <DateText colorScheme="blue" date={event.eventDate} />
+                    <DateText colorPalette="blue" date={event.eventDate} />
                     <Button
                         size="sm"
                         variant="link"
-                        onClick={() => setIsOpen(!isOpen)} // Toggle collapse
+                        onClick={() => setIsOpen(!open)} // Toggle collapse
                     >
-                        {isOpen ? "Hide Details" : "Show Details"}
+                        {open ? "Hide Details" : "Show Details"}
                     </Button>
                 </HStack>
 
-                <Collapse in={isOpen} animateOpacity>
+                <Collapsible open={open} animateOpacity>
                     {accLoans &&
                         accLoans.length > 0 &&
                         accLoans.map((accLoan, index) => (
@@ -60,22 +60,22 @@ const LoanEvent = ({ event }) => {
                                     <HStack>
                                         {/* Returned Count */}
                                         <Badge
-                                            colorScheme="green"
+                                            colorPalette="green"
                                             fontSize="0.8em"
                                             borderRadius="md"
                                         >
-                                            <Icon as={CheckCircleIcon} mr={1} />
+                                            <Icon as={FiCheckCircle} mr={1} />
                                             Returned: {accLoan.returned}
                                         </Badge>
                                         {/* Unreturned Count */}
                                         {accLoan.unreturned &&
                                             accLoan.unreturned > 0 && (
                                                 <Badge
-                                                    colorScheme="red"
+                                                    colorPalette="red"
                                                     fontSize="0.8em"
                                                     borderRadius="md"
                                                 >
-                                                    <Icon as={WarningIcon} mr={1} />
+                                                    <Icon as={FiAlertTriangle} mr={1} />
                                                     Unreturned: {accLoan.unreturned}
                                                 </Badge>
                                             )}
@@ -83,12 +83,12 @@ const LoanEvent = ({ event }) => {
                                 </Flex>
                             </Box>
                         ))}
-                </Collapse>
+                </Collapsible>
             </VStack>
 
             {returnEvents && Object.keys(returnEvents).length > 0 && (
                 <Box>
-                    <VStack spacing={4} align="stretch">
+                    <VStack gap={4} align="stretch">
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returns
                         </ResponsiveText>
@@ -103,15 +103,15 @@ const LoanEvent = ({ event }) => {
                                 boxShadow="sm"
                             >
                                 <DateText 
-                                    colorScheme={event.isAsset ? "yellow" : "gray"} 
+                                    colorPalette={event.isAsset ? "yellow" : "gray"} 
                                     date={event.eventDate} />
-                                <Collapse in={isOpen} animateOpacity>
+                                <Collapsible in={open} animateOpacity>
                                     {event.remarks && (
                                         <Text fontSize="sm" mt={1} color="gray.600">
                                             Remark: {event.remarks}
                                         </Text>
                                     )}
-                                    <Divider my={2} />
+                                    <Separator my={2} />
                                     <Text
                                         fontSize="xs"
                                         fontWeight="medium"
@@ -121,7 +121,7 @@ const LoanEvent = ({ event }) => {
                                         Returned Accessories:
                                     </Text>
                                     <AccessoryBadge accessories={event.accessories} />
-                                </Collapse>
+                                </Collapsible>
                             </Box>
                         ))}
                     </VStack>

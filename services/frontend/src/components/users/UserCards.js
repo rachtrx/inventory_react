@@ -3,13 +3,12 @@ import {
     Button,
     Text,
     Box,
-    useColorModeValue,
     CardBody,
     Card,
     Flex,
 } from "@chakra-ui/react";
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+import { FiExternalLink } from 'react-icons/fi';
 import Cards from '../utils/Cards';
 import { useDrawer } from "../../context/DrawerProvider";
 import ActionButton from "../buttons/ActionButton";

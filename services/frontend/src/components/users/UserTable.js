@@ -1,4 +1,5 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
+import { VStack, Flex } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/table";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import ActionButton from '../buttons/ActionButton';
 import { useDrawer } from '../../context/DrawerProvider';
@@ -11,15 +12,17 @@ import StarButton from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { ItemLink } from '../buttons/ItemLink';
+import { useTheme } from "next-themes";
 
 const UserTable = ({ items }) => {
 
+  const { theme } = useTheme();
   const { loading, setLoading, error, setError }  = useUI();
   const { handleUpdate } = useItems()
 
   return (
     <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
+      <Thead position="sticky" top="0" zIndex="1" bg={theme === "dark" ? "gray.700" : "gray.100"}>
         <Tr>
           <Th></Th>
           <Th>User Name</Th>

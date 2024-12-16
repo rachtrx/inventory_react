@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import {
   Button,
-  FormControl,
-  FormLabel,
+  Field as ChakraField,
   Input,
-  FormErrorMessage,
   Box,
+  Text,
 } from '@chakra-ui/react';
 import { useUI } from '../context/UIProvider';
 import authService from '../services/AuthService';
@@ -13,7 +12,7 @@ import authService from '../services/AuthService';
 const PasswordSetup = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { handleError, showToast } = useUI()
 
   const handleSubmit = async (e) => {
@@ -23,7 +22,7 @@ const PasswordSetup = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    setSubmitting(true);
     try {
       // Assume this function posts the data to the server
       await authService.submitPassword(password);
@@ -33,23 +32,21 @@ const PasswordSetup = () => {
     } catch (error) {
       handleError("Failed to setup password.")
     }
-    setIsSubmitting(false);
+    setSubmitting(false);
   };
 
   return (
     <Box p={4} maxWidth="500px" borderWidth="1px" borderRadius="lg" boxShadow="lg">
       <form onSubmit={handleSubmit}>
-        <FormControl isRequired isInvalid={password !== confirmPassword}>
-          <FormLabel htmlFor="password">New Password</FormLabel>
+        <ChakraField label="New Password" required invalid={password !== confirmPassword}>
           <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-        </FormControl>
-        <FormControl mt={4} isRequired isInvalid={password !== confirmPassword}>
-          <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
+        </ChakraField>
+        <ChakraField label="Confirm Password" mt={4} required invalid={password !== confirmPassword}>
           <Input
             id="confirmPassword"
             type="password"
@@ -57,10 +54,10 @@ const PasswordSetup = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
           {password !== confirmPassword && (
-            <FormErrorMessage>Passwords do not match.</FormErrorMessage>
+            <Text>Passwords do not match.</Text>
           )}
-        </FormControl>
-        <Button mt={4} colorScheme="blue" isLoading={isSubmitting} type="submit">
+        </ChakraField>
+        <Button mt={4} colorPalette="blue" isLoading={submitting} type="submit">
           Set Up Password
         </Button>
       </form>

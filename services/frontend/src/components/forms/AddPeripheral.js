@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, IconButton, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Separator, Flex } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import InputFormControl from './utils/InputFormControl';
 import ExcelFormControl from './utils/ExcelFormControl';
 import { CreatableSingleSelectFormControl, PeripheralSearchFormControl, SearchCreatableSingleSelectFormControl, SearchFormControl } from "./utils/SelectFormControl";
@@ -95,7 +96,7 @@ const AddPeripheral = () => {
         {formikProps => (
           <Form>
             <ModalBody w='100%'>
-            <Divider borderColor="black" borderWidth="2px" my={2}/>
+            <Separator borderColor="black" borderWidth="2px" my={2}/>
             <FieldArray name='peripherals'>
               {accessoryHelpers => formikProps.values.peripherals.map((peripheral, index, array) => (
                 <Box>
@@ -134,7 +135,7 @@ const AddPeripheral = () => {
             }}>
               Cancel
             </Button>
-            <Button colorScheme="blue" type="submit">
+            <Button colorPalette="blue" type="submit">
               Submit
             </Button>
           </ModalFooter>

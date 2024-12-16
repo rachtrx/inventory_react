@@ -25,7 +25,7 @@ export const DrawerProvider = ({ children }) => {
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
 	const [editedValue, setEditedValue] = useState(null);
 
-  const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
+  const { open: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 
 	const resetBreadcrumbs = () => {
 		setState(prev => ({ ...prev, currentItem: null, itemsHistory: [] }));

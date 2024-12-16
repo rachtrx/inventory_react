@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
+import { Box, Button, Separator, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
@@ -50,13 +50,13 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                                                 type="button"
                                                 onClick={() => userHelpers.remove(userIndex)}
                                                 alignSelf="flex-start"
-                                                colorScheme="red"
+                                                colorPalette="red"
                                             >
                                             <ResponsiveText>`Remove User`</ResponsiveText>
                                             </Button>
                                         )}
                                     </Flex>
-                                    <Divider borderColor="black" borderWidth="2px" my={4} />
+                                    <Separator borderColor="black" borderWidth="2px" my={4} />
                                     {userIndex === userArray.length - 1 && (
                                         <AddButton
                                             alignSelf="flex-start"

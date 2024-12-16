@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, Grid, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
+import { Box, Button, Separator, Flex, Grid, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
@@ -73,13 +73,13 @@ export const AddSubType = ({
 												type="button"
 												onClick={() => assetHelpers.remove(assetIndex)}
 												alignSelf="flex-start"
-												colorScheme="red"
+												colorPalette="red"
 											>
 											<ResponsiveText>Remove Asset</ResponsiveText>
 											</Button>
 										)}
 									</Flex>
-									<Divider borderColor="black" borderWidth="2px" my={4} />
+									<Separator borderColor="black" borderWidth="2px" my={4} />
 									{assetIndex === assetArray.length - 1 && (
 										<AddButton
 											alignSelf="flex-start"

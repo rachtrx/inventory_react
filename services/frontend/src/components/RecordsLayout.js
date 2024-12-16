@@ -1,6 +1,6 @@
 // RecordsLayout.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Button, Collapse, Flex, Heading, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, useBreakpointValue } from '@chakra-ui/react';
 import InfoBar from './utils/InfoBar';
 import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
@@ -51,10 +51,10 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           >
             <Heading as="h1" size={headerSize}>{header}</Heading>
             <Actions/>
-            { isIpad ? (<Button colorScheme="blue" iconSpacing={0} onClick={handleDevError}>
+            { isIpad ? (<Button colorPalette="blue" iconSpacing={0} onClick={handleDevError}>
               <FaDownload/>
             </Button>) : (
-              <Button colorScheme="blue" onClick={handleDevError}>Export to Excel</Button>
+              <Button colorPalette="blue" onClick={handleDevError}>Export to Excel</Button>
             )}
           </Flex>
         </Box>

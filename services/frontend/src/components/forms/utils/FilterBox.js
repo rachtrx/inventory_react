@@ -19,7 +19,7 @@ export default function FilterBox({children, label}) {
         <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p={6}>
             <Flex justifyContent="space-between" alignItems="center" mb={4}>
                 <Heading as="h1" size="xl">{label}</Heading>
-                <Button colorScheme="blue">Export to Excel</Button>
+                <Button colorPalette="blue">Export to Excel</Button>
             </Flex>
 
             <Formik
@@ -31,8 +31,8 @@ export default function FilterBox({children, label}) {
                 <Grid templateColumns="repeat(3, 1fr)" gap={6}>
                     {children}
                     <Flex justifyContent="space-between" mt={4} gridColumn="span 3 / auto">
-                        <Button colorScheme="gray" variant="outline" type="reset">Reset</Button>
-                        <Button colorScheme="blue" type="submit">Search</Button>
+                        <Button colorPalette="gray" variant="outline" type="reset">Reset</Button>
+                        <Button colorPalette="blue" type="submit">Search</Button>
                     </Flex>
                 </Grid>
                 </Form>

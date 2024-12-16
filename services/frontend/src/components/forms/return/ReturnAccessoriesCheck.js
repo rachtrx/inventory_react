@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox } from '@chakra-ui/react';
+import { Checkbox, Box } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/table";
 
 const ReturnAccessories = () => {
   const [masterChecked, setMasterChecked] = useState(false);

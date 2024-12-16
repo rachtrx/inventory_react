@@ -1,7 +1,6 @@
 import {
     Flex,
-    Menu,
-    useColorModeValue,
+    Menu
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
 import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdEvent } from 'react-icons/md'; // react-icons
@@ -10,10 +9,12 @@ import { useAuth } from '../context/AuthProvider';
 import { useCallback } from 'react';
 import authService from '../services/AuthService';
 import { useUI } from '../context/UIProvider';
+import { useTheme } from "next-themes";
 
 const Nav = () => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
-  const linkHoverColor = useColorModeValue('gray.800', 'white');
+  const linkHoverColor = theme === "dark" ? "gray.800" : "white";
   const {handleDevError} = useUI();
 
   return (
@@ -24,7 +25,7 @@ const Nav = () => {
       justify="space-between"
       wrap="wrap"
       padding="1.5rem"
-      bg={useColorModeValue('gray.50', 'gray.900')}
+      bg={theme === "dark" ? "gray.900" : "gray.50"}
       color={linkHoverColor}
     >
       <Menu>

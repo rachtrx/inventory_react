@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, Text, Tag, TagCloseButton, TagLabel } from '@chakra-ui/react';
+import { Flex, Text, TagRoot, TagLabel, TagCloseTrigger } from '@chakra-ui/react';
 
 const FileNameDisplay = ({ fileName, resetFileInput }) => {
   return (
@@ -11,17 +11,18 @@ const FileNameDisplay = ({ fileName, resetFileInput }) => {
       w="100%"
     >
       {fileName ? (
-        <Tag
+        <TagRoot asChild
           borderRadius="md"
           variant="solid"
-          colorScheme="blue"
+          colorPalette="blue"
           w="100%"
           h="32px" // Ensure the Tag height is the same as the Flex container height
           justifyContent="space-between" // This will push the close button to the end
+          closable
         >
           <TagLabel isTruncated>{fileName}</TagLabel>
-          <TagCloseButton onClick={resetFileInput} size="md" />
-        </Tag>
+          <TagCloseTrigger onClick={resetFileInput} size="md" />
+        </TagRoot>
       ) : (
         <Flex
           w="100%"

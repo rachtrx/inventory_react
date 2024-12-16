@@ -1,4 +1,5 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Separator, Flex } from "@chakra-ui/react";
+import { ModalBody, ModalFooter } from "@chakra-ui/modal";
 import ExcelFormControl from '../utils/ExcelFormControl';
 import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
@@ -73,7 +74,7 @@ export const DelAssetStep1 = () => {
               <Form>
                 <ModalBody>
                   <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'delDate', 'remarks']}/>
-                  <Divider borderColor="black" borderWidth="2px" my={2} />
+                  <Separator borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="assets">
                   {assetHelpers => (
                     values.assets.map((asset, assetIndex, array) => (
@@ -90,13 +91,13 @@ export const DelAssetStep1 = () => {
                               type="button"
                               onClick={() => assetHelpers.remove(assetIndex)}
                               alignSelf="flex-start"
-                              colorScheme="red"
+                              colorPalette="red"
                             >
                             <ResponsiveText>{`Remove ${asset.assetTag ? ` ${asset.assetTag}` : ''}`}</ResponsiveText>
                             </Button>
                           )}
                         </Flex>
-                        <Divider borderColor="black" borderWidth="2px" my={4} />
+                        <Separator borderColor="black" borderWidth="2px" my={4} />
                         {assetIndex === array.length - 1 && (
                         <AddButton
                             handleClick={() => assetHelpers.push(delNewAsset())}
@@ -110,7 +111,7 @@ export const DelAssetStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.assets}>Next</Button>
+                  <Button colorPalette="blue" type="submit" isDisabled={errors.assets}>Next</Button>
                 </ModalFooter>
               </Form>
             );

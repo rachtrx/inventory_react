@@ -2,10 +2,10 @@ import { Badge, Text } from "@chakra-ui/react";
 import { ResponsiveText } from "../utils/ResponsiveText"
 import RemarksPopover from "./RemarksPopover";
 
-const DateText = ({ colorScheme, date, remarks }) => {
+const DateText = ({ colorPalette, date, remarks }) => {
     return (
         <Badge 
-            colorScheme={colorScheme} 
+            colorPalette={colorPalette} 
             display="inline-flex"
             alignItems="center" 
             px={3} // Padding for better appearance

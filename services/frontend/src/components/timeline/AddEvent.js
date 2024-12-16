@@ -6,7 +6,7 @@ import {
     HStack,
     VStack,
     Badge,
-    Divider,
+    Separator,
     Icon,
     Heading,
 } from "@chakra-ui/react";
@@ -24,7 +24,7 @@ const AddEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="green.600">
                         Added
                     </ResponsiveText>
-                    <DateText colorScheme="green" date={event.eventDate}/>
+                    <DateText colorPalette="green" date={event.eventDate}/>
                 </HStack>
             </Flex>
         </VStack>

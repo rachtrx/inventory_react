@@ -61,7 +61,7 @@ export default function Dashboard() {
     }, []);
 
     return (
-        <VStack spacing={8}> {/* Vertical Stack with spacing between children */}
+        <VStack gap={8}> {/* Vertical Stack with gap between children */}
             {/* Doughnut Charts in a 2-row x 3-column formation */}
             <Grid templateColumns="repeat(3, 1fr)" width="100%" gap={6} px={{ base: 4, md: 8 }} py={4}>
             {doughnuts.map((doughnut, index) => (

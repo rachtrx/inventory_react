@@ -1,18 +1,16 @@
 import { 
   DrawerBody,
-  DrawerOverlay,
+  DrawerBackdrop,
   DrawerContent,
-  DrawerCloseButton,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink, 
   Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Drawer,
   DrawerHeader,
-  Text} from '@chakra-ui/react';
+  Text,
+  DrawerCloseTrigger
+} from '@chakra-ui/react';
 import { useEffect } from 'react';
 import Asset from './assets/Asset';
 import User from './users/User';
@@ -22,21 +20,21 @@ import { getDisplayValue, itemKeys } from '../config';
 
 const ItemDrawer = () => {
   
-  const { itemsHistory, currentItem, handleItemClick, handleClose, isDrawerOpen } = useDrawer()
+  const { itemsHistory, currentItem, handleItemClick, handleClose, drawerOpen } = useDrawer()
 
   useEffect(() => {
     console.log(currentItem);
   }, [currentItem])
 
   return (
-    <Drawer isOpen={isDrawerOpen} placement="right" onClose={handleClose} size="lg">
-    <DrawerOverlay />
+    <Drawer open={drawerOpen} placement="right" onClose={handleClose} size="lg">
+    <DrawerBackdrop />
     <DrawerContent>
-      <DrawerCloseButton />
+      <DrawerCloseTrigger />
       <DrawerHeader>
         <Breadcrumb>
           {itemsHistory.map((item, index) => (
-            <BreadcrumbItem key={index} isCurrentPage={item.id === (currentItem?.id)}>
+            <BreadcrumbItem key={index} currentPage={item.id === (currentItem?.id)}>
               <BreadcrumbLink onClick={() => handleItemClick(item)}>
                 <Text fontSize="sm">{getDisplayValue(item)}</Text>
               </BreadcrumbLink>
@@ -50,10 +48,8 @@ const ItemDrawer = () => {
         ) : currentItem ? (
           <User user={currentItem} />
         ) : (
-          <Alert status="error" borderRadius="md" m="4">
-            <AlertIcon />
-            <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
-            <AlertDescription>There was a problem retrieving the data. Please try again later.</AlertDescription>
+          <Alert status="error" title="Data Retrieval Error" borderRadius="md" m="4">
+            There was a problem retrieving the data. Please try again later.
           </Alert>
         )}
       </DrawerBody>

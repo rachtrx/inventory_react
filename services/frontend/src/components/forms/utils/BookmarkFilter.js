@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { FormControl, FormLabel, Button } from '@chakra-ui/react';
+import { Field as ChakraField, Button } from '@chakra-ui/react';
 
 const BookmarkFilter = () => {
     const [isOn, setIsOn] = useState(false);
     const toggleBookmark = () => setIsOn(!isOn);
   
     return (
-      <FormControl id="bookmark-filter">
-        <FormLabel>Bookmarks</FormLabel>
+      <ChakraField id="bookmark-filter" label="Bookmarks">
         <Button 
           onClick={toggleBookmark} 
           backgroundColor={isOn ? 'blue.500' : 'gray.200'}
@@ -19,7 +18,7 @@ const BookmarkFilter = () => {
         >
           { isOn ? "Hide" : "Show" }
         </Button>
-      </FormControl>
+      </ChakraField>
     );
   };
 

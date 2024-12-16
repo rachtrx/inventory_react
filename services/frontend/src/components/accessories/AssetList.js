@@ -1,32 +1,50 @@
-import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody } from "@chakra-ui/react";
+"use client"
+
+import { VStack, Tooltip, Flex, HStack } from "@chakra-ui/react";
+
+import {
+	PopoverArrow,
+	PopoverBody,
+	PopoverCloseTrigger,
+	PopoverContent,
+	PopoverRoot,
+	PopoverHeader,
+	PopoverFooter,
+	PopoverTrigger,
+  } from "@/components/ui/popover"
+
 import { ItemLink } from "../buttons/ItemLink";
 import ActionButton from "../buttons/ActionButton";
 import { formTypes } from "../../context/ModalProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText, CircleTextTooltip, OverlappingCircles } from "../utils/CircleText";
+import { useRef } from "react"
 
 // TODO NOT IMPLEMENTED!
 
 export const AssetList = ({ assets }) => {
 
+	const ref = useRef(null);
+
   	return (
-		<Popover placement="bottom">
+		<PopoverRoot placement="bottom" initialFocusEl={() => ref.current}>
 			<PopoverTrigger >
-				<Wrap
-					spacing={1}
+				<HStack 
+					wrap="wrap"
+					gap={1}
 					align="center"
 					display="inline-flex"
 				>
                     <Tooltip label={assets.length} placement="top" hasArrow>
                         <CircleText text={assets.length} />
                     </Tooltip>
-				</Wrap>
+				</HStack>
 			</PopoverTrigger>
 			<PopoverContent 
 				width="auto"
 			>
 				<PopoverArrow />
-				<PopoverCloseButton />
+				<PopoverCloseTrigger />
 				<PopoverHeader>
 					<Flex gap={2} alignItems={'center'}>
 						<ResponsiveText size="sm" fontWeight="bold">Assets</ResponsiveText>
@@ -49,6 +67,6 @@ export const AssetList = ({ assets }) => {
 					</VStack> */}
 				</PopoverBody>
 			</PopoverContent>
-		</Popover>
+		</PopoverRoot>
   );
 };

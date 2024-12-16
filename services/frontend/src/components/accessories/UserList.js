@@ -1,17 +1,31 @@
-import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody } from "@chakra-ui/react";
+import { VStack, Tooltip, HStack, Flex } from "@chakra-ui/react";
+import {
+	PopoverArrow,
+	PopoverBody,
+	PopoverCloseTrigger,
+	PopoverContent,
+	PopoverRoot,
+	PopoverHeader,
+	PopoverFooter,
+	PopoverTrigger,
+} from "@/components/ui/popover"
 import { ItemLink } from "../buttons/ItemLink";
 import ActionButton from "../buttons/ActionButton";
 import { formTypes } from "../../context/ModalProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText, CircleTextTooltip, OverlappingCircles } from "../utils/CircleText";
+import { useRef } from "react"
 
 export const AssetList = ({ user }) => {
 
+	const ref = null;
+
   	return (
-		<Popover placement="bottom">
+		<PopoverRoot placement="bottom" initialFocusEl={() => ref.current}>
 			<PopoverTrigger >
-				<Wrap
-					spacing={1}
+				<HStack
+					wrap="wrap"
+					gap={1}
 					align="center"
 					display="inline-flex"
 				>
@@ -32,30 +46,30 @@ export const AssetList = ({ user }) => {
 								);
 							} else if (loan.asset) {
 								return (
-									<WrapItem key={loan.asset.assetId}>
+									<Flex align="flex-start" key={loan.asset.assetId}>
 										<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
 											<CircleText text={loan.asset.typeName} />
 										</Tooltip>
-									</WrapItem>
+									</Flex>
 								);
 							} else {
 								return (loan.peripherals.map((peripheral) => 
-									(<WrapItem key={peripheral.id}>
+									(<Flex align="flex-start" key={peripheral.id}>
 										<Tooltip label={peripheral.accessoryName} placement="top" hasArrow>
 											<CircleText text={peripheral.count} />
 										</Tooltip>
-									</WrapItem>)
+									</Flex>)
 								))
 							}
 						})
 					}
-				</Wrap>
+				</HStack>
 			</PopoverTrigger>
 			<PopoverContent 
 				width="auto"
 			>
 				<PopoverArrow />
-				<PopoverCloseButton />
+				<PopoverCloseTrigger />
 				<PopoverHeader>
 					<Flex gap={2} alignItems={'center'}>
 						<ResponsiveText size="sm" fontWeight="bold">Assets</ResponsiveText>
@@ -79,6 +93,6 @@ export const AssetList = ({ user }) => {
 					</VStack>
 				</PopoverBody>
 			</PopoverContent>
-		</Popover>
+		</PopoverRoot>
   );
 };
