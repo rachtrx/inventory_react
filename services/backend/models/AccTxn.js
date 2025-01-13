@@ -18,11 +18,11 @@ module.exports = (sequelize) => {
                 key: 'id',
             },
 		},
-        txn: {
+        count: { // TODO change to count
             type: DataTypes.INTEGER,
 			allowNull: false
         },
-        txnEventId: {
+        eventId: {
             type: DataTypes.STRING,
 			references: {
 			  model: 'events',

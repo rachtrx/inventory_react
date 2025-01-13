@@ -1,8 +1,9 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan, AccReturn } = require('../models');
-const { Op } = require('sequelize');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin } = require('../models');
+const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
+const EventDTO = require('../dtos/event.dto.js');
 
 class UserController {
 
@@ -107,12 +108,15 @@ class UserController {
                                     include: [
                                         {
                                             model: Ast,
+                                            required: true,
                                             attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
                                             include: {
                                                 model: AstSType,
+                                                required: true,
                                                 attributes: ['id', 'subTypeName'],
                                                 include: {
                                                     model: AstType,
+                                                    required: true,
                                                     attributes: ['id', 'typeName']
                                                 }
                                             }
@@ -155,7 +159,7 @@ class UserController {
                         ...(filters.dept.length > 0 && { where: { id: { [Op.in]: filters.dept } } }),
                     }
                 ],
-                where: whereClause,
+                where: whereClause
                 // TODO
                 // order: [['addedDate', 'DESC']],
             });
@@ -182,89 +186,34 @@ class UserController {
         }
     };
     
-    async getUser (req, res) {
+    getUser = async (req, res) => {
         const userId = req.params.id;
     
         try {
-            const userDetailsPromise = Usr.findByPk(userId, {
-                include: [
-                    {
-                        model: Dept,
-                        attributes: ['deptName']
-                    },
-                    {
-                        model: Event,
-                        as: 'AddEvent',
-                        attributes: ['eventDate']
-                    },
-                    {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['eventDate'],
-                        required: false,
-                    },
-                    {
-                        model: UsrLoan,
-                        attributes: ['id', 'filepath'],
-                        include: {
-                            model: Loan,
-                            attributes: ['id', 'expectedReturnDate'],
-                            include: [
-                                {
-                                    model: AstLoan,
-                                    include: [
-                                        {
-                                            model: Ast,
-                                            attributes: ['id', 'assetTag', 'bookmarked'],
-                                            include: {
-                                                model: AstSType,
-                                                attributes: ['subTypeName']
-                                            }
-                                        },
-                                        {
-                                            model: Event,
-                                            as: 'ReturnEvent',
-                                            attributes: ['eventDate'],
-                                            required: false
-                                        }
-                                    ]
-                                },
-                                {
-                                    model: Event,
-                                    as: 'ReserveEvent',
-                                    attributes: ['eventDate'],
-                                    required: false
-                                },
-                                {
-                                    model: Event,
-                                    as: 'CancelEvent',
-                                    attributes: ['eventDate'],
-                                    required: false
-                                },
-                                {
-                                    model: Event,
-                                    as: 'LoanEvent',
-                                    attributes: ['eventDate'],
-                                    required: false,
-                                },
-                            ]
-                        }
-                    }
-                ],
+            const userDetails = await Usr.findByPk(userId, {
+                include: {
+                    model: Dept,
+                    attributes: ['id', 'deptName']
+                },
                 attributes: ['id', 'userName', 'bookmarked']
             });
+
+            if (!userDetails) return res.status(404).send({ error: "User not found" });
+
+            const user = new UserDTO(userDetails);
     
-            const userEventsPromise = Event.find({ userId }).sort({ eventDate: -1 });
-    
-            const [userDetails, userEvents] = await Promise.all([userDetailsPromise, userEventsPromise]);
-    
-            if (!userDetails) return res.status(404).send({ error: "Usr not found" });
-    
-            // Attach events to the user details
-    
-            // const user = userDetails.createUserObject()
-    
-            user.events = userEvents;
+            user.history = await this.getAllEvents(user.userId);
+
+            if (user.history && user.history.length > 0) {
+
+                user.pastAssets = user.history
+                    .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent)
+                    .map(event => event.loan.astLoan.asset)
+
+                user.currentAssets = user.history
+                    .filter(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)
+                    .map(event => event.loan.astLoan.asset)
+            }
     
             logger.info('Details for Usr:', user);
     
@@ -274,23 +223,201 @@ class UserController {
             res.status(500).send({ error: "Internal server error" });
         }
     };
-    
-    async searchUsers (req, res) {
-        const { value, formType } = req.body;
 
-        const isBulkSearch = Array.isArray(value) ? true : false;
-        const searchTerm = isBulkSearch ? value : `%${value}%`;
-    
-        let orderByClause;
-    
-        if (formType === 'LOAN') {
-            orderByClause = `
+    async getAllEvents(userId) {
+        const eventRows = await Event.findAll({
+            attributes: ['id', 'adminId', 'eventDate'],
+            where: {
+                [Op.or]: [
+                    { '$AddedUser.id$': userId },
+                    { '$DeletedUser.id$': userId },
+                    { '$Loan->UsrLoans.user_id$': userId },
+                    { '$Reservation->UsrLoans.user_id$': userId } // TODO is it possible to extract out other users of that loan?
+                ]
+            },
+            include: [
+                {
+                    model: Rmk,
+                    attributes: ['id', 'text'],
+                    required: false,
+                    include: {
+                        model: Admin,
+                        attributes: ['id', 'adminName'],
+                        required: false
+                    },
+                },
+                {
+                    model: Admin,
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: Usr,
+                    as: 'AddedUser',
+                    attributes: ['id'],
+                    required: false
+                },
+                {
+                    model: Usr,
+                    as: 'DeletedUser',
+                    attributes: ['id'],
+                    required: false
+                },
+                {
+                    model: Loan,
+                    as: 'Loan',
+                    required: false,
+                    include: [
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            required: false,
+                            include: [
+                                {
+                                    model: Event,
+                                    as: 'ReturnEvent',
+                                    attributes: ['id', 'eventDate'],
+                                    required: false
+                                },
+                                {
+                                    model: Ast,
+                                    attributes: ['id', 'serialNumber', 'assetTag', 'bookmarked'],
+                                    include: {
+                                        model: AstSType,
+                                        attributes: ['subTypeName'],
+                                        include: {
+                                            model: AstType,
+                                            attributes: ['typeName']
+                                        }
+                                    },
+                                    required: true
+                                }
+                            ]
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName'],
+                                    required: true
+                                },
+                                {
+                                    model: AccReturn,
+                                    attributes: ['id', 'count'],
+                                    required: false,
+                                    include: {
+                                        model: Event,
+                                        as: 'ReturnEvent',
+                                        attributes: ['id', 'eventDate'],
+                                        required: true
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Loan,
+                                required: true,
+                                include: {
+                                    model: UsrLoan,
+                                    required: false,
+                                    include: {
+                                        model: Usr,
+                                        attributes: ['id', 'userName']
+                                    },
+                                    where: { id: { [Op.ne]: userId }}
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    model: Loan,
+                    required: false,
+                    as: 'Reservation',
+                    include: [
+                        {
+                            model: Event,
+                            as: 'CancelEvent',
+                            attributes: ['id', 'eventDate'],
+                            required: false
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            required: false
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName']
+                                }
+                            ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Loan,
+                                required: true,
+                                include: {
+                                    model: UsrLoan,
+                                    required: false,
+                                    include: {
+                                        model: Usr,
+                                        attributes: ['id', 'userName']
+                                    },
+                                    where: { id: { [Op.ne]: userId }}
+                                }
+                            }
+                        },
+                    ]
+                }
+            ],
+            order: [['eventDate', 'DESC']]
+        });
+
+        const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects
+        logger.info(events);
+
+        return events;
+    }
+
+    userIsDeleted = (user) => !!user.deletedDate
+    userHasNoAsset = (user) => user.loanCount === 0 && user.reserveCount === 0
+
+    searchUsersLoan = async (req, res) => {
+        try {
+            const { value } = req.query;
+            const orderByClause = `
                 ORDER BY
                     "deletedDate" IS NOT NULL ASC,
                     "lastEventDate" DESC
             `;
-        } else if (formType === 'DEL_USER') {
-            orderByClause = `
+    
+            const data = await this.searchUsers(value, orderByClause, this.userIsDeleted)
+            return res.json(data);
+        } catch (error) {
+            logger.error('Error fetching users:', error)
+            console.error('Error fetching users:', error);
+            res.status(500).send('Internal Server Error');
+        }
+        
+    }
+    
+    searchUsersDelete = async (req, res) => {
+        try {
+            const { value } = req.query;
+            const orderByClause = `
                 ORDER BY 
                     "deletedDate" IS NOT NULL ASC,
                     ("reserveCount" = 0 AND "loanCount" = 0) DESC,
@@ -298,9 +425,20 @@ class UserController {
                     "loanCount" = 0 DESC,
                     "lastEventDate" DESC
             `;
-        } else {
-            throw new Error('Invalid form type provided.');
+
+            const data = await this.searchUsers(value, orderByClause, this.userHasNoAsset)
+            return res.json(data);
+        } catch (error) {
+            logger.error('Error fetching users:', error)
+            console.error('Error fetching users:', error);
+            res.status(500).send('Internal Server Error');
         }
+    }
+
+    async searchUsers (value, orderByClause, disabledCondition) {
+
+        const isBulkSearch = Array.isArray(value) ? true : false;
+        const searchTerm = isBulkSearch ? value : `%${value}%`;
 
         const bulkCondition = `
             usrs.user_name IN (:searchTerm)  -- Bulk search condition
@@ -369,9 +507,9 @@ class UserController {
     
             const response = users.map(user => {
                 // logger.info(user)
-                if (user.deletedDate) {
+                if (this.userIsDeleted(user)) {
                     user.status = 'Deleted';
-                } else if (user.loanCount === 0 && user.reserveCount === 0) {
+                } else if (this.userHasNoAsset(user)) {
                     user.status = 'Available';
                 } else {
                     user.status = `${user.loanCount} Loaned, ${user.reserveCount} Reserved`;
@@ -380,31 +518,22 @@ class UserController {
                 
                 const { name, dept, status, lastEventDate } = user;
                 logger.info(status)
-                let disabled;
-                switch(formType) {
-                    case formTypes.LOAN:
-                        disabled = status === 'Deleted'
-                        break;
-                    case formTypes.DEL_USER:
-                        disabled = status !== 'Available'
-                        break;
-                }
+
+                const isDisabled = disabledCondition(user)
             
                 return {
                     value: name,
                     label: `${name}`, // Capitalize the first letter
                     userId: user.id,
-                    description: `${dept} ${disabled ? `(${status})` : ''}`,
-                    isDisabled: disabled, // Disable if not in validStatuses
+                    description: `${dept} ${isDisabled ? `(${status})` : ''}`,
+                    isDisabled, // Disable if not in validStatuses
                     lastEventDate
                 };
             });
     
-            res.json(response)
+            return response;
         } catch (error) {
-            logger.error('Error fetching users:', error)
-            console.error('Error fetching users:', error);
-            res.status(500).send('Internal Server Error');
+            throw error;
         }
     };
 

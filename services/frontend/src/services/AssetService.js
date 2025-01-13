@@ -1,3 +1,4 @@
+import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
 import qs from 'qs';
@@ -45,11 +46,19 @@ class AssetService {
         return await this.axios.post(`${API_URL}/forms/loan`, formData);
     }
 
-    async fetchReturn(assetIds) {
+    async fetchAstReturn(assetIds) {
         console.log(assetIds);
         return await this.axios.get(`${API_URL}/forms/return`, {
             params: {
-                assetIds: assetIds
+                assetIds,
+            }
+        });
+    }
+
+    async fetchAstForUser(userId) {
+        return await this.axios.get(`${API_URL}/forms/return/user`, {
+            params: {
+                userId,
             }
         });
     }
@@ -70,7 +79,14 @@ class AssetService {
     }
 
     async searchAssets(value, formType, mode) {
-        return await this.axios.post(`${API_URL}/assets/search`, { value, formType, mode });
+
+        const params = { value, mode }
+
+        if (formType === FormType.DEL_ASSET || formType === FormType.LOAN) {
+            return await this.axios.get(`${API_URL}/assets/search/available`, {params});
+        } else if (formType === FormType.RETURN) {
+            return await this.axios.get(`${API_URL}/assets/search/loaned`, {params});
+        } else throw new Error("Form Type not found")
     }
 }
 

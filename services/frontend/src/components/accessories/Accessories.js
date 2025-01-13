@@ -6,12 +6,12 @@ import RecordsLayout from '../RecordsLayout';
 import { ItemsProvider, useItems } from "../../context/ItemsProvider";
 import accessoryService from "../../services/AccessoryService";
 
-export const PeripheralsPage = () => {
+export const AccessoriesPage = () => {
 
   return (
     <ItemsProvider service={accessoryService}>
       <RecordsLayout
-        header="Peripherals"
+        header="Accessories"
         Filters={AccessoryFilters}
         Actions={AccessoryActions}
         Cards={AccessoryCards}

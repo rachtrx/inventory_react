@@ -9,16 +9,9 @@ import {
     Flex,
     VStack,
 } from "@chakra-ui/react";
-import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import Cards from '../utils/Cards';
-import { useDrawer } from '../../context/DrawerProvider';
 import StarButton from '../buttons/StarButton';
-import { useItems } from '../../context/ItemsProvider';
-import { AssetActionButton, SplitButton } from '../users/AssetList';
-import { useState } from 'react';
-import ActionButton from '../buttons/ActionButton';
-import { formTypes } from '../../context/ModalProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
 import SharedButton from '../buttons/SharedButton';
@@ -36,17 +29,17 @@ function AssetCards({items}) {
                     _hover={{ bg:  'gray.100' }}
                     overflow="hidden"
                 >
-                    <CardBody>  {/*onClick={() => handleItemClick(asset)} */}
+                    <CardBody>
                         <Flex>
                             <VStack align="start" flex='1'>
-                                <ItemLink item={asset} size={'lg'} fontWeight="bold"/>
+                                <AssetLink asset={asset} size={'lg'} fontWeight="bold"/>
                                 <Box>
                                     <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.typeName}</ResponsiveText>
                                     <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
                                 <Box display="inline-flex" flexWrap="wrap" gap={2}>
                                     {asset.ongoingLoan?.loan.userLoans.map((userLoan) => (
-                                        <ItemLink key={userLoan.user.userId} item={userLoan.user} />
+                                        <UserLink user={userLoan.user} />
                                     ))}
                                 </Box>
                             </VStack>

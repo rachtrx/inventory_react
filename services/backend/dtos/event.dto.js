@@ -11,8 +11,10 @@ class EventDTO {
         Rmks,
         AddedAsset,
         DeletedAsset,
+        AccType,
         Loan,
-        Reservation
+        Reservation,
+        AccTxn
     }) {
         if (eventDate) this.eventDate = eventDate;
         if (id) this.eventId = id;
@@ -24,7 +26,8 @@ class EventDTO {
         if (Loan) {this.loan = new LoanDTO(Loan)}
         if (Reservation) this.reservation = new LoanDTO(Reservation);
 
-        
+        if (AccType) this.addedAccType = AccType;
+        if (AccTxn) this.accTxn = AccTxn;
 
         // if (AddedAsset) this.addedAsset = AddedAsset;
         // if (DeletedAsset) this.deletedAsset = DeletedAsset;

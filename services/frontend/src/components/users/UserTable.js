@@ -1,8 +1,8 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import ActionButton from '../buttons/ActionButton';
+import { UserActionButton } from '../buttons/ActionButton';
 import { useDrawer } from '../../context/DrawerProvider';
-import { formTypes, useFormModal } from '../../context/ModalProvider';
+import { FormType, useFormModal } from '../../context/ModalProvider';
 import { AssetList } from './AssetList';
 import { useResponsive } from '../../context/ResponsiveProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
@@ -10,7 +10,7 @@ import { useState } from 'react';
 import StarButton from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { UserLink } from '../buttons/ItemLink';
 
 const UserTable = ({ items }) => {
 
@@ -32,15 +32,18 @@ const UserTable = ({ items }) => {
           <Tr 
             key={user.userId} 
             _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(user)}
           >
             <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
-            <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
+            <Td><UserLink user={user} size={'lg'} fontWeight="bold"/></Td>
             <Td><ResponsiveText>{user.department.deptName}</ResponsiveText></Td><Td>
               {user.userLoans?.length > 0 ? 
                 <AssetList user={user}/> : 
                 <Flex>
-                  <ActionButton formType={user.deleteEvent ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
+                  <UserActionButton 
+                    formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
+                    user={user} 
+                    style={{ marginLeft: 'auto' }} 
+                  />
                 </Flex>
               }
             </Td>

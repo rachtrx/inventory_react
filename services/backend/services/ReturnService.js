@@ -1,15 +1,14 @@
-const { formTypes } = require("../controllers/utils");
 const ValidationService = require("./ValidationService");
 const logger = require('../logging.js');
 const { generateSecureID } = require("../utils/nanoidValidation.js");
 const { getSingaporeDateTime } = require("../utils/utils.js");
-const { Event, Rmk, Ast, AccLoan, AccReturn } = require("../models/index.js");
+const { Event, Rmk, Ast, AccLoan, AccReturn, Sequelize, AccType } = require("../models/index.js");
 const AssetDTO = require("../dtos/ast.dto.js");
 
 class ReturnService extends ValidationService{
 
     constructor(returns, authId, transaction) {
-        super(transaction, authId, formTypes.RETURN);
+        super(transaction, authId);
         this.returns = returns;
         this.returnDate = new Date();
     }
@@ -24,11 +23,15 @@ class ReturnService extends ValidationService{
     }
 
     async validate(_return) {
-        const { assetId, assetTag, users, accessoryTypes } = _return;
+        const { assetId, serialNumber, users, accessoryTypes } = _return;
 
-        const validatedAssetRow = await this.getAsset(assetId, assetTag);
+        const assetRow = await this.getAsset(assetId, serialNumber, true);
 
-        const asset = new AssetDTO(validatedAssetRow);
+        if (!assetRow.AstLoans || !assetRow.AstLoans.length > 0) {
+            throw new Error(`Asset with ID ${asset.assetTag} is not on loan!`);
+        }
+
+        const asset = new AssetDTO(assetRow);
 
         logger.info(asset);
 
@@ -47,7 +50,7 @@ class ReturnService extends ValidationService{
             } else throw new Error(`Missing Return Count for Accessory ID ${accLoan.accessoryTypeId} for ${asset.assetTag}`);
         });
 
-        return validatedAssetRow;
+        return assetRow;
     }
 
     async returnAsset(assetRow, _return) {
@@ -84,6 +87,16 @@ class ReturnService extends ValidationService{
                     accLoanId: accLoan.id,
                     returnEventId: returnEventId
                 }, { transaction: this.transaction });
+
+                await AccType.update(
+                    { 
+                        count: Sequelize.literal(`count + ${returnCount}`)
+                    },
+                    { 
+                        where: { accessoryTypeId: accLoan.accessoryTypeId },
+                        transaction: this.transaction
+                    }
+                );
             }
 
             console.log(assetRow instanceof Ast);  // Should be true

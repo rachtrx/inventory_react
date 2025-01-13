@@ -9,6 +9,21 @@ import accessoryService from '../services/AccessoryService';
 
 const ModalContext = createContext();
 
+export const FormType = {
+  ADD_ASSET: 'ADD_ASSET',
+  DEL_ASSET: 'DEL_ASSET',
+  LOAN: 'LOAN',
+  RETURN: 'RETURN',
+  ADD_USER: 'ADD_USER',
+  DEL_USER: 'DEL_USER',
+  RESTORE_ASSET: 'RESTORE_ASSET',
+  RESTORE_USER: 'RESTORE_USER',
+  UPDATE_ACC: 'UPDATE_ACC',
+  LOAN_ACC: 'LOAN_ACC',
+  RETURN_ACC: 'RETURN_ACC',
+  RESERVE: 'RESERVE',
+}
+
 export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
   setOptionsState(prevOptions => {
     // Get the current items for the specified fieldName and key
@@ -44,19 +59,6 @@ const initialState = {
   formType: null,
 };
 
-export const formTypes = {
-  ADD_ASSET: 'ADD_ASSET',
-  DEL_ASSET: 'DEL_ASSET',
-  LOAN: 'LOAN',
-  RETURN: 'RETURN',
-  ADD_USER: 'ADD_USER',
-  DEL_USER: 'DEL_USER',
-  RESTORE_ASSET: 'RESTORE_ASSET',
-  RESTORE_USER: 'RESTORE_USER',
-  ADD_PERIPHERAL: 'ADD_PERIPHERAL',
-  RESERVE: 'RESERVE',
-}
-
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',
@@ -71,60 +73,6 @@ const reducer = (state, action) => {
       return initialState;
     default:
       return state;
-  }
-};
-
-const getInitialValues = (formType) => {
-  switch (formType) {
-    case formTypes.ADD_ASSET:
-      return {
-        model: '',
-        vendor: '',
-        'serial-number': '',
-        'asset-tag': '',
-        value: '',
-        remarks: '',
-        'registered-date': new Date(),
-        'bookmark-asset': false,
-        'user-name': '',
-        'loaned-date': new Date(),
-        'bookmark-user': false,
-      };
-    case formTypes.RETURN:
-      return {
-        'asset-id': '',
-        'returned-date': new Date(),
-        'bookmark-asset': false,
-        'bookmark-user': false,
-        remarks: '',
-      };
-    case formTypes.DEL_ASSET:
-      return {
-        'asset-id': '',
-        'user-id': '',
-        'condemned-date': new Date(),
-        'bookmark-asset': false,
-        'bookmark-user': false,
-        remarks: '',
-      };
-    case formTypes.ADD_USER:
-      return {
-        'dept': '',
-        'new-dept': '',
-        'user-name': '',
-        'added-date': new Date(),
-        'bookmark-user': false,
-        remarks: '',
-      };
-    case formTypes.DEL_USER:
-      return {
-        'user-id': '',
-        'removed-date': new Date(),
-        'bookmark-user': false,
-        remarks: '',
-      };
-    default:
-      return {};
   }
 };
 
@@ -188,7 +136,19 @@ export const ModalProvider = ({ children }) => {
   };
 
   return (
-    <ModalContext.Provider value={{ formType, setFormType, initialValues, setInitialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch, isModalOpen, onModalOpen, onModalClose, reinitializeForm }}>
+    <ModalContext.Provider value={{ 
+      formType, 
+      setFormType, 
+      initialValues, 
+      setInitialValues, 
+      handleAssetSearch, 
+      handleUserSearch, 
+      handleAccessorySearch, 
+      isModalOpen, 
+      onModalOpen, 
+      onModalClose, 
+      reinitializeForm 
+    }}>
       {children}
     </ModalContext.Provider>
   );

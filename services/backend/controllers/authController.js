@@ -117,11 +117,13 @@ class AuthController {
   };
   
   async chgPw (req, res) {
-    const { newPw } = req.body;
+    const { password } = req.body;
   
     try {
       const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(newPw, salt);
+      const hashedPassword = bcrypt.hashSync(password, salt);
+
+      logger.info(req.auth)
   
       const admin = await Admin.findOne({ where: { id: req.auth.id } });
       if (!admin) {
@@ -131,6 +133,7 @@ class AuthController {
       admin.pwd = hashedPassword;
       if (!admin.authType.includes('local')) {
         admin.authType.push('local');
+        admin.changed('authType', true);
       }
   
       await admin.save();

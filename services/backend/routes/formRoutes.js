@@ -32,6 +32,7 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 
 router.post('/loan', formLoanReturnController.loan);
 router.get('/return', formLoanReturnController.loadReturn);
+router.get('/return/accessory', formLoanReturnController.searchAccessoriesOnLoan);
 router.post('/return', formLoanReturnController.return);
 
 router.use('/addAsset', formAssetController.add);

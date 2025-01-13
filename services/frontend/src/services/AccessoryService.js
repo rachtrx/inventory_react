@@ -51,6 +51,23 @@ class AccessoryService {
     async updateAssetTypeSuggestion(assetId, accessoryTypeId, saved) {
         return await this.axios.post(`${this.URL}/updateAssetTypeSuggestion`, { assetId, accessoryTypeId, saved })
     }
+
+    async fetchLoans(searchTerm=null) {
+        return await this.axios.get(`${API_URL}/forms/return/accessory`, {
+            params: {
+                searchTerm
+            }
+        });
+    }
+
+    async fetchLoansForUser(userId, searchTerm=null) {
+        return await this.axios.get(`${API_URL}/forms/return/accessory`, {
+            params: {
+                userId,
+                searchTerm
+            }
+        });
+    }
 }
 
 const accessoryService = new AccessoryService(axiosInstance);

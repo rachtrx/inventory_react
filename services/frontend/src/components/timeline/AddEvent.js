@@ -14,6 +14,9 @@ import DateText from "./DateText";
 import { ResponsiveText } from "../utils/ResponsiveText";
 
 const AddEvent = ({ event }) => {
+
+    console.log(event);
+
     return (
         <VStack
             align="stretch"
@@ -24,7 +27,7 @@ const AddEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="green.600">
                         Added
                     </ResponsiveText>
-                    <DateText colorScheme="green" date={event.eventDate}/>
+                    <DateText colorScheme="green" date={event.eventDate} remarks={event.remarks}/>
                 </HStack>
             </Flex>
         </VStack>

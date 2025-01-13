@@ -1,7 +1,7 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
-import { ItemLink } from "./ItemLink";
-import ActionButton from "./ActionButton";
-import { formTypes } from "../../context/ModalProvider";
+import { AssetLink, UserLink } from "./ItemLink";
+import { AssetActionButton as AstActionButton, UserActionButton as UsrActionButton } from "./ActionButton";
+import { FormType } from "../../context/ModalProvider";
 
 export const SplitButton = ({ renderLeftButton, renderRightButton, onMouseEnterFn = () => null, onMouseLeaveFn = () => null }) => { // These 2 functions ensure that hovering the button does not hover the parent element
 
@@ -39,8 +39,8 @@ export const UserActionButton = ({ user, setHoveredUserId }) => {
 					{user.assets.map((asset) => (
 						<Box key={asset.assetId} w="100%">
 							<SplitButton
-								renderLeftButton={() => <ItemLink item={asset}/>}
-								renderRightButton={() => <ActionButton formType={formTypes.RETURN} item={asset}/>}
+								renderLeftButton={() => <AssetLink asset={asset}/>}
+								renderRightButton={() => <AstActionButton formType={FormType.RETURN} asset={asset}/>}
 								onMouseEnterFn={() => setHoveredUserId(user.userId)}
 								onMouseLeaveFn={() => setHoveredUserId(null)}
 							/>
@@ -50,13 +50,13 @@ export const UserActionButton = ({ user, setHoveredUserId }) => {
 		  </>
 		) : !user.deletedDate ? (
 		  <SplitButton
-				renderLeftButton={() => <ActionButton formType={formTypes.LOAN} item={user} />}
-				renderRightButton={() => <ActionButton formType={formTypes.DEL_USER} item={user} />}
+				renderLeftButton={() => <UsrActionButton formType={FormType.LOAN} user={user} />}
+				renderRightButton={() => <UsrActionButton formType={FormType.DEL_USER} user={user} />}
 				onMouseEnterFn={() => setHoveredUserId(user.userId)}
 				onMouseLeaveFn={() => setHoveredUserId(null)}
 		  />
 		) : (
-			<ActionButton formType={formTypes.RESTORE_USER} item={user} />
+			<UsrActionButton formType={FormType.RESTORE_USER} item={user} />
 		)}
 	  </>
 	);
@@ -67,20 +67,20 @@ export const AssetActionButton = ({ asset, setHoveredAssetId }) => {
     <>
       {asset.user ? (
         <SplitButton
-          renderLeftButton={() => <ItemLink item={asset.user} />}
-          renderRightButton={() => <ActionButton formType={formTypes.RETURN} item={asset} />}
+          renderLeftButton={() => <UserLink item={asset.user} />}
+          renderRightButton={() => <AstActionButton formType={FormType.RETURN} asset={asset} />}
           onMouseEnterFn={() => setHoveredAssetId(asset.assetId)}
           onMouseLeaveFn={() => setHoveredAssetId(null)}
         />
       ) : !asset.deletedDate ? (
         <SplitButton
-          renderLeftButton={() => <ActionButton formType={formTypes.LOAN} item={asset} />}
-          renderRightButton={() => <ActionButton formType={formTypes.DEL_ASSET} item={asset} />}
+          renderLeftButton={() => <AstActionButton formType={FormType.LOAN} asset={asset} />}
+          renderRightButton={() => <AstActionButton formType={FormType.DEL_ASSET} asset={asset} />}
           onMouseEnterFn={() => setHoveredAssetId(asset.assetId)}
           onMouseLeaveFn={() => setHoveredAssetId(null)}
         />
       ) : (
-				<ActionButton formType={formTypes.RESTORE_ASSET} item={asset} />
+				<AstActionButton formType={FormType.RESTORE_ASSET} asset={asset} />
 			)}
     </>
   );

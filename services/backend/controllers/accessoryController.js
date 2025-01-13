@@ -1,9 +1,11 @@
-const { Ast, AccType, Usr, AccLoan, Loan, sequelize, AstSTypeAcc, AstTypeAcc, AstSType, AstType, UsrLoan, AstLoan, Event } = require('../models/index.js');
+const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, UsrLoan, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk } = require('../models/index.js');
 const logger = require('../logging.js');
 const { getAllOptions } = require('./utils.js');
-const { generateSecureID } = require('../utils/nanoidValidation.js');
-const { model } = require('mongoose');
+const AccTypeDTO = require('../dtos/accType.dto.js');
+const EventDTO = require('../dtos/event.dto.js');
 
+const { DateTime } = require("luxon");
+const { Op } = require('sequelize');
 
 class AccessoryController {
 
@@ -109,7 +111,7 @@ class AccessoryController {
         // const peripherals = uniquePeripherals.map((match) => ({
         //     id: match.AccType.id,
         //     accessoryName: match.AccType.accessoryName,
-        //     available: match.AccType.available
+        //     stock: match.AccType.stock
         // }));
 
         // console.log(peripherals.slice(1, 10));
@@ -149,88 +151,82 @@ class AccessoryController {
         const { filters } = req.body
         logger.info(filters)
 
-        const peripheralsExist = await AccType.count();
-        if (peripheralsExist === 0) {
+        const accessoriesExist = await AccType.count();
+        if (accessoriesExist === 0) {
             return res.json([]);
         }
 
         try {
             let query = await AccType.findAll({
-                attributes: ['id', 'accessoryName', 'count'],
+                attributes: ['id', 'accessoryName', 'stock'],
                 ...(filters.accessoryName.length > 0 && { where: { id: { [Op.in]: filters.accessoryName } } }),
                 include: [{
                     model: AccTxn,
-                    attributes: ['id', 'txn'],
+                    required: false,
+                    attributes: ['id', 'count'], // TODO change to count
                 },
                 {
                     model: AccLoan,
-                    where: { returnEventId: null },
-                    attributes: ['id'],
-                    include: {
-                        model: Loan,
-                        attributes: ['id'],
-                        where: { cancelEventId: null },
-                        include: [
-                            {
-                                model: UsrLoan,
-                                attributes: ['id'],
-                                include: {
-                                    model: Usr,
-                                    attributes: ['id', 'userName', 'bookmarked'],
+                    required: false,
+                    attributes: ['id', 'count'],
+                    include: [
+                        {
+                            model: AccReturn,
+                            attributes: ['id', 'count'],
+                            required: false
+                        },
+                        {
+                            model: Loan,
+                            attributes: ['id', 'loanEventId', 'reserveEventId'],
+                            required: true,
+                            where: { cancelEventId: null },
+                            include: [
+                                {
+                                    model: UsrLoan,
+                                    attributes: ['id'],
+                                    required: true,
+                                    include: {
+                                        model: Usr,
+                                        attributes: ['id', 'userName', 'bookmarked'],
+                                    }
+                                },
+                                {
+                                    model: AstLoan,
+                                    attributes: ['id'],
+                                    required: false,
+                                    include: {
+                                        model: Ast,
+                                        attributes: ['id', 'assetTag', 'serialNumber'],
+                                    }
                                 }
-                            },
-                            {
-                                model: AstLoan,
-                                attributes: ['id'],
-                                required: false,
-                                include: {
-                                    model: Ast,
-                                    attributes: ['id', 'assetTag'],
-                                }
-                            },
-                            {
-                                model: Event,
-                                as: 'ReserveEvent',
-                                attributes: ['eventDate'],
-                                required: false,
-                            },
-                            {
-                                model: Event,
-                                as: 'LoanEvent',
-                                attributes: ['eventDate'],
-                                required: false,
-                            }
-                        ]
-                    }
+                            ]
+                        }
+                    ]
                 }],
                 group: [
                     // AccType attributes
                     '"AccType"."id"',
-                    '"AccType"."name"',
-                    '"AccType"."count"',
+                    // '"AccType"."name"',
+                    // '"AccType"."count"',
                     // Acc attributes
                     '"AccTxns"."id"',
-                    '"AccTxns"."txn"',
+                    // '"AccTxns"."txn"',
                     // AccLoan attributes
                     '"AccLoans"."id"',
+                    '"AccLoans->AccReturns"."id"',
                     '"AccLoans->Loan"."id"',
                     '"AccLoans->Loan->UsrLoans"."id"',
                     '"AccLoans->Loan->UsrLoans->Usr"."id"',
-                    '"AccLoans->Loan->UsrLoans->Usr"."user_name"',
-                    '"AccLoans->Loan->UsrLoans->Usr"."bookmarked"',
+                    // '"AccLoans->Loan->UsrLoans->Usr"."user_name"',
+                    // '"AccLoans->Loan->UsrLoans->Usr"."bookmarked"',
                     '"AccLoans->Loan->AstLoan"."id"',
                     '"AccLoans->Loan->AstLoan->Ast"."id"',
-                    '"AccLoans->Loan->AstLoan->Ast"."asset_tag"',
-                    '"AccLoans->Loan->LoanEvent"."id"',
-                    '"AccLoans->Loan->ReserveEvent"."id"',
-                    '"AccLoans->Loan->LoanEvent"."event_date"',
-                    '"AccLoans->Loan->ReserveEvent"."event_date"',
+                    // '"AccLoans->Loan->AstLoan->Ast"."asset_tag"',
                 ],
-                order: [['updatedAt', 'DESC']],
             });
 
-            const result = query.map(accType => {
-                // return accType.createAccessoryTypeObject();
+            const result = query.map(accTypeRow => {
+                return new AccTypeDTO(accTypeRow);
             });
     
             logger.info(result);
@@ -239,6 +235,295 @@ class AccessoryController {
             logger.error(error)
             return res.status(500).json({ error: "Internal Server Error" })
         }
+    }
+
+    getAccType = async (req, res) => {
+        const accTypeId = req.params.id;
+    
+        try {
+            const accTypeDetails = await AccType.findOne({
+                attributes: [
+                    'id',
+                    'accessoryName',
+                    'stock',
+                ],
+                where: { id: accTypeId } //,
+                // include: [
+                //     {
+                //         model: AstSType,
+                //         attributes: ['subTypeName'],
+                //         
+                //     },
+                    // include: {
+                    //             model: AstType,
+                    //             attributes: ['typeName']
+                    //         }
+                // ],
+            });
+            
+            if (!accTypeDetails) return res.status(404).send({ error: "Ast not found" });
+            
+            const accType = new AccTypeDTO(accTypeDetails);
+
+            accType.history = await this.getAllEvents(accTypeId);
+
+            if (accType.history && accType.history.length > 0) {
+
+                accType.currentUsers = Array.from(
+                    new Map(
+                        accType.history
+                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
+                                event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned !== 0)
+                            ))
+                            .flatMap(event => event.loan?.userLoans || [])
+                            .map(userLoan => [userLoan.user.userId, userLoan.user] || [])
+                    ).values()
+                )
+
+                accType.pastUsers = Array.from(
+                    new Map(
+                        accType.history
+                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
+                                event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned === 0)
+                            ))
+                            .flatMap(event => event.loan?.userLoans || [])
+                            .map(userLoan => [userLoan.user.userId, userLoan.user] || [])
+                    ).values()
+                )
+
+                accType.reservedUsers = Array.from(
+                    new Map(
+                        accType.history
+                            .filter(event => event.reservation?.accLoans && event.reservation.accLoans.length > 0 && !event.reservation.cancelEvent && (
+                                event.reservation.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId)
+                            ))
+                            .flatMap(event => event.loan?.userLoans || [])
+                            .map(userLoan => [userLoan.user.userId, userLoan.user] || [])
+                    ).values()
+                )
+            }
+
+            res.json(accType);
+        } catch (error) {
+            logger.error("Error fetching accessory details:", error);
+            res.status(500).send({ error: "Internal server error" });
+        }
+    }
+
+    async getAllEvents(accTypeId) {
+        const eventRows = await Event.findAll({
+            attributes: ['id', 'adminId', 'eventDate'],
+            where: {
+                [Op.or]: [
+                    { '$AccType.id$': accTypeId },
+                    { '$AccTxn.accessory_type_id$': accTypeId },
+                    { '$Loan->AccLoans.accessory_type_id$': accTypeId },
+                    { '$Reservation->AccLoans.accessory_type_id$': accTypeId }
+                ]
+            },
+            include: [
+                {
+                    model: Rmk,
+                    attributes: ['id', 'text'],
+                    include: {
+                        model: Admin,
+                        attributes: ['id', 'adminName'],
+                        required: false
+                    },
+                    required: false
+                },
+                {
+                    model: Admin,
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: AccTxn,
+                    attributes: ['id', 'count'],
+                    required: false
+                },
+                {
+                    model: AccType,
+                    attributes: [], // add event
+                    required: false
+                },
+                {
+                    model: Loan,
+                    as: 'Loan',
+                    required: false,
+                    include: [
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            required: false,
+                            include: [
+                                {
+                                    model: Ast,
+                                    required: true,
+                                    attributes: ['id', 'assetTag', 'serialNumber'],
+                                },
+                                {
+                                    model: Event,
+                                    as: 'ReturnEvent',
+                                    attributes: ['id', 'eventDate'],
+                                    required: false
+                                }
+                            ]
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName']
+                                },
+                                {
+                                    model: AccReturn,
+                                    attributes: ['id', 'count'],
+                                    required: false,
+                                    include: {
+                                        model: Event,
+                                        as: 'ReturnEvent',
+                                        attributes: ['id', 'eventDate'],
+                                        required: true
+                                    }
+                                },
+                                {
+                                    model: Loan,
+                                    required: false,
+                                    include: {
+                                        model: AccLoan,
+                                        attributes: ['id', 'count'],
+                                        required: false,
+                                        include: [
+                                            {
+                                                model: AccType,
+                                                attributes: ['id', 'accessoryName'],
+                                                where: { id: { [Op.ne]: accTypeId } }
+                                            },
+                                            {
+                                                model: AccReturn,
+                                                attributes: ['id', 'count'],
+                                                required: false,
+                                                include: {
+                                                    model: Event,
+                                                    as: 'ReturnEvent',
+                                                    attributes: ['id', 'eventDate'],
+                                                    required: true
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName', 'bookmarked']
+                            }
+                        }
+                    ]
+                },
+                {
+                    model: Loan,
+                    required: false,
+                    as: 'Reservation',
+                    include: [
+                        {
+                            model: Event,
+                            as: 'CancelEvent',
+                            attributes: ['id', 'eventDate'],
+                            required: false
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            required: false,
+                            include: {
+                                model: Ast,
+                                required: true,
+                                attributes: ['id', 'assetTag', 'serialNumber'],
+                            }
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: [
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName']
+                                },
+                                {
+                                    model: Loan,
+                                    required: false,
+                                    include: {
+                                        model: AccLoan,
+                                        attributes: ['id', 'count'],
+                                        required: false,
+                                        include: [
+                                            {
+                                                model: AccType,
+                                                attributes: ['id', 'accessoryName'],
+                                                where: { id: { [Op.ne]: accTypeId } }
+                                            },
+                                            {
+                                                model: AccReturn,
+                                                attributes: ['id', 'count'],
+                                                required: false,
+                                                include: {
+                                                    model: Event,
+                                                    as: 'ReturnEvent',
+                                                    attributes: ['id', 'eventDate'],
+                                                    required: true
+                                                }
+                                            },
+                                        ]
+                                    },
+                                }
+                            ]
+                        },
+                        {
+                            model: UsrLoan,
+                            attributes: ['filepath'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName', 'bookmarked']
+                            }
+                        }
+                    ]
+                }
+            ],
+            order: [['eventDate', 'DESC']]
+        });
+
+        const events = eventRows.map(event => {
+            if (event.Loan && event.Loan.AccLoans) {
+                if (event.Loan.AccLoans.Loan && event.Loan.AccLoans.Loan.AccLoans) {
+                    event.Loan.AccLoans = event.Loan.AccLoans.concat(event.Loan.AccLoans.Loan.AccLoans);
+                }
+                event.Loan.AccLoans.forEach(accLoan => {
+                    accLoan.Loan = null;
+                });
+            } else if (event.Reservation && event.Reservation.AccLoans) {
+                if (event.Reservation.AccLoans.Loan && event.Reservation.AccLoans.Loan.AccLoans) {
+                    event.Reservation.AccLoans = event.Reservation.AccLoans.concat(event.Reservation.AccLoans.Loan.AccLoans);
+                }
+                event.Reservation.AccLoans.forEach(accLoan => {
+                    accLoan.Loan = null;
+                });
+            }
+            return new EventDTO(event);
+        });
+        
+        logger.info(events);
+
+        return events;
     }
 
     async searchAccessories (req, res) {
@@ -251,7 +536,7 @@ class AccessoryController {
             SELECT 
                 acc_types.id, 
                 acc_types.accessory_name AS "accessoryName", 
-                acc_types.available AS "available" 
+                acc_types.stock AS "stock" 
             FROM acc_types
             WHERE acc_types.accessory_name ${isBulkSearch ? 'IN (:searchTerm)' : 'ILIKE :searchTerm'}
         `;
@@ -264,13 +549,13 @@ class AccessoryController {
     
             const response = accessories.map((accessory) => {
     
-                const { id, accessoryName, available } = accessory;
+                const { id, accessoryName, stock } = accessory;
     
                 return {
                     accessoryTypeId: id,
                     label: accessoryName,
                     value: accessoryName,
-                    available: available,
+                    stock: stock,
                 };
             })
     
@@ -282,18 +567,57 @@ class AccessoryController {
         }
     }
 
-    async createAccessoryType(accessoryName, count, transaction) {
+    async createAccessoryType(accessoryName, count, authId, transaction, remarks="") {
         console.log("Creating Acc");
-        return await AccType.create({ 
+
+        const addAccTypeEventId = generateSecureID();
+
+        const dateTimeNow = DateTime.now().setZone('Asia/Singapore').toJSDate();
+
+        await Event.create({
+            id: addAccTypeEventId,
+            eventDate: dateTimeNow, // TODO
+            adminId: authId, // req.auth.id
+        }, { transaction: this.transaction });
+
+        const accType = await AccType.create({ 
             id: generateSecureID(), 
             accessoryName: accessoryName, 
-            available: count 
+            stock: count 
         }, { transaction });
+
+        if (count !== 0) { // TODO > 0?
+
+            const accTxnEventId = generateSecureID();
+
+            await Event.create({ 
+                id: accTxnEventId,
+                eventDate: dateTimeNow,
+                adminId: authId, // req.auth.id
+            }, { transaction });
+
+            await AccTxn.create({ 
+                id: generateSecureID(), 
+                accessoryTypeId: accType.id, 
+                count: count,
+                eventId: accTxnEventId
+            }, { transaction });
+
+            
+            if (remarks) await Rmk.create({
+                id: generateSecureID(),
+                eventId: accTxnEventId,
+                remarks: remarks,
+                remarkDate: dateTimeNow,
+            }, { transaction: this.transaction });
+        }
+
+        return accType;
     }
 
     async addPeripheral (peripheralTypeId, count) {
         const type = await AccType.findByPk(peripheralTypeId);
-        type.available += count;
+        type.stock += count;
         await type.save();
         return type;
     };
@@ -302,7 +626,7 @@ class AccessoryController {
     async loanPeripheral (loanId, peripheralTypeId) {
         let type = await this.getType(peripheralTypeId);
 
-        if (type && type.available <= 0) {
+        if (type && type.stock <= 0) {
             throw new Error('Acc type not available');
         }
 
@@ -315,7 +639,7 @@ class AccessoryController {
             peripheralTypeId: type.id
         });
 
-        type.available -= 1;
+        type.stock -= 1;
         await type.save();
 
         return newPeripheral;
@@ -325,12 +649,12 @@ class AccessoryController {
     async reducePeripheralCount(peripheralTypeId, count) {
         const type = await AccType.findByPk(peripheralTypeId);
 
-        if (!type || type.available < count) {
+        if (!type || type.stock < count) {
             throw new Error('Not enough peripherals available to reduce');
         }
 
         // Reduce the available count
-        type.available -= count;
+        type.stock -= count;
         await type.save();
 
         return { message: `${count} peripherals reduced successfully` };
@@ -344,7 +668,7 @@ class AccessoryController {
             for (const peripheral of peripherals) {
                 if (peripheral.id !== peripheral.accessoryName) {
                     const type = await this.getType(peripheral.id, { transaction });
-                    type.available += peripheral.count;
+                    type.stock += peripheral.count;
                     await type.save({ transaction });
                 } else {
                     // Ensure you await the call to createAccessoryType and pass the transaction

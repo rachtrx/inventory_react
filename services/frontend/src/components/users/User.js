@@ -1,14 +1,16 @@
 import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure, Grid, SimpleGrid } from '@chakra-ui/react';
 import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
+import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
+import { AssetActionButton, UserActionButton } from '../buttons/ActionButton';
 import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { useEffect } from 'react';
+import { AssetLink } from '../buttons/ItemLink';
+import UserTimeline from '../timeline/UserTimeline';
 
 const User = ({ user }) => {
-	const { editKey, editedValue, handleItemClick, handleSave, handleEdit, handleChange } = useDrawer()
+	const { editKey, editedValue, handleSave, handleEdit, handleChange } = useDrawer()
   	const { setFormType } = useFormModal()
 
 	useEffect(() => {
@@ -34,7 +36,7 @@ const User = ({ user }) => {
 					<EditableField 
 						label="Department"
 						fieldKey="department"
-						value={user.department}
+						value={user.department.deptName}
 						handleSave={handleSave}
 					/>
 				</Grid>
@@ -44,9 +46,7 @@ const User = ({ user }) => {
 				<Heading as="h2" size="md" mb="2">PAST ASSETS</Heading>
 				<SimpleGrid columns={3} spacing={4}>
 					{user.pastAssets?.map((asset) => (
-						<Button key={asset.assetId} onClick={() => handleItemClick(asset)} colorScheme="blue">
-							{asset.assetTag} - {asset.subTypeName}
-						</Button>
+						<AssetLink asset={asset}/>
 					))}
 				</SimpleGrid>
 			</Box>
@@ -54,14 +54,13 @@ const User = ({ user }) => {
 			<Box mb={4}>
 				<Heading as="h2" size="md" mb="2">CURRENT ASSETS</Heading>
 				{user.currentAssets?.map((asset) => (
-					<Flex alignItems="center" mb="2">
-						<Button onClick={() => handleItemClick(asset)} colorScheme="blue">
-							{asset.assetTag} - {asset.subTypeName}
-						</Button>
-						<ActionButton bg="orange.100" onClick={() => setFormType(formTypes.RETURN)}>
-							Return
-						</ActionButton>
-					</Flex>
+						<Flex alignItems="center" mb="2">
+							<AssetLink asset={asset}/>
+							<AssetActionButton 
+								formType={FormType.RETURN}
+								asset={asset}
+							/>
+						</Flex>
 				))}
 			</Box>
 		
@@ -73,18 +72,20 @@ const User = ({ user }) => {
 					mb={4}
 				/>
 				<Flex gridGap="2">
-					<Button onClick={() => setFormType(formTypes.DEL_USER)} colorScheme="red">
-						Resign
-					</Button>
-					<Button onClick={() => setFormType(formTypes.LOAN)} colorScheme="green">
-						Loan Device
-					</Button>
+					<UserActionButton 
+						formType={FormType.DEL_USER} 
+						user={user}
+					/>
+					<UserActionButton
+						formType={FormType.LOAN}
+						user={user}
+					/>
 				</Flex>
 			</Box>
 		
-			{user.events && 
-				<Timeline 
-					events={user.events}
+			{user.history && 
+				<UserTimeline
+					events={user.history}
 				/>
 			}
 		</Box>

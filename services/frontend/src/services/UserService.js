@@ -1,3 +1,4 @@
+import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
 
@@ -29,7 +30,14 @@ class UserService {
     }
 
     async searchUsers(value, formType) {
-        return await this.axios.post(`${API_URL}/users/search`, {value, formType});
+
+        const params = { value }
+
+        if (formType === FormType.LOAN) {
+            return await this.axios.get(`${API_URL}/users/search/loan`, {params});
+        } else if (formType === FormType.DEL_USER) {
+            return await this.axios.get(`${API_URL}/users/search/delete`, {params});
+        } else throw new Error("Form Type not found")
     }
 
     async addUser(data) {

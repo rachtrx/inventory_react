@@ -1,7 +1,7 @@
 import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody } from "@chakra-ui/react";
-import { ItemLink } from "../buttons/ItemLink";
-import ActionButton from "../buttons/ActionButton";
-import { formTypes } from "../../context/ModalProvider";
+import { AssetLink } from "../buttons/ItemLink";
+import { AssetActionButton } from "../buttons/ActionButton";
+import { FormType } from "../../context/ModalProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText, CircleTextTooltip, OverlappingCircles } from "../utils/CircleText";
 
@@ -42,8 +42,8 @@ export const AssetList = ({ assets }) => {
 								<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
 									<CircleText text={loan.asset.typeName}/>
 								</Tooltip>
-								<ItemLink item={loan.asset} />
-								<ActionButton formType={formTypes.RETURN} item={loan.asset} />
+								<AssetLink asset={loan.asset} />
+								<AssetActionButton formType={FormType.RETURN} item={loan.asset} />
 							</Flex>
 						))}
 					</VStack> */}

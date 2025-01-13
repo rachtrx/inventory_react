@@ -18,17 +18,21 @@ import Asset from './assets/Asset';
 import User from './users/User';
 import { useDrawer } from '../context/DrawerProvider';
 import { getDisplayValue, itemKeys } from '../config';
+import assetService from '../services/AssetService';
+import userService from '../services/UserService';
+import accessoryService from '../services/AccessoryService';
+import Accessory from './accessories/Accessory';
 
 
 const ItemDrawer = () => {
   
-  const { itemsHistory, currentItem, handleItemClick, handleClose, isDrawerOpen } = useDrawer()
+  const { itemsHistory, currentItem, handleBreadcrumbClick, handleClose, isDrawerOpen } = useDrawer()
 
   useEffect(() => {
     console.log(currentItem);
   }, [currentItem])
 
-  return (
+  return currentItem && (
     <Drawer isOpen={isDrawerOpen} placement="right" onClose={handleClose} size="lg">
     <DrawerOverlay />
     <DrawerContent>
@@ -37,7 +41,7 @@ const ItemDrawer = () => {
         <Breadcrumb>
           {itemsHistory.map((item, index) => (
             <BreadcrumbItem key={index} isCurrentPage={item.id === (currentItem?.id)}>
-              <BreadcrumbLink onClick={() => handleItemClick(item)}>
+              <BreadcrumbLink onClick={() => handleBreadcrumbClick(item)} cursor="pointer">
                 <Text fontSize="sm">{getDisplayValue(item)}</Text>
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -45,10 +49,12 @@ const ItemDrawer = () => {
         </Breadcrumb>
       </DrawerHeader>
       <DrawerBody p={0}>
-        {currentItem && currentItem.assetTag ? (
+        {currentItem?.service?.constructor.name === assetService.constructor.name ? (
           <Asset asset={currentItem} />
-        ) : currentItem ? (
+        ) : currentItem?.service?.constructor.name === userService.constructor.name ? (
           <User user={currentItem} />
+        ) : currentItem?.service?.constructor.name === accessoryService.constructor.name ? (
+          <Accessory accType={currentItem} />
         ) : (
           <Alert status="error" borderRadius="md" m="4">
             <AlertIcon />

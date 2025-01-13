@@ -6,7 +6,8 @@ class UserLoanDTO {
         loanId,
         Usr,
         userId,
-        filepath
+        filepath,
+        isPrimary
     }) {
         if (id) this.userLoanId = id;
 

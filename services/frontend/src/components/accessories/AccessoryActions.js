@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useFormModal, formTypes } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
+import { useFormModal, FormType } from '../../context/ModalProvider';
+import { AccessoryTypeActionButton } from '../buttons/ActionButton';
 
 export default function AccessoryActions() {
 
@@ -12,9 +12,9 @@ export default function AccessoryActions() {
     !isMobile && (
       <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
-          {[formTypes.ADD_PERIPHERAL].map((formType) => {
+          {[FormType.UPDATE_ACC].map((formType) => {
             return (
-              <ActionButton
+              <AccessoryTypeActionButton
                 key={formType}
                 formType={formType}
               />

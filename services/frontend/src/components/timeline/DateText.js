@@ -7,10 +7,8 @@ const DateText = ({ colorScheme, date, remarks }) => {
         <Badge 
             colorScheme={colorScheme} 
             display="inline-flex"
-            alignItems="center" 
-            px={3} // Padding for better appearance
-            py={1} // Padding for better appearance
-            gap={2}
+            alignItems="center"
+            gap={0.5}
             borderRadius="md"
         >
             <Text as="span" fontSize="sm" fontWeight="bold">

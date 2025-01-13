@@ -1,8 +1,11 @@
-const { Ast, AstType, AstSType, Vendor } = require('../models');
+const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
+// const { DateTime } = require("luxon");
+
+// luxon: DateTime.now().setZone('Asia/Singapore').toJSDate()
 
 class FormAssetController {
 
@@ -42,67 +45,230 @@ class FormAssetController {
         }
     };
     
-    async add (req, res) {
-        const { typeName, isNewAssetType, variants } = req.body;
+    async add(req, res) {
+        const { types } = req.body; // Assuming `types` is an array of asset types with their subtypes
+
+        const adminId = req.auth.id;
+    
+        if (!types || !Array.isArray(types)) {
+            return res.status(400).json({ error: "Asset Types must be an array!" });
+        }
     
         try {
             await sequelize.transaction(async (t) => {
-                let assetTypeId;
-    
-                if (isNewAssetType) {
-                    const existingAssetType = await AstType.findOne({
-                        where: { typeName: { [Op.iLike]: typeName } },
-                        transaction: t
-                    });
-    
-                    if (existingAssetType) {
-                        throw new Error(`Device Type ${typeName} already exists!`);
-                    }
-    
-                    assetTypeId = generateSecureID();
-                    await AstType.create({
-                        id: assetTypeId,
-                        typeName: typeName
-                    }, { transaction: t });
-                } else {
-                    const existingAssetType = await AstType.findOne({
-                        where: { typeName: { [Op.iLike]: typeName } },
-                        attributes: ['id'],
-                        transaction: t
-                    });
-    
-                    if (!existingAssetType) {
-                        throw new Error(`Device Type ${typeName} not found!`);
-                    }
-    
-                    assetTypeId = existingAssetType.id;
-                }
-    
-                // Check if subTypeName exists with case-insensitive search
-                const existingVariant = await AstSType.findOne({
-                    where: {
-                        subTypeName: { [Op.iLike]: variants.subTypeName },
-                        assetTypeId: assetTypeId
-                    },
-                    transaction: t
-                });
-    
-                if (existingVariant) {
-                    throw new Error(`AstSType ${variants.subTypeName} already exists!`);
-                }
-    
-                // Create the subTypeName
-                await AstSType.create({
-                    id: generateSecureID(),
-                    assetTypeId: assetTypeId,
-                    subTypeName: variants.subTypeName
-                }, { transaction: t });
+                await Promise.all(
+                    types.map(async ({ typeId, typeName, subTypes }) => {
+                        let assetTypeId = typeId;
+            
+                        if (!assetTypeId) {
+                            const existingAssetType = await AstType.findOne({
+                                where: { typeName: { [Op.iLike]: typeName.toLowerCase() } },
+                                attributes: ['id', 'typeName'],
+                                transaction: t,
+                            });
+            
+                            if (existingAssetType) {
+                                throw new Error(`${typeName} already exists!`);
+                            }
+            
+                            const assetType = await AstType.create(
+                                {
+                                    id: generateSecureID(),
+                                    typeName: typeName,
+                                },
+                                { transaction: t }
+                            );
+            
+                            assetTypeId = assetType.id;
+                        }
+            
+                        await Promise.all(
+                            subTypes.map(async ({ subTypeId, subTypeName, assets }) => {
+                                let assetSubTypeId = subTypeId;
+            
+                                if (!assetSubTypeId) {
+                                    const existingAssetSubType = await AstSType.findOne({
+                                        where: {
+                                            subTypeName: { [Op.iLike]: subTypeName },
+                                        },
+                                        include: {
+                                            model: AstType,
+                                            attributes: ['typeName'],
+                                        },
+                                        transaction: t,
+                                    });
+            
+                                    if (existingAssetSubType) {
+                                        throw new Error(
+                                            `${subTypeName} already exists under type ${existingAssetSubType.AstType.typeName}!`
+                                        );
+                                    }
+            
+                                    const assetSubType = await AstSType.create(
+                                        {
+                                            id: generateSecureID(),
+                                            assetTypeId: assetTypeId,
+                                            subTypeName: subTypeName,
+                                        },
+                                        { transaction: t }
+                                    );
+            
+                                    assetSubTypeId = assetSubType.id;
+                                }
+            
+                                await Promise.all(
+                                    assets.map(async ({ vendor, ...rest }) => {
+                                        let vendorData = await Vendor.findOne({
+                                            attributes: ['id'],
+                                            where: { vendorName: { [Op.iLike]: vendor } },
+                                            transaction: t,
+                                        });
+            
+                                        let vendorId = vendorData?.id || generateSecureID();
+            
+                                        if (!vendorData) {
+                                            await Vendor.create(
+                                                {
+                                                    id: vendorId,
+                                                    vendorName: vendor,
+                                                },
+                                                { transaction: t }
+                                            );
+                                        }
+            
+                                        const addEventId = generateSecureID();
+            
+                                        await Event.create(
+                                            {
+                                                id: addEventId,
+                                                eventDate: rest.addDate,
+                                                adminId: adminId,
+                                            },
+                                            { transaction: t }
+                                        );
+            
+                                        if (rest.remarks) {
+                                            await Rmk.create(
+                                                {
+                                                    id: generateSecureID(),
+                                                    eventId: addEventId,
+                                                    text: rest.remarks,
+                                                    remarkDate: rest.addDate,
+                                                    adminId: adminId,
+                                                },
+                                                { transaction: t }
+                                            );
+                                        }
+            
+                                        await Ast.create(
+                                            {
+                                                id: generateSecureID(),
+                                                serialNumber: rest.serialNumber.toUpperCase(),
+                                                assetTag: rest.assetTag.toUpperCase(),
+                                                subTypeId: assetSubTypeId,
+                                                shared: rest.shared || false,
+                                                bookmarked: rest.bookmarked,
+                                                leased: rest.leased || false,
+                                                location: rest.location,
+                                                vendorId: vendorId,
+                                                addEventId: addEventId,
+                                                value: parseFloat(rest.cost || 0).toFixed(2),
+                                            },
+                                            { transaction: t }
+                                        );
+                                    })
+                                );
+                            })
+                        );
+                    })
+                );
             });
     
-            console.log("Ast and its subTypeName created successfully");
+            console.log("Assets and their subTypeNames created successfully");
             return res.sendStatus(200);
         } catch (error) {
             console.error("Error during asset creation:", error);
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async condemn (req, res) {
+        const data = req.body.assets; // Array of asset details
+
+        const adminId = req.auth.id;
+    
+        try {
+            const assetIds = new Set();
+            await sequelize.transaction(async (t) => {
+                for (const { assetId, serialNumber, remarks, delDate } of data) {
+                    if (assetIds.has(assetId)) {
+                        throw new Error("Can't delete the same device!");
+                    }
+                    const asset = await Ast.findByPk(assetId, {
+                        attributes: ["delEventId"],
+                        include: {
+                            model: AstLoan,
+                            attributes: ["returnEventId"],
+                            required: false,
+                            where: { returnEventId: { [Op.ne]: null } } // Fixed syntax for where condition
+                        },
+                        transaction: transaction
+                    });
+                    
+                    if (!asset) {
+                        throw new Error(`Asset ${serialNumber} not found!`);
+                    }
+                    
+                    if (asset.delEventId) {
+                        throw new Error(`Asset ${serialNumber} is already condemned!`);
+                    }
+                    
+                    if (asset.AstLoans && asset.AstLoans.length > 0) {
+                        throw new Error(`Asset ${serialNumber} is still on loan!`);
+                    }
+                    
+                    assetIds.add(assetId);
+                    
+                    const delEventId = generateSecureID();
+                    
+                    // Create the deletion event
+                    await Event.create(
+                        {
+                            id: delEventId,
+                            eventDate: delDate,
+                            adminId: adminId,
+                        },
+                        { transaction: t }
+                    );
+                    
+                    // Add remarks if provided
+                    if (remarks) {
+                        await Rmk.create(
+                            {
+                                id: generateSecureID(),
+                                eventId: delEventId,
+                                text: remarks,
+                                remarkDate: DateTime.now()
+                                    .setZone('Asia/Singapore')
+                                    .toJSDate(),
+                                adminId: adminId,
+                            },
+                            { transaction: t }
+                        );
+                    }
+                    
+                    // Update the asset with the delEventId and save it
+                    await asset.update(
+                        { delEventId: delEventId },
+                        { transaction: t }
+                    );
+                }
+            });
+
+            console.log("Finished processing asset deletions");
+            return res.sendStatus(200);
+        } catch (error) {
+            console.error("Error during asset deletion:", error);
             return res.status(400).json({ error: error.message });
         }
     };
@@ -189,44 +355,6 @@ class FormAssetController {
             return res.status(500).json({ error: error.message });
         }
     }
-    
-    async condemn (req, res) {
-        const data = req.body.data; // Array of asset details
-    
-        try {
-            const assetIds = new Set();
-            await sequelize.transaction(async (t) => {
-                for (const { assetId, assetTag, remarks } of data) {
-                    if (assetIds.has(assetId)) {
-                        throw new Error("Can't delete the same device!");
-                    }
-                    const asset = await Ast.findByPk(assetId, { 
-                        attributes: ['status'],
-                        transaction: transaction
-                    });         
-                    if (!asset) {
-                        throw new Error(`Ast tag ${assetTag} not found!`);
-                    }
-                    if (asset.status === "loaned") {
-                        throw new Error(`Ast tag ${assetTag} still on loan!`);
-                    }
-                    if (asset.status === "condemned") {
-                        throw new Error(`Ast tag ${assetTag} is already condemned!`);
-                    }
-                    assetIds.add(assetId);
-                    
-                    // Update the status and log the event
-                    await FormHelpers.insertAssetEvent(generateSecureID(), assetId, "condemned", remarks, t);
-                    await FormHelpers.updateStatus(assetId, "condemned", t);
-                }
-            });
-            console.log("Finished processing asset deletions");
-            return res.sendStatus(200);
-        } catch (error) {
-            console.error("Error during asset deletion:", error);
-            return res.status(400).json({ error: error.message });
-        }
-    };
 }
 
 module.exports = new FormAssetController();

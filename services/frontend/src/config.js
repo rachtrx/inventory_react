@@ -53,3 +53,4 @@ const baseColors = ['#FF6384', '#19C4A6', '#36A2EB', '#FFA53F', '#FFF58F', '#B58
 
 const numberOfAdditionalColors = 5;
 export const COLORSCALE = chroma.scale(baseColors).colors(numberOfAdditionalColors);
+

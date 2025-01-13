@@ -1,5 +1,4 @@
-const { formTypes } = require("../controllers/utils");
-const { Event, Loan, Rmk, AstLoan, UsrLoan, AccLoan } = require("../models");
+const { Event, Loan, Rmk, AstLoan, UsrLoan, AccLoan, AccType, Sequelize } = require("../models");
 const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
@@ -9,20 +8,20 @@ const accessoryController = require("../controllers/accessoryController");
 class LoanService extends ValidationService {
 
     constructor(loans, signatures, authId, transaction) {
-        super(transaction, authId, formTypes.LOAN);
+        super(transaction, authId);
         this.loans = loans;
         this.signatures = signatures;
     }
 
     aggregateItems() {
-        const assetIdToTagMap = new Map();
+        const assetIdToSNMap = new Map();
         const userIdToNameMap = new Map();
 
         this.loans.forEach(loan => {
-            if (assetIdToTagMap.has(loan.asset.assetId) && assetIdToTagMap.get(loan.asset.assetId) !== loan.asset.assetTag) {
-                throw new Error(`Ambiguous record for Asset ID ${loan.asset.assetId} with asset tags ${assetIdToTagMap.get(loan.asset.assetId)} and ${loan.asset.assetTag}`);
+            if (assetIdToSNMap.has(loan.asset.assetId) && assetIdToSNMap.get(loan.asset.assetId) !== loan.asset.serialNumber) {
+                throw new Error(`Ambiguous record for Asset ID ${loan.asset.assetId} with asset tags ${assetIdToSNMap.get(loan.asset.assetId)} and ${loan.asset.serialNumber}`);
             }
-            assetIdToTagMap.set(loan.asset.assetId, loan.asset.assetTag);
+            assetIdToSNMap.set(loan.asset.assetId, loan.asset.serialNumber);
             
             loan.users.forEach(user => {
                 if (userIdToNameMap.has(user.userId) && userIdToNameMap.get(user.userId) !== user.userName) {
@@ -32,14 +31,17 @@ class LoanService extends ValidationService {
             });
         });
 
-        return { assetIdToTagMap, userIdToNameMap };
+        return { assetIdToSNMap, userIdToNameMap };
     }
 
-    async validateAssets(assetIdToTagMap) {
-        const assets = await Promise.all(
-            [...assetIdToTagMap].map(async ([assetId, assetTag]) => {
+    async validateAssets(assetIdToSNMap) {
+        await Promise.all(
+            [...assetIdToSNMap].map(async ([assetId, serialNumber]) => {
                 // Fetch the asset using findByPk
-                return await this.getAsset(assetId, assetTag);
+                const asset = await this.getAsset(assetId, serialNumber);
+                if (asset.AstLoans && asset.AstLoans.length > 0) {
+                    throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
+                }
             })
         );
     }
@@ -63,8 +65,8 @@ class LoanService extends ValidationService {
     async handleNewAccessories() {
         const newAccessories = {}; // tracks <newAccTypeName>: <newAccTypeId>
         for (const loan of this.loans) {
-            if (loan.asset.accessories) {
-                for (const accessory of loan.asset.accessories) {
+            if (loan.accessories) {
+                for (const accessory of loan.accessories) {
                     let accType;
 
                     // id === name means new. Check if added to newAccessories already
@@ -72,6 +74,7 @@ class LoanService extends ValidationService {
                         accType = await accessoryController.createAccessoryType(
                             accessory.accessoryName,
                             0,
+                            this.authId,
                             this.transaction
                         );
                         newAccessories[accessory.accessoryName] = accType.id;
@@ -91,7 +94,7 @@ class LoanService extends ValidationService {
         const loanDate = new Date();
 
         for (const loan of this.loans) {
-            const { asset, users, mode, expectedReturnDate } = loan; // TODO use mode for future validation?
+            const { asset, accessories, users, mode, expectedReturnDate } = loan; // TODO use mode for future validation?
 
             const loanId = generateSecureID(); // PK for loan instance
             const loanEventId = generateSecureID(); // Attribute of loan instance
@@ -137,14 +140,24 @@ class LoanService extends ValidationService {
             }
 
             // Acc Loans for each count of each type for each user
-            if (asset.accessories) {
-                for (const accessory of asset.accessories) {
+            if (accessories) {
+                for (const accessory of accessories) {
                     await AccLoan.create({
                         id: generateSecureID(),
                         loanId: loanId,
                         accessoryTypeId: accessory.accessoryTypeId,
                         count: accessory.count
                     }, { transaction: this.transaction });
+
+                    await AccType.update(
+                        { 
+                            stock: Sequelize.literal(`stock - ${accessory.count}`)
+                        },
+                        { 
+                            where: { id: accessory.accessoryTypeId },
+                            transaction: this.transaction
+                        }
+                    );
                 }
             }
         }

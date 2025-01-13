@@ -5,14 +5,64 @@ import { IoCopyOutline } from "react-icons/io5";
 import { useUI } from "../../context/UIProvider";
 import { getDisplayValue } from "../../config";
 
-export const ItemLink = ({ item, isCopy=true, bg=null, ...props }) => {
-    const { handleItemClick } = useDrawer();
-    const { showToast, handleError } = useUI()
+export const AssetLink = ({asset, ...props}) => {
+
+    const { handleAssetClick } = useDrawer();
+
+    return (
+        <ItemLink
+            item={asset}
+            value="serialNumber"
+            handleClick={handleAssetClick}
+            {...props}
+        />
+    )
+}
+
+export const UserLink = ({user, ...props}) => {
+
+    const { handleUserClick } = useDrawer();
+
+    return (
+        <ItemLink
+            item={user}
+            value="userName"
+            handleClick={handleUserClick}
+            {...props}
+        />
+    )
+}
+
+export const AccTypeLink = ({accType, ...props}) => {
+
+    const { handleAccTypeClick } = useDrawer();
+
+    return (
+        <ItemLink
+            item={accType}
+            value="accessoryName"
+            handleClick={handleAccTypeClick}
+            {...props}
+        />
+    )
+}
+
+const ItemLink = ({ 
+    item, 
+    key,
+    value,
+    handleClick, 
+    isCopy=true, 
+    bg=null, 
+    ...props 
+}) => {
+    const { showToast, handleError } = useUI();
+    const text = item[value]
 
     const handleCopyClick = async (e) => {
         try { 
-            await navigator.clipboard.writeText(getDisplayValue(item));
-            showToast(`${getDisplayValue(item)} copied!`, 'success', 500);
+            await navigator.clipboard.writeText(text);
+            showToast(`${text} copied!`, 'success', 500);
         } catch (error) {
             handleError(error);
         }
@@ -33,13 +83,13 @@ export const ItemLink = ({ item, isCopy=true, bg=null, ...props }) => {
         >
             <ResponsiveText
                 onClick={(e) => {
-                    handleItemClick(item);
+                    handleClick(item);
                 }}
                 _hover={{
                     color: "blue.500",
                 }}
             >
-                {getDisplayValue(item)}
+                {text}
             </ResponsiveText>
             {isCopy && <IoCopyOutline 
                 onClick={handleCopyClick}

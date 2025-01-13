@@ -16,6 +16,13 @@ const initialState = {
   error: null,
 };
 
+const types = {
+	ASSET: "ASSET",
+	USER: "USER",
+	ACCESSORY: "ACCESSORY",
+	NONE: "NONE"
+}
+
 // Provider component
 export const DrawerProvider = ({ children }) => {
 	console.log("In drawer provider");
@@ -28,55 +35,78 @@ export const DrawerProvider = ({ children }) => {
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 
 	const resetBreadcrumbs = () => {
-		setState(prev => ({ ...prev, currentItem: null, itemsHistory: [] }));
+		setState(prev => ({ 
+			...prev, 
+			currentItem: null, 
+			currentItemType: types.NONE,
+			itemsHistory: [] 
+		}));
 	};
 
-  	const handleItemClick = async (item) => {
-		console.log("Item clicked");
-		console.log(item);
+	const handleAssetClick = async(asset) => {
+		handleItemClick(asset, "assetId", assetService)
+	}
+
+	const handleUserClick = async(user) => {
+		handleItemClick(user, "userId", userService)
+	}
+
+	const handleAccTypeClick = async(accType) => {
+		handleItemClick(accType, "accessoryTypeId", accessoryService)
+	}
+
+	const handleBreadcrumbClick = async(item) => {
+		handleItemClick(item);
+	}
+
+  	const handleItemClick = async (item, key=null, service=null) => {
+		console.log(`Item clicked, ${item}`);
 
 		// Check if the item is already in the history and set as the current item
 		if (!isDrawerOpen) onDrawerOpen();
 
-		const itemInHistory = state.itemsHistory.find(historyItem => historyItem.id === item.id);
-		if (itemInHistory && state.currentItem && state.currentItem.id === item.id) {
+		let itemIndexInHistory;
+
+		if (!key && !service) {
+			itemIndexInHistory = state.itemsHistory.findIndex(historyItem => item.breadcrumbId && historyItem.breadcrumbId === item.breadcrumbId); // IMPT is it ok for same reference?
+			if (itemIndexInHistory === -1) throw new Error("Unable to load item from history!")
+		} else {
+			itemIndexInHistory = state.itemsHistory.findIndex(historyItem => item[key] && historyItem[key] === item[key]);
+		}
+
+		if (itemIndexInHistory !== -1 && state.itemsHistory.length-1 === itemIndexInHistory) {
 			console.log("Item is the current item!");
 			// The item is already the current item, perform some refresh logic?
 			return;
-		} else if (itemInHistory) {
+		} else if (itemIndexInHistory !== -1) {
 			console.log("Item is already in history!");
 			// Set from history without fetching
+
 			setState(prev => ({
 				...prev,
-				currentItem: itemInHistory,
-				itemsHistory: prev.itemsHistory.slice(0, prev.itemsHistory.findIndex(h => h.id === item.id) + 1)
+				currentItem: prev.itemsHistory[itemIndexInHistory],
+				itemsHistory: prev.itemsHistory.slice(0, itemIndexInHistory + 1)
 			}));
 		} else {
 			// Item not in history, fetch new data
+			if (!key || !service) throw new Error("Error loading item: Identifier or Service not found.")
+
 			setState(prev => ({ ...prev, loading: true }));
 			try {
-				let service;
-				let id;
-				
-				const key = getDisplayValue(item, true);
-
-				if (key === 'assetTag') {
-					service = assetService;
-					id = item.assetId;
-				} else if (key === 'userName') {
-					service = userService;
-					id = item.userId;
-				} else if (key === 'accessoryName') {
-					service = accessoryService;
-					id = item.accessoryId;
-				} else throw new Error();
+				const id = item[key];
 
 				const response = await service.getItem(id);
-				console.log(response.data);
+
+				const newItem = response.data;
+				console.log(newItem);
+
+				newItem.breadcrumbId = id;
+				newItem.service = service;
+
 				setState(prev => ({
 					...prev,
-					currentItem: response.data,
-					itemsHistory: [...prev.itemsHistory, response.data], // Ensure fetched data is pushed into history
+					currentItem: newItem,
+					itemsHistory: [...prev.itemsHistory, newItem], // Ensure fetched data is pushed into history
 					loading: false
 				}));
 			} catch (error) {
@@ -154,7 +184,22 @@ export const DrawerProvider = ({ children }) => {
 	};
 
   return (
-    <DrawerContext.Provider value={{ ...state, setState, editKey, editedValue, handleItemClick, handleSave, handleAddRemark, handleEdit, handleChange, handleClose, isDrawerOpen }}>
+    <DrawerContext.Provider value={{ 
+		...state, 
+		setState, 
+		editKey, 
+		editedValue,
+		handleBreadcrumbClick,
+		handleAssetClick,
+		handleUserClick,
+		handleAccTypeClick, 
+		handleSave, 
+		handleAddRemark, 
+		handleEdit, 
+		handleChange, 
+		handleClose, 
+		isDrawerOpen 
+	}}>
 		{ children }
     </DrawerContext.Provider>
   );

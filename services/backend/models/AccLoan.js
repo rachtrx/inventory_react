@@ -39,7 +39,7 @@ module.exports = (sequelize) => {
 	// 	  });
 	  
 	// 	  if (accType) {
-	// 		accType.available += AccLoan.count;
+	// 		accType.stock += AccLoan.count;
 	// 		await accType.save();
 	  
 	// 		console.log(`AccType with ID: ${accType.id} updated, available increased by ${AccLoan.count}`);

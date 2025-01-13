@@ -1,10 +1,18 @@
 import { Box, Button } from '@chakra-ui/react';
-import { buttonConfigs } from './constants';
+import { ACTION_COLORS, ACTION_TEXT } from './constants';
 import { actionTypes, useFormModal } from '../../context/ModalProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 
-const ActionButton = ({ formType, borderRadius="md", item = null, initialValues=null, ...rest }) => {
-	const { bg, text } = buttonConfigs[formType];
+const ActionButton = ({ 
+	formType,
+	initialValues, 
+	borderRadius="md",
+	isMulti=false,
+	...rest
+}) => {
+	console.log(formType);
+	const bg = ACTION_COLORS[formType];
+	const text = ACTION_TEXT[formType];
 	const { setFormType, setInitialValues } = useFormModal();
 
 	return (
@@ -24,8 +32,78 @@ const ActionButton = ({ formType, borderRadius="md", item = null, initialValues=
 			_active={{ bg: `${bg.split('.')[0]}.250` }}
 			{...rest}
 		>
-			<ResponsiveText>{text}{Array.isArray(item) && ' All'}</ResponsiveText>
+			<ResponsiveText>{text}{initialValues.length > 1 && ' All'}</ResponsiveText>
 		</Box>
 	);
 };
-export default ActionButton;
+
+const AssetActionButton = ({
+	asset=null,
+	...rest
+}) => {
+
+	const assetArray = !asset ? [] : Array.isArray(asset) ? asset : [asset]
+
+	return (
+		<ActionButton
+			initialValues={assetArray.map(ast => ({assetId: ast.assetId, serialNumber: ast.serialNumber}))}
+			{...rest}
+		/>
+	)
+}
+
+const UserActionButton = ({
+	user=null,
+	...rest
+}) => {
+
+	const userArray = !user ? [] : Array.isArray(user) ? user : [user]
+
+	return (
+		<ActionButton
+			initialValues={userArray.map(ast => ({userId: ast.userId, userName: ast.userName}))}
+			{...rest}
+		/>
+	)
+}
+
+const AccessoryTypeActionButton = ({
+	accType=null,
+	...rest
+}) => {
+	const accTypeArray = !accType ? [] : Array.isArray(accType) ? accType : [accType]
+
+	return (
+		<ActionButton
+			initialValues={accTypeArray.map(accType => ({
+				accessoryTypeId: accType.accessoryTypeId, 
+				accessoryName: accType.accessoryName
+			}))}
+			{...rest}
+		/>
+	)
+}
+
+const AccessoryLoanActionButton = ({
+	accLoan=null,
+	...rest
+}) => {
+	const accLoansArray = !accLoan ? [] : Array.isArray(accLoan) ? accLoan : [accLoan]
+
+	return (
+		<ActionButton
+			initialValues={accLoansArray.map(accLoan => ({
+				accessoryLoanId: accLoan.accessoryLoanId, 
+				loan: accLoan.loan
+			}))}
+			{...rest}
+		/>
+	)
+}
+
+export { 
+	AssetActionButton, 
+	UserActionButton, 
+	AccessoryTypeActionButton, 
+	AccessoryLoanActionButton
+};

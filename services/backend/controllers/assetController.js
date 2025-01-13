@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, AccType, AccLoan, AccReturn, Loan, Admin, Rmk } = require('../models/index.js');
 const { Op } = require('sequelize');
-const { formTypes, createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
@@ -56,6 +56,53 @@ class AssetController {
         } catch (error) {
             console.error("Error fetching options:", error);
             return res.status(500).json({ error: "An error occurred." });
+        }
+    }
+
+    async getAllFilters(req, res) {
+    
+        let options;
+        try {
+            if (['typeName', 'subTypeName', 'vendor'].includes(field)) {
+                let meta = null;
+                switch(field) {
+                    case 'typeName':
+                        meta = [AstType, 'typeName', 'id'];
+                        break;
+                    case 'subTypeName':
+                        meta = [AstSType, 'subTypeName', 'id'];
+                        break;
+                    case 'vendor':
+                        meta = [Vendor, 'vendorName', 'id'];
+                        break;
+                    default:
+                        meta = null;
+                }
+                logger.info(meta);
+                options = await getAllOptions(meta);
+            } else if (field === 'location') { // no id
+                const distinctOptions = await getDistinctOptions(Ast, field);
+                options = createSelection(distinctOptions, field, field);
+            } else if (field === 'age') { // no id
+                const devicesAgeQuery = `
+                    SELECT DISTINCT 
+                        FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
+                    FROM "asts" a
+                    JOIN "events" e ON a.add_event_id = e.id;
+                `;
+                const distinctAges = await sequelize.query(devicesAgeQuery, {
+                    type: Sequelize.QueryTypes.SELECT
+                });
+                options = createSelection(distinctAges, field, field);
+    
+            } else throw new Error()
+            
+            return res.json(options || [])
+            
+        } catch (error) {
+            logger.error(error)
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
         }
     }
 
@@ -235,16 +282,14 @@ class AssetController {
             res.status(500).json({ message: 'Internal Server Error' });
         }
     }
-    
-    async searchAssets(req, res) {
-        const { value, formType } = req.body;
 
-        const isBulkSearch = Array.isArray(value) ? true : false;
-        const searchTerm = isBulkSearch ? value : `%${value}%`;
-    
-        let orderByClause;
-        if (formType === formTypes.LOAN || formType === formTypes.DEL_ASSET) {
-            orderByClause = `
+    searchAssetsAvailable = async (req, res) => {
+        
+        try {
+        
+            const { value, mode } = req.query;
+
+            const orderByClause = `
                 ORDER BY 
                     CASE 
                         WHEN ("loanCount" = 0 AND "reserveCount" = 0) THEN 1
@@ -255,22 +300,59 @@ class AssetController {
                     END ASC,
                 "lastReturn" DESC
             `;
-        } else if (formType === formTypes.RETURN) {
-            orderByClause = `
+
+            const data = await this.searchAssets(value, orderByClause, this.assetIsAvailable)
+            res.json(data);
+
+        } catch (error) {
+            logger.error('Error fetching assets:', error)
+            console.error('Error fetching assets:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    }
+    
+    searchAssetsLoaned = async (req, res) => {
+
+        try {
+            const { value, userName, mode } = req.query;
+    
+            const orderByClause = `
                 ORDER BY 
                     CASE 
-                        WHEN "loanCount" > 0 THEN 1
+                        WHEN "lastLoan" IS NOT NULL and "lastReturn" IS NOT NULL AND "lastLoan" > "lastReturn" THEN 1
                         WHEN "deletedDate" IS NOT NULL THEN 2
                         ELSE 3
                     END ASC,
                 "lastLoan" ASC
             `;
-        } else {
-            throw new Error('Invalid form type provided.');
+    
+            const data = await this.searchAssets(
+                value, 
+                orderByClause, 
+                this.assetIsLoaned,
+                userName && [`usrs.userName = ${userName}`]
+            )
+            res.json(data);
+
+        } catch (error) {
+            logger.error('Error fetching assets:', error)
+            console.error('Error fetching assets:', error);
+            res.status(500).send('Internal Server Error');
         }
+    }
+    
+    async searchAssets(
+        value, 
+        orderByClause, 
+        disabledCondition, 
+        otherConditions=null
+    ) {
+
+        const isBulkSearch = Array.isArray(value) ? true : false;
+        const searchTerm = isBulkSearch ? value : `%${value}%`;
 
         const bulkCondition = `
-            asts.asset_tag IN (:searchTerm)  -- Bulk search condition
+            asts.serial_number IN (:searchTerm)  -- Bulk search condition
         `;
 
         const singleCondition = `
@@ -290,34 +372,10 @@ class AssetController {
                     ast_s_types.sub_type_name AS "subTypeName",
                     ast_types.type_name AS "typeName",
                     vendors.vendor_name AS "vendorName",
-                    GREATEST(
-                        MAX(delete_event.event_date),
-                        MAX(add_event.event_date),
-                        MAX(loan_event.event_date),
-                        MAX(return_event.event_date),
-                        MAX(reserve_event.event_date),
-                        MAX(cancel_event.event_date)
-                    ) AS "lastEventDate",
                     MAX(loan_event.event_date) AS "lastLoan",
                     MAX(return_event.event_date) AS "lastReturn",
-                    COUNT(
-                        CASE 
-                            WHEN loan_event.id IS NOT NULL 
-                            AND return_event.id IS NULL 
-                            THEN usrs.id 
-                            ELSE NULL 
-                        END
-                    ) AS "loanCount",
-                    COUNT(
-                        CASE 
-                            WHEN loan_event.id IS NULL 
-                            AND return_event.id IS NULL 
-                            AND cancel_event.id IS NULL 
-                            AND reserve_event.id IS NOT NULL
-                            THEN usrs.id 
-                            ELSE NULL 
-                        END
-                    ) AS "reserveCount"
+                    MAX(reserve_event) AS "lastReserve",
+                    MAX(return_event) AS "lastReturn"
                 FROM asts
                 LEFT JOIN ast_s_types ON asts.sub_type_id = ast_s_types.id
                 LEFT JOIN ast_types ON ast_s_types.asset_type_id = ast_types.id
@@ -333,6 +391,7 @@ class AssetController {
                 LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
                 LEFT JOIN events AS return_event ON ast_loans.return_event_id = return_event.id
                 WHERE ${isBulkSearch ? bulkCondition : singleCondition}
+                ${otherConditions && ` AND ${otherConditions.join(" AND ")} `}
                 GROUP BY 
                     asts.id, 
                     asts.serial_number, 
@@ -345,8 +404,16 @@ class AssetController {
                     ast_types.type_name, 
                     vendors.vendor_name
             )
-            SELECT *
-            FROM AssetLoanCounts
+            SELECT *,
+                CASE
+                    WHEN ("lastLoan" IS NOT NULL AND "lastReturn" IS NULL) OR "lastLoan" > "lastReturn" THEN 1
+                    ELSE 0
+                END AS "onLoan",
+                CASE
+                    WHEN (("lastReserve" IS NOT NULL AND "lastReturn" IS NULL) OR "lastReserve" > "lastReturn")) AND ("lastLoan" is NULL or "lastLoan" < "lastReturn") THEN 1
+                    ELSE 0
+                END AS "onReservation"
+            FROM AssetLoanCounts;
             ${orderByClause}
             LIMIT 20;
         `;
@@ -363,11 +430,11 @@ class AssetController {
                 asset.loanCount = Number(asset.loanCount);
                 asset.reserveCount = Number(asset.reserveCount);
                 
-                if (asset.deletedDate) {
+                if (this.assetIsDeleted(asset)) {
                     asset.status = 'Deleted';
-                } else if (asset.loanCount !== 0 && !asset.shared) {
+                } else if (this.assetIsLoaned(asset)) {
                     asset.status = `On Loan: ${asset.loanCount} user${asset.loanCount === 1 ? '' : 's'}`;
-                } else if (asset.reserveCount !== 0 && !asset.shared) {
+                } else if (this.assetIsReserved(asset)) {
                     asset.status = `Reserved: ${asset.reserveCount} user${asset.reserveCount === 1 ? '' : 's'}`;
                 } else {
                     asset.status = `Available`;
@@ -375,35 +442,26 @@ class AssetController {
     
                 const { id, assetTag, serialNumber, shared, status, typeName, subTypeName, lastEventDate } = asset;
                 logger.info(status)
-                let disabled;
-                switch(formType) {
-                    case formTypes.LOAN:
-                    case formTypes.DEL_ASSET:
-                        disabled = status !== 'Available'
-                        break;
-                    case formTypes.RETURN:
-                        disabled = status === 'Available'
-                        break;
-                }
+
+                const isDisabled = disabledCondition(asset)
     
                 return {
-                    value: assetTag,
-                    label: assetTag, // Append status if disabled,
+                    value: serialNumber,
+                    label: serialNumber, // Append status if disabled,
                     assetId: id,
                     typeName,
                     subTypeName, 
-                    description: `${serialNumber} ${disabled ? `(${status})` : ''}`,
+                    description: `${serialNumber} ${isDisabled ? `(${status})` : ''}`,
                     shared: shared,
-                    isDisabled: disabled, // Disable if not in valid statuses or already included
+                    isDisabled, // Disable if not in valid statuses or already included
                     lastEventDate,
                 };
             })
     
-            res.json(response);
+            return response;
+            
         } catch (error) {
-            logger.error('Error fetching assets:', error)
-            console.error('Error fetching assets:', error);
-            res.status(500).send('Internal Server Error');
+            throw error;
         }
     };
     
@@ -460,7 +518,7 @@ class AssetController {
                         asset.history
                             .filter(event => event.reservation && !event.reservation.cancelEvent)
                             .flatMap(event => event.reservation.userLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
-                    ).values
+                    ).values()
                 );
             }
 
@@ -537,11 +595,12 @@ class AssetController {
                                 {
                                     model: AccReturn,
                                     attributes: ['id', 'count'],
+                                    required: false,
                                     include: {
                                         model: Event,
                                         as: 'ReturnEvent',
                                         attributes: ['id', 'eventDate'],
-                                        required: false
+                                        required: true
                                     }
                                 }
                             ]
@@ -593,7 +652,7 @@ class AssetController {
                     ]
                 }
             ],
-            order: [['eventDate', 'ASC']]
+            order: [['eventDate', 'DESC']]
         });
 
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects

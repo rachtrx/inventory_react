@@ -138,6 +138,11 @@ db.Event.hasOne(db.Usr, { as: 'DeletedUser', foreignKey: 'delEventId' });
 db.Usr.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
 db.Usr.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 
+db.Event.hasOne(db.AccType, { foreignKey: 'addEventId' });
+db.AccType.belongsTo(db.Event, { foreignKey: 'addEventId', targetKey: 'id' });
+db.Event.hasOne(db.AccTxn, { foreignKey: 'eventId' });
+db.AccTxn.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
+
 // Event and Admin
 db.Admin.hasMany(db.Event, { foreignKey: 'adminId' })
 db.Event.belongsTo(db.Admin, { foreignKey: 'adminId', targetKey: 'id' });

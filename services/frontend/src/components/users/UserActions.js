@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useFormModal, actionTypes, formTypes } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
+import { useFormModal, actionTypes, FormType } from '../../context/ModalProvider';
+import { UserActionButton } from '../buttons/ActionButton';
 
 export default function UserActions() {
 
@@ -12,9 +12,9 @@ export default function UserActions() {
     !isMobile && (
       <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
-        {[formTypes.LOAN, formTypes.RETURN, formTypes.ADD_USER, formTypes.DEL_USER].map((formType) => {
+        {[FormType.LOAN, FormType.RETURN, FormType.ADD_USER, FormType.DEL_USER].map((formType) => {
             return (
-              <ActionButton
+              <UserActionButton
                 key={formType}
                 formType={formType}
               />

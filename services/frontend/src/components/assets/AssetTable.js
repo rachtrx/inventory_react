@@ -3,11 +3,8 @@ import { useDrawer } from '../../context/DrawerProvider';
 import { useItems } from '../../context/ItemsProvider';
 import StarButton from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';
-import { AssetActionButton, SplitButton } from '../users/AssetList';
 import { useState } from 'react';
-import ActionButton from '../buttons/ActionButton';
-import { formTypes } from '../../context/ModalProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { CardActions } from './CardActions';
 
 const AssetTable = ({ items }) => {
@@ -31,7 +28,6 @@ const AssetTable = ({ items }) => {
           <Tr 
             key={asset.assetId}
             _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(asset)}
           >
             <Td>
               <StarButton
@@ -42,12 +38,12 @@ const AssetTable = ({ items }) => {
             </Td>
             <Td><ResponsiveText>{asset.typeName}</ResponsiveText></Td>
             <Td><ResponsiveText>{asset.subTypeName}</ResponsiveText></Td>
-            <Td><ItemLink item={asset} fontWeight="bold"/></Td>
+            <Td><AssetLink item={asset} fontWeight="bold"/></Td>
             <Td>
               <CardActions asset={asset}/>
             </Td>
             <Td>{asset.ongoingLoan && asset.ongoingLoan.loan.userLoans.map((userLoan) => (
-              <ItemLink item={userLoan.user} fontWeight="bold"/>
+              <UserLink item={userLoan.user} fontWeight="bold"/>
             ))}</Td>
           </Tr>
         ))}

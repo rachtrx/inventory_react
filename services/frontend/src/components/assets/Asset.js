@@ -1,17 +1,16 @@
 import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
-import Timeline from '../timeline/Timeline';
+import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
 import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
-import { ItemLink } from '../buttons/ItemLink';
-import { AssetActionButton, UserActionButton } from '../buttons/SplitButton';
+import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from '../../constants/AssetStatus';
+import { AssetActionButton } from '../buttons/ActionButton';
+import AssetTimeline from '../timeline/AssetTimeline';
 
 const Asset = ({ asset }) => {
-  const { editKey, editedValue, handleItemClick, handleEdit, handleChange } = useDrawer()
+  const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
   const { setFormType } = useFormModal()
 
   const currentUsers = asset.currentUsers;
@@ -82,8 +81,12 @@ const Asset = ({ asset }) => {
             <Box>
             {currentUsers?.map(user => (
               <>
-                <ItemLink key={user.userId} isCopy={false} item={user} />
-                <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
+                <UserLink user={user} isCopy={false} />
+                <AssetActionButton
+                  key={FormType.RETURN} 
+                  formType={FormType.RETURN} 
+                  asset={asset} 
+                />
               </>
             ))}
             </Box>
@@ -91,14 +94,14 @@ const Asset = ({ asset }) => {
             <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
-                <ItemLink key={index} isCopy={false} item={user} />
+                <UserLink isCopy={false} user={user} />
               ))}
             </Flex>
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
             {reservedUsers?.map(user => (
-              <ItemLink key={user.userId} isCopy={false} item={user} />
+              <UserLink isCopy={false} user={user} />
             ))}
             </Box>
         </Grid>
@@ -113,18 +116,18 @@ const Asset = ({ asset }) => {
         />
         {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
           <Flex gridGap="2">
-            <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
+            <Button onClick={() => setFormType(FormType.DEL_ASSET)} colorScheme="red">
               CONDEMN
             </Button>
-            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
+            <Button onClick={() => setFormType(FormType.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
               LOAN
             </Button>
           </Flex>
         )}
       </Box>
 
-			{asset.history && 
-				<Timeline 
+			{asset.history && asset.history.length > 0 &&
+				<AssetTimeline 
 					events={asset.history}
 				/>
 			}

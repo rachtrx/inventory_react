@@ -16,6 +16,7 @@ const withSelect = (Component, isCreatable) => ({
   hideSelectedOptions = false,
   warning = null,
   children,
+  components = undefined,
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
@@ -111,6 +112,7 @@ const withSelect = (Component, isCreatable) => ({
           value={selectedOption}
           hideSelectedOptions={hideSelectedOptions}
           isSearchable
+          components={components} 
           {...props}
           styles={{
             container: (provided) => ({

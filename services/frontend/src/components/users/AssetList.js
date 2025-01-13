@@ -1,7 +1,7 @@
-import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody } from "@chakra-ui/react";
-import { ItemLink } from "../buttons/ItemLink";
-import ActionButton from "../buttons/ActionButton";
-import { formTypes } from "../../context/ModalProvider";
+import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody, Box, Collapse, Text } from "@chakra-ui/react";
+import { AssetLink } from "../buttons/ItemLink";
+import { AccessoryLoanActionButton, AssetActionButton } from "../buttons/ActionButton";
+import { FormType } from "../../context/ModalProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText, CircleTextTooltip, OverlappingCircles } from "../utils/CircleText";
 
@@ -64,25 +64,93 @@ export const AssetList = ({ user }) => {
 				<PopoverCloseButton />
 				<PopoverHeader>
 					<Flex gap={2} alignItems={'center'}>
-						<ResponsiveText size="sm" fontWeight="bold">Assets</ResponsiveText>
-						<ActionButton formType={formTypes.RETURN} item={user.userLoans} />
+						<ResponsiveText size="sm" fontWeight="bold">Loans</ResponsiveText>
+						{user.userLoans && user.userLoans.filter(userLoan => userLoan.loan.astLoan).length > 0 ? 
+							(<Flex gap={2} alignItems={'center'}>
+								<AssetActionButton
+									formType={FormType.RETURN} 
+									asset={user.userLoans
+										.filter(userLoan => userLoan.loan.astLoan)
+										.map(userLoan => userLoan.loan.astLoan.asset)
+									}
+								/>
+							</Flex>) : null}
+						{user.userLoans && user.userLoans.filter(userLoan => !userLoan.loan.astLoan).length > 0 ? 
+							(<Flex gap={2} alignItems={'center'}>
+								<AccessoryLoanActionButton
+									formType={FormType.RETURN} 
+									accLoan={user.userLoans
+										.filter(userLoan => !userLoan.loan.astLoan)
+										.flatMap(userLoan => userLoan.loan.accLoans)
+										.reduce((allAccTypeLoans, accLoan) => {
+
+											const accTypeLoan = allAccTypeLoans.find(accType => accType.accessoryTypeId === accLoan.accessoryTypeId);
+											if (accTypeLoan) accTypeLoan.unreturned += accLoan.unreturned
+											else allAccTypeLoans.push(accLoan);
+
+											return allAccTypeLoans;
+										}, [])
+									}
+								/>
+							</Flex>) : null}
 					</Flex>
 				</PopoverHeader>
-				<PopoverBody
-					maxHeight={'200px'} // Set the maximum height
-					overflowY={'auto'}  // Enable vertical scrolling
-				>
-					<VStack>
-						{user.userLoans.map(userLoan => userLoan.loan).map((loan) => (
-							<Flex key={loan.astLoan.asset.assetId} gap={2} width="100%" alignItems="center" justifyContent="space-between">
-								<Tooltip label={loan.astLoan.asset.typeName} placement="top" hasArrow>
-									<CircleText text={loan.astLoan.asset.typeName}/>
-								</Tooltip>
-								<ItemLink item={loan.astLoan.asset} />
-								<ActionButton formType={formTypes.RETURN} item={loan.astLoan.asset} />
+				<PopoverBody maxHeight="200px" overflowY="auto">
+				{/* Assets Section */}
+				<VStack spacing={4} align="stretch">
+					{user.userLoans
+					.filter((userLoan) => userLoan.loan.astLoan)
+					.map((userLoan) => {
+						const loan = userLoan.loan;
+						return (
+						<Box key={loan.astLoan.asset.assetId} border="1px" borderRadius="md" p={2}>
+							<Flex justify="space-between" align="center">
+							<Tooltip label={loan.astLoan.asset.typeName} placement="top" hasArrow>
+								<CircleText text={loan.astLoan.asset.typeName} />
+							</Tooltip>
+							<AssetLink asset={loan.astLoan.asset} />
+							<AssetActionButton formType={FormType.RETURN} asset={loan.astLoan.asset} />
 							</Flex>
+							{/* Collapsible Accessories */}
+							{loan.accLoans && loan.accLoans.length > 0 && (
+							<Collapse in={true}>
+								<Box mt={2}>
+								{loan.accLoans.map((accLoan) => (
+									<Flex key={accLoan.accessoryLoanId} justify="space-between" px={2}>
+									<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
+										<CircleText text={accLoan.accessoryName}/>
+									</Tooltip>
+									<Text>{accLoan.unreturned}</Text>
+									</Flex>
+								))}
+								</Box>
+							</Collapse>
+							)}
+						</Box>
+						);
+					})}
+				</VStack>
+
+				{/* Standalone Accessories Section */}
+				<Box mt={4}>
+					<Text fontWeight="bold" mb={2}>
+					Standalone Accessories
+					</Text>
+					<VStack spacing={2} align="stretch">
+					{user.userLoans
+						.filter((userLoan) => !userLoan.loan.astLoan)
+						.flatMap((userLoan) => userLoan.loan.accLoans)
+						.map((accLoan) => (
+						<Flex key={accLoan.accessoryLoanId} justify="space-between" px={2}>
+							<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
+								<CircleText text={accLoan.accessoryName}/>
+							</Tooltip>
+							<Text>{accLoan.unreturned}</Text>
+							<AccessoryLoanActionButton formType={FormType.RETURN} accLoan={accLoan} />
+						</Flex>
 						))}
 					</VStack>
+				</Box>
 				</PopoverBody>
 			</PopoverContent>
 		</Popover>

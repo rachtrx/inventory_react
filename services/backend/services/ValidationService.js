@@ -1,12 +1,10 @@
-const { formTypes } = require("../controllers/utils");
 const { AccLoan, Usr, UsrLoan, Ast, AstLoan, Loan, AccReturn } = require("../models");
 const { Op } = require('sequelize');
 
 class ValidationService {
 
-    constructor(transaction, authId, formType) {
+    constructor(transaction, authId) {
         this.transaction = transaction;
-        this.formType = formType;
         this.authId = authId;
     }
 
@@ -40,7 +38,7 @@ class ValidationService {
         return user;
     }
 
-    async getAsset(assetId, assetTag) {
+    async getAsset(assetId, serialNumber, includeReturns=false) {
         const asset = await Ast.findByPk(assetId, {
             transaction: this.transaction,
             include: {
@@ -51,7 +49,7 @@ class ValidationService {
                 include: {
                     model: Loan,
                     attributes: ['id', 'loanEventId'],
-                    ...(this.formType === formTypes.RETURN && {
+                    ...(includeReturns && {
                         include: [
                             {
                                 model: UsrLoan,
@@ -74,18 +72,10 @@ class ValidationService {
             }
         });
         if (!asset) throw new Error(`No record found for Asset ID: ${assetId}`);
-        if (asset.assetTag !== assetTag) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected assetTag: ${assetTag}, but found: ${asset.assetTag}`);
+        if (asset.serialNumber !== serialNumber) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected serialNumber: ${serialNumber}, but found: ${asset.serialNumber}`);
 
         if (asset.delEventId) {
             throw new Error(`Asset Tag ${assetData.assetTag} is condemned!`);
-        }
-    
-        const onLoan = asset.AstLoans && asset.AstLoans.length > 0;
-
-        if (onLoan && this.formType === formTypes.LOAN) {
-            throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
-        } else if (!onLoan && this.formType === formTypes.RETURN) {
-            throw new Error(`Asset with ID ${asset.assetTag} is not on loan!`);
         }
 
         return asset;

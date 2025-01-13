@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize } = require('../models');
 
-exports.formTypes = {
+exports.FormType = {
     ADD_ASSET: 'ADD_ASSET',
     DEL_ASSET: 'DEL_ASSET',
     LOAN: 'LOAN',
@@ -12,15 +12,15 @@ exports.formTypes = {
 }
 
 exports.formToEventMap = {
-    [this.formTypes.ADD_ASSET]: 'ADD',
-    [this.formTypes.DEL_ASSET]: 'DEL',
-    [this.formTypes.LOAN]: 'LOAN',
-    [this.formTypes.RETURN]: 'RETURN',
-    [this.formTypes.ADD_USER]: 'ADD',
-    [this.formTypes.DEL_USER]: 'DEL',
-    [this.formTypes.ADD_PERIPHERAL]: 'ADD',
-    [this.formTypes.TAG]: 'TAG',
-    [this.formTypes.UNTAG]: 'UNTAG',
+    [this.FormType.ADD_ASSET]: 'ADD',
+    [this.FormType.DEL_ASSET]: 'DEL',
+    [this.FormType.LOAN]: 'LOAN',
+    [this.FormType.RETURN]: 'RETURN',
+    [this.FormType.ADD_USER]: 'ADD',
+    [this.FormType.DEL_USER]: 'DEL',
+    [this.FormType.ADD_PERIPHERAL]: 'ADD',
+    [this.FormType.TAG]: 'TAG',
+    [this.FormType.UNTAG]: 'UNTAG',
 }
 
 exports.createSelection = (arr, labelField, valueField) => {

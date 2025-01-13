@@ -12,11 +12,18 @@ import { AddIcon, DownloadIcon } from "@chakra-ui/icons";
 import { Formik, Form, Field } from "formik";
 import AddRemark from "./AddRemark";
 import AddEvent from "./AddEvent";
-import LoanEvent from "./LoanEvent";
+import LoanEvent from "./AssetLoanEvent";
 import DeleteEvent from "./DeleteEvent";
-import ReserveEvent from "./ReserveEvent";
+import ReserveEvent from "./AssetReserveEvent";
 
-const Timeline = ({ events, handleAddRemark }) => {
+const Timeline = ({ 
+    events,
+    AddEventComponent, 
+    DelEventComponent, 
+    LoanEventComponent, 
+    ReserveEventComponent, 
+}) => {
+
     return (
         <VStack spacing={2} align="stretch">
         {events.map((ev, id, arr) => (
@@ -38,16 +45,15 @@ const Timeline = ({ events, handleAddRemark }) => {
                     {/* <Text fontSize="sm" color="gray.700" mb={2}>
                         <strong>Event Type:</strong> {ev.eventType || "N/A"}
                     </Text> */}
-                    {id === 0 && !ev.loan && !ev.reservation ? (
+                    {id === arr.length - 1 && !ev.loan && !ev.reservation ? (
                         /* Render AddEvent Component */
-                        <AddEvent event={ev} />
-                    ) : id === arr.length - 1 && !ev.loan && !ev.reservation ? (
-                        <DeleteEvent event={ev} />
+                        <AddEventComponent event={ev} />
+                    ) : id === 0 && !ev.loan && !ev.reservation ? (
+                        <DelEventComponent event={ev} />
                     ) : ev.loan ? (
-                        /* Render AddEvent Component */
-                        <LoanEvent event={ev} />
+                        <LoanEventComponent event={ev} />
                     ) : ev.reservation ? (
-                        <ReserveEvent event={ev}/>
+                        <ReserveEventComponent event={ev}/>
                     ) : null}
                 </Box>
             </Box>

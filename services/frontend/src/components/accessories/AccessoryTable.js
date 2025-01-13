@@ -3,7 +3,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import StarButton from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
 
 const AccessoryTable = ({ items }) => {
@@ -26,10 +26,9 @@ const AccessoryTable = ({ items }) => {
           <Tr 
             key={accessoryType.accessoryTypeId} 
             _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(peripheralType)}
-          >
+           >
             <Td><StarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td>
-            <Td><ItemLink item={accessoryType} size={'lg'} fontWeight="bold"/></Td>
+            <Td><AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/></Td>
             
             <Td>
               <CircleText

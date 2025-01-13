@@ -37,8 +37,6 @@ class LoanDTO {
         if (AccLoans) {
             const AccLoanDTO = require("./accLoan.dto");
             this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
-        } else {
-            this.accLoans = [];
         }
 
         if (UsrLoans) {
@@ -65,17 +63,24 @@ class LoanDTO {
                 }
             } else if (loanItem.accReturns && loanItem.accReturns.length > 0) {
                 loanItem.accReturns.forEach(accReturn => {
+
+                    const accessoryDetails = {
+                        ...accReturn,
+                        accessoryTypeId: loanItem.accessoryTypeId,
+                        accessoryName: loanItem.accessoryName
+                    }
+
                     if (!returns[accReturn.returnEvent.eventId]) {
                         returns[accReturn.returnEvent.eventId] = {
                             by: accReturn.returnEvent.returnBy,
                             eventDate: accReturn.returnEvent.eventDate,
                             remarks: accReturn.returnEvent.remarks,
                             isAsset: true,
-                            accessories: [{...accReturn, accessoryName: loanItem.accessoryName}]
+                            accessories: [accessoryDetails]
                         }
                         logger.info(loanItem.accessoryName)
                     } else {
-                        returns[accReturn.returnEvent.eventId].accessories.push({...accReturn, accessoryName: loanItem.accessoryName});
+                        returns[accReturn.returnEvent.eventId].accessories.push(accessoryDetails);
                     }
                 })
             }

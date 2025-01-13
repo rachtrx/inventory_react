@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (!req.path.startsWith('/auth') || req.path === '/auth/checkAuth') {
+    if (!req.path.startsWith('/auth') || req.path === '/auth/checkAuth' || req.path === '/auth/chgpw') {
         jwt({
             secret: process.env.JWT_SECRET,
             algorithms: ['HS256'],
@@ -52,6 +52,7 @@ const userRoutes = require('./routes/userRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes.js');
 const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const historyRoutes = require('./routes/historyRoutes')
 const formRoutes = require('./routes/formRoutes');
 
 app.use('/auth', authRoutes);
@@ -59,6 +60,7 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/history', historyRoutes);
 app.use('/api/accessories', accessoryRoutes);
 app.use('/api/forms', formRoutes);
 

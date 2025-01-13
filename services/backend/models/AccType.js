@@ -12,9 +12,9 @@ module.exports = (sequelize) => {
 		// 	return {
 		// 		accessoryTypeId: this.id,
 		// 		accessoryName: this.accessoryName,
-		// 		available: this.available,
+		// 		stock: this.stock,
 		// 		...this.Accs?.length > 0 && {
-		// 			totalCount: this.available + this.Accs.reduce((count, accessory) => count += accessory.count, 0), // TODO filter based on not returned and get length
+		// 			totalCount: this.stock + this.Accs.reduce((count, accessory) => count += accessory.count, 0), // TODO filter based on not returned and get length
 		// 			assets: this.Accs.reduce((assetAcc, acc) => {
 
 		// 				// Each peripheral on loan can only be tagged to 1 asset
@@ -53,10 +53,17 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
-        available: {
+        stock: {
             type: DataTypes.INTEGER,
 			allowNull: false
-        }
+        },
+		addEventId: {
+			type: DataTypes.STRING,
+			references: {
+			  model: 'events',
+			  key: 'id',
+			},
+		},
 	}, {
 		sequelize,
 		modelName: 'AccType'

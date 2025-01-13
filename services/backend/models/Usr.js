@@ -43,6 +43,7 @@ module.exports = (sequelize) => {
 			  model: 'events',
 			  key: 'id',
 			},
+			allowNull: true
 		},
 	}, {
 		sequelize,

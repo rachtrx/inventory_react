@@ -19,7 +19,10 @@ class UserDTO {
 
         this.bookmarked = bookmarked === null ? null : bookmarked ? true : false;
 
-        if (UsrLoans) this.usrLoans = UsrLoans.map(usrLoan => new UserLoanDTO(usrLoan));
+        if (UsrLoans) {
+            const loansWithItems = UsrLoans.filter(usrLoan => usrLoan.Loan && (usrLoan.Loan.AstLoan || usrLoan.Loan.AccLoans));
+            if (loansWithItems.length > 0) this.usrLoans = UsrLoans.map(usrLoan => new UserLoanDTO(usrLoan));
+        }
 
         if (addEventId) this.addEventId = addEventId;
         if (addEventId || delEventId) this.delEventId = delEventId;

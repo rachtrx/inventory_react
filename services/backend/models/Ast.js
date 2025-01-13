@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
 		},
 		assetTag: {
 			type: DataTypes.STRING,
-			allowNull: false,
+			allowNull: true,
 			unique: true
 		},
 		subTypeId: {
@@ -43,10 +43,7 @@ module.exports = (sequelize) => {
 		location: {
 			type: DataTypes.STRING
 		},
-		addedDate: {
-			type: DataTypes.DATE,
-			defaultValue: DataTypes.NOW
-		},
+		// TODO REMOVE addedDate
 		expiryDate: {
 			type: DataTypes.DATE,
 			allowNull: true,

@@ -13,39 +13,36 @@ import {
 } from '@chakra-ui/react';
 import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { actionTypes, useFormModal, formTypes } from '../context/ModalProvider';
-import RemoveUser from './forms/RemoveUser';
-import Toggle from './forms/utils/Toggle';
+import { actionTypes, useFormModal, FormType } from '../context/ModalProvider';
 import { ResponsiveText } from './utils/ResponsiveText';
-import AddPeripheral from './forms/AddPeripheral';
-import Reserve from './forms/Reserve';
-import { LoansProvider } from './forms/loan/LoansProvider';
-import { ReturnsProvider } from './forms/return/ReturnsProvider';
-import { AddAssetsProvider } from './forms/addAsset/AddAssetsProvider';
-import { AddUsersProvider } from './forms/addUser/AddUsersProvider';
-import { DelAssetsProvider } from './forms/delAsset/DelAssetsProvider';
-import { DelUsersProvider } from './forms/delUser/DelUsersProvider';
+import { LoansProvider } from './forms/asset/loan/LoansProvider';
+import { ReturnsProvider } from './forms/asset/return/ReturnsProvider';
+import { AddAssetsProvider } from './forms/asset/addAsset/AddAssetsProvider';
+import { AddUsersProvider } from './forms/user/addUser/AddUsersProvider';
+import { DelAssetsProvider } from './forms/asset/delAsset/DelAssetsProvider';
+import { DelUsersProvider } from './forms/user/delUser/DelUsersProvider';
+import UpdateAcc from './forms/accessories/updateAcc/UpdateAcc';
 
 const formMap = {
-    [formTypes.ADD_ASSET]: <AddAssetsProvider/>,
-    [formTypes.LOAN]: <LoansProvider/>,
-    [formTypes.RETURN]: <ReturnsProvider/>,
-    [formTypes.DEL_ASSET]: <DelAssetsProvider/>,
-    [formTypes.ADD_USER]: <AddUsersProvider/>,
-    [formTypes.DEL_USER]: <DelUsersProvider/>,
-    [formTypes.UPDATE_PERIPHERAL]: <AddPeripheral/>,
-    [formTypes.RESERVE]: <Reserve/>,
+    [FormType.ADD_ASSET]: <AddAssetsProvider/>,
+    [FormType.LOAN]: <LoansProvider/>,
+    [FormType.RETURN]: <ReturnsProvider/>,
+    [FormType.DEL_ASSET]: <DelAssetsProvider/>,
+    [FormType.ADD_USER]: <AddUsersProvider/>,
+    [FormType.DEL_USER]: <DelUsersProvider/>,
+    [FormType.UPDATE_ACC]: <UpdateAcc/>,
+    // [FormType.RESERVE]: <Reserve/>,
 }
 
 const headerMap = {
-    [formTypes.ADD_ASSET]: "Add Asset",
-    [formTypes.LOAN]: 'Loan',
-    [formTypes.RETURN]: 'Return',
-    [formTypes.DEL_ASSET]: "Condemn Asset",
-    [formTypes.ADD_USER]: "Add User",
-    [formTypes.DEL_USER]: "Remove User",
-    [formTypes.UPDATE_PERIPHERAL]: "Add Peripheral",
-    [formTypes.RESERVE]: "Reserve Items",
+    [FormType.ADD_ASSET]: "Add Asset",
+    [FormType.LOAN]: 'Loan',
+    [FormType.RETURN]: 'Return',
+    [FormType.DEL_ASSET]: "Condemn Asset",
+    [FormType.ADD_USER]: "Add User",
+    [FormType.DEL_USER]: "Remove User",
+    [FormType.UPDATE_ACC]: "Update Accessory",
+    [FormType.RESERVE]: "Reserve Items",
 }
 
 export default function FormModal() { 
