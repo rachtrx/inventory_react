@@ -9,9 +9,12 @@ class AccTypeDTO {
         id,
         accessoryName,
         stock,
+        isMatching=null,
         AccTxns,
         AccLoans
     }) {
+
+        this.isMatching = isMatching;
 
         if (id) this.accessoryTypeId = id;
         

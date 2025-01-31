@@ -9,11 +9,15 @@ class UserDTO {
         bookmarked,
         addEventId, 
         delEventId,
+        isMatching = null,
         AddEvent,
         DeleteEvent,
         Dept,
         UsrLoans
     }) {
+
+        this.isMatching = isMatching;
+
         this.userId = id;
         this.userName = userName;
 
@@ -30,7 +34,8 @@ class UserDTO {
         if (AddEvent) this.addEvent = new EventDTO(AddEvent);
         if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);
         
-        if (Dept) this.department = Dept;
+        if (Dept?.id) this.deptId = Dept.id;
+        if (Dept?.deptName) this.deptName = Dept.deptName;
 
         if (UsrLoans) {
             this.userLoans = UsrLoans.map(userLoan => new UserLoanDTO(userLoan));

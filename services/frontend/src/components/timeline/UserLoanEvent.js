@@ -91,7 +91,7 @@ const UserLoanEvent = ({ event }) => {
                             >
                                 <Flex justify="space-between" align="center">
                                     <Text fontWeight="medium" fontSize="sm">
-                                        {accLoan.accessoryName.toUpperCase()}
+                                        {accLoan.accType.accessoryName.toUpperCase()}
                                     </Text>
                                     <HStack>
                                         {/* Returned Count */}

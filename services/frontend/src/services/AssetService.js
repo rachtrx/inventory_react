@@ -46,19 +46,11 @@ class AssetService {
         return await this.axios.post(`${API_URL}/forms/loan`, formData);
     }
 
-    async fetchAstReturn(assetIds) {
-        console.log(assetIds);
-        return await this.axios.get(`${API_URL}/forms/return`, {
+    async fetchAstReturn(serialNumbers) {
+        console.log(serialNumbers);
+        return await this.axios.get(`${API_URL}/forms/return/asset`, {
             params: {
-                assetIds,
-            }
-        });
-    }
-
-    async fetchAstForUser(userId) {
-        return await this.axios.get(`${API_URL}/forms/return/user`, {
-            params: {
-                userId,
+                serialNumbers,
             }
         });
     }

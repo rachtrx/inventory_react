@@ -38,7 +38,7 @@ function AssetCards({items}) {
                                     <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
                                 <Box display="inline-flex" flexWrap="wrap" gap={2}>
-                                    {asset.ongoingLoan?.loan.userLoans.map((userLoan) => (
+                                    {asset.ongoingLoan?.userLoans.map((userLoan) => (
                                         <UserLink user={userLoan.user} />
                                     ))}
                                 </Box>

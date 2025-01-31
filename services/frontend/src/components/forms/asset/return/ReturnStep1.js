@@ -5,7 +5,7 @@ import SelectFormControl from "../../utils/SelectFormControl";
 import DateInputControl from "../../utils/DateInputControl";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createNewAccessory, createNewReturn } from "./Return";
+import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import { useUI } from "../../../../context/UIProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { ReturnProvider } from "./ReturnProvider";
@@ -31,21 +31,28 @@ const ReturnStep1 = () => {
       // Validate 'returns' for duplicate assetIds and assetTag !== assetId
       values.returns.forEach((ret, returnIndex) => {
         // Check for duplicate assetIds
-        if (ret.assetId && assetIds.has(ret.assetId)) {
+        if (ret.asset.assetId && assetIds.has(ret.asset.assetId)) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
-            assetId: `Duplicate Asset Tag ${ret.assetTag} found`
+            ...errors.returns[returnIndex],
+            search: `Duplicate Serial Number ${ret.asset.serialNumber} found`
           };
         } else {
           assetIds.add(ret.assetId);
         }
   
         // Check if assetTag equals assetId
-        if (ret.assetTag === ret.assetId) {
+        if (ret.search && !ret.loanId) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],
-            assetId: `Asset Tag ${ret.assetTag} was not found`
+            search: `Serial Number${ret.asset.serialNumber} was not found`
+          };
+        } else if (ret.asset.serialNumber && !ret.loanId) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            ...errors.returns[returnIndex],
+            search: `Serial Number${ret.asset.serialNumber} is not on loan`
           };
         }
       });

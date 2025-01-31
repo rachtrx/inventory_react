@@ -49,6 +49,14 @@ class UserService {
         downloadFormData(data);
         // return await this.axios.get(`${API_URL}/users/remove`, data);
     }
+
+    async fetchUserReturn(userName) {
+        return await this.axios.get(`${API_URL}/forms/return/user`, {
+            params: {
+                userName
+            }
+        });
+    }
 }
 
 const downloadFormData = (formData) => {

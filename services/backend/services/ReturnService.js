@@ -35,7 +35,7 @@ class ReturnService extends ValidationService{
 
         logger.info(asset);
 
-        const allUsersMatch = asset.ongoingLoan.loan.userLoans.every(usrLoan => {
+        const allUsersMatch = asset.ongoingLoan.userLoans.every(usrLoan => {
             return users.userIds.some(userId => userId === usrLoan.userId);
         });
 

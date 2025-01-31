@@ -27,7 +27,7 @@ export const AssetList = ({ user }) => {
 										{loan.accLoans.map((accLoan) => (
 											<Tooltip 
 												key={accLoan.accessoryLoanId} 
-												label={accLoan.accessoryName} 
+												label={accLoan.accType.accessoryName} 
 												placement="top" 
 												hasArrow
 											>
@@ -47,7 +47,7 @@ export const AssetList = ({ user }) => {
 							} else {
 								return (loan.accLoans.map((accLoan) => 
 									(<WrapItem key={accLoan.accessoryLoanId}>
-										<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
+										<Tooltip label={accLoan.accType.accessoryName} placement="top" hasArrow>
 											<CircleText text={accLoan.unreturned} />
 										</Tooltip>
 									</WrapItem>)
@@ -83,8 +83,7 @@ export const AssetList = ({ user }) => {
 										.filter(userLoan => !userLoan.loan.astLoan)
 										.flatMap(userLoan => userLoan.loan.accLoans)
 										.reduce((allAccTypeLoans, accLoan) => {
-
-											const accTypeLoan = allAccTypeLoans.find(accType => accType.accessoryTypeId === accLoan.accessoryTypeId);
+											const accTypeLoan = allAccTypeLoans.find(accType => accType.accessoryTypeId === accLoan.accType.accessoryTypeId);
 											if (accTypeLoan) accTypeLoan.unreturned += accLoan.unreturned
 											else allAccTypeLoans.push(accLoan);
 
@@ -117,8 +116,8 @@ export const AssetList = ({ user }) => {
 								<Box mt={2}>
 								{loan.accLoans.map((accLoan) => (
 									<Flex key={accLoan.accessoryLoanId} justify="space-between" px={2}>
-									<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
-										<CircleText text={accLoan.accessoryName}/>
+									<Tooltip label={accLoan.accType.accessoryName} placement="top" hasArrow>
+										<CircleText text={accLoan.accType.accessoryName}/>
 									</Tooltip>
 									<Text>{accLoan.unreturned}</Text>
 									</Flex>
@@ -142,8 +141,8 @@ export const AssetList = ({ user }) => {
 						.flatMap((userLoan) => userLoan.loan.accLoans)
 						.map((accLoan) => (
 						<Flex key={accLoan.accessoryLoanId} justify="space-between" px={2}>
-							<Tooltip label={accLoan.accessoryName} placement="top" hasArrow>
-								<CircleText text={accLoan.accessoryName}/>
+							<Tooltip label={accLoan.accType.accessoryName} placement="top" hasArrow>
+								<CircleText text={accLoan.accType.accessoryName}/>
 							</Tooltip>
 							<Text>{accLoan.unreturned}</Text>
 							<AccessoryLoanActionButton formType={FormType.RETURN} accLoan={accLoan} />

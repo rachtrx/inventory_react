@@ -7,8 +7,9 @@ import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
 import { FaUser, FaUsers } from 'react-icons/fa';
 import { ResponsiveText } from '../../../utils/ResponsiveText';
 import { AddButton } from '../../utils/ItemButtons';
-import { createNewReturn, Return } from './Return';
+import { createNewReturn, ReturnSearch } from './ReturnSearch';
 import { useReturns } from './ReturnsProvider';
+import { ManageReturn } from './ManageReturn';
 
 // Create a context for assets
 const ReturnContext = createContext();
@@ -17,36 +18,13 @@ const ReturnContext = createContext();
 export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
   // console.log('loan provider');
 
-  const { setUserOptions } = useReturns();
   const { values, setFieldValue } = useFormikContext();
 
-  const [ isAstDisabled, setIsAstDisabled ] = useState(values.returns[returnIndex].assetId || false);
-  const [ isUserDisabled, setIsUserDisabled ] = useState(values.returns[returnIndex].users?.length > 0 || false)
-  const [ isAccDisabled, setIsAccDisabled ] = useState(values.returns[returnIndex].accessoryTypes?.length > 0 || false)
+  const [ currentLoan, setCurrentLoan ] = useState(null)
 
   console.log(values);
 
   const removeReturn = useCallback(() => returnHelpers.remove(returnIndex), [returnHelpers, returnIndex])
-
-  const updateUsers = (users) => {
-		const newUserOptions = users.map(user => {
-			return {
-				value: user.userName,
-				label: user.userName
-			}
-		})
-
-		console.log(newUserOptions);
-
-		setUserOptions(newUserOptions)
-		setFieldValue(
-			`returns.${returnIndex}.users`,
-			{
-				userNames: users.map(user => user.userName),
-				userIds: users.map(user => user.userId || user.userId),
-			}
-		)
-	}
 
   return (
     <ReturnContext.Provider value={{ 
@@ -54,12 +32,14 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
       returnIndex, 
       returnHelpers, 
       removeReturn,
+      currentLoan,
+      setCurrentLoan
     }}>
       <ResponsiveText size="md" fontWeight="bold" align="center">
         {`Loan #${returnIndex + 1}`}
       </ResponsiveText>
 
-      <Return />
+      {ret?.loanId ? <ManageReturn/> : <ReturnSearch/>}
       
       <Flex mt={2} gap={4} justifyContent="space-between">
         {values.returns.length > 1 && (

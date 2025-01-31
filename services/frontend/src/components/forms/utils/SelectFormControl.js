@@ -17,6 +17,7 @@ const withSelect = (Component, isCreatable) => ({
   warning = null,
   children,
   components = undefined,
+  styles = undefined,
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
@@ -80,6 +81,7 @@ const withSelect = (Component, isCreatable) => ({
     if (isMulti) {
       option = options.filter((option) => value?.map(val => val.trim()).includes(option?.value));
     } else {
+      // if (value == null) return
       option = options.find((option) => option?.value === value.trim()) || null;
     }
     console.log(option);
@@ -112,14 +114,15 @@ const withSelect = (Component, isCreatable) => ({
           value={selectedOption}
           hideSelectedOptions={hideSelectedOptions}
           isSearchable
-          components={components} 
-          {...props}
+          components={components}
           styles={{
+            ...styles,
             container: (provided) => ({
               ...provided,
               width: '100%',
             }),
           }}
+          {...props}
         />
         {children}
       </Flex>

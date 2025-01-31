@@ -42,7 +42,7 @@ const AssetTable = ({ items }) => {
             <Td>
               <CardActions asset={asset}/>
             </Td>
-            <Td>{asset.ongoingLoan && asset.ongoingLoan.loan.userLoans.map((userLoan) => (
+            <Td>{asset.ongoingLoan && asset.ongoingLoan.userLoans.map((userLoan) => (
               <UserLink item={userLoan.user} fontWeight="bold"/>
             ))}</Td>
           </Tr>

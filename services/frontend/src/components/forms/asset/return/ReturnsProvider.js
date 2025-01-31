@@ -3,7 +3,7 @@ import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { createNewAccessory, createNewReturn } from "./Return";
+import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
@@ -14,12 +14,10 @@ const ReturnsContext = createContext();
 // Create a provider component
 export const ReturnsProvider = ({ children }) => {
   const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch } = useFormModal();
+  const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
+  const [ returnOptions, setReturnOptions ] = useState([]);
 
-  const [assetOptions, setAssetOptions] = useState([]);
-  const [userOptions, setUserOptions] = useState([]);
-  const [accessoryOptions, setAccessoryOptions] = useState([]);
   const [formData, setFormData] = useState({
     returns: [createNewReturn()],
   });
@@ -27,38 +25,23 @@ export const ReturnsProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => console.log(formData), [formData])
-  useEffect(() => console.log(assetOptions), [assetOptions])
-  useEffect(() => console.log(userOptions), [userOptions])
-
-  const fetchAstReturn = useCallback(async (assetIds) => {
-    try {
-      const response = await assetService.fetchAstReturn(assetIds);
-      console.log(response.data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }, [])
 
   useEffect(() => {
-    if (initialValues) {
+    if (!initialValues || Object.entries(initialValues).length === 0) return;
       const loadPresetValues = async () => {
         try {
           console.log(initialValues);
           const {assetId, serialNumber} = initialValues;
-          setAssetOptions([{value: serialNumber, label: serialNumber, assetId: assetId}]);
-          const assetsDict = await fetchAstReturn([assetId]);
-          console.log(assetsDict);
-          const loan = assetsDict[assetId].ongoingLoan?.loan;
+          if (!serialNumber) return;
+          
+          const response = await assetService.fetchAstReturn(serialNumber);
+          console.log(response.data);
+          const loan = response.data[0];
           const users = loan.userLoans.map(userLoan => userLoan.user)
-          setUserOptions(users.map(user => ({
-            value: user.userName, 
-            label: user.userName, 
-            userId: user.userId
-          })));
 
           setFormData({
             returns: [createNewReturn(
+              loan.loanId,
               {assetId, serialNumber},
               users,
               loan.accLoans
@@ -70,8 +53,7 @@ export const ReturnsProvider = ({ children }) => {
         }
       };
       loadPresetValues();
-    }
-  }, [initialValues, handleError, fetchAstReturn]);
+  }, [initialValues, handleError]);
 
   const setValuesExcel = useCallback(async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -81,66 +63,58 @@ export const ReturnsProvider = ({ children }) => {
 
       records.forEach(record => {
           // Trim and add asset tags to the set
-          Object.keys(record).forEach(field => {
-            record[field] = record[field]?.toString().trim();
-          });
-  
-          ['serialNumber'].forEach(field => {
-            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
-          });
-          
-          if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
-          else serialNumbers.add(record.serialNumber);
-      });
 
-      const assetResponse = await handleAssetSearch([...serialNumbers])
-      console.log(assetResponse);
-      const newAssetOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
-      
-      const assetsDict = await fetchAstReturn(newAssetOptions.map(option => option.assetId)); // gets all ongoing loans of the subset of asset tags
-
-      setAssetOptions(newAssetOptions);
-      
-      const userIdSet = new Set();
-      const newUserOptions = []
-
-      const returns = records.map(({serialNumber, remarks}) => {
-        const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
-
-        if (!matchedAssetOption) {
-          throw new Error(`Unable to find asset tag ${serialNumber}`);
-        }
-
-        const matchedAssetId = matchedAssetOption.assetId || null;
-        if (!assetsDict[matchedAssetId]?.ongoingLoan) {
-          throw new Error(`Unable to find ongoing loan for asset tag ${serialNumber}`);
-        }
-
-        const assetObj = {
-          assetId: matchedAssetId,
-          serialNumber: matchedAssetOption?.value || serialNumber // Pass serialNumber regardless of whether id is found
-        };
-
-        const loan = assetsDict[matchedAssetId].ongoingLoan.loan;
-        console.log(loan);
-        const users = loan.userLoans.map(userLoan => userLoan.user)
-
-        users.forEach(user => {
-          if (!userIdSet.has(user.userId)) {
-            newUserOptions.push({ value: user.userName, label: user.userName, userId: user.userId });
-            userIdSet.add(user.userId);
-          }
+        Object.keys(record).forEach(field => {
+          record[field] = record[field]?.toString().trim();
         });
 
+        ['serialNumber'].forEach(field => {
+          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+        });
+        
+        if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
+        else serialNumbers.add(record.serialNumber);
+      });
+
+      const assetResponse = await assetService.fetchAstReturn([...serialNumbers])
+      console.log(assetResponse);
+
+      const loanOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
+
+      const returns = records.map(({serialNumber, remarks}) => {
+        const matchedLoanOption = loanOptions.find(option => compareStrings(option.label, serialNumber));
+
+        if (!matchedLoanOption) {
+          loanOptions.append(
+            {
+              loanId: null,
+              search: serialNumber,
+              value: serialNumber,
+              label: serialNumber,
+              remarks,
+            }
+          )
+          // throw new Error(`Serial number ${serialNumber} not found!`);
+        }
+
+        // IMPT handled in errors
+        // if (matchedLoanOption.isDisabled) {
+        //   throw new Error(`No ongoing loan found for serial number ${serialNumber}!`);
+        // }
+
+        setReturnOptions(loanOptions)
+
+        console.log(matchedLoanOption);
+
         return createNewReturn(
-          assetObj,
-          users.filter(user => userIdSet.has(user.userId)),
-          loan.accLoans,
+          matchedLoanOption.loanId,
+          matchedLoanOption.astLoan.asset,
+          matchedLoanOption.userLoans.map(userLoan => userLoan.user),
+          matchedLoanOption.accLoans,
           remarks,
+          serialNumber
         )
       })
-
-      setUserOptions(newUserOptions);
     
       console.log(returns);
     
@@ -150,7 +124,7 @@ export const ReturnsProvider = ({ children }) => {
     } catch (error) {
       handleError(error);
     }
-  }, [handleAssetSearch, setAssetOptions, fetchAstReturn, setFormData, handleError]); 
+  }, [setFormData, handleError]); 
 
   const prevStep = () => {
     setStep(Math.min(step - 1, 1))
@@ -195,16 +169,11 @@ export const ReturnsProvider = ({ children }) => {
 
   // The context value includes all the states and functions to be shared
   const value = {
-    fetchAstReturn,
-    assetOptions,
-    userOptions,
-    accessoryOptions,
     formData,
+    returnOptions,
+    setReturnOptions,
     userReturns,
     step,
-    setAssetOptions,
-    setUserOptions,
-    setAccessoryOptions,
     setFormData,
     setUserReturns,
     setStep,

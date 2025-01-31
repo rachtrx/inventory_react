@@ -52,19 +52,10 @@ class AccessoryService {
         return await this.axios.post(`${this.URL}/updateAssetTypeSuggestion`, { assetId, accessoryTypeId, saved })
     }
 
-    async fetchLoans(searchTerm=null) {
+    async fetchAccReturn(accessoryName) {
         return await this.axios.get(`${API_URL}/forms/return/accessory`, {
             params: {
-                searchTerm
-            }
-        });
-    }
-
-    async fetchLoansForUser(userId, searchTerm=null) {
-        return await this.axios.get(`${API_URL}/forms/return/accessory`, {
-            params: {
-                userId,
-                searchTerm
+                accessoryName
             }
         });
     }

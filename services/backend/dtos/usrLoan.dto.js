@@ -1,3 +1,5 @@
+const logger = require('../logging.js');
+
 class UserLoanDTO {
 
     constructor({
@@ -21,8 +23,9 @@ class UserLoanDTO {
         if (userId) this.userId = userId;
 
         if (Usr) {
+            // logger.info(Usr.get({ plain: true }));
             const UserDTO = require("./usr.dto");
-            this.user = new UserDTO(Usr);
+            this.user = new UserDTO(Usr.get({ plain: true }));
         }
         if (filepath) this.filepath = filepath;
     }

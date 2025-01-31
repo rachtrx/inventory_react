@@ -49,7 +49,14 @@ module.exports = (sequelize) => {
         },
 	}, {
 		sequelize,
-		modelName: 'Loan'
+		modelName: 'Loan',
+		validate: {
+			atLeastOneEventId() {
+				if (!this.reserveEventId && !this.cancelEventId && !this.loanEventId) {
+					throw new Error('At least one of cancelEventId, loanEventId, or reserveEventId must not be null.');
+				}
+			}
+		}
 	});
     return Loan;
 }

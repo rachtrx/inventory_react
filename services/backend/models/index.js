@@ -84,6 +84,8 @@ db.AccTxn.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id'
 db.AccType.hasMany(db.AccLoan, { foreignKey: 'accessoryTypeId' });
 db.AccLoan.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
+
+
 db.Ast.hasMany(db.AstLoan, { foreignKey: 'assetId' });
 db.AstLoan.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' });
 

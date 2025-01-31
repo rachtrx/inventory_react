@@ -16,7 +16,9 @@ class LoanDTO {
         AstLoan,
         AccLoans,
         UsrLoans
-    }) {
+    },
+    includeReturnDetails = false
+    ) {
         this.loanId = id;
 
         if (reserveEventId) this.reserveEventId = reserveEventId;
@@ -44,10 +46,13 @@ class LoanDTO {
             this.userLoans = UsrLoans.map(usrLoan => new UserLoanDTO(usrLoan));
         }
 
+        if (includeReturnDetails) this.generateReturnEvents()
+    }
+
+    generateReturnEvents() {
         const loanedItems = [this.astLoan ?? [], ...(this.accLoans ?? [])];
-        
         if (!loanedItems || loanedItems.length === 0) return;
-        
+
         this.returnEvents = loanedItems.reduce((returns, loanItem) => {
             if (loanItem.returnEvent) { // AstLoan 
                 if (!returns[loanItem.returnEvent.eventId]) {

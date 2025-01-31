@@ -23,7 +23,7 @@ class EventDTO {
         if (Admin) this.adminName = Admin.adminName;
         if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
 
-        if (Loan) {this.loan = new LoanDTO(Loan)}
+        if (Loan) {this.loan = new LoanDTO(Loan, true)}
         if (Reservation) this.reservation = new LoanDTO(Reservation);
 
         if (AccType) this.addedAccType = AccType;

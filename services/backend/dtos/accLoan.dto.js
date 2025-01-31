@@ -1,3 +1,4 @@
+const logger = require("../logging");
 const AccReturnDTO = require("./accReturn.dto");
 
 class AccLoanDTO {
@@ -20,16 +21,14 @@ class AccLoanDTO {
         }
 
         if (loanId) this.loanId = loanId;
-        
-        if (accessoryTypeId) this.accessoryTypeId = accessoryTypeId;
-
-        if (!this.accessoryTypeId && AccType) {
-            this.accessoryTypeId = AccType.id;
-        }
 
         if (AccType) {
-            this.accessoryName = AccType.accessoryName
+            logger.info(AccType.get({ plain: true }))
+            const AccTypeDTO = require("./accType.dto");
+            this.accType = new AccTypeDTO(AccType.get({ plain: true }));
         }
+        
+        if (accessoryTypeId) this.accessoryTypeId = accessoryTypeId;
 
         if (count) this.count = count;
 

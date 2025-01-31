@@ -33,7 +33,7 @@ const AccLoanEvent = ({ event }) => {
                         Loaned
                     </ResponsiveText>
                     <DateText colorScheme="blue" date={event.eventDate} remarks={event.remarks}/>
-                    {!isOpen && <AccStatus accLoan={accLoans.find(accLoan => accLoan.accessoryTypeId === currentItem.breadcrumbId)}/>}
+                    {!isOpen && <AccStatus accLoan={accLoans.find(accLoan => accLoan.accType.accessoryTypeId === currentItem.breadcrumbId)}/>}
                 </HStack>
                 {!isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
                     <HStack>
@@ -83,7 +83,7 @@ const AccLoanEvent = ({ event }) => {
                             >
                                 <Flex justify="space-between" align="center">
                                     <Text fontWeight="medium" fontSize="sm">
-                                        {accLoan.accessoryName.toUpperCase()}
+                                        {accLoan.accType.accessoryName.toUpperCase()}
                                     </Text>
                                     <AccStatus accLoan={accLoan}/>
                                 </Flex>

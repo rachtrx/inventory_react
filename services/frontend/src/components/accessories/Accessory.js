@@ -92,7 +92,8 @@ const Accessory = ({ accType }) => {
             <Button onClick={() => setFormType(FormType.DEL_ASSET)} colorScheme="red">
               CONDEMN
             </Button>
-            <Button onClick={() => setFormType(FormType.LOAN)} data-accType-id={accType.assetId} colorScheme="green">
+            <Button onClick={() => setFormType(FormType.LOAN)} data-acctype-id={accType.accessoryTypeId} colorScheme="green"> 
+              {/* // TODO */}
               LOAN
             </Button>
           </Flex>

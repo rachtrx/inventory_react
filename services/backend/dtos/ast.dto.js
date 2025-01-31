@@ -44,22 +44,30 @@ class AssetDTO {
         this.location = location;
 
         if (AstLoans) {
-            if (AstLoans.length === 0) this.ongoingLoan = null;
-            else {
-                this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan));
+            this.ongoingLoan = null;
+            
+            this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan));
 
-                const ongoingLoans = this.astLoans.filter(astLoan =>
-                    astLoan.returnEventId == null && astLoan.returnEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
-                    (astLoan.loan.loanEventId != null || astLoan.loan.loanEvent?.eventId != null)
-                ) || null;
+            const ongoingAssetLoans = this.astLoans.filter(astLoan =>
+                astLoan.returnEventId == null && astLoan.returnEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
+                (astLoan.loan.loanEventId != null || astLoan.loan.loanEvent?.eventId != null)
+            ) || null;
 
-                if (ongoingLoans.length === 1) this.ongoingLoan = ongoingLoans[0];
-                else if (ongoingLoans.length > 1) throw new Error(`Multiple ongoing loans found for ${this.serialNumber}`);
-            }
+            if (ongoingAssetLoans.length === 1) this.ongoingLoan = ongoingAssetLoans[0].loan;
+            else if (ongoingAssetLoans.length > 1) throw new Error(`Multiple ongoing loans found for ${this.serialNumber}`);
+
+            this.ongoingReservation = null;
+
+            const ongoingAssetReservations = this.astLoans.filter(astLoan =>
+                astLoan.loan.loanEventId == null && astLoan.loan.loanEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
+                astLoan.loan.cancelEventId == null && astLoan.loan.cancelEvent?.eventId == null) || null;
+
+            if (ongoingAssetReservations.length === 1) this.ongoingReservation = ongoingAssetReservations[0].loan;
+            else if (ongoingAssetReservations.length > 1) throw new Error(`Multiple ongoing reservations found for ${this.serialNumber}`);
         }
 
         if (addEventId) this.addEventId = addEventId;
-        if (addEventId || delEventId) this.delEventId = delEventId;
+        if (delEventId !== undefined) this.delEventId = delEventId;
         
         if (AddEvent) this.addEvent = new EventDTO(AddEvent);
         if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);

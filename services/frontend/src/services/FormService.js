@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { API_URL } from '../config';
+import { axiosInstance } from '../config';
 
-export default class FormService {
+class FormService {
+    constructor(axiosInstance) {
+        this.axios = axiosInstance;
+    }
+
     static loadAssetsLoanable(id) {
         return axios.get(`${API_URL}/forms/loan/${id}`);
     }
@@ -14,16 +19,12 @@ export default class FormService {
         return axios.post(`${API_URL}/forms/add/`, data);
     }
 
-    static AddAsset(data) {
-        return axios.post(`${API_URL}/forms/register/`, data);
-    }
-
     static loanAsset(id) {
         return axios.post(`${API_URL}/forms/loan/${id}`);
     }
 
-    static returnAsset(id) {
-        return axios.post(`${API_URL}/forms/return/${id}`);
+    static return(loan_id) {
+        return axios.get(`${API_URL}/forms/return/${loan_id}`);
     }
 
     static condemnAsset(id) {
@@ -38,3 +39,6 @@ export default class FormService {
         return axios.post(`${API_URL}forms/remove/`, id);
     }
 }
+
+const formService = new FormService(axiosInstance);
+export default formService;

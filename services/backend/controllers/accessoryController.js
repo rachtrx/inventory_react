@@ -502,6 +502,8 @@ class AccessoryController {
             order: [['eventDate', 'DESC']]
         });
 
+        logger.info(eventRows.map(row => row.get({plain: true})))
+
         const events = eventRows.map(event => {
             if (event.Loan && event.Loan.AccLoans) {
                 if (event.Loan.AccLoans.Loan && event.Loan.AccLoans.Loan.AccLoans) {

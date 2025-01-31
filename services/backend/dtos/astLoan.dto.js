@@ -22,7 +22,7 @@ class AstLoanDTO {
             const AssetDTO = require("./ast.dto");
             this.asset = new AssetDTO(Ast);
         }
-        if (returnEventId) this.returnEventId = returnEventId
+        if (returnEventId !== undefined) this.returnEventId = returnEventId
         if (ReturnEvent) this.returnEvent = new EventDTO(ReturnEvent);
     }
 }
