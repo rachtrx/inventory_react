@@ -39,6 +39,10 @@ services:
       dockerfile: Dockerfile
       args:
         - NODE_ENV=${NODE_ENV}
+        - REACT_APP_SSO_GRAPH_API_ENDPOINT=${REACT_APP_SSO_GRAPH_API_ENDPOINT}
+        - REACT_APP_SSO_REDIRECT_URI=${REACT_APP_SSO_REDIRECT_URI}
+        - REACT_APP_SSO_TENANT_ID=${REACT_APP_SSO_TENANT_ID}
+        - REACT_APP_SSO_CLIENT_ID=${REACT_APP_SSO_CLIENT_ID}
     ports:
       - "3000:3000"
     # volumes:
