@@ -2,8 +2,6 @@
 
 const Sequelize = require('sequelize');
 const process = require('process');
-const configData = require('../config/config.json');
-const config = configData[process.env.NODE_ENV || 'development'];
 console.log(process.env.NODE_ENV);
 const logger = require('../logging.js');
 
@@ -34,6 +32,17 @@ const AccessoryReturnModel = require('./AccReturn.js');
 
 const SubTypeAccessoryModel = require('./AstSTypeAcc.js');
 const TypeAccessoryModel = require('./AstTypeAcc.js');
+
+const config = {
+  "username": process.env.POSTGRES_USER,
+  "password": process.env.POSTGRES_PASSWORD,
+  "database": process.env.POSTGRES_DB,
+  "host": process.env.DATABASE_HOST,
+  "dialect": "postgres",
+  "define": {
+    "underscored": true
+  }
+}
 
 let sequelize;
 if (config.use_env_variable) {

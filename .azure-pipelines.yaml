@@ -9,7 +9,7 @@ pool:
 steps:
   - script: |
       echo "Navigating to the project directory..."
-      cd /home/azureuser/inventory_app  # ✅ Change this to your actual repo directory
+      cd /home/gos_admin/inventory
 
       echo "Fetching latest changes..."
       if [ ! -d ".git" ]; then
@@ -20,6 +20,18 @@ steps:
         git pull origin chakrav2
       fi
     displayName: "Pull latest code"
+
+  - script: |
+      echo "Creating .env file..."
+      echo "NODE_ENV=$(NODE_ENV)" > .env
+      echo "REACT_APP_API_BASE_URL=$(REACT_APP_API_BASE_URL)" >> .env
+      echo "JWT_SECRET=$(JWT_SECRET)" >> .env
+      echo "SIGNATURES_DIR=$(SIGNATURES _DIR)" >> .env
+      echo "POSTGRES_USER=$(POSTGRES_USER)" >> .env
+      echo "POSTGRES_PASSWORD=$(POSTGRES_PASSWORD)" >> .env
+      echo "POSTGRES_DB=$(POSTGRES_DB)" >> .env
+      echo "DATABASE_HOST=$(DATABASE_HOST)" >> .env
+    displayName: "Generate .env"
 
   - script: |
       echo "Stopping existing containers if they are running..."

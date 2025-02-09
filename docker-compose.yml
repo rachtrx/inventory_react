@@ -11,6 +11,10 @@ services:
       - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET}
       - SIGNATURES_DIR=${SIGNATURES_DIR}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_HOST=db
     volumes:
       - ./services/backend/logs:/usr/src/app/logs
       - ./services/backend/uploads:/usr/src/app/uploads
@@ -22,8 +26,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data/
-    env_file:
-      - ./.env.prod.db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     networks:
