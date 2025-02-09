@@ -11,7 +11,7 @@ export const _aggregate = function(...arr) {
         }, 0)
         aggregateArr.push(total)
     })
-    console.log(aggregateArr);
+    // console.log(aggregateArr);
     return aggregateArr
 }
 
@@ -19,7 +19,7 @@ export const _average = function(...arr) {
     const avgArr = []
     arr.forEach((innerArr) => {
         const totalCount = _aggregate(innerArr)
-        console.log(totalCount);
+        // console.log(totalCount);
         const avg = innerArr.reduce((counter, el) => {
             if (innerArr.length !== 0)
                 counter += (el.key * (el.value / totalCount))
@@ -34,10 +34,10 @@ export const _percentageLoan = function(...arr) {
     const percentArr = []
     arr.forEach((innerArr) => {
         const totalCount = _aggregate(innerArr)
-        console.log(totalCount);
+        // console.log(totalCount);
         const percent = innerArr.reduce((counter, el) => {
             if (el.key !== 'loaned') return counter
-            console.log(el);
+            // console.log(el);
             return counter += el.value / totalCount * 100
         }, 0)
         percentArr.push(`${(100 - percent).toFixed(2)}%`)
@@ -61,14 +61,14 @@ const _filterChartArr = function(arr) {
             'value': otherCount
         })
     }
-    console.log(copiedArr);
+    // console.log(copiedArr);
     return copiedArr
 }
 
 // FOR REDUCE AGGREGATIONS
 function groupAndTransformData(parentArr, childArr, transformFn) {
     // Log the input child data
-    console.log(childArr);
+    // console.log(childArr);
 
     // Group child data based on a specified key
     const groupedData = {};
@@ -80,7 +80,7 @@ function groupAndTransformData(parentArr, childArr, transformFn) {
         groupedData[group].push(item);
     });
 
-    console.log(groupedData);
+    // console.log(groupedData);
 
     // Transform the grouped data based on the parentArr and a transformation function
     const transformedData = parentArr.map(parentType => {
@@ -119,7 +119,7 @@ export const doughnutData = function(arr, label, isCurrency = false) {
 
     if(arr.length === 0) return;
 
-    console.log(arr);
+    // console.log(arr);
 
     const realArr = _filterChartArr(arr)
 

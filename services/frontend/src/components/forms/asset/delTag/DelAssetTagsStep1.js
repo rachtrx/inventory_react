@@ -19,8 +19,8 @@ export const DelAssetTagsStep1 = () => {
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
-    console.log('add asset form rendered');
-		console.log(formData);
+    // console.log('add asset form rendered');
+		// console.log(formData);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
 
@@ -39,7 +39,7 @@ export const DelAssetTagsStep1 = () => {
     const validate = values => {
 			// console.log(formRef.current?.values);
       const errors = {};
-      console.log(values);
+      // console.log(values);
 
       const tagDuplicates = validateUniqueValues(values.tags, ['tagName']);
 
@@ -65,7 +65,7 @@ export const DelAssetTagsStep1 = () => {
         });
       });
     
-      console.log(errors);
+      // console.log(errors);
       return errors;
     };
   

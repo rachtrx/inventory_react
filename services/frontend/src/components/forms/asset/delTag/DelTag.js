@@ -23,7 +23,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
             return;
 		}
 		
-        console.log(selected);
+        // console.log(selected);
         setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, selected?.assetId || '');
 		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, selected.tags?.find(tag => tag.isMatching)?.assetTagId || '');
     }
@@ -35,7 +35,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
             return;
 		}
 
-        console.log(selected);
+        // console.log(selected);
 		setFieldValue(`tags.${tagIndex}.assets`, [createNewAsset()]);
         setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
     }

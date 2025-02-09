@@ -17,7 +17,7 @@ export default function AccessoryFilters() { // TODO can have external filters f
         fetchFilters('accessoryName');
     }, [fetchFilters]);
 
-    console.log(filters.accessoryName);
+    // console.log(filters.accessoryName);
 
   return (
     <Formik initialValues={accessoryService.defaultFilters} onSubmit={onSubmit}>

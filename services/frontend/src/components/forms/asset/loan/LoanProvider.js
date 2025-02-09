@@ -18,7 +18,7 @@ const LoanContext = createContext();
 export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) => {
   // console.log('loan provider');
   const { values, setFieldValue } = useFormikContext();
-  console.log(values);
+  // console.log(values);
 
   const removeUser = useCallback(() => userHelpers.remove(userIndex), [userHelpers, userIndex])
 

@@ -146,7 +146,7 @@ class FormLoanReturnController {
                     }
                 }
             )
-            console.log(loans);
+            // console.log(loans);
             res.json(loans);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
@@ -227,7 +227,7 @@ class FormLoanReturnController {
                         isDisabled: asset.delEventId || !asset.astLoans || asset.astLoans.length === 0 ? false : true
                 })
             )
-            console.log(assets);
+            // console.log(assets);
             res.json(assets);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
@@ -294,7 +294,7 @@ class FormLoanReturnController {
                     },
                 });
 
-                console.log(query);
+                // console.log(query);
         
                 return new AssetDTO(query); 
             });
@@ -351,7 +351,7 @@ class FormLoanReturnController {
             }
     
             const filePath = path.join(uploadPath, event.filePath);
-            console.log(filePath);
+            // console.log(filePath);
     
             res.download(filePath, event.filePath, { headers: { 'Content-Type': 'application/pdf' } });
         } catch (error) {

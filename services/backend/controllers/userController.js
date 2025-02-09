@@ -52,7 +52,7 @@ class UserController {
                     value: count,
                 }))
             }
-            console.log(options);
+            // console.log(options);
             return res.json(options || []);
         } catch (error) {
             logger.error(error)
@@ -72,7 +72,7 @@ class UserController {
                 return res.json([]);
             }
 
-            console.log(filters.userName);
+            // console.log(filters.userName);
     
             const whereClause = {
                 ...(filters.userName && { userName: { [Op.iLike]: `%${filters.userName}%` } }),

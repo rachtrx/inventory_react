@@ -24,7 +24,7 @@ export const addNewAccessory = (accessory=null) => {
 
 const UpdateAcc = () => {
 
-  console.log('update acc form rendered');
+  // console.log('update acc form rendered');
 
   const { setFormType, initialValues, handleAccessorySearch, reinitializeForm } = useFormModal()
   const { setLoading, showToast, handleError } = useUI();
@@ -36,9 +36,9 @@ const UpdateAcc = () => {
   const [accessoryOptions, setAccessoryOptions] = useState([])
 
   useEffect(() => {
-    console.log("Accessory Add Form");
-    console.log(initialValues);
-    console.log(formData);
+    // console.log("Accessory Add Form");
+    // console.log(initialValues);
+    // console.log(formData);
   }, [formData, initialValues]);
 
   useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
@@ -57,7 +57,7 @@ const UpdateAcc = () => {
 
   const handleSubmit = async (values, actions) => {
     setLoading(true);
-    console.log('Manual Form Values:', values);
+    // console.log('Manual Form Values:', values);
     try {
       await accessoryService.addAccessories(values);
       actions.setSubmitting(false);
@@ -85,8 +85,8 @@ const UpdateAcc = () => {
   };
 
   const validate = values => {
-    console.log('Running validation');
-    console.log(values);
+    // console.log('Running validation');
+    // console.log(values);
     const errors = {};
     // Implement validation logic
     const AccTypeIdDuplicates = validateUniqueAccTypeIDs(values.accessories);
@@ -99,7 +99,7 @@ const UpdateAcc = () => {
         }
       });
     }
-    console.log(errors);
+    // console.log(errors);
 
     return errors;
   };

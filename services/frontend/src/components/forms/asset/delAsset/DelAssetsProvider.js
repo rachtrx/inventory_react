@@ -73,7 +73,7 @@ export const DelAssetsProvider = ({ children }) => {
       });
 
       const assetResponse = await assetService.fetchAstDel([...serialNumbers]);
-      console.log(assetResponse.data);
+      // console.log(assetResponse.data);
       const newAssetOptions = assetResponse.data;
       setAssetOptions(newAssetOptions);
 

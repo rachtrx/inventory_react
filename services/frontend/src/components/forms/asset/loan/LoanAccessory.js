@@ -21,7 +21,7 @@ const LoanAccessory = ({accessory, field, index, helpers, children}) => {
 	const { values, setFieldValue } = useFormikContext();
 	const { warnings } = useLoan();
 	const { accessoryOptions } = useLoans()
-	console.log(warnings);
+	// console.log(warnings);
 
     const updateAccessoryFields = (selected) => {
 		setFieldValue(`${field}.accessoryTypeId`, selected?.accessoryTypeId || '');

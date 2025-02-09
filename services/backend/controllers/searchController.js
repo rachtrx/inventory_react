@@ -23,7 +23,7 @@ class SearchController {
                 limit: 20,
                 attributes: ['id', 'subTypeName']
             });
-            console.log(results);
+            // console.log(results);
             const models = results.map(result => result.get({ plain: true }));
             res.json(models);
         } catch (error) {

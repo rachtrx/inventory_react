@@ -25,7 +25,7 @@ export const LoanItems = function({ field, loan, children }) {
 	const { warnings } = useLoan();
 	const { assetOptions } = useLoans();
 	const { handleError } = useUI();
-	console.log(warnings);
+	// console.log(warnings);
 
 	const [ suggestedOptions, setSuggestedOptions ] = useState([]);
 
@@ -37,7 +37,7 @@ export const LoanItems = function({ field, loan, children }) {
 			try {
 			const response = await accessoryService.getSuggestedAccessories(loan.asset.assetId);
 			const suggestedOptions = response.data;
-				console.log(suggestedOptions);
+				// console.log(suggestedOptions);
 				setSuggestedOptions(suggestedOptions);
 			} catch (err) {
 				handleError(err);
@@ -49,7 +49,7 @@ export const LoanItems = function({ field, loan, children }) {
 	}, [loan.asset, handleError, setFieldValue]);
 
 	const updateAssetFields = (selected) => {
-		console.log(selected);
+		// console.log(selected);
 		setFieldValue(`${field}.asset.assetId`, selected?.assetId || '');
 		setFieldValue(`${field}.asset.onLoan`, selected?.astLoans?.length > 0 ? true : false);
 	}

@@ -11,7 +11,7 @@ const ActionButton = ({
 	isMulti=false,
 	...rest
 }) => {
-	console.log(formType);
+	// console.log(formType);
 	const bg = ACTION_COLORS[formType];
 	const text = ACTION_TEXT[formType];
 	const { setFormType, setInitialValues } = useFormModal();

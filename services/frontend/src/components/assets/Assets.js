@@ -8,6 +8,8 @@ import assetService from "../../services/AssetService";
 
 export const AssetsPage = () => {
 
+  // console.log(process.env.NODE_ENV)
+
   return (
     <ItemsProvider service={assetService} idField="assetId">
       <RecordsLayout

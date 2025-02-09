@@ -20,8 +20,8 @@ export const DelAssetStep1 = () => {
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
-    console.log('add asset form rendered');
-		console.log(formData);
+    // console.log('add asset form rendered');
+		// console.log(formData);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
     
@@ -46,14 +46,14 @@ export const DelAssetStep1 = () => {
 
         if (asset.assetId && !asset.lastEventDate) setFieldError(errors, ['assets', assetIndex, 'delDate'], "Error retrieving last event date");
 
-        console.log(asset.lastEventDate);
-        console.log(asset.delDate);
+        // console.log(asset.lastEventDate);
+        // console.log(asset.delDate);
         if (new Date(asset.lastEventDate) > asset.delDate) {
           setFieldError(errors, ['assets', assetIndex, 'delDate'], `Date must be after last event date ${asset.lastEventDate}`); // TODO convert to string
         }
       });
     
-      console.log(errors);
+      // console.log(errors);
       return errors;
     };
   

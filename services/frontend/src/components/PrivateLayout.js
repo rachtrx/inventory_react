@@ -16,12 +16,12 @@ export const PrivateLayout = () => {
   const { handleError } = useUI()
   const navigate = useNavigate()
 
-  console.log('Rendering Private Route');
+  // console.log('Rendering Private Route');
 
   const { instance } = useMsal()
   useEffect(() => {
     const account = instance.getActiveAccount();
-    console.log(account);
+    // console.log(account);
   })
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export const PrivateLayout = () => {
     performAuthCheck();
 
     const interval = setInterval(() => {
-      console.log("Periodic auth check");
+      // console.log("Periodic auth check");
       performAuthCheck();
     }, 300000);
 

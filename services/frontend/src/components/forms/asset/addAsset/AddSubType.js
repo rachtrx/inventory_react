@@ -23,7 +23,7 @@ export const AddSubType = ({
 
 	const [ cost, setCost ] = useState(0);
 
-	console.log(field);
+	// console.log(field);
 
 	useEffect(() => {
 		if (subType.subTypeId === "" || cost !== 0) return;

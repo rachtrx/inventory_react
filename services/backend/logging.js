@@ -29,7 +29,7 @@ const logger = createLogger({
 });
 
 // If we're not in production then log to the `console` with the format:
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'development') {
     logger.add(new transports.Console({
         format: format.simple()
     }));

@@ -4,6 +4,7 @@ const Sequelize = require('sequelize');
 const process = require('process');
 const configData = require('../config/config.json');
 const config = configData[process.env.NODE_ENV || 'development'];
+console.log(process.env.NODE_ENV);
 const logger = require('../logging.js');
 
 const AstTagModel = require('./AstTag.js')

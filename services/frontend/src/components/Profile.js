@@ -21,7 +21,7 @@ const Profile = () => {
 	const navigate = useNavigate();
 
   const logout = useCallback(async () => {
-    console.log(`Logging out ${admin}!`);
+    // console.log(`Logging out ${admin}!`);
 
     try {
       await authService.logout();
@@ -32,7 +32,7 @@ const Profile = () => {
     }
   }, [navigate, admin, setAdmin]);
 
-  console.log(admin);
+  // console.log(admin);
 
   return (
     <Container maxW="container.md" centerContent p={4}>

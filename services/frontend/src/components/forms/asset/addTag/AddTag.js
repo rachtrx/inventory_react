@@ -22,14 +22,14 @@ export const AddTag = ({tag, tagIndex, children}) => {
             return;
 		}
 		
-        console.log(selected);
+        // console.log(selected);
         setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, selected?.assetId || '');
 		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, selected.tags?.find(tag => tag.isMatching)?.assetTagId || '');
     }
 
     const updateTagFields = (selected, tagIndex) => {
 
-        console.log(selected);
+        // console.log(selected);
 
         if (!selected?.value) {
 			setFieldValue(`tags.${tagIndex}.assets`, []);

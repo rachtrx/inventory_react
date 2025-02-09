@@ -11,7 +11,7 @@ class FormAssetTagController {
 
     async loadAddAssets(req, res) {
         try {
-            console.log(req.query.tagId);
+            // console.log(req.query.tagId);
             const search = new AssetTagSearch(req.query)
             const assets = await search.run(true)
 
@@ -25,7 +25,7 @@ class FormAssetTagController {
                 }
                 asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.tagId === req.query.tagId)
             })
-            console.log(assets);
+            // console.log(assets);
             res.json(assets);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
@@ -49,7 +49,7 @@ class FormAssetTagController {
                 asset.isDisabled = req.query.tagId && !asset.tags?.some(tag => tag.tagId === req.query.tagId)
             })
 
-            console.log(assets);
+            // console.log(assets);
             res.json(assets);
         } catch (error) {
             logger.error('Error fetching Loan:', error)

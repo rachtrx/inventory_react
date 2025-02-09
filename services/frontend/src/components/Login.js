@@ -40,14 +40,14 @@ export default function Login() {
   useEffect(() => {
     const callbackId = instance.addEventCallback(async (message) => {
         if (message.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
-            console.log('Token acquired successfully', message.payload);
+            // console.log('Token acquired successfully', message.payload);
             const tokenResponse = message.payload;
             try {
-                console.log("Calling MS Graph with access token", tokenResponse.accessToken);
+                // console.log("Calling MS Graph with access token", tokenResponse.accessToken);
                 const profile = await authService.callMsGraph(tokenResponse.accessToken);
-                console.log("MS Graph profile", profile);
+                // console.log("MS Graph profile", profile);
                 const response = await authService.loginSSO(profile);
-                console.log("User Data", response.data);
+                // console.log("User Data", response.data);
                 setAdmin(response.data);
             } catch (error) {
                 console.error("Error during token acquisition or profile fetching:", error);
@@ -81,7 +81,7 @@ export default function Login() {
   };
 
   useEffect(() => {
-    console.log("Admin changed: ", admin);
+    // console.log("Admin changed: ", admin);
     if (admin && admin.canSetupPassword) {
       navigate('/profile', { replace: true });
     } else if (admin) {
@@ -112,7 +112,7 @@ export default function Login() {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       setLoading(true); // Assuming setLoading is defined elsewhere in your component
-      console.log('Attempting to login with:', values.email);
+      // console.log('Attempting to login with:', values.email);
       const response = await authService.login(values.email, values.password);
       setAdmin(response.data);
     } catch (err) {

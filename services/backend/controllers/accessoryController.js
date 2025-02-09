@@ -560,7 +560,7 @@ class AccessoryController {
     // SECTION helpers
 
     async createAccessoryType(accessoryName, count, authId, transaction, remarks="") {
-        console.log("Creating Acc");
+        // console.log("Creating Acc");
 
         const addAccTypeEventId = generateSecureID();
 
@@ -571,7 +571,7 @@ class AccessoryController {
             where: { accessoryName }
         })
 
-        console.log(accRow);
+        // console.log(accRow);
 
         if (accRow) {
             throw new Error(`Accessory with name ${accessoryName} already exists.`);

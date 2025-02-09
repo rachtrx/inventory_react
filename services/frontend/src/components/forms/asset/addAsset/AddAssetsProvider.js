@@ -52,8 +52,8 @@ export const AddAssetsProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    console.log(typeOptions);
-    console.log(vendorOptions);
+    // console.log(typeOptions);
+    // console.log(vendorOptions);
   }, [typeOptions, vendorOptions])
 
   useEffect(() => {
@@ -193,7 +193,7 @@ export const AddAssetsProvider = ({ children }) => {
         }))
       })
 
-      console.log(subTypeOptionsMap);
+      // console.log(subTypeOptionsMap);
 
       setSubTypeOptionsDict(subTypeOptionsMap);
     
@@ -220,7 +220,7 @@ export const AddAssetsProvider = ({ children }) => {
 
   const handleSubmit = async (values, actions) => {
     setLoading(true);
-    console.log('Manual Form Values:', values);
+    // console.log('Manual Form Values:', values);
     try {
       await assetService.addAsset(values);
       actions.setSubmitting(false);

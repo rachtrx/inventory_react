@@ -1,0 +1,24 @@
+trigger:
+  branches:
+    include:
+      - chakrav2
+
+pool:
+  name: YOUR_AGENT_POOL
+
+steps:
+  - script: |
+      echo "Pulling latest changes..."
+      git pull origin chakrav2
+    displayName: "Pull latest code"
+
+  - script: |
+      echo "Stopping inventory_app services..."
+      docker-compose stop backend db frontend nginx-inventory
+      docker-compose rm -f backend db frontend nginx-inventory
+    displayName: "Stop Docker Containers"
+
+  - script: |
+      echo "Building and running containers..."
+      docker-compose -f docker-compose.yml up -d --build
+    displayName: "Run Docker Compose"

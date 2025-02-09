@@ -20,7 +20,7 @@ class FormAssetController {
     };
     
     async getVendors (req, res) {
-        console.log(`Usr ID: ${req.session.userId}`);
+        // console.log(`Usr ID: ${req.session.userId}`);
         try {
             const vendors = await Vendor.findAll({
                 attributes: [[sequelize.fn('DISTINCT', sequelize.col('vendorName')), 'vendorName']],
@@ -33,7 +33,7 @@ class FormAssetController {
     };
 
     async getAssetSubTypes (req, res) {
-        console.log(`Usr ID: ${req.session.userId}`);
+        // console.log(`Usr ID: ${req.session.userId}`);
         try {
             const sTypes = await AstSType.findAll({
                 attributes: [[sequelize.fn('DISTINCT', sequelize.col('subTypeName')), 'subTypeName']],
@@ -192,10 +192,10 @@ class FormAssetController {
     }
 
     async del (req, res) {
-        console.log(req.body);
+        // console.log(req.body);
         const data = req.body.assets; // Array of asset details
 
-        console.log(data);
+        // console.log(data);
 
         const adminId = req.auth.id;
     

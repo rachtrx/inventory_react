@@ -40,7 +40,7 @@ class LoanService extends ValidationService {
         await Promise.all(
             [...assetIdToSNMap].map(async ([assetId, serialNumber]) => {
                 // Fetch the asset using findByPk
-                console.log(assetId, serialNumber);
+                // console.log(assetId, serialNumber);
                 const asset = await this.getAsset(assetId, serialNumber);
                 if (asset.AstLoans && asset.AstLoans.length > 0) {
                     throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
@@ -102,7 +102,7 @@ class LoanService extends ValidationService {
 
             if (!user.signature || user.signature === "") continue;
 
-            console.log(user.signature);
+            // console.log(user.signature);
 
             signatures[user.userId] = {
                 signature: user.signature,
@@ -192,7 +192,7 @@ class LoanService extends ValidationService {
         for (const [userId, {signature, loans}] of Object.entries(signatures)) {
             const base64Data = signature.replace(/^data:image\/png;base64,/, '');
             const fileName = `${Date.now()}-${userId}-signature.png`;
-            const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
+            const uploadsDir = process.env.SIGNATURES_DIR || path.join(__dirname, '../uploads');
             const filePath = path.join(uploadsDir, 'signatures', fileName);
 
             await fs.promises.writeFile(filePath, base64Data, 'base64');

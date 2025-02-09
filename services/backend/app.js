@@ -18,7 +18,7 @@ const corsOptions = {
 const app = express();
 
 app.use((req, res, next) => {
-	console.log(req.path);
+	// console.log(req.path);
     next();
 });
 
@@ -67,9 +67,9 @@ app.use('/api/forms', formRoutes);
 // Setup global error handling middleware to catch authentication errors
 
 app.use(function (err, req, res, next) {
-    console.log(req.cookies.token);
-    console.log('Middleware Error: ' + err.stack);
-    logger.error('Middleware Error: ' + err.stack);
+    // console.log(req.cookies.token);
+    // console.log('Middleware Error: ' + err.stack);
+    // logger.error('Middleware Error: ' + err.stack);
     if (err.name === 'UnauthorizedError') {
         // This error is thrown by the JWT middleware when a token is invalid
         res.status(401).json({ error: 'Invalid Token' });

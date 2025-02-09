@@ -46,9 +46,9 @@ export const AssetTagsFormProvider = ({
   });
   const [step, setStep] = useState(1);
 
-  useEffect(() => {
-    console.log(tagOptions);
-  }, [tagOptions])
+  // useEffect(() => {
+  //   console.log(tagOptions);
+  // }, [tagOptions])
 
   useEffect(() => { 
     const fetchFilters = async () => {
@@ -112,11 +112,11 @@ export const AssetTagsFormProvider = ({
         }
         newAssetOptions = response.data;
         setAssetOptions({ ...assetOptions, [tagName]: newAssetOptions });
-        console.log(newAssetOptions);
+        // console.log(newAssetOptions);
 
         const assetObjs = assetRows.map(({serialNumber, remarks}) => {
           const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
-          console.log(matchedAssetOption);
+          // console.log(matchedAssetOption);
           if (matchedAssetOption) return { ...matchedAssetOption, remarks};
           return {serialNumber, remarks};
         })
@@ -124,7 +124,7 @@ export const AssetTagsFormProvider = ({
         tags.push(createNewTag(tagOption, assetObjs));
       }
 
-      console.log(tags);
+      // console.log(tags);
     
       setFormData({
         tags: tags
@@ -140,7 +140,7 @@ export const AssetTagsFormProvider = ({
   };
 
   const nextStep = (values) => {
-    console.log(values);
+    // console.log(values);
     setStep(step + 1);
 
     setFormData((prevData) => ({
@@ -151,7 +151,6 @@ export const AssetTagsFormProvider = ({
 
   const handleAddTagsSubmit = async (values, actions) => {
     setLoading(true);
-    console.log('Manual Form Values:', values);
     try {
       await assetService.tagAsset(values);
       actions.setSubmitting(false);
@@ -168,7 +167,6 @@ export const AssetTagsFormProvider = ({
   
   const handleDelTagsSubmit = async (values, actions) => {
     setLoading(true);
-    console.log('Manual Form Values:', values);
     try {
       await assetService.untagAsset(values);
       actions.setSubmitting(false);

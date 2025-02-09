@@ -32,7 +32,7 @@ export default function Register() {
     try {
     	await register(values.adminName, values.email, values.password);
 			navigate('/login');
-			console.log('User registered:', values.adminName);
+			// console.log('User registered:', values.adminName);
     } catch (error) {
       console.error('Registration error:', error);
     } finally {

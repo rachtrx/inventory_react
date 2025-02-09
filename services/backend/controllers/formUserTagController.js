@@ -9,7 +9,6 @@ class FormUserTagController {
 
     async loadAddUsers(req, res) {
         try {
-            console.log(req.query.tagId);
             const search = new UserTagSearch(req.query)
             const users = await search.run(true)
 
@@ -23,7 +22,7 @@ class FormUserTagController {
                 }
                 user.isDisabled = req.query.tagId && user.tags?.some(tag => tag.tagId === req.query.tagId)
             })
-            console.log(users);
+            // console.log(users);
             res.json(users);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
@@ -47,7 +46,7 @@ class FormUserTagController {
                 user.isDisabled = req.query.tagId && !user.tags?.some(tag => tag.tagId === req.query.tagId)
             })
 
-            console.log(users);
+            // console.log(users);
             res.json(users);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
@@ -79,7 +78,7 @@ class FormUserTagController {
                     }, { transaction });
                 }
 
-                console.log(tag);
+                // console.log(tag);
                 
                 for (const { userId, remarks, userName } of users) {
 
@@ -134,7 +133,7 @@ class FormUserTagController {
             }
 
             await transaction.commit();
-            console.log("succcessful transaction");
+            // console.log("succcessful transaction");
             return res.json({ message: 'All tags added successfully.' });
         } catch (error) {
             logger.error(error);
@@ -188,7 +187,7 @@ class FormUserTagController {
             return res.json({ message: 'All tags deleted successfully.' });
         } catch (error) {
             logger.error(error);
-            console.log("succcessful transaction");
+            // console.log("succcessful transaction");
             res.status(500).send(`An error occurred while deleting the tags: ${error.message}`);
         }
     }

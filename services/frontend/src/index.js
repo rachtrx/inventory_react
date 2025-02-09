@@ -10,6 +10,12 @@ import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Global, css } from '@emotion/react';
 
+if (process.env.NODE_ENV !== "development") {
+  console.log = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
+
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
 

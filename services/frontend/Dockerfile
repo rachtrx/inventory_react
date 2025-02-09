@@ -1,30 +1,27 @@
-# # Base image
+# Base image
 FROM node:21
 
-# # Avoid warnings by switching to noninteractive
-# ENV DEBIAN_FRONTEND=noninteractive
-
-# # Confirm the node and npm installations
-# RUN node --version && npm --version
-
-# # Set working directory
+# Set working directory
 WORKDIR /workspace
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# # Install npm dependencies
+# ARG is only available at build time
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV}
+
+# Install npm dependencies
 RUN npm install
 
-# # Copy the rest of the application files
+# Copy the rest of the application files
 COPY . .
 
-# ARG REACT_APP_API_URL
-# ENV REACT_APP_API_URL=$REACT_APP_API_URL
-# ENV WATCHPACK_POLLING=true
-# ENV WDS_SOCKET_HOST=127.0.0.1
-# ENV WDS_SOCKET_PORT=3000
+# Build the React app with production mode
+RUN npm run build
 
-# Set the command to run when the container starts
-CMD ["npm", "start"]
+# Expose the build directory as a static server
+RUN npm install -g serve
 
+# Set the command to serve the built app
+CMD ["serve", "-s", "build", "-l", "3000"]

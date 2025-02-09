@@ -21,8 +21,8 @@ export const AddAssetStep1 = () => {
     const formRef = useRef(null);
 
     useEffect(() => {
-      console.log("Asset Add Form");
-      console.log(formData);
+      // console.log("Asset Add Form");
+      // console.log(formData);
     }, [formData]);
 
     useEffect(() => {
