@@ -4,7 +4,7 @@ trigger:
       - chakrav2
 
 pool:
-  name: YOUR_AGENT_POOL
+  name: gos-self-hosted-pool
 
 steps:
   - script: |
