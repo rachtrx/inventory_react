@@ -56,6 +56,8 @@ export const AddUserStep1 = () => {
           }
         })
       });
+
+      console.log(errors);
     
       return errors;
     };

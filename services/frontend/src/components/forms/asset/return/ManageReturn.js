@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Input } from '@chakra-ui/react';
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Input, Flex } from '@chakra-ui/react';
 import { useReturn } from './ReturnProvider';
 import InputFormControl from '../../utils/InputFormControl';
 import { useFormikContext } from 'formik';
 import { useUI } from '../../../../context/UIProvider';
 import { createNewAccessory, createNewUsers } from './ReturnSearch';
+import { SingleSelectFormControl } from '../../utils/SelectFormControl';
+import DateInputControl from '../../utils/DateInputControl';
+import { ResponsiveText } from '../../../utils/ResponsiveText';
+import { useReturns } from './ReturnsProvider';
 
 export const ManageReturn = () => {
-  const { ret, returnIndex } = useReturn();
+  const { userOptions } = useReturns();
+  const { ret, returnIndex, expectedReturnDate } = useReturn();
   const { setFieldValue } = useFormikContext();
   const { handleError } = useUI();
 
@@ -15,7 +20,9 @@ export const ManageReturn = () => {
   const showAccessories = ret.accessoryTypes?.length > 0
 
   return (
-    <Box overflowX="auto">
+    <Flex direction="column" gap={2} overflowX="auto">
+      {expectedReturnDate && <ResponsiveText>Expected Return: {expectedReturnDate}</ResponsiveText>}
+
       <Table variant="simple">
         {/* Conditional Headers for Asset and Accessories */}
         <Thead>
@@ -27,7 +34,7 @@ export const ManageReturn = () => {
             </Th>
           </Tr>
           <Tr>
-            <Th>Items</Th>
+            <Th>Item</Th>
             <Th>Count Loaned</Th>
             <Th>Return Count</Th>
           </Tr>
@@ -70,7 +77,13 @@ export const ManageReturn = () => {
             ))}
         </Tbody>
       </Table>
-    </Box>
+      <SingleSelectFormControl
+        label="User"
+        isDisabled={true}
+        name={`returns.${returnIndex}.userName`}
+        initialOptions={userOptions}
+      />
+    </Flex>
   );
 };
 

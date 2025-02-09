@@ -25,7 +25,6 @@ const withSelect = (Component, isCreatable) => ({
   const [options, setOptions] = useState(initialOptions); // TODO maybe create branch to test passing this down as props
 
   useEffect(() => {
-    console.log(options.length);
     if (options.length === 0 && initialOptions.length !== 0) {
       setOptions(initialOptions);
     }
@@ -56,14 +55,6 @@ const withSelect = (Component, isCreatable) => ({
       } else {
         newValue = selected?.value.trim() || '';
       }
-
-      //TODO what is this for actually?
-      // const newOptions = isMulti ? selected : [selected];
-      // newOptions.forEach((option) => { // TODO duplicated?
-      //   if (option && !options.some((o) => o.value === option.value)) {
-      //     setOptions((prevOptions) => [...prevOptions, { value: option.value, label: option.label }]);
-      //   }
-      // });
       
       console.log(newValue);
       setValue(newValue);
@@ -74,6 +65,8 @@ const withSelect = (Component, isCreatable) => ({
 
   useEffect(() => {
     let option;
+
+    if(value === null) throw new Error("One of your form values is likely set as null which is unusual")
 
     // Find the selected option based on whether it's a multi-select or single select
     console.log(options);
@@ -134,6 +127,7 @@ const withSelect = (Component, isCreatable) => ({
 
 const withSearch = (Component) => ({
   name,
+  value,
   options,
   setOptions,
   searchFn,
@@ -148,12 +142,13 @@ const withSearch = (Component) => ({
         if (inputValue === '') return;
         console.log(`input value detected: ${inputValue}`);
         const response = await searchFn(inputValue);
-        setOptions(response.data);
+        if (isMulti) setOptions([...value, ...response.data]);
+        else setOptions(response.data)
       } catch (error) {
         handleError(error);
       }
     },
-    [searchFn, handleError, setOptions]
+    [value, searchFn, handleError, setOptions, isMulti]
   );
 
   const debouncedSearch = useDebounce(handleSearch, 500);
@@ -165,6 +160,7 @@ const withSearch = (Component) => ({
   return (
     <Component
       {...props}
+      value={value}
       name={name}
       isMulti={isMulti}
       options={options}

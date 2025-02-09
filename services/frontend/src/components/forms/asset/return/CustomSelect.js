@@ -6,14 +6,14 @@ import { SearchSingleSelectFormControl } from '../../utils/SelectFormControl';
 import { ResponsiveText } from '../../../utils/ResponsiveText';
 
 const CustomOption = (props) => {
-  console.log(props.data);
+  // console.log(props.data);
   return (
   <components.Option {...props}>
       <Flex direction="column" style={{ fontWeight: props.isSelected ? "bold" : "normal" }}>
           {props.data.astLoan?.asset && <ResponsiveText>{props.data.astLoan.asset.serialNumber}</ResponsiveText>}
           {
-            props.data.userLoans &&
-            <ResponsiveText>{props.data.userLoans.map(userLoan => userLoan.user.userName).join(", ")}</ResponsiveText>
+            props.data.user &&
+            <ResponsiveText>{props.data.user.userName}</ResponsiveText>
           }
           {
             props.data.accLoans &&

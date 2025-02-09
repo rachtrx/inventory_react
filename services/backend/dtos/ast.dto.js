@@ -8,8 +8,8 @@ class AssetDTO {
         serialNumber, 
         assetTag,
         bookmarked,
-        shared,
         value,
+        remarks,
         Vendor,
         location,
         AstSType,
@@ -17,8 +17,26 @@ class AssetDTO {
         addEventId,
         delEventId,
         AddEvent,
-        DeleteEvent
+        DeleteEvent,
+        AstTagMaps=null,
+        lastEventDate=null
     }) {
+        if (lastEventDate !== null) {
+            this.lastEventDate = lastEventDate
+            // toISOString();
+        }
+
+        if (AstTagMaps !== null) {
+            this.tags = AstTagMaps.map(astTagMap => ({
+                tagId: astTagMap.AstTag?.id,
+                tagName: astTagMap.AstTag?.tagName,
+                assetTagId: astTagMap.id,
+                isMatching: astTagMap.get('isMatching'),
+            }))
+        }
+
+        if (remarks) this.remarks = remarks;
+
         this.assetId = id;
         this.serialNumber = serialNumber;
         this.assetTag = assetTag;
@@ -35,7 +53,6 @@ class AssetDTO {
             }
         }
 
-        this.shared = shared;
         this.value = value && String(parseFloat(this.value));
         if (Vendor) {
             if (Vendor.vendorName) this.vendorName = Vendor.vendorName;

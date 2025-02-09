@@ -210,7 +210,11 @@ export const AddAssetsProvider = ({ children }) => {
     setStep(step - 1)
   };
 
-  const nextStep = () => {
+  const nextStep = (values) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values
+    }));
     setStep(step + 1);
   };
 

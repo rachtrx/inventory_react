@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormControl, FormLabel, Input, Textarea, Collapse, IconButton, Box, FormErrorMessage } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Textarea, Collapse, IconButton, Box, FormErrorMessage, Flex } from '@chakra-ui/react';
 import { Field, useField } from 'formik';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { ResponsiveText } from '../../utils/ResponsiveText';
@@ -22,7 +22,7 @@ export default function InputFormControl({
 
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
-      <Box display="flex" alignItems="center">
+      <Flex alignItems="center">
         {label && (
           <FormLabel htmlFor={name}>
             <ResponsiveText>{label}</ResponsiveText>
@@ -34,12 +34,12 @@ export default function InputFormControl({
           <IconButton
             aria-label={isCollapsed ? 'Expand remarks' : 'Collapse remarks'}
             icon={isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
-            size="sm"
+            size="xs"
             variant="ghost"
             onClick={toggleCollapse}
           />
         )}
-      </Box>
+      </Flex>
 
       {/* Logic to render type of input (Text Area for Remarks) */}
       {name.includes('remarks') ? (
@@ -50,7 +50,6 @@ export default function InputFormControl({
             placeholder={placeholder}
             disabled={disabled}
             bg="white"
-            mt={2}
           />
         </Collapse>
       ) : (

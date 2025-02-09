@@ -27,7 +27,7 @@ export default function AccessoryFilters() { // TODO can have external filters f
                     name="accessoryName"
                     // label="name"
                     placeholder="Name"
-                    options={filters.accessoryName}
+                    initialOptions={filters.accessoryName}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

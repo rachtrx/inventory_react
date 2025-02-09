@@ -1,4 +1,4 @@
-const { sequelize, AstType, AstSType, Ast, AstLoan, Usr, UsrLoan, AccType, Event, Rmk, AccLoan, Dept, Loan, AccReturn  } = require('../models/index.js');
+const { sequelize, AstType, AstSType, Ast, AstLoan, Usr, AccType, Event, Rmk, AccLoan, Dept, Loan, AccReturn  } = require('../models/index.js');
 const FormHelpers = require('./formHelperController.js');
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
@@ -12,10 +12,15 @@ const AssetDTO = require('../dtos/ast.dto.js');
 const { model } = require('mongoose');
 const LoanDTO = require('../dtos/loan.dto.js');
 const AccessorySearch = require('../search_tools/accessory.js');
-const { ReturnSearch } = require('../search_tools/return.js');
-const { AssetReturnSearch } = require('../search_tools/assetReturn.js');
-const { AccessoryReturnSearch } = require('../search_tools/accReturn.js');
+const { LoanSearch } = require('../search_tools/loanSearch.js');
 const { UserReturnSearch } = require('../search_tools/userReturn.js');
+const { AssetLoan } = require('../search_tools/assetLoan.js');
+const { AssetReturn } = require('../search_tools/assetReturn.js');
+const { AccReturnSearch } = require('../search_tools/accReturn.js');
+const { AssetDelete } = require('../search_tools/AssetDelete.js');
+const { UserLoan } = require('../search_tools/userLoan.js');
+const { AccLoanSearch } = require('../search_tools/accLoan.js');
+const { assetSearch } = require('../search_tools/AssetTag.js');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -26,7 +31,7 @@ class FormLoanReturnController {
 
     async loan (req, res) {
         // logger.info(req.body);
-        const { loans, signatures } = req.body;
+        const { users } = req.body;
 
         let filePath = null;
 
@@ -34,7 +39,7 @@ class FormLoanReturnController {
         const transaction = await sequelize.transaction();
 
         try {
-            const loanService = new LoanService(loans, signatures, req.auth.id, transaction);
+            const loanService = new LoanService(users, req.auth.id, transaction);
             // VALIDATION
             // GET all unique users and assets
             const { assetIdToSNMap, userIdToNameMap } = loanService.aggregateItems();
@@ -57,7 +62,7 @@ class FormLoanReturnController {
 
     async loadReturn (req, res) {
         try {
-            const search = new ReturnSearch(req.query)
+            const search = new LoanSearch(req.query)
             const loans = search.runAll()
 
             return loans;
@@ -70,14 +75,10 @@ class FormLoanReturnController {
     async loadUserReturn (req, res) {
         try {
             const search = new UserReturnSearch(req.query)
-            const loans = await search.runAll()
+            const loans = await search.run()
             loans.forEach(loan => {
                 loan.value = loan.loanId;
-                loan.label = loan.userLoans.find(userLoan => userLoan.user.isMatching)?.user.userName;
-                loan.userLoans.sort((a, b) => {
-                    // Sort by `isMatching` in descending order (true to the front)
-                    return b.user.isMatching - a.user.isMatching;
-                })
+                loan.label = loan.user.userName;
             });
 
             res.json(loans);
@@ -89,8 +90,8 @@ class FormLoanReturnController {
 
     async loadAccReturn (req, res) {
         try {
-            const search = new AccessoryReturnSearch(req.query)
-            const loans = await search.runAll()
+            const search = new AccReturnSearch(req.query)
+            const loans = await search.run()
             loans.forEach(loan => {
                 loan.value = loan.loanId;
                 loan.label = loan.accLoans.find(accLoan => accLoan.accType.isMatching)?.accType.accessoryName;
@@ -109,34 +110,125 @@ class FormLoanReturnController {
 
     async loadAstReturn (req, res) {
         try {
-            const search = new AssetReturnSearch(req.query)
-            const assets = await search.runAll()
+            const search = new AssetReturn(req.query, false)
+            const assets = await search.run()
 
             const loans = assets.flatMap(
                 asset => {
+                    const assetCopy = JSON.parse(JSON.stringify(asset));
+                    delete assetCopy.astLoans;
+
                     if (!asset.astLoans || asset.astLoans.length === 0) { // simulate a loan structure
                         return [{
                             astLoan: {
-                                asset: {
-                                    ...asset
-                                }
+                                asset: assetCopy
                             },
                             value: asset.serialNumber,
                             label: asset.serialNumber,
                             isDisabled: true
                         }];
                     } else {
-                        return asset.astLoans.map(astLoan =>({
-                            ...astLoan.loan,
-                            value: astLoan.loan.loanId,
-                            label: asset.serialNumber,
-                            isDisabled: false
-                        }))
+                        const trueLoans = []
+                        asset.astLoans.forEach(astLoan => { // IMPT since 1 to 1, can flatmap without worrying about duplicate assetLoan across assets
+                            const loan = astLoan.loan;
+                            delete astLoan.loan;
+                            loan.astLoan = astLoan;
+                            loan.astLoan.asset = assetCopy;
+
+                            trueLoans.push({
+                                ...loan,
+                                value: loan.loanId,
+                                label: asset.serialNumber,
+                                isDisabled: loan.reserveEventId && !loan.loanEventId ? true : false // reserved but not loaned yet                            
+                            })
+                        })
+                        return trueLoans
                     }
                 }
             )
-            
+            console.log(loans);
             res.json(loans);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async loadAstLoan (req, res) {
+        try {
+            const search = new AssetLoan(req.query)
+            const query = await search.run()
+
+            const assets = query.map(
+                asset => ({
+                    ...asset,
+                    value: asset.serialNumber,
+                    label: asset.serialNumber,
+                    isDisabled: asset.delEventId || asset.astLoans?.length > 0 ? true : false
+                })
+            )
+            
+            res.json(assets);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+    async loadUsrLoan (req, res) {
+        try {
+            const search = new UserLoan(req.query)
+            const query = await search.run()
+
+            const users = query.map(
+                user => ({
+                        ...user,
+                        value: user.userName,
+                        label: user.userName,
+                        isDisabled: user.delEventId ? true : false
+                })
+            )
+            
+            res.json(users);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+    async loadAccLoan (req, res) {
+        try {
+            const search = new AccLoanSearch(req.query)
+            const query = await search.run()
+
+            const accessories = query.map(
+                accessory => ({
+                    ...accessory,
+                    value: accessory.accessoryName,
+                    label: accessory.accessoryName
+                })
+            )
+            
+            res.json(accessories);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async loadAstDel (req, res) {
+        try {
+            const search = new AssetDelete(req.query)
+            const query = await search.run()
+
+            const assets = query.map(
+                asset => ({
+                        ...asset,
+                        value: asset.serialNumber,
+                        label: asset.serialNumber,
+                        isDisabled: asset.delEventId || !asset.astLoans || asset.astLoans.length === 0 ? false : true
+                })
+            )
+            console.log(assets);
+            res.json(assets);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
             return res.status(500).json({ error: error.message });
@@ -169,17 +261,13 @@ class FormLoanReturnController {
                                 attributes: ['expectedReturnDate', 'loanEventId'],
                                 include: [
                                     {
-                                        model: UsrLoan,
-                                        attributes: ['id'],
+                                        model: Usr,
+                                        attributes: ['userName', 'id'],
                                         include: {
-                                            model: Usr,
-                                            attributes: ['userName', 'id'],
-                                            include: {
-                                                model: Dept,
-                                                attributes: ['deptName']
-                                            },
-                                            required: true,
-                                        }
+                                            model: Dept,
+                                            attributes: ['deptName']
+                                        },
+                                        required: true,
                                     },
                                     {
                                         model: AccLoan,
@@ -242,7 +330,7 @@ class FormLoanReturnController {
             const returnService = new ReturnService(returns, req.auth.id, transaction);
 
             await returnService.processReturns();
-            await transaction.commit();
+            await returnService.transaction.commit();
 
             return res.json({ message: 'All items returned successfully.' });
         } catch (error) {

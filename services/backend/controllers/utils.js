@@ -26,7 +26,11 @@ exports.formToEventMap = {
 exports.createSelection = (arr, labelField, valueField) => {
     return arr
         .filter(obj => obj[labelField] && obj[valueField])
-        .map(obj => ({label: obj[labelField], value: obj[valueField]}))
+        .map(obj => ({
+            label: obj[labelField], 
+            value: obj[valueField],
+            [valueField]: obj[valueField]
+        }))
 }
 
 exports.getAllOptions = async (meta) => {

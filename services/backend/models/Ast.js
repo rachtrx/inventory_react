@@ -28,10 +28,6 @@ module.exports = (sequelize) => {
 				key: 'id'
 			}
 		},
-		shared: {
-			type: DataTypes.INTEGER,
-			defaultValue: 0
-		},
 		bookmarked: {
 			type: DataTypes.INTEGER,
 			allowNull: false
@@ -42,6 +38,9 @@ module.exports = (sequelize) => {
 		},
 		location: {
 			type: DataTypes.STRING
+		},
+		remarks: {
+			type: DataTypes.TEXT,
 		},
 		// TODO REMOVE addedDate
 		expiryDate: {

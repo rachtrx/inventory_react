@@ -1,9 +1,10 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
 const { model } = require('mongoose');
-const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event, UsrLoan, Loan, AstLoan, AccLoan, AccReturn } = require('../models');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event, Loan, AstLoan, AccLoan, AccReturn, Rmk } = require('../models');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
+const { Op } = require('sequelize');
 
 
 class FormUserController {
@@ -22,6 +23,7 @@ class FormUserController {
     };
     
     async add (req, res) {
+        const adminId = req.auth.id;
         const { depts } = req.body;
     
         try {
@@ -73,7 +75,7 @@ class FormUserController {
                                 await Event.create(
                                     {
                                         id: addEventId,
-                                        eventDate: rest.addDate,
+                                        eventDate: addDate,
                                         adminId: adminId,
                                     },
                                     { transaction: t }
@@ -98,7 +100,7 @@ class FormUserController {
                                         id: generateSecureID(),
                                         userName: userName,
                                         deptId: userDeptId,
-                                        bookmarked: bookmarked || false,
+                                        bookmarked: bookmarked || 0,
                                         addEventId: addEventId,
                                     },
                                     { transaction: t }
@@ -117,8 +119,9 @@ class FormUserController {
         }        
     };
     
-    async remove (req, res) {
+    async del (req, res) {
         const users = req.body.users;
+        const adminId = req.auth.id;
     
         try {
             const userIds = new Set()
@@ -128,32 +131,28 @@ class FormUserController {
                         throw new Error("Can't delete the same user!");
                     }
                     const user = await Usr.findByPk(userId, { 
-                        attributes: ['deletedDate'],
+                        attributes: ['id', 'delEventId'],
                         include: {
-                            model: UsrLoan,
+                            model: Loan,
                             required: false,
-                            include: {
-                                model: Loan,
-                                required: true,
-                                include: [
-                                    {
-                                        model: AstLoan,
+                            include: [
+                                {
+                                    model: AstLoan,
+                                    where: { returnEventId: { [Op.ne]: null } },
+                                    required: false
+                                },
+                                {
+                                    model: AccLoan,
+                                    include: {
+                                        model: AccReturn,
                                         where: { returnEventId: { [Op.ne]: null } },
-                                        required: false
+                                        required: true
                                     },
-                                    {
-                                        model: AccLoan,
-                                        include: {
-                                            model: AccReturn,
-                                            where: { returnEventId: { [Op.ne]: null } },
-                                            required: true
-                                        },
-                                        required: false
-                                    },
-                                ]
-                            },
+                                    required: false
+                                },
+                            ]
                         },
-                        transaction: transaction
+                        transaction: t
                     });
         
                     if (!user) {
@@ -162,7 +161,7 @@ class FormUserController {
                     if (user.delEventId) {
                         throw new Error("Usr has already been removed!");
                     }
-                    if (user.UsrLoans && user.UsrLoans.length > 0) throw new Error(`User ${userName} still has items on loan!`);
+                    if (user.Loans && user.Loans.length > 0) throw new Error(`User ${userName} still has items on loan!`);
 
                     userIds.add(userId);
 
@@ -203,6 +202,7 @@ class FormUserController {
             console.log("Users deleted successfully");
             return res.sendStatus(200);
         } catch (error) {
+            console.error("Error during user deletion:", error);
             return res.status(500).json({ error: error.message });
         }
     };

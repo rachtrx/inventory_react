@@ -8,7 +8,5 @@ router.post('/filters', assetController.getFilters);
 router.post('/filters/subTypes', assetController.getSubTypeFilters);
 router.get('/:id', assetController.getAsset);
 router.patch("/update", assetController.updateAsset);
-router.get('/search/available', assetController.searchAssetsAvailable);
-router.get('/search/loaned', assetController.searchAssetsLoaned);
 
 module.exports = router;

@@ -36,12 +36,12 @@ export const DelAssetStep1 = () => {
 			// console.log(formRef.current?.values);
       const errors = {};
   
-      const atDuplicates = validateUniqueValues(values.assets, ['assetTag']);
+      const SNDuplicates = validateUniqueValues(values.assets, ['serialNumber']);
 
       values.assets.forEach((asset, assetIndex) => {
-        const atError = validateFieldWithId(atDuplicates, asset['assetTag'], asset['assetId'], "Asset Tag");
-        if (atError) {
-          setFieldError(errors, ['assets', assetIndex, 'assetTag'], atError);
+        const snError = validateFieldWithId(SNDuplicates, asset['serialNumber'], asset['assetId'], "Serial Number");
+        if (snError) {
+          setFieldError(errors, ['assets', assetIndex, 'serialNumber'], snError);
         }
 
         if (asset.assetId && !asset.lastEventDate) setFieldError(errors, ['assets', assetIndex, 'delDate'], "Error retrieving last event date");
@@ -72,7 +72,7 @@ export const DelAssetStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['assetTag', 'delDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['serialNumber', 'delDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="assets">
                   {assetHelpers => (
@@ -92,7 +92,7 @@ export const DelAssetStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${asset.assetTag ? ` ${asset.assetTag}` : ''}`}</ResponsiveText>
+                            <ResponsiveText>{`Remove ${asset.serialNumber ? ` ${asset.serialNumber}` : ''}`}</ResponsiveText>
                             </Button>
                           )}
                         </Flex>

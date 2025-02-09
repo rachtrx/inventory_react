@@ -106,11 +106,11 @@ class FormOnboardController {
                         transaction
                     });
                     if (existingAssetTag) {
-                        throw new Error(`Ast Tag ${assetTag} already exists!`);
+                        throw new Error(`Ast AstTag ${assetTag} already exists!`);
                     }
                 
                     if (!addedDate) {
-                        throw new Error(`Ast Tag ${assetTag} has no registered date!`);
+                        throw new Error(`Ast AstTag ${assetTag} has no registered date!`);
                     }
                 
                     // Convert registered date from ISO string to Date object
@@ -122,7 +122,7 @@ class FormOnboardController {
                         transaction
                     });
                     if (!subType) {
-                        throw new Error(`Model ${subTypeName} for Ast Tag ${assetTag} does not exist!`);
+                        throw new Error(`Model ${subTypeName} for Ast AstTag ${assetTag} does not exist!`);
                     }
                 
                     // Fetch user ID if username is provided
@@ -144,7 +144,7 @@ class FormOnboardController {
                         transaction
                     });
                     if (!vendor) {
-                        throw new Error(`Vendor ${vendorName} for Ast Tag ${assetTag} does not exist!`);
+                        throw new Error(`Vendor ${vendorName} for Ast AstTag ${assetTag} does not exist!`);
                     }
                 
                     const assetId = generateSecureID();
@@ -243,7 +243,7 @@ class FormOnboardController {
                     raw: true
                 });
                 if (exists) {
-                    return res.status(400).json({ error: `Duplicate Ast Tag ${at.toUppercase()}` });
+                    return res.status(400).json({ error: `Duplicate Ast AstTag ${at.toUppercase()}` });
                 }
             }
     

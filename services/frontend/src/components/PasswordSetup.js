@@ -37,7 +37,7 @@ const PasswordSetup = () => {
   };
 
   return (
-    <Box p={4} maxWidth="500px" borderWidth="1px" borderRadius="lg" boxShadow="lg">
+    <Box p={4}>
       <form onSubmit={handleSubmit}>
         <FormControl isRequired isInvalid={password !== confirmPassword}>
           <FormLabel htmlFor="password">New Password</FormLabel>

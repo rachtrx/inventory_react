@@ -14,8 +14,9 @@ export default function UserFilters() { // TODO can have external filters from D
 	const { filters, fetchFilters, onSubmit } = useItems()
 
 	useEffect(() => {
-        fetchFilters('department');
+        fetchFilters('deptName');
         fetchFilters('assetCount');
+        fetchFilters('tag');
     }, [fetchFilters]);
 
   return (
@@ -23,21 +24,27 @@ export default function UserFilters() { // TODO can have external filters from D
         <Form>
             <FilterContainer>
                 <MultiSelectFormControl
-                    name="department"
+                    name="deptName"
                     // label="Department"
                     placeholder="Department"
-                    options={filters.department}
+                    initialOptions={filters.deptName}
                 />
                 <MultiSelectFormControl
                     name="assetCount"
                     // label="Number of Assets"
                     placeholder="Number of Assets"
-                    options={filters.assetCount}
+                    initialOptions={filters.assetCount}
                 />
                 <InputFormControl
-                    name="name"
+                    name="userName"
                     // label="User Name"
                     placeholder="User Name"
+                />
+                <MultiSelectFormControl
+                    name="tag"
+                    // label="Number of Assets"
+                    placeholder="Tag"
+                    initialOptions={filters.tag}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

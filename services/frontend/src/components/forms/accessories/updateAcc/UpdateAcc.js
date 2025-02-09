@@ -10,12 +10,15 @@ import accessoryService from "../../../../services/AccessoryService";
 import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "../../utils/ItemButtons";
+import { v4 as uuidv4 } from 'uuid';
 
 export const addNewAccessory = (accessory=null) => {
   return {
+    'key': uuidv4(),
 	  'accessoryTypeId': accessory?.accessoryTypeId || "",
     'accessoryName': accessory?.accessoryName || "",
 	  'count': 0,
+    'remarks': ""
   }
 }
 
@@ -92,11 +95,11 @@ const UpdateAcc = () => {
       values.accessories.forEach((accessory, index) => {
         if (AccTypeIdDuplicates.has(accessory['accessoryTypeId'])) {
           if (!errors.accessories) errors.accessories = [];
-          errors.accessories[index] = { ...errors.accessories[index], 'id': 'Peripherals must be unique' };
+          errors.accessories[index] = { ...errors.accessories[index], 'accessoryName': 'Accessories must be unique' };
         }
       });
     }
-    // console.log(errors);
+    console.log(errors);
 
     return errors;
   };
@@ -121,25 +124,29 @@ const UpdateAcc = () => {
             <Divider borderColor="black" borderWidth="2px" my={2}/>
             <FieldArray name='accessories'>
               {accessoryHelpers => values.accessories.map((accessory, index, array) => (
-                <Box>
-                  <Flex key={index} gap={4} alignItems="flex-start">
-                    <SearchCreatableSingleSelectFormControl
-                      name={`accessories.${index}.accessoryName`}
-                      searchFn={handleAccessorySearch}
-                      updateFields={(selected) => updateAccessoryFields(index, selected, setFieldValue)}
-                      initialOptions={accessoryOptions}
-                    >
-                      <InputFormControl 
-                        name={`accessories.${index}.count`} 
-                        type="number" 
-                        placeholder="Enter count" 
-                      />
-                      <RemoveButton
-                        ariaLabel="Remove Accessory"
-                        handleClick={() => accessoryHelpers.remove(index)}
-                        isDisabled={values.accessories.length === 1}
-                      />
-                    </SearchCreatableSingleSelectFormControl>
+                <Box key={accessory.key}>
+                  <ResponsiveText size="lg">{`Accessory #${index+1}`}</ResponsiveText>
+                  <Flex direction="column" gap={2}>
+                    <Flex gap={4} alignItems="flex-start">
+                      <SearchCreatableSingleSelectFormControl
+                        name={`accessories.${index}.accessoryName`}
+                        searchFn={handleAccessorySearch}
+                        updateFields={(selected) => updateAccessoryFields(index, selected, setFieldValue)}
+                        initialOptions={accessoryOptions}
+                      >
+                        <InputFormControl
+                          name={`accessories.${index}.count`}
+                          type="number"
+                          placeholder="Enter count"
+                        />
+                        <RemoveButton
+                          ariaLabel="Remove Accessory"
+                          handleClick={() => accessoryHelpers.remove(index)}
+                          isDisabled={values.accessories.length === 1}
+                        />
+                      </SearchCreatableSingleSelectFormControl>
+                    </Flex>
+                    <InputFormControl name={`accessories.${index}.remarks`} label={`Update Remarks`}/>
                   </Flex>
                 <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
                   {index === array.length - 1 && (

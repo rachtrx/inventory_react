@@ -12,6 +12,11 @@ export const ACTION_TEXT = {
   [FormType.RETURN_ACC]: 'Return',
   [FormType.RESTORE_ASSET]: 'Restore',
   [FormType.RESTORE_USER]: 'Restore',
+  [FormType.TAG_ASSET]: 'Tag',
+  [FormType.UNTAG_ASSET]: 'Untag',
+  [FormType.TAG_USER]: 'Tag',
+  [FormType.UNTAG_USER]: 'Untag',
+  [FormType.RESERVE]: 'Reserve',
 }
 
 export const ACTION_COLORS = {
@@ -26,4 +31,9 @@ export const ACTION_COLORS = {
   [FormType.RETURN_ACC]: 'pink.100',
   [FormType.RESTORE_ASSET]: 'red.100',
   [FormType.RESTORE_USER]: 'red.100',
+  [FormType.TAG_ASSET]: 'purple.100',
+  [FormType.UNTAG_ASSET]: 'purple.100',
+  [FormType.TAG_USER]: 'purple.100',
+  [FormType.UNTAG_USER]: 'purple.100',
+  [FormType.RESERVE]: 'yellow.100',
 }

@@ -1,33 +1,35 @@
-const { Event, Loan, Rmk, AstLoan, UsrLoan, AccLoan, AccType, Sequelize } = require("../models");
+const { Event, Loan, Rmk, AstLoan, AccLoan, AccType, Sequelize } = require("../models");
 const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
 const fs = require('fs');
 const accessoryController = require("../controllers/accessoryController");
+const logger = require("../logging");
 
 class LoanService extends ValidationService {
 
-    constructor(loans, signatures, authId, transaction) {
+    constructor(users, authId, transaction) {
         super(transaction, authId);
-        this.loans = loans;
-        this.signatures = signatures;
+        this.users = users;
     }
 
     aggregateItems() {
         const assetIdToSNMap = new Map();
         const userIdToNameMap = new Map();
 
-        this.loans.forEach(loan => {
-            if (assetIdToSNMap.has(loan.asset.assetId) && assetIdToSNMap.get(loan.asset.assetId) !== loan.asset.serialNumber) {
-                throw new Error(`Ambiguous record for Asset ID ${loan.asset.assetId} with asset tags ${assetIdToSNMap.get(loan.asset.assetId)} and ${loan.asset.serialNumber}`);
-            }
-            assetIdToSNMap.set(loan.asset.assetId, loan.asset.serialNumber);
-            
-            loan.users.forEach(user => {
-                if (userIdToNameMap.has(user.userId) && userIdToNameMap.get(user.userId) !== user.userName) {
+        this.users.forEach(user => {
+            if (userIdToNameMap.has(user.userId) && userIdToNameMap.get(user.userId) !== user.userName) {
                 throw new Error(`Ambiguous record for User ID ${user.userId} with usernames ${userIdToNameMap.get(user.userId)} and ${user.userName}`);
+            }
+            userIdToNameMap.set(user.userId, user.userName);
+
+            const assets = this.users.flatMap(user => user.loans.filter(loan => loan.asset?.assetId).map(loan => loan.asset))
+
+            assets.forEach(asset => {
+                if (assetIdToSNMap.has(asset.assetId) && assetIdToSNMap.get(asset.assetId)!== asset.serialNumber) {
+                    throw new Error(`Ambiguous record for Asset ID ${asset.assetId} with asset tags ${assetIdToSNMap.get(asset.assetId)} and ${asset.serialNumber}`);
                 }
-                userIdToNameMap.set(user.userId, user.userName);
+                assetIdToSNMap.set(asset.assetId, asset.serialNumber);
             });
         });
 
@@ -38,6 +40,7 @@ class LoanService extends ValidationService {
         await Promise.all(
             [...assetIdToSNMap].map(async ([assetId, serialNumber]) => {
                 // Fetch the asset using findByPk
+                console.log(assetId, serialNumber);
                 const asset = await this.getAsset(assetId, serialNumber);
                 if (asset.AstLoans && asset.AstLoans.length > 0) {
                     throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
@@ -64,24 +67,27 @@ class LoanService extends ValidationService {
 
     async handleNewAccessories() {
         const newAccessories = {}; // tracks <newAccTypeName>: <newAccTypeId>
-        for (const loan of this.loans) {
-            if (loan.accessories) {
-                for (const accessory of loan.accessories) {
-                    let accType;
-
-                    // id === name means new. Check if added to newAccessories already
-                    if (!accessory.accessoryTypeId && accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
-                        accType = await accessoryController.createAccessoryType(
-                            accessory.accessoryName,
-                            0,
-                            this.authId,
-                            this.transaction
-                        );
-                        newAccessories[accessory.accessoryName] = accType.id;
-                        accessory.accessoryTypeId = accType.id;
-                    } else if (newAccessories[accessory.accessoryName]) {
-                        // if new but added to newAccessories already, just need to update the id
-                        accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
+        for (const { loans } of this.users) {
+            for (const loan of loans) {
+                if (loan.accessories) {
+                    for (const accessory of loan.accessories) {
+                        let accType;
+    
+                        // id === name means new. Check if added to newAccessories already
+                        if (!accessory.accessoryTypeId && accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
+                            accType = await accessoryController.createAccessoryType(
+                                accessory.accessoryName,
+                                0,
+                                this.authId,
+                                this.transaction
+                            );
+                            console.log(`New accessory ${accType.accessoryName} created`);
+                            newAccessories[accessory.accessoryName] = accType.id;
+                            accessory.accessoryTypeId = accType.id;
+                        } else if (newAccessories[accessory.accessoryName]) {
+                            // if new but added to newAccessories already, just need to update the id
+                            accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
+                        }
                     }
                 }
             }
@@ -89,15 +95,38 @@ class LoanService extends ValidationService {
     }
 
     async createLoans() {
-        const userLoans = {}
+        const signatures = {}
+        for (const user of this.users) {
+            const loans = user.loans;
+            const loanObjs = await this.createUserLoans(loans, user);
+
+            if (!user.signature || user.signature === "") continue;
+
+            console.log(user.signature);
+
+            signatures[user.userId] = {
+                signature: user.signature,
+                loans: loanObjs
+            }
+        }
+
+        // logger.info(signatures);
+        await this.saveSignatures(signatures);
+    }
+
+    async createUserLoans(loans, user) {
 
         const loanDate = new Date();
 
-        for (const loan of this.loans) {
-            const { asset, accessories, users, mode, expectedReturnDate } = loan; // TODO use mode for future validation?
+        const newLoans = []
+
+        for (const loan of loans) {
+            const { asset, accessories, expectedReturnDate, remarks } = loan; // TODO use mode for future validation?
 
             const loanId = generateSecureID(); // PK for loan instance
             const loanEventId = generateSecureID(); // Attribute of loan instance
+            
+            const userId = user.userId;
 
             // Event, Remarks
             await Event.create({
@@ -106,37 +135,31 @@ class LoanService extends ValidationService {
                 adminId: this.authId,
             }, { transaction: this.transaction });
 
-            await Loan.create({
+            const newLoan = await Loan.create({
                 id: loanId,
                 expectedReturnDate: expectedReturnDate || null,
-                loanEventId: loanEventId
+                loanEventId: loanEventId,
+                userId: userId,
             }, { transaction: this.transaction })
 
-            if (asset.remarks !== '') await Rmk.create({
+            newLoans.push(newLoan); // IMPT DEFER SIGNATURE SAVE
+            
+            if (remarks !== '') await Rmk.create({
                 id: generateSecureID(),
                 eventId: loanEventId,
-                remarks: asset.remarks,
+                remarks: remarks,
                 remarkDate: loanDate,
             }, { transaction: this.transaction });
 
+            if (!asset?.assetId && !accessories) throw new Error("Nothing detected to loan!")
+
             // Create Ast Loan
-            await AstLoan.create({
-                id: generateSecureID(),
-                loanId: loanId,
-                assetId: asset.assetId,
-            }, { transaction: this.transaction });
-            
-            // Usr Loans for each user
-            for (const user of users) {
-                const userLoan = await UsrLoan.create({
+            if (asset?.assetId) {
+                await AstLoan.create({
                     id: generateSecureID(),
                     loanId: loanId,
-                    userId: user.userId,
+                    assetId: asset.assetId,
                 }, { transaction: this.transaction });
-                
-                // add loan to dictionary under user key to tag signature later
-                if (!userLoans[user.userId]) userLoans[user.userId] = [userLoan]
-                else userLoans[user.userId].push(userLoan);
             }
 
             // Acc Loans for each count of each type for each user
@@ -162,24 +185,22 @@ class LoanService extends ValidationService {
             }
         }
 
-        await this.saveSignatures(userLoans);
+        return newLoans;
     }
 
-    async saveSignatures(userLoans) {
-        if (this.signatures) {
-            for (const [userId, signature] of Object.entries(this.signatures)) {
-                const base64Data = signature.replace(/^data:image\/png;base64,/, '');
-                const fileName = `${Date.now()}-${userId}-signature.png`;
-                const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
-                const filePath = path.join(uploadsDir, 'signatures', fileName);
+    async saveSignatures(signatures) {
+        for (const [userId, {signature, loans}] of Object.entries(signatures)) {
+            const base64Data = signature.replace(/^data:image\/png;base64,/, '');
+            const fileName = `${Date.now()}-${userId}-signature.png`;
+            const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '../uploads');
+            const filePath = path.join(uploadsDir, 'signatures', fileName);
 
-                await fs.promises.writeFile(filePath, base64Data, 'base64');
+            await fs.promises.writeFile(filePath, base64Data, 'base64');
 
-                for (const userLoan of userLoans[userId]) {
-                    await userLoan.update({
-                        filepath: filePath
-                    }, { transaction: this.transaction });
-                }
+            for (const loan of loans) {
+                await loan.update({
+                    filepath: filePath
+                }, { transaction: this.transaction });
             }
         }
     }

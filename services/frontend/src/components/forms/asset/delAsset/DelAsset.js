@@ -6,6 +6,8 @@ import { useDelAssets } from "./DelAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
 import { useFormModal } from "../../../../context/ModalProvider";
+import { LoanAstSelectFormControl } from "../loan/CustomSelect";
+import assetService from "../../../../services/AssetService";
 
 export const DelAsset = function({ field, asset, children }) {
 
@@ -22,13 +24,13 @@ export const DelAsset = function({ field, asset, children }) {
 
 	return (
 		<Flex direction="column" gap={2}>	
-			<SearchSingleSelectFormControl
-					name={`${field}.assetTag`}
-					searchFn={value => handleAssetSearch(value)}
-					updateFields={(selected) => updateAssetFields(selected)}
-					label={`Asset Tag`}
-					placeholder="Asset Tag"
-					initialOptions={assetOptions}
+			<LoanAstSelectFormControl
+				name={`${field}.serialNumber`}
+				searchFn={value => assetService.fetchAstDel(value)}
+				updateFields={(selected) => updateAssetFields(selected)}
+				label={`Asset Tag`}
+				placeholder="Asset Tag"
+				initialOptions={assetOptions}
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
 			<InputFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>

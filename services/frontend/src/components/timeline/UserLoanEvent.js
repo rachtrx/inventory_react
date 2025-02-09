@@ -22,7 +22,7 @@ const UserLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { astLoan, accLoans, userLoans, returnEvents } = event.loan;
+    const { astLoan, accLoans, user, returnEvents } = event.loan;
 
     return (
         <VStack align="stretch" spacing={6}>
@@ -64,15 +64,6 @@ const UserLoanEvent = ({ event }) => {
                             Accessories
                         </ResponsiveText>
                         {accLoans.map(accLoan => (<AccTypeLink accType={accLoan.accType}/>))}
-                    </HStack>
-                )}
-
-                {userLoans?.loan?.userLoans && userLoans.loan.userLoans.length > 0 && (
-                    <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="black">
-                            Other User
-                        </ResponsiveText>
-                        {userLoans.map(userLoan => (<UserLink key={userLoan.user.userId} accType={userLoan.user}/>))}
                     </HStack>
                 )}
 

@@ -17,11 +17,11 @@ export const ReturnsProvider = ({ children }) => {
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
+  const [ userOptions, setUserOptions ] = useState([]) 
 
   const [formData, setFormData] = useState({
     returns: [createNewReturn()],
   });
-  const [userReturns, setUserReturns] = useState({});
   const [step, setStep] = useState(1);
 
   useEffect(() => console.log(formData), [formData])
@@ -37,13 +37,13 @@ export const ReturnsProvider = ({ children }) => {
           const response = await assetService.fetchAstReturn(serialNumber);
           console.log(response.data);
           const loan = response.data[0];
-          const users = loan.userLoans.map(userLoan => userLoan.user)
+          const user = loan.user;
 
           setFormData({
             returns: [createNewReturn(
               loan.loanId,
               {assetId, serialNumber},
-              users,
+              user,
               loan.accLoans
             )]
           });
@@ -106,10 +106,19 @@ export const ReturnsProvider = ({ children }) => {
 
         console.log(matchedLoanOption);
 
+        setUserOptions((prevOptions) => [
+          ...prevOptions, // Include previous user options
+          {
+            ...matchedLoanOption.user,
+            value: matchedLoanOption.user.userName,
+            label: matchedLoanOption.user.userName,
+          },
+        ]);        
+
         return createNewReturn(
           matchedLoanOption.loanId,
           matchedLoanOption.astLoan.asset,
-          matchedLoanOption.userLoans.map(userLoan => userLoan.user),
+          matchedLoanOption.user,
           matchedLoanOption.accLoans,
           remarks,
           serialNumber
@@ -137,17 +146,10 @@ export const ReturnsProvider = ({ children }) => {
 
     values.returns.forEach((ret) => {
       // If serialNumber doesn't exist in newUserReturns, initialize it
-      if (newUserReturns[ret.serialNumber]) throw Error(`Duplicate Asset Tag ${ret.serialNumber} found`)
-
-      newUserReturns[ret.serialNumber] = {
-        assetId: ret.assetId,
-        accessoryTypes: ret.accessoryTypes,
-        userIds: ret.users.userIds,
-        userNames: ret.users.userNames,
-      };
+      if (newUserReturns[ret.asset.serialNumber]) throw Error(`Duplicate Serial Number ${ret.serialNumber} found`)
     });
-    setUserReturns(newUserReturns);
     setStep(Math.max(step + 1, 2));
+    setFormData(values);
   };
 
   const handleSubmit = async (values, actions) => {
@@ -170,12 +172,12 @@ export const ReturnsProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     formData,
+    userOptions,
+    setUserOptions,
     returnOptions,
     setReturnOptions,
-    userReturns,
     step,
     setFormData,
-    setUserReturns,
     setStep,
     setValuesExcel,
     prevStep,

@@ -1,7 +1,7 @@
 import { axiosInstance } from '../config';
 import { API_URL } from '../config';
 
-export default class HistoryService {
+class HistoryService {
 
     constructor(axiosInstance) {
         this.axios = axiosInstance;
@@ -22,6 +22,7 @@ export default class HistoryService {
     }
 
     async loadAllEvents(filters) {
+        // console.log("GETTING EVENTS");
         return await this.axios.get(`${API_URL}/history`, {
             params: {
                 assetIds: filters
@@ -29,3 +30,6 @@ export default class HistoryService {
         });
     }
 }
+
+const historyService = new HistoryService(axiosInstance);
+export default historyService;

@@ -124,7 +124,11 @@ export const AddUsersProvider = ({ children }) => {
     setStep(step - 1)
   };
 
-  const nextStep = () => {
+  const nextStep = (values) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values
+    }));
     setStep(step + 1);
   };
 
@@ -135,7 +139,7 @@ export const AddUsersProvider = ({ children }) => {
       await userService.addUser(values);
       actions.setSubmitting(false);
       setLoading(false);
-      showToast('Assets successfully loaned', 'success', 500);
+      showToast('Users successfully added', 'success', 500);
       setFormType(null);
     } catch (err) {
       console.error(err);

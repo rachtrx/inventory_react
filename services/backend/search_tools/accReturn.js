@@ -1,54 +1,128 @@
-const { Op } = require("sequelize");
-const { AccType, Sequelize } = require("../models");
-const { ReturnSearch } = require("./return");
+const { Op, where } = require("sequelize")
+const LoanDTO = require("../dtos/loan.dto")
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
+const logger = require("../logging");
 
-class AccessoryReturnSearch extends ReturnSearch {
+class AccReturnSearch {
 
+    /**
+     * Constructs a new instance of the LoanSearch class. By default, used for User and Acc search only, because it loops over loans. For assets, search is handled separately since we want to include assets that have never been loaned out, so it loops over assets themselves.
+     * 
+     * Issue faced is that if we join loans directly onto asset and accessory, it is difficult to tell which loan should be joint early on. EXISTS short-circuits this by returning TRUE as soon as at least one match is found, allowing the loan to be joined.
+     * 
+     * @param {Object} params - The parameters for initializing the LoanSearch instance.
+     * @param {number|null} params.loanId - The ID of the loan to search for. Default is null.
+     */
     constructor({
         accessoryTypeId = null,
         accessoryName = null, 
     }) {
-        super({});
         this.accessoryTypeId = accessoryTypeId
         this.accessoryName = accessoryName
 
-        if (!this.accessoryName) return;
+        this.accExistCondition = Sequelize.literal(`
+            EXISTS (
+                SELECT 1
+                FROM "acc_loans" AS "AccLoans"
+                INNER JOIN "acc_types" AS "AccLoans->AccType"
+                ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
+                WHERE "AccLoans"."loan_id" = "Loan"."id"
+                ${this.accessoryTypeId ? 
+                    `AND "AccLoans->AccType"."id" = '%${this.accessoryTypeId}%'` : "" + this.accessoryName ? 
+                    `AND "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%'` : ""}
+                AND "AccLoans"."count" > (
+                    SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
+                    FROM "acc_returns" AS "AccLoans->AccReturns"
+                    WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
+                )
+            )
+        `)
 
-        if (this.accessoryName) {
-            this.accessoryAttributes.push([
-                Sequelize.literal(`
-                    CASE
-                        WHEN "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%' THEN true
-                        ELSE false
-                    END
-                `),
-                'isMatching'
-            ])
-        }
-
-        this.order = this.accessoryName ? Sequelize.literal(`
-            "AstLoan"."id" IS NULL DESC
-        `) : []; // TODO: Most likely the order should be ascending for NO ASSET if acc search
+        this.accCondition = this.accessoryTypeId
+        ? { id : this.accessoryTypeId } : this.accessoryName ? 
+        { accessoryName: { [Op.iLike]: `%${this.accessoryName}%` } } : []
     }
 
-    generateLoanRequirements() {
-
-        const otherAccLoanConditions = this.accessoryTypeId ? 
-            `AND "AccLoans->AccType"."id" = '%${this.accessoryTypeId}%'` : "" + this.accessoryName ? 
-            `AND "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%'` : ""
-
-        this.generateUserLoanRequirements();
-        this.generateAccLoanRequirements(otherAccLoanConditions);
-
-        this.loanRequirements.push(this.accessoryLoanConditions) // unreturned accessory needed
-    }
-
-    updateQueries() {
-        const accTypeModelQuery = this.accessoryQuery.include.find(model => model.model.name === AccType.name)
-        if (this.accessoryTypeId) accTypeModelQuery.where.id = this.accessoryTypeId;
-        if (this.accessoryName) accTypeModelQuery.where.accessoryName = { [Op.iLike]: `%${this.accessoryName}%` };
-        this.accessoryQuery.required = true;
+    async run() {
+        try {
+            let query = await Loan.findAll({
+                attributes: ['id', 'expectedReturnDate','loanEventId', 'reserveEventId', 'cancelEventId'],
+                    include: [
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            include: [
+                                {
+                                    model: AccReturn,
+                                    attributes: ['id', 'count']
+                                },
+                                {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName', [
+                                        Sequelize.literal(`
+                                            CASE
+                                                WHEN "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%' THEN true
+                                                ELSE false
+                                            END
+                                        `),
+                                        'isMatching'
+                                    ]],
+                                    where: {}
+                                }
+                            ],
+                            where: this.accExistCondition,
+                            required: true // IMPT
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id', 'returnEventId'],
+                            include: {
+                                model: Ast,
+                                attributes: ['id', 'serialNumber', 'assetTag'],
+                                include: {
+                                    model: AstSType,
+                                    attributes: ['subTypeName'],
+                                    include: {
+                                        model: AstType,
+                                        attributes: ['typeName'],                           
+                                        required: true,
+                                    },
+                                    required: true,
+                                },
+                            },
+                            required: false
+                        },
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            where: [],
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName'],
+                                where: {},
+                            },
+                            // where: Sequelize.literal(`
+                            //     EXISTS (
+                            //         SELECT 1
+                            //         FROM "usr_loans" AS "UsrLoans"
+                            //         INNER JOIN "usrs" AS "UsrLoans->Usr"
+                            //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
+                            //         WHERE "UsrLoans"."loan_id" = "Loan"."id"
+                            //     )
+                            // `),
+                            required: true
+                        }
+                    ],
+                    where: this.accExistCondition,
+                    order: this.accessoryName ? Sequelize.literal(`
+                        "AstLoan"."id" IS NULL DESC
+                    `) : []
+            });
+            return query.map(loanRow => new LoanDTO(loanRow));
+        } catch(e) {
+            throw e;
+        };
     }
 }
 
-module.exports = { AccessoryReturnSearch };
+module.exports = { AccReturnSearch }

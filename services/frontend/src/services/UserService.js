@@ -8,9 +8,11 @@ class UserService {
     }
 
     defaultFilters = {
-        dept: [],
+        deptName: [],
         userName: '',
         assetCount: [],
+        bookmarked: false,
+        tag: [],
     }
 
     async getItem(id) {
@@ -41,13 +43,13 @@ class UserService {
     }
 
     async addUser(data) {
-        downloadFormData(data);
-        // return await this.axios.get(`${API_URL}/users/add`, data);
+        // downloadFormData(data);
+        return await this.axios.post(`${API_URL}/forms/add/user`, data);
     }
 
     async removeUser(data) {
-        downloadFormData(data);
-        // return await this.axios.get(`${API_URL}/users/remove`, data);
+        // downloadFormData(data);
+        return await this.axios.post(`${API_URL}/forms/del/user`, data);
     }
 
     async fetchUserReturn(userName) {
@@ -56,6 +58,43 @@ class UserService {
                 userName
             }
         });
+    }
+
+    fetchUserLoan = async (userNames) => {
+        return await this.axios.get(`${API_URL}/forms/loan/user`, {
+            params: {
+                userNames
+            }
+        });
+    }
+
+    fetchTagUser = async(userNames, tagId=null) => {
+        return await this.axios.get(`${API_URL}/forms/tag/user`, {
+            params: {
+                userNames,
+                tagId,
+            }
+        });
+    }
+
+    fetchUntagUser = async (userNames, tagId=null) => {
+        return await this.axios.get(`${API_URL}/forms/untag/user`, {
+            params: {
+                userNames,
+                tagId,
+            }
+        });
+    }
+
+    async tagUser(formData) {
+        // downloadFormData(formData);
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/tag/user`, formData);
+    }
+
+    async untagUser(formData) {
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/untag/user`, formData);
     }
 }
 

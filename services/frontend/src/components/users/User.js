@@ -36,7 +36,7 @@ const User = ({ user }) => {
 					<EditableField 
 						label="Department"
 						fieldKey="department"
-						value={user.department.deptName}
+						value={user.deptName}
 						handleSave={handleSave}
 					/>
 				</Grid>
@@ -54,13 +54,13 @@ const User = ({ user }) => {
 			<Box mb={4}>
 				<Heading as="h2" size="md" mb="2">CURRENT ASSETS</Heading>
 				{user.currentAssets?.map((asset) => (
-						<Flex alignItems="center" mb="2">
-							<AssetLink asset={asset}/>
-							<AssetActionButton 
-								formType={FormType.RETURN}
-								asset={asset}
-							/>
-						</Flex>
+					<Flex alignItems="center" mb="2">
+						<AssetLink asset={asset}/>
+						<AssetActionButton 
+							formType={FormType.RETURN}
+							asset={asset}
+						/>
+					</Flex>
 				))}
 			</Box>
 		

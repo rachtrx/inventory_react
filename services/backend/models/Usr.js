@@ -30,6 +30,9 @@ module.exports = (sequelize) => {
 			type: DataTypes.INTEGER,
 			allowNull: false
 		},
+		remarks: {
+			type: DataTypes.TEXT,
+		},
 		addEventId: {
 			type: DataTypes.STRING,
 			references: {

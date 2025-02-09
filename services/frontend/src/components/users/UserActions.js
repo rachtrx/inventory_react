@@ -12,7 +12,14 @@ export default function UserActions() {
     !isMobile && (
       <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
-        {[FormType.LOAN, FormType.RETURN, FormType.ADD_USER, FormType.DEL_USER].map((formType) => {
+        {[
+          FormType.LOAN, 
+          FormType.RETURN, 
+          FormType.ADD_USER, 
+          FormType.DEL_USER,
+          FormType.TAG_USER,
+          FormType.UNTAG_USER,
+        ].map((formType) => {
             return (
               <UserActionButton
                 key={formType}

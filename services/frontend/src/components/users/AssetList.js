@@ -15,8 +15,7 @@ export const AssetList = ({ user }) => {
 					align="center"
 					display="inline-flex"
 				>
-					{user.userLoans
-						.map(userLoan => userLoan.loan)
+					{user.loans
 						.map((loan) => {
 							if (loan.astLoan && loan.accLoans && loan.accLoans.length > 0) {
 								return (
@@ -65,23 +64,23 @@ export const AssetList = ({ user }) => {
 				<PopoverHeader>
 					<Flex gap={2} alignItems={'center'}>
 						<ResponsiveText size="sm" fontWeight="bold">Loans</ResponsiveText>
-						{user.userLoans && user.userLoans.filter(userLoan => userLoan.loan.astLoan).length > 0 ? 
+						{user.loans && user.loans.filter(loan => loan.astLoan).length > 0 ? 
 							(<Flex gap={2} alignItems={'center'}>
 								<AssetActionButton
 									formType={FormType.RETURN} 
-									asset={user.userLoans
-										.filter(userLoan => userLoan.loan.astLoan)
-										.map(userLoan => userLoan.loan.astLoan.asset)
+									asset={user.loans
+										.filter(loan => loan.astLoan)
+										.map(loan => loan.astLoan.asset)
 									}
 								/>
 							</Flex>) : null}
-						{user.userLoans && user.userLoans.filter(userLoan => !userLoan.loan.astLoan).length > 0 ? 
+						{user.loans && user.loans.filter(loan => !loan.astLoan).length > 0 ? 
 							(<Flex gap={2} alignItems={'center'}>
-								<AccessoryLoanActionButton
-									formType={FormType.RETURN} 
-									accLoan={user.userLoans
-										.filter(userLoan => !userLoan.loan.astLoan)
-										.flatMap(userLoan => userLoan.loan.accLoans)
+								<AccessoryLoanActionButton // TODO check?
+									formType={FormType.RETURN}
+									accLoan={user.loans
+										.filter(loan => !loan.astLoan)
+										.flatMap(loan => loan.accLoans)
 										.reduce((allAccTypeLoans, accLoan) => {
 											const accTypeLoan = allAccTypeLoans.find(accType => accType.accessoryTypeId === accLoan.accType.accessoryTypeId);
 											if (accTypeLoan) accTypeLoan.unreturned += accLoan.unreturned
@@ -97,10 +96,9 @@ export const AssetList = ({ user }) => {
 				<PopoverBody maxHeight="200px" overflowY="auto">
 				{/* Assets Section */}
 				<VStack spacing={4} align="stretch">
-					{user.userLoans
-					.filter((userLoan) => userLoan.loan.astLoan)
-					.map((userLoan) => {
-						const loan = userLoan.loan;
+					{user.loans
+					.filter((loan) => loan.astLoan)
+					.map((loan) => {
 						return (
 						<Box key={loan.astLoan.asset.assetId} border="1px" borderRadius="md" p={2}>
 							<Flex justify="space-between" align="center">
@@ -136,9 +134,9 @@ export const AssetList = ({ user }) => {
 					Standalone Accessories
 					</Text>
 					<VStack spacing={2} align="stretch">
-					{user.userLoans
-						.filter((userLoan) => !userLoan.loan.astLoan)
-						.flatMap((userLoan) => userLoan.loan.accLoans)
+					{user.loans
+						.filter((loan) => !loan.astLoan)
+						.flatMap((loan) => loan.accLoans)
 						.map((accLoan) => (
 						<Flex key={accLoan.accessoryLoanId} justify="space-between" px={2}>
 							<Tooltip label={accLoan.accType.accessoryName} placement="top" hasArrow>

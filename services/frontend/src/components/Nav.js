@@ -28,11 +28,13 @@ const Nav = () => {
       color={linkHoverColor}
     >
       <Menu>
-        <NavButton next={() => navigate('/dashboard')} icon={<MdDashboard />} label="Home" />
+        <NavButton next={handleDevError} icon={<MdDashboard />} label="Home" />
+        {/* () => navigate('/dashboard') */}
       </Menu>
 
       <Menu>
-        <NavButton next={() => navigate('/history')} icon={<MdHistory />} label="History" />
+        <NavButton next={handleDevError} icon={<MdHistory />} label="History" />
+        {/* () => navigate('/history') */}
       </Menu>
 
       <Menu>

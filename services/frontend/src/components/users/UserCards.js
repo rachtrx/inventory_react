@@ -35,17 +35,16 @@ function UserCards({ items }) {
           <VStack align="start">
             <UserLink user={user} size={'lg'} fontWeight="bold"/>
             <Text fontSize="md" fontWeight="semibold">
-              {user.department.deptName}
+              {user.deptName}
             </Text>
-            {user.userLoans?.length > 0 ? <AssetList user={user}/> : 
-              <Flex>
-                <UserActionButton 
-                  formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
-                  user={user} 
-                  style={{ marginLeft: 'auto' }} 
-                />
-              </Flex>
-            }
+            {user.loans?.length > 0 && <AssetList user={user}/>}
+            <Flex>
+              <UserActionButton 
+                formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
+                user={user} 
+                style={{ marginLeft: 'auto' }} 
+              />
+            </Flex>
           </VStack>
           </CardBody>
           

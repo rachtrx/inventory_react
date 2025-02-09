@@ -59,6 +59,13 @@ class AccessoryService {
             }
         });
     }
+    fetchAccLoan = async (accessoryNames) => {
+        return await this.axios.get(`${API_URL}/forms/loan/accessory`, {
+            params: {
+                accessoryNames
+            }
+        });
+    }
 }
 
 const accessoryService = new AccessoryService(axiosInstance);

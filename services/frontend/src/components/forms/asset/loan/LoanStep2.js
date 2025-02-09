@@ -40,9 +40,9 @@ export const LoanStep2 = () => {
 		>
 			<Form>
 				<ModalBody ref={parentRef}>
-					{Object.entries(userLoans).map(([userId, details]) => (
+					{formData.users.map((user, userIndex) => (
 						<Flex 
-							key={userId} 
+							key={user.userId} 
 							direction="column" 
 							border="1px solid"
 							borderColor="gray.300"
@@ -51,10 +51,10 @@ export const LoanStep2 = () => {
 							mb={4}
 							boxShadow="sm"
 						>
-							<ResponsiveText size='lg'>{details.userName}</ResponsiveText>
+							<ResponsiveText size='lg'>{user.userName}</ResponsiveText>
 							<ResponsiveText>
 								{
-									details.loans.map((loan, index) => (
+									user.loans.map((loan, index) => (
 									<Text key={index}>
 										{loan.asset && loan.asset.serialNumber && `${loan.asset.serialNumber}`}
 										{loan.asset && loan.asset.serialNumber && loan.accessories && loan.accessories.length > 0 &&
@@ -67,7 +67,7 @@ export const LoanStep2 = () => {
 								}
 							</ResponsiveText>
 							<FormikSignatureField
-								name={`signatures.${userId}`}
+								name={`users.${userIndex}.signature`}
 								label='Signature'
 								signatureFieldWidth={signatureFieldWidth}
 							/>

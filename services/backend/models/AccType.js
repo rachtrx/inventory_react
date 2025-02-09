@@ -51,12 +51,16 @@ module.exports = (sequelize) => {
 		},
 		accessoryName: {
 			type: DataTypes.STRING,
-			allowNull: false
+			allowNull: false,
+			unique: true
 		},
         stock: {
             type: DataTypes.INTEGER,
 			allowNull: false
         },
+		remarks: {
+			type: DataTypes.TEXT,
+		},
 		addEventId: {
 			type: DataTypes.STRING,
 			references: {

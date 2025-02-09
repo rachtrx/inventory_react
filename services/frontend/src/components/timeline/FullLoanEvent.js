@@ -24,7 +24,7 @@ const FullLoanEvent = ({ event }) => {
     // console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { accLoans, userLoans, astLoan, returnEvents } = event.loan;
+    const { accLoans, user, astLoan, returnEvents } = event.loan;
 
     return (
         <VStack align="stretch" spacing={6}>
@@ -54,7 +54,7 @@ const FullLoanEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="black">
                         User
                     </ResponsiveText>
-                    {userLoans.map(userLoan => (<UserLink key={userLoan.user.userId} user={userLoan.user}/>))}
+                    <UserLink key={user.userId} user={user}/>
                 </HStack>
 
                 <Collapse in={isOpen} animateOpacity>

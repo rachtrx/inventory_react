@@ -16,8 +16,9 @@ export const ItemsProvider = ({ children, service, idField }) => {
   console.log("rendering items provider");
 
   useEffect(() => {
-    console.log("service changed");
-  }, [service]);
+    console.log(filters);
+    // console.log("service changed");
+  }, [filters]);
 
   useEffect(() => {
     console.log("setItems changed");

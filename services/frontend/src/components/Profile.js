@@ -32,6 +32,8 @@ const Profile = () => {
     }
   }, [navigate, admin, setAdmin]);
 
+  console.log(admin);
+
   return (
     <Container maxW="container.md" centerContent p={4}>
       <VStack spacing={4} align="stretch">
@@ -41,7 +43,7 @@ const Profile = () => {
           <Text mt={2}><b>Name:</b> {admin.adminName}</Text>
           <Text mt={2}><b>Email:</b> {admin.email}</Text>
           <Text mt={2}><b>Authentication Types:</b> {admin.authType.map(type => <Tag key={type} ml={1}>{type}</Tag>)}</Text>
-					<PasswordSetup/>
+					{admin.authType.every(authType => authType === "SSO") && <PasswordSetup/>}
 					<Button onClick={logout} leftIcon={<MdLogout />}>
 						<ResponsiveText>Logout</ResponsiveText>
 					</Button>

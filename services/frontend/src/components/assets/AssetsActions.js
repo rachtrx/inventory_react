@@ -12,7 +12,14 @@ export default function AssetsActions() {
     !isMobile && (
       <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
-          {[FormType.LOAN, FormType.RETURN, FormType.ADD_ASSET, FormType.DEL_ASSET].map((formType) => {
+          {[
+            FormType.LOAN, 
+            FormType.RETURN, 
+            FormType.ADD_ASSET, 
+            FormType.DEL_ASSET, 
+            FormType.TAG_ASSET,
+            FormType.UNTAG_ASSET
+          ].map((formType) => {
             return (
               <AssetActionButton
                 key={formType}

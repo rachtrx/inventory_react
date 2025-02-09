@@ -10,11 +10,11 @@ import userService from "../../../../services/UserService";
 
 export const delNewUser = (user={}) => ({
   'key': uuidv4(),
-  'userId': user.userId || '',
-  'userName': user.userName || '',
-  'delDate': user.delDate || new Date(),
-  'lastEventDate': user.lastEventDate || '',
-  'remarks': user.remarks || '',
+  'userId': user?.userId || '',
+  'userName': user?.userName || '',
+  'delDate': user?.delDate || new Date(),
+  'lastEventDate': user?.lastEventDate || '',
+  'remarks': user?.remarks || '',
 })
 
 // Create a context
@@ -102,28 +102,11 @@ export const DelUsersProvider = ({ children }) => {
     setStep(step - 1)
   };
 
-  const nextStep = (values, actions) => {
-    // console.log('Manual Form Values:', values);
-    // const userLoans = {}
-    // const signatures = {};
-
-    // values.loans.forEach((loan) =>
-    //   loan.users?.forEach((user) => {
-    //     if (!userLoans[user.userId]) {
-    //       userLoans[user.userId] = {}
-    //       userLoans[user.userId].users = [loan.user];
-    //       userLoans[user.userId].userName = user.userName;
-    //       signatures[user.userId] = ''
-    //       console.log(signatures);
-    //     } else userLoans[user.userId].users.push(loan.user)
-    //   })
-    // );
-    // setUserLoans(userLoans);
-    // setFormData((prevData) => ({
-    //   ...prevData,
-    //   ...values,
-    //   signatures: signatures,
-    // }));
+  const nextStep = (values) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values
+    }));
     setStep(step + 1);
   };
 
@@ -134,7 +117,7 @@ export const DelUsersProvider = ({ children }) => {
       await userService.removeUser(values);
       actions.setSubmitting(false);
       setLoading(false);
-      showToast('Users successfully loaned', 'success', 500);
+      showToast('Users successfully deleted', 'success', 500);
       setFormType(null);
     } catch (err) {
       console.error(err);

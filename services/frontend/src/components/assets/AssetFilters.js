@@ -19,6 +19,7 @@ export default function AssetFilters() { // TODO can have external filters from 
         fetchFilters('vendor');
         fetchFilters('location');
         fetchFilters('age');
+        fetchFilters('tag');
     }, [fetchFilters]);
 
   return (
@@ -29,13 +30,13 @@ export default function AssetFilters() { // TODO can have external filters from 
                     name="typeName"
                     // label="Asset Type"
                     placeholder="Asset Type"
-                    options={filters.typeName}
+                    initialOptions={filters.typeName}
                 />
                 <MultiSelectFormControl
                     name="status"
                     // label="Status"
                     placeholder="Status"
-                    options={
+                    initialOptions={
                         [
                             {'label': 'Reserved', 'value': 'Reserved'},
                             {'label': 'Available', 'value': 'Available'},
@@ -58,25 +59,31 @@ export default function AssetFilters() { // TODO can have external filters from 
                     name="subTypeName"
                     // label="Specific Model"
                     placeholder="Specific Model"
-                    options={filters.subTypeName}
+                    initialOptions={filters.subTypeName}
                 />
                 <MultiSelectFormControl
                     name="vendor"
                     // label="Vendor"
                     placeholder="Vendor"
-                    options={filters.vendor}
+                    initialOptions={filters.vendor}
                 />
                 <MultiSelectFormControl
                     name="location"
                     // label="Location"
                     placeholder="Location"
-                    options={filters.location}
+                    initialOptions={filters.location}
                 />
                 <MultiSelectFormControl
                     name="age"
                     // label="Asset Age"
                     placeholder="Asset Age"
-                    options={filters.age}
+                    initialOptions={filters.age}
+                />
+                <MultiSelectFormControl
+                    name="tag"
+                    // label="Asset Age"
+                    placeholder="Tag"
+                    initialOptions={filters.tag}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

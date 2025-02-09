@@ -58,13 +58,13 @@ export const AssetList = ({ user }) => {
 				<PopoverCloseButton />
 				<PopoverHeader>
 					<ResponsiveText size="sm" fontWeight="bold">Assets</ResponsiveText>
-					{user.userLoans && user.userLoans.filter(userLoan => userLoan.loan.astLoan).length > 0 ? 
+					{user && user.loans.filter(loan => loan.astLoan).length > 0 ? 
 						(<Flex gap={2} alignItems={'center'}>
 							<AssetActionButton 
 								formType={FormType.RETURN} 
-								asset={user.userLoans
-									.filter(userLoan => userLoan.loan.astLoan)
-									.map(userLoan => userLoan.loan.astLoan.asset)
+								asset={user.loans
+									.filter(loan => loan.astLoan)
+									.map(loan => loan.astLoan.asset)
 								}
 							/>
 						</Flex>) : null}
@@ -74,15 +74,15 @@ export const AssetList = ({ user }) => {
 					overflowY={'auto'}  // Enable vertical scrolling
 				>
 					<VStack>
-						{user.userLoans.map((userLoan) => (
+						{user.loans.map((loan) => (
 							<Flex gap={2} width="100%" alignItems="center" justifyContent="space-between">
-								<Tooltip label={userLoan.loan.asset.typeName} placement="top" hasArrow>
-									<CircleText text={userLoan.loan.asset.typeName}/>
+								<Tooltip label={loan.asset.typeName} placement="top" hasArrow>
+									<CircleText text={loan.asset.typeName}/>
 								</Tooltip>
-								<AssetLink asset={userLoan.loan.asset} />
+								<AssetLink asset={loan.asset} />
 								<AssetActionButton 
 									formType={FormType.RETURN} 
-									asset={userLoan.loan.asset} 
+									asset={loan.asset} 
 								/>
 							</Flex>
 						))}

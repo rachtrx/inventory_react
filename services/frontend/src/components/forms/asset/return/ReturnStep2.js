@@ -7,9 +7,7 @@ import { useReturns } from "./ReturnsProvider";
 
 export const ReturnStep2 = () => {
 
-  const { userReturns, formData, handleSubmit, prevStep } = useReturns();
-
-	console.log(userReturns);
+  const { formData, handleSubmit, prevStep } = useReturns();
 
 	return (
 		<Formik
@@ -21,9 +19,9 @@ export const ReturnStep2 = () => {
 		>
 			<Form>
 				<ModalBody>
-				{Object.entries(userReturns).map(([serialNumber, assetReturn]) => (
+				{formData.returns.map((_return) => (
 					<Flex 
-						key={serialNumber}
+						key={_return.loanId}
 						direction="column"
 						border="1px solid"
 						borderColor="gray.300"
@@ -33,30 +31,19 @@ export const ReturnStep2 = () => {
 						boxShadow="sm"
 					>
 						{/* Display Asset Information */}
-						<ResponsiveText size="lg" fontWeight="bold">
-						Serial Number: {serialNumber}
-						</ResponsiveText>
+						{_return.asset.count > 0 && <ResponsiveText size="lg" fontWeight="bold">
+						Serial Number: {_return.asset.serialNumber}
+						</ResponsiveText>}
 
 						{/* Display Users Associated with This Asset */}
-						{assetReturn.userNames.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.userNames.map((userName, index) => (
-								<ListItem key={assetReturn.userIds[index]}>
-								{userName}
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)}
+						<ResponsiveText key={_return.userId}>{_return.userName}</ResponsiveText>
 
 						{/* Display Accessories Associated with This Asset */}
-						{assetReturn.accessoryTypes.length > 0 && (
+						{_return.accessoryTypes.length > 0 && (
 						<Box mt={2}>
 							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
 							<UnorderedList>
-							{assetReturn.accessoryTypes.map(accessoryType => (
+							{_return.accessoryTypes.map(accessoryType => (
 								<ListItem key={accessoryType.accessoryTypeId}>
 								{accessoryType.accessoryName} - {accessoryType.count}/{accessoryType.unreturned} returned
 								</ListItem>

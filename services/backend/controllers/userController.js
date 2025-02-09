@@ -1,4 +1,4 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, UsrLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin } = require('../models');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
 const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
@@ -12,32 +12,36 @@ class UserController {
     
         let options;
         try {
-            if (field === 'deptName') {
-                const meta = [Dept, 'deptName', 'id'];
+            if (['deptName', 'tag'].includes(field)) {
+                let meta = null;
+                switch(field) {
+                    case 'deptName':
+                        meta = [Dept, 'deptName', 'id'];
+                        break;
+                    case 'tag':
+                        meta = [UsrTag, 'tagName', 'id'];
+                        break;
+                }
                 logger.info(meta)
                 options = await getAllOptions(meta)
                 
             } else if (field === 'assetCount') {
                 const result = await AstLoan.findAll({
                     attributes: [
-                        [Sequelize.col('"Loan->UsrLoans"."user_id"'), 'userId'], // Get userId instead of Loan->UsrLoans.id
+                        [Sequelize.col('"Loan->Usr"."id"'), 'userId'],
                         [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
                     ],
                     include: {
                         model: Loan,
                         attributes: [],
                         include: {
-                            model: UsrLoan,
-                            attributes: [], // We don't need the id here since we’re focusing on userId
-                            include: {
-                                model: Usr,
-                                attributes: [],
-                            },
-                        }
+                            model: Usr,
+                            attributes: [],
+                        },
                     },
                     where: { returnEventId: null },
                     group: [
-                        '"Loan->UsrLoans"."user_id"' // Only group by userId
+                        '"Loan->Usr"."id"' // Only group by userId
                     ],
                     raw: true
                 });
@@ -67,14 +71,28 @@ class UserController {
             if (usersExist === 0) {
                 return res.json([]);
             }
+
+            console.log(filters.userName);
     
             const whereClause = {
-                ...(filters.userName && { userName: { [Op.iLike]: filters.userName } }),
+                ...(filters.userName && { userName: { [Op.iLike]: `%${filters.userName}%` } }),
+                ...(filters.bookmarked && { bookmarked: 1 }),
             };
     
             let query = await Usr.findAll({
                 attributes: ['id', 'userName', 'bookmarked'],
                 include: [
+                    {
+                        model: UsrTagMap,
+                        attributes: ['id'],
+                        where: { delEventId: { [Op.eq]: null }}, 
+                        include: {
+                            model: UsrTag,
+                            attributes: ['id', 'tagName'],
+                            ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
+                        },
+                        required: filters.tag.length > 0 ? true : false
+                    },
                     {
                         model: Event,
                         as: 'AddEvent',
@@ -87,81 +105,76 @@ class UserController {
                         required: false,
                     },
                     {
-                        model: UsrLoan,
+                        model: Loan,
                         required: false,
-                        attributes: ['id'],
-                        include: {
-                            model: Loan,
-                            required: true,
-                            attributes: [
-                                'id', 
-                                'reserveEventId', 
-                                'cancelEventId', 
-                                'expectedReturnDate', 
-                                'loanEventId'
-                            ],
-                            include: [
-                                {
-                                    model: AstLoan,
-                                    required: false,
-                                    attributes: ['id', 'returnEventId'],
-                                    include: [
-                                        {
-                                            model: Ast,
+                        attributes: [
+                            'id', 
+                            'reserveEventId',
+                            'cancelEventId', 
+                            'expectedReturnDate', 
+                            'loanEventId'
+                        ],
+                        include: [
+                            {
+                                model: AstLoan,
+                                required: false,
+                                attributes: ['id', 'returnEventId'],
+                                include: [
+                                    {
+                                        model: Ast,
+                                        required: true,
+                                        attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                        include: {
+                                            model: AstSType,
                                             required: true,
-                                            attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                            attributes: ['id', 'subTypeName'],
                                             include: {
-                                                model: AstSType,
+                                                model: AstType,
                                                 required: true,
-                                                attributes: ['id', 'subTypeName'],
-                                                include: {
-                                                    model: AstType,
-                                                    required: true,
-                                                    attributes: ['id', 'typeName']
-                                                }
+                                                attributes: ['id', 'typeName']
                                             }
-                                        },
-                                    ],
-                                    where: {
-                                        returnEventId: {
-                                            [Op.is]: null
                                         }
                                     },
+                                ],
+                                where: {
+                                    returnEventId: {
+                                        [Op.is]: null
+                                    }
                                 },
-                                {
-                                    model: AccLoan,
-                                    required: false,
-                                    attributes: ['id', 'count'],
-                                    include: [
-                                        {
-                                            model: AccType,
-                                            required: true,
-                                            attributes: ['id', 'accessoryName'],
-                                        },
-                                        {
-                                            model: AccReturn,
-                                            required: false,
-                                            where: {
-                                                returnEventId: {
-                                                    [Op.is]: null
-                                                }
+                            },
+                            {
+                                model: AccLoan,
+                                required: false,
+                                attributes: ['id', 'count'],
+                                include: [
+                                    {
+                                        model: AccType,
+                                        required: true,
+                                        attributes: ['id', 'accessoryName'],
+                                    },
+                                    {
+                                        model: AccReturn,
+                                        required: false,
+                                        where: {
+                                            returnEventId: {
+                                                [Op.is]: null
                                             }
                                         }
-                                    ],
-                                },
-                            ],
-                        }
+                                    }
+                                ],
+                            },
+                        ],
                     },
                     {
                         model: Dept,
                         required: true,
                         attributes: ['deptName'],
-                        ...(filters.dept.length > 0 && { where: { id: { [Op.in]: filters.dept } } }),
+                        ...(filters.deptName.length > 0 && { where: { id: { [Op.in]: filters.deptName } } }),
                     }
                 ],
-                where: whereClause
-                // TODO
-                // order: [['addedDate', 'DESC']],
+                where: whereClause,
+                order: [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']],
+                // order: [[Sequelize.literal('"AddEvent"."event_date"'), 'DESC']],
             });
 
             logger.info(query.slice(1, 10).map(user => user.get({plain: true})));
@@ -169,9 +182,9 @@ class UserController {
             if (filters.assetCount.length > 0) {
                 filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
                 query = query.filter(user => {
-                    return filters.assetCount.includes(user.AstLoans.length);
+                    return filters.assetCount.includes(user.Loans.length)
                 });
-            }
+            };
             
             // Mapping over the result to modify each user object
             const result = query.map(user => {
@@ -231,8 +244,8 @@ class UserController {
                 [Op.or]: [
                     { '$AddedUser.id$': userId },
                     { '$DeletedUser.id$': userId },
-                    { '$Loan->UsrLoans.user_id$': userId },
-                    { '$Reservation->UsrLoans.user_id$': userId } // TODO is it possible to extract out other users of that loan?
+                    { '$Loan.user_id$': userId },
+                    { '$Reservation.user_id$': userId } // TODO is it possible to extract out other users of that loan?
                 ]
             },
             include: [
@@ -267,6 +280,7 @@ class UserController {
                     model: Loan,
                     as: 'Loan',
                     required: false,
+                    attributes: ['filepath'],
                     include: [
                         {
                             model: AstLoan,
@@ -318,22 +332,10 @@ class UserController {
                             ]
                         },
                         {
-                            model: UsrLoan,
-                            attributes: ['filepath'],
-                            include: {
-                                model: Loan,
-                                required: true,
-                                include: {
-                                    model: UsrLoan,
-                                    required: false,
-                                    include: {
-                                        model: Usr,
-                                        attributes: ['id', 'userName']
-                                    },
-                                    where: { id: { [Op.ne]: userId }}
-                                }
-                            }
-                        }
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            where: { id: { [Op.ne]: userId }}
+                        },
                     ]
                 },
                 {
@@ -364,22 +366,10 @@ class UserController {
                             ]
                         },
                         {
-                            model: UsrLoan,
-                            attributes: ['filepath'],
-                            include: {
-                                model: Loan,
-                                required: true,
-                                include: {
-                                    model: UsrLoan,
-                                    required: false,
-                                    include: {
-                                        model: Usr,
-                                        attributes: ['id', 'userName']
-                                    },
-                                    where: { id: { [Op.ne]: userId }}
-                                }
-                            }
-                        },
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            where: { id: { [Op.ne]: userId }}
+                        }
                     ]
                 }
             ],
@@ -434,108 +424,6 @@ class UserController {
             res.status(500).send('Internal Server Error');
         }
     }
-
-    async searchUsers (value, orderByClause, disabledCondition) {
-
-        const isBulkSearch = Array.isArray(value) ? true : false;
-        const searchTerm = isBulkSearch ? value : `%${value}%`;
-
-        const bulkCondition = `
-            usrs.user_name IN (:searchTerm)  -- Bulk search condition
-        `;
-
-        const singleCondition = `
-            usrs.user_name ILIKE :searchTerm  -- Single search condition
-        `;
-        
-        const sql = `
-            WITH UserLoanCounts AS (
-                SELECT 
-                    usrs.id, 
-                    usrs.user_name AS name, 
-                    usrs.bookmarked, 
-                    delete_event.event_date AS "deletedDate",
-                    depts.dept_name AS dept,
-                    GREATEST(
-                        MAX(delete_event.event_date),
-                        MAX(add_event.event_date),
-                        MAX(loan_event.event_date),
-                        MAX(return_event.event_date),
-                        MAX(reserve_event.event_date),
-                        MAX(cancel_event.event_date)
-                    ) AS "lastEventDate",
-                    COUNT(loan_event.id) - COUNT(return_event.id) AS "loanCount",
-                    SUM(
-                        CASE 
-                            WHEN loan_event.id IS NULL 
-                                AND return_event.id IS NULL 
-                                AND cancel_event.id IS NULL 
-                                AND reserve_event.id IS NOT NULL THEN 1 
-                            ELSE 0
-                        END
-                    ) AS "reserveCount"
-                FROM usrs
-                LEFT JOIN usr_loans ON usrs.id = usr_loans.user_id
-                LEFT JOIN loans ON usr_loans.loan_id = loans.id
-                LEFT JOIN ast_loans ON loans.id = ast_loans.loan_id
-                LEFT JOIN events AS delete_event ON usrs.del_event_id = delete_event.id
-                LEFT JOIN events AS add_event ON usrs.add_event_id = add_event.id
-                LEFT JOIN events AS loan_event ON loans.loan_event_id = loan_event.id
-                LEFT JOIN events AS return_event ON ast_loans.return_event_id = return_event.id
-                LEFT JOIN events AS reserve_event ON loans.reserve_event_id = reserve_event.id
-                LEFT JOIN events AS cancel_event ON loans.cancel_event_id = cancel_event.id
-                LEFT JOIN depts ON usrs.dept_id = depts.id
-                WHERE ${isBulkSearch ? bulkCondition : singleCondition}
-                GROUP BY 
-                    usrs.id, 
-                    usrs.user_name, 
-                    usrs.bookmarked, 
-                    delete_event.event_date,
-                    depts.dept_name
-            )
-            SELECT *
-            FROM UserLoanCounts
-            ${orderByClause}
-            LIMIT 20;
-        `;
-    
-        try {
-            const users = await sequelize.query(sql, {
-                replacements: { isBulkSearch, searchTerm },
-                type: sequelize.QueryTypes.SELECT
-            });
-    
-            const response = users.map(user => {
-                // logger.info(user)
-                if (this.userIsDeleted(user)) {
-                    user.status = 'Deleted';
-                } else if (this.userHasNoAsset(user)) {
-                    user.status = 'Available';
-                } else {
-                    user.status = `${user.loanCount} Loaned, ${user.reserveCount} Reserved`;
-                }
-    
-                
-                const { name, dept, status, lastEventDate } = user;
-                logger.info(status)
-
-                const isDisabled = disabledCondition(user)
-            
-                return {
-                    value: name,
-                    label: `${name}`, // Capitalize the first letter
-                    userId: user.id,
-                    description: `${dept} ${isDisabled ? `(${status})` : ''}`,
-                    isDisabled, // Disable if not in validStatuses
-                    lastEventDate
-                };
-            });
-    
-            return response;
-        } catch (error) {
-            throw error;
-        }
-    };
 
     async updateUser(req, res) {
         const { id, field, newValue } = req.body;

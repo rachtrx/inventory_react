@@ -11,7 +11,7 @@ import { compareStrings, convertExcelDate } from "../../utils/validation";
 export const delNewAsset = (asset={}) => ({
   'key': uuidv4(),
   'assetId': asset.assetId || '',
-  'assetTag': asset.assetTag || '',
+  // 'assetTag': asset.assetTag || '',
   'serialNumber': asset.serialNumber || '', // TODO if we move to serialNumber instead of tag
   'delDate': asset.delDate || new Date(),
   'lastEventDate': asset.lastEventDate || '',
@@ -35,25 +35,26 @@ export const DelAssetsProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (initialValues) {
-      console.log(initialValues);
-      let asset = null;
-      if(initialValues.assetId) {
-        asset = initialValues;
-        setAssetOptions([{value: initialValues.assetTag, label: initialValues.assetTag, assetId: initialValues.assetId}])
-      }
+    if (initialValues.length > 0) {
+      const assets = initialValues.map(asset => {
+        return delNewAsset(asset);
+      })
+
+      setAssetOptions(assets.map(asset => ({
+        value: asset.serialNumber, 
+        label: asset.serialNumber,
+        assetId: asset.assetId
+      })))
       
-      setFormData({
-        assets: [delNewAsset(asset)]
-      });
+      setFormData({assets});
     }
   }, [initialValues, setFormData]);
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
     try {
-      const assetTags = new Set();
-      // const serialNumbers = new Set();
+      // const assetTags = new Set();
+      const serialNumbers = new Set();
 
       records.forEach((record) => {
 
@@ -63,26 +64,27 @@ export const DelAssetsProvider = ({ children }) => {
             : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
         });
 
-        ['assetTag'].forEach(field => {
+        ['serialNumber'].forEach(field => {
           if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
         });
         
-        if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
-        else assetTags.add(record.assetTag);
+        if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
+        else serialNumbers.add(record.serialNumber);
       });
 
-      const assetResponse = await handleAssetSearch([...assetTags]);
+      const assetResponse = await assetService.fetchAstDel([...serialNumbers]);
+      console.log(assetResponse.data);
       const newAssetOptions = assetResponse.data;
       setAssetOptions(newAssetOptions);
 
       const assets = records.map((record) => {
-        const { assetTag, remarks, delDate } = record;
-        const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, assetTag));
+        const { serialNumber, remarks, delDate } = record;
+        const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
         
         return {
             assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
             lastEventDate: matchedAssetOption ? matchedAssetOption.lastEventDate : null,
-            assetTag, // Pass assetTag regardless of whether id is found
+            serialNumber, // Pass assetTag regardless of whether id is found
             delDate,
             remarks,
         };
@@ -101,28 +103,11 @@ export const DelAssetsProvider = ({ children }) => {
     setStep(step - 1)
   };
 
-  const nextStep = (values, actions) => {
-    // console.log('Manual Form Values:', values);
-    // const userLoans = {}
-    // const signatures = {};
-
-    // values.loans.forEach((loan) =>
-    //   loan.users?.forEach((user) => {
-    //     if (!userLoans[user.userId]) {
-    //       userLoans[user.userId] = {}
-    //       userLoans[user.userId].assets = [loan.asset];
-    //       userLoans[user.userId].userName = user.userName;
-    //       signatures[user.userId] = ''
-    //       console.log(signatures);
-    //     } else userLoans[user.userId].assets.push(loan.asset)
-    //   })
-    // );
-    // setUserLoans(userLoans);
-    // setFormData((prevData) => ({
-    //   ...prevData,
-    //   ...values,
-    //   signatures: signatures,
-    // }));
+  const nextStep = (values) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values
+    }));
     setStep(step + 1);
   };
 

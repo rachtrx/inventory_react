@@ -1,10 +1,9 @@
-const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, UsrLoan, AccType, AccLoan, AccReturn, Loan, Admin, Rmk } = require('../models/index.js');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
 const { Op } = require('sequelize');
 const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
-const AssetSearch = require('../search_tools/Asset.js');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -14,24 +13,7 @@ const dateTimeObject = {
     month: 'short',
     year: '2-digit'
 }
-class AssetAction {
-    static ADD = 'AVAILABLE';
-    static LOAN = 'LOAN';
-    static RETURN = 'RETURN';
-    static RESERVE = 'RESERVE';
-    static CANCEL = 'CANCEL';
-    static DELETED = 'DELETED';
-  
-    // Convert a string to enum (e.g., 'available' -> StatusEnum.AVAILABLE)
-    static fromString(status) {
-      return Object.values(AssetAction).includes(status) ? status : null;
-    }
-  
-    // Convert an enum to string (if needed)
-    static toString(enumValue) {
-      return Object.values(AssetAction).includes(enumValue) ? enumValue : null;
-    }
-}
+
 class AssetController {
 
     async getSubTypeFilters(req, res) {
@@ -61,7 +43,6 @@ class AssetController {
     }
 
     async getAllFilters(req, res) {
-    
         let options;
         try {
             if (['typeName', 'subTypeName', 'vendor'].includes(field)) {
@@ -112,7 +93,7 @@ class AssetController {
     
         let options;
         try {
-            if (['typeName', 'subTypeName', 'vendor'].includes(field)) {
+            if (['typeName', 'subTypeName', 'vendor', 'tag'].includes(field)) {
                 let meta = null;
                 switch(field) {
                     case 'typeName':
@@ -123,6 +104,9 @@ class AssetController {
                         break;
                     case 'vendor':
                         meta = [Vendor, 'vendorName', 'id'];
+                        break;
+                    case 'tag':
+                        meta = [AstTag, 'tagName', 'id'];
                         break;
                     default:
                         meta = null;
@@ -137,13 +121,18 @@ class AssetController {
                     SELECT DISTINCT 
                         FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
                     FROM "asts" a
-                    JOIN "events" e ON a.add_event_id = e.id;
+                    JOIN "events" e ON a.add_event_id = e.id
+                    ORDER BY FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) DESC;
                 `;
                 const distinctAges = await sequelize.query(devicesAgeQuery, {
                     type: Sequelize.QueryTypes.SELECT
                 });
                 options = createSelection(distinctAges, field, field);
-    
+                options = options.map(option => ({ 
+                    ...option, 
+                    value: String(option.value) 
+                }));
+                
             } else throw new Error()
             
             return res.json(options || [])
@@ -166,9 +155,10 @@ class AssetController {
         }
     
         const whereClause = {
-            ...(filters.serialNumber && { serialNumber: { [Op.iLike]: filters.serialNumber } }),
-            ...(filters.assetTag && { assetTag: { [Op.iLike]: filters.assetTag } }),
+            ...(filters.serialNumber && { serialNumber: { [Op.iLike]: `%${filters.serialNumber}%` } }),
+            ...(filters.assetTag && { assetTag: { [Op.iLike]: `%${filters.assetTag}%` } }),
             ...(filters.location.length > 0 && { location: filters.location }),
+            ...(filters.bookmarked && { bookmarked: 1 }),
         };
     
         try {
@@ -178,19 +168,29 @@ class AssetController {
                     'serialNumber',
                     'assetTag',
                     'location',
-                    'shared',
                     'bookmarked',
-                    'value',
+                    'value'
                 ],
                 include: [
                     {
+                        model: AstTagMap,
+                        attributes: ['id'],
+                        where: { delEventId: { [Op.eq]: null }}, 
+                        include: {
+                            model: AstTag,
+                            attributes: ['id', 'tagName'],
+                            ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
+                        },
+                        required: filters.tag.length > 0 ? true : false
+                    },
+                    {
                         model: AstSType,
                         attributes: ['subTypeName'],
-                        // ...(filters.subTypeName.length > 0 && { where: { id: { [Op.in]: filters.subTypeName } } }),
+                        ...(filters.subTypeName.length > 0 && { where: { id: { [Op.in]: filters.subTypeName } } }),
                         include: {
                             model: AstType,
                             attributes: ['typeName'],
-                            // ...(filters.typeName.length > 0 && { where: { id: { [Op.in]: filters.typeName } } }),
+                            ...(filters.typeName.length > 0 && { where: { id: { [Op.in]: filters.typeName } } }),
                             required: true,
                         },
                         required: true,
@@ -216,16 +216,12 @@ class AssetController {
                         attributes: ['id', 'returnEventId'],
                         include: {
                             model: Loan,
-                            attributes: ['id', 'reserveEventId', 'loanEventId'],
-                            include: {
-                                model: UsrLoan,
-                                attributes: ['id'],
-                                include: {
-                                    model: Usr,
-                                    attributes: ['id', 'userName', 'bookmarked'],
-                                },
-                            },
+                            attributes: ['id', 'reserveEventId', 'loanEventId', 'filepath'],
                             where: { cancelEventId: null },
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName', 'bookmarked'],
+                            },
                         },
                         where: { returnEventId: null },
                         required: false
@@ -236,25 +232,29 @@ class AssetController {
     
             if (filters.age.length > 0) {
                 query = query.filter(asset => {
-                    const assetAge = Math.floor((new Date() - new Date(asset.addedDate)) / (365.25 * 24 * 60 * 60 * 1000));
-                    return filters.age.includes(assetAge);
+                    const assetAge = Math.floor((new Date() - new Date(asset.AddEvent.eventDate)) / (365.25 * 24 * 60 * 60 * 1000));
+                    return filters.age.includes(String(assetAge));
                 });
             }
+
+            let result = query.map(assetRow => {
+                const asset = new AssetDTO(assetRow);
+                return asset;
+            });
     
             if (filters.status.length > 0) {
-                query = query.filter(asset => {
-                    const hasLoan = asset.AstLoans.some(loan => !loan.UsrLoan.returnEventId && loan.UsrLoan.loanEventId);
-                    const isShared = asset.shared;
+                result = result.filter(asset => {
+                    const hasLoan = asset.ongoingLoan ? true : false;
 
                     // next line: dont need to filter out cancelled reservations (done in query already) 
-                    const isReserved = asset.AstLoans && asset.AstLoans.some(loan => loan.UsrLoan.reserveEventId && !loan.UsrLoan.loanEventId);
-                    const isDeleted = asset.DeleteEvent !== null;
+                    const isReserved = asset.ongoingReservation ? true : false;
+                    const isDeleted = asset.delEventId ? true : false;
         
                     if (filters.status.includes('Condemned') && isDeleted) {
                         return true;
                     }
         
-                    if (filters.status.includes('Available') && (isShared || !hasLoan && !isDeleted)) {
+                    if (filters.status.includes('Available') && (!hasLoan && !isDeleted)) {
                         return true;
                     }
         
@@ -262,7 +262,7 @@ class AssetController {
                         return true;
                     }
                     
-                    if (filters.status.includes('Unavailable') && !isShared && (isReserved || hasLoan)) {
+                    if (filters.status.includes('Unavailable') && (isReserved || hasLoan)) {
                         return true;
                     }
         
@@ -270,49 +270,12 @@ class AssetController {
                 });
             }
     
-            const result = query.map(assetRow => {
-                const asset = new AssetDTO(assetRow);
-                return asset;
-            });
-    
             logger.info(result.slice(100, 110));
             res.json(result);
         } catch (error) {
             logger.error(error)
             console.error(error);
             res.status(500).json({ message: 'Internal Server Error' });
-        }
-    }
-
-    searchAssetsAvailable = async (req, res) => {
-        try {
-            const { value, mode } = req.query;
-
-            const search = new AssetSearch(value, false)
-
-            const data = await search.run()
-            res.json(data);
-
-        } catch (error) {
-            logger.error('Error fetching assets:', error)
-            console.error('Error fetching assets:', error);
-            res.status(500).send('Internal Server Error');
-        }
-    }
-    
-    searchAssetsLoaned = async (req, res) => {
-        try {
-            const { value, userId, mode } = req.query;
-    
-            const search = new AssetSearch(value, true, userId)
-
-            const data = await search.run()
-            res.json(data);
-        
-        } catch (error) {
-            logger.error('Error fetching assets:', error)
-            console.error('Error fetching assets:', error);
-            res.status(500).send('Internal Server Error');
         }
     }
     
@@ -354,23 +317,19 @@ class AssetController {
 
             if (asset.history && asset.history.length > 0) {
 
-                asset.currentUsers = asset.history.find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.loan.userLoans.map(userLoan => userLoan.user) || [];
+                asset.currentUser = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
+                    .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.loan.user
 
                 asset.pastUsers = Array.from(
                     new Map(
                         asset.history
                             .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent) // Filter events with returnEvent
-                            .flatMap(event => event.loan.userLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
+                            .map(event => [event.loan.user.userId, event.loan.user])
                     ).values()
                 );
 
-                asset.reservedUsers = Array.from(
-                    new Map(
-                        asset.history
-                            .filter(event => event.reservation && !event.reservation.cancelEvent)
-                            .flatMap(event => event.reservation.userLoans.map(userLoan => [userLoan.user.userId, userLoan.user]))
-                    ).values()
-                );
+                asset.reservedUser = asset.history
+                    .find(event => event.loan?.astLoan && !event.loan.loanEventId)?.loan.user
             }
 
             res.json(asset);
@@ -423,7 +382,12 @@ class AssetController {
                     model: Loan,
                     as: 'Loan',
                     required: false,
+                    attributes: ['filepath'],
                     include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName', 'bookmarked']
+                        },
                         {
                             model: AstLoan,
                             attributes: ['id'],
@@ -456,21 +420,18 @@ class AssetController {
                                 }
                             ]
                         },
-                        {
-                            model: UsrLoan,
-                            attributes: ['filepath'],
-                            include: {
-                                model: Usr,
-                                attributes: ['id', 'userName', 'bookmarked']
-                            }
-                        }
                     ]
                 },
                 {
                     model: Loan,
                     required: false,
                     as: 'Reservation',
+                    where: { loanEventId: { [Op.eq]: null }},
                     include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName', 'bookmarked']
+                        },
                         {
                             model: Event,
                             as: 'CancelEvent',
@@ -491,14 +452,6 @@ class AssetController {
                                     attributes: ['id', 'accessoryName']
                                 }
                             ]
-                        },
-                        {
-                            model: UsrLoan,
-                            attributes: ['filepath'],
-                            include: {
-                                model: Usr,
-                                attributes: ['id', 'userName', 'bookmarked']
-                            }
                         }
                     ]
                 }
@@ -527,7 +480,7 @@ class AssetController {
                 res.status(404).json({ message: "Ast not found" });
             }
         } catch (error) {
-            res.json({ error: "An error occurred while updating the bookmark" });
+            res.status(500).send("An error occurred while updating the bookmark")
         }
     };
 }

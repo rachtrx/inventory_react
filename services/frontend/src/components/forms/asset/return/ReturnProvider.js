@@ -20,7 +20,9 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
 
   const { values, setFieldValue } = useFormikContext();
 
-  const [ currentLoan, setCurrentLoan ] = useState(null)
+  const [ currentLoan, setCurrentLoan ] = useState(null);
+  
+  const [ expectedReturnDate, setExpectedReturnDate ] = useState(null);
 
   console.log(values);
 
@@ -32,6 +34,8 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
       returnIndex, 
       returnHelpers, 
       removeReturn,
+      expectedReturnDate,
+      setExpectedReturnDate,
       currentLoan,
       setCurrentLoan
     }}>
@@ -39,7 +43,8 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
         {`Loan #${returnIndex + 1}`}
       </ResponsiveText>
 
-      {ret?.loanId ? <ManageReturn/> : <ReturnSearch/>}
+      <ReturnSearch/>
+      {ret.loanId && <ManageReturn/>}
       
       <Flex mt={2} gap={4} justifyContent="space-between">
         {values.returns.length > 1 && (

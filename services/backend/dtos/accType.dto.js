@@ -10,11 +10,13 @@ class AccTypeDTO {
         accessoryName,
         stock,
         isMatching=null,
+        remarks,
         AccTxns,
         AccLoans
     }) {
+        if (isMatching !== null) this.isMatching = isMatching;
 
-        this.isMatching = isMatching;
+        if (remarks !== null) this.remarks = remarks;
 
         if (id) this.accessoryTypeId = id;
         

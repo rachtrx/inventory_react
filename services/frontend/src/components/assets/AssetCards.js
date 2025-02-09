@@ -14,7 +14,6 @@ import StarButton from '../buttons/StarButton';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
-import SharedButton from '../buttons/SharedButton';
 
 function AssetCards({items}) {
     
@@ -37,24 +36,15 @@ function AssetCards({items}) {
                                     <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.typeName}</ResponsiveText>
                                     <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
-                                <Box display="inline-flex" flexWrap="wrap" gap={2}>
-                                    {asset.ongoingLoan?.userLoans.map((userLoan) => (
-                                        <UserLink user={userLoan.user} />
-                                    ))}
-                                </Box>
+                                {asset.ongoingLoan && <UserLink 
+                                    user={asset.ongoingLoan.user} 
+                                />}
                             </VStack>
                             
-                            <VStack alignSelf='flex-start'>
-                                <StarButton
-                                    id={asset.assetId}
-                                    isBookmarked={asset.bookmarked}
-                                />
-                                <SharedButton
-                                    id={asset.assetId}
-                                    isShared={asset.shared}
-                                    userCount={asset.users?.length || 0}
-                                />
-                            </VStack>
+                            <StarButton
+                                id={asset.assetId}
+                                isBookmarked={asset.bookmarked}
+                            />
                         </Flex>
                     </CardBody>
                     

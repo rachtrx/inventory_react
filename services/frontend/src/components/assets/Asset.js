@@ -13,13 +13,11 @@ const Asset = ({ asset }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
   const { setFormType } = useFormModal()
 
-  const currentUsers = asset.currentUsers;
   const pastUsers = asset.pastUsers;
-  const reservedUsers = asset.reservedUsers;
 
   const status = asset.delEventId ? AssetStatus.DELETED : 
-    asset.currentUsers && asset.currentUsers.length > 0 ? AssetStatus.LOANED : 
-    asset.reservedUsers && asset.reservedUsers.length > 0 ? AssetStatus.RESERVED : 
+    asset.currentUser ? AssetStatus.LOANED : 
+    asset.reservedUser ? AssetStatus.RESERVED : 
     AssetStatus.AVAILABLE;
 
 	return (
@@ -75,34 +73,32 @@ const Asset = ({ asset }) => {
           gap={4}
           width="100%"
         >
-            <Heading as="h2" size="sm" mb="2">
-              {asset.shared ? 'Current Users: ' : 'Current User: '}
-            </Heading>
+            <Heading as="h2" size="sm" mb="2">Current User</Heading>
             <Box>
-            {currentUsers?.map(user => (
+            {asset.currentUser && (
               <>
-                <UserLink user={user} isCopy={false} />
+                <UserLink key={asset.currentUser.userId} user={asset.currentUser} isCopy={false} />
                 <AssetActionButton
                   key={FormType.RETURN} 
                   formType={FormType.RETURN} 
                   asset={asset} 
                 />
               </>
-            ))}
+            )}
             </Box>
 
             <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
-                <UserLink isCopy={false} user={user} />
+                <UserLink key={user.userId} isCopy={false} user={user} />
               ))}
             </Flex>
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
-            {reservedUsers?.map(user => (
-              <UserLink isCopy={false} user={user} />
-            ))}
+            {asset.reservedUser && (
+              <UserLink key={asset.reservedUser.userId} isCopy={false} user={asset.reservedUser} />
+            )}
             </Box>
         </Grid>
       </Flex>

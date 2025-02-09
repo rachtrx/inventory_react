@@ -47,7 +47,7 @@ function AccessoryCards({ items }) {
                     />
                   </Box>
                 </Flex>
-                <Flex justifyContent='space-evenly' alignSelf='stretch' gap={1}>
+                <Flex direction="column" justifyContent='space-evenly' alignSelf='stretch' gap={1}>
                   <Flex gap={1}>
                     <CircleText
                       text={accessoryType.registeredCount ? accessoryType.registeredCount : 0}

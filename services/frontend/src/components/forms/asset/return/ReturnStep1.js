@@ -30,6 +30,7 @@ const ReturnStep1 = () => {
   
       // Validate 'returns' for duplicate assetIds and assetTag !== assetId
       values.returns.forEach((ret, returnIndex) => {
+
         // Check for duplicate assetIds
         if (ret.asset.assetId && assetIds.has(ret.asset.assetId)) {
           errors.returns = errors.returns || {};
@@ -42,17 +43,17 @@ const ReturnStep1 = () => {
         }
   
         // Check if assetTag equals assetId
-        if (ret.search && !ret.loanId) {
+        if (ret.asset.serialNumber && !ret.loanId) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],
-            search: `Serial Number${ret.asset.serialNumber} was not found`
+            search: `Serial Number ${ret.asset.serialNumber} is not on loan`
           };
-        } else if (ret.asset.serialNumber && !ret.loanId) {
+        } else if (ret.search && !ret.loanId) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],
-            search: `Serial Number${ret.asset.serialNumber} is not on loan`
+            search: `Serial Number ${ret.search} was not found`
           };
         }
       });
@@ -65,7 +66,6 @@ const ReturnStep1 = () => {
         <Formik
           initialValues={formData}
           onSubmit={nextStep}
-          // validate={validate}
           validateOnChange={true}
           // validateOnBlur={true}
           innerRef={formRef}

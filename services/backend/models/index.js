@@ -6,6 +6,12 @@ const configData = require('../config/config.json');
 const config = configData[process.env.NODE_ENV || 'development'];
 const logger = require('../logging.js');
 
+const AstTagModel = require('./AstTag.js')
+const AstTagMapModel = require('./AstTagMap.js')
+
+const UsrTagModel = require('./UsrTag.js')
+const UsrTagMapModel = require('./UsrTagMap.js')
+
 const AdminModel = require('./Admin.js');
 const EventModel = require('./Event.js');
 const RemarkModel = require('./Rmk.js');
@@ -13,7 +19,6 @@ const LoanModel = require('./Loan.js');
 
 const DeptModel = require('./Dept.js');
 const UserModel = require('./Usr.js');
-const UserLoanModel = require('./UsrLoan.js');
 
 const AssetTypeModel = require('./AstType.js');
 const AssetTypeVariantModel = require('./AstSType.js');
@@ -28,7 +33,6 @@ const AccessoryReturnModel = require('./AccReturn.js');
 
 const SubTypeAccessoryModel = require('./AstSTypeAcc.js');
 const TypeAccessoryModel = require('./AstTypeAcc.js');
-const AccReturn = require('./AccReturn.js');
 
 let sequelize;
 if (config.use_env_variable) {
@@ -38,6 +42,12 @@ if (config.use_env_variable) {
 }
 
 const db = {
+  AstTag: AstTagModel(sequelize),
+  AstTagMap: AstTagMapModel(sequelize),
+
+  UsrTag: UsrTagModel(sequelize),
+  UsrTagMap: UsrTagMapModel(sequelize),
+
   Admin: AdminModel(sequelize),
   Event: EventModel(sequelize),
   Rmk: RemarkModel(sequelize),
@@ -45,7 +55,6 @@ const db = {
 
   Dept: DeptModel(sequelize),
   Usr: UserModel(sequelize),
-  UsrLoan: UserLoanModel(sequelize),
 
   AstType: AssetTypeModel(sequelize),
   AstSType: AssetTypeVariantModel(sequelize),
@@ -61,6 +70,29 @@ const db = {
   AstSTypeAcc: SubTypeAccessoryModel(sequelize),
   AstTypeAcc: TypeAccessoryModel(sequelize)
 };
+
+// TAGS
+db.Ast.hasMany(db.AstTagMap, { foreignKey: 'assetId' })
+db.AstTagMap.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' })
+
+db.AstTag.hasMany(db.AstTagMap, { foreignKey: 'tagId' })
+db.AstTagMap.belongsTo(db.AstTag, { foreignKey: 'tagId', targetKey: 'id' })
+
+db.Event.hasOne(db.AstTagMap, { as: 'AddedAstTag', foreignKey: 'addEventId' });
+db.Event.hasOne(db.AstTagMap, { as: 'DeletedAstTag', foreignKey: 'delEventId' });
+db.AstTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
+db.AstTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
+
+db.Usr.hasMany(db.UsrTagMap, { foreignKey: 'userId' })
+db.UsrTagMap.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' })
+
+db.UsrTag.hasMany(db.UsrTagMap, { foreignKey: 'tagId' })
+db.UsrTagMap.belongsTo(db.UsrTag, { foreignKey: 'tagId', targetKey: 'id' })
+
+db.Event.hasOne(db.UsrTagMap, { as: 'AddedUsrTag', foreignKey: 'addEventId' });
+db.Event.hasOne(db.UsrTagMap, { as: 'DeletedUsrTag', foreignKey: 'delEventId' });
+db.UsrTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
+db.UsrTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 
 // USERS
 db.Dept.hasMany(db.Usr, { foreignKey: 'deptId' });
@@ -84,17 +116,11 @@ db.AccTxn.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id'
 db.AccType.hasMany(db.AccLoan, { foreignKey: 'accessoryTypeId' });
 db.AccLoan.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
-
-
 db.Ast.hasMany(db.AstLoan, { foreignKey: 'assetId' });
 db.AstLoan.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' });
 
-db.Usr.hasMany(db.UsrLoan, { foreignKey: 'userId' });
-db.UsrLoan.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' });
-
-// One-to-Many relationship between Loan and Loan and Ast / Acc
-db.Loan.hasMany(db.UsrLoan, { foreignKey: 'loanId' });
-db.UsrLoan.belongsTo(db.Loan, { foreignKey: 'loanId', targetKey: 'id' });
+db.Usr.hasMany(db.Loan, { foreignKey: 'userId' });
+db.Loan.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' });
 
 db.Loan.hasOne(db.AstLoan, { foreignKey: 'loanId' });
 db.AstLoan.belongsTo(db.Loan, { foreignKey: 'loanId', targetKey: 'id' }); // TODO remove?

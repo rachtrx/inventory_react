@@ -3,10 +3,12 @@ import { LoanStep2 } from "./LoanStep2";
 import { LoanStep1 } from "./LoanStep1";
 import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
-import { createNewLoan } from "./Loan";
+import { createNewLoan, createNewUser } from "./LoanUser";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
+import userService from "../../../../services/UserService";
+import accessoryService from "../../../../services/AccessoryService";
 
 // Create a context
 const LoansContext = createContext();
@@ -21,7 +23,7 @@ export const LoansProvider = ({ children }) => {
   const [userOptions, setUserOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
   const [formData, setFormData] = useState({
-    loans: [createNewLoan()],
+    users: [createNewUser()],
     signatures: {},
   });
   const [userLoans, setUserLoans] = useState({});
@@ -36,15 +38,14 @@ export const LoansProvider = ({ children }) => {
         setAssetOptions([{value: initialValues.serialNumber, label: initialValues.serialNumber, assetId: initialValues.assetId}])
       }
       
-      const users = []
+      const user = []
       if(initialValues.userId) {
-        users.push(initialValues)
+        user.push(initialValues)
         setUserOptions([{value: initialValues.userName, label: initialValues.userName, userId: initialValues.userId}])
       }
       
       setFormData({
-        loans: [createNewLoan(asset, users)],
-        signatures: {},
+        users: [createNewUser(user)]
       });
     }
   }, [initialValues, setFormData]);
@@ -64,102 +65,94 @@ export const LoansProvider = ({ children }) => {
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
     try {
+      const serialNumbers = new Set();
+      const userNames = new Set();
+      const accessoryNames = new Set();
 
-        const serialNumbers = new Set();
-        const userNames = new Set();
-        const accessoryNames = new Set();
+      const userToRowMap = {};
 
-        records.forEach((record) => {
-          // Trim and add asset tags to the set
-          record.serialNumber = record.serialNumber?.trim();
-          if (record.serialNumber) {
-              if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
-              else serialNumbers.add(record.serialNumber);
-          } else throw new Error (`Asset Tag required at line ${record.__rowNum__}`)
-          
-          // Process and add user names to the set
-          if (!record.userNames) throw new Error (`Usernames required at line ${record.__rowNum__}`)
-          record.userNames = record.userNames 
-              ? [...new Set(record.userNames.split(',').map(user => {
-                  const trimmedUser = user.trim();
-                  userNames.add(trimmedUser); // Add each user to the userNames set
-                  return trimmedUser;
-              }))]
-              : [];
-      
-          // Process accessoryTypes
-          const accessoryTypes = processAccessories(record.accessoryTypes);
-          record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
-              accessoryNames.add(name);
-              return { accessoryName: name, count: count };
-          });
-          
-          if (record.expectedReturnDate) {
-            record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
-          }
+      records.forEach((record, idx) => {
+        // Process and add user names to the set
+        if (!record.userName) throw new Error (`Username required at line ${record.__rowNum__}`)
+        record.userName = record.userName.trim();
+        userNames.add(record.userName);
+
+        // Trim and add asset tags to the set
+        record.serialNumber = record.serialNumber?.trim();
+        if (record.serialNumber) {
+            if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
+            else serialNumbers.add(record.serialNumber);
+        } else throw new Error (`Serial Number required at line ${record.__rowNum__}`)
+    
+        // Process accessoryTypes
+        const accessoryTypes = processAccessories(record.accessoryTypes);
+        record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
+            accessoryNames.add(name);
+            return { accessoryName: name, count: count };
         });
-
-        const assetResponse = await handleAssetSearch([...serialNumbers]);
-        const userResponse = await handleUserSearch([...userNames]);
-        const newAssetOptions = assetResponse.data;
-        const newUserOptions = userResponse.data;
-
-        let newAccessoryoptions = [];
-        if (accessoryNames.size !== 0) {
-          const accessoryResponse = await handleAccessorySearch([...accessoryNames]);
-          newAccessoryoptions = accessoryResponse.data;
+        
+        if (record.expectedReturnDate) {
+          record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
         }
 
-        setAssetOptions(newAssetOptions);
-        setUserOptions(newUserOptions);
-        setAccessoryOptions(newAccessoryoptions);
-    
-        // Convert grouped records into loans
-        const loans = records.map(({ serialNumber, userNames, accessoryTypes, expectedReturnDate, remarks }) => {
-            // Find the asset ID based on serialNumber
-            const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
-            console.log(matchedAssetOption);
-            const assetObj = {
-                assetId: matchedAssetOption ? matchedAssetOption.assetId : '',
-                serialNumber: matchedAssetOption?.value || serialNumber // Pass serialNumber regardless of whether id is found
-            };
-        
-            // Find the user IDs based on userNames (assuming userNames is an array of names)
-            const userObjs = userNames.map(userName => {
-                const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
-                console.log(matchedUserOption);
-                return {
-                    userId: matchedUserOption ? matchedUserOption.userId : '',
-                    userName: matchedUserOption?.value || userName // Pass userName regardless of whether id is found
-                };
-            });
-        
-            // Find the accessoryType IDs based on accessoryType names (assuming accessoryTypes is an array of names)
-            const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
-                const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
-                return {
-                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.accessoryTypeId : '',
-                  accessoryName: matchedAccessoryOption?.value || accessoryName, // Pass accessoryName regardless of whether id is found
-                  count: count
-                };
-            });
+        if (!userToRowMap[record.userName]) userToRowMap[record.userName] = [idx];
+        else userToRowMap[record.userName].push(idx);
+      });
 
-            console.log(accessoryObjs);
+      const assetResponse = await assetService.fetchAstLoan([...serialNumbers]);
+      console.log(assetResponse.data);
+      const userResponse = await userService.fetchUserLoan([...userNames]);
+      const newAssetOptions = assetResponse.data;
+      const newUserOptions = userResponse.data;
+
+      let newAccessoryoptions = [];
+      if (accessoryNames.size !== 0) {
+        const accessoryResponse = await accessoryService.fetchAccLoan([...accessoryNames]);
+        newAccessoryoptions = accessoryResponse.data;
+      }
+
+      setAssetOptions(newAssetOptions);
+      setUserOptions(newUserOptions);
+      setAccessoryOptions(newAccessoryoptions);
+  
+      // Convert grouped records into loans
+      const users = Object.entries(userToRowMap).map(([userName, rowIdxs]) => {
+
+        // Find the user IDs based on userNames (assuming userNames is an array of names)
+        const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
+        console.log(matchedUserOption);
+        const userObj = matchedUserOption || {userName};
+
+        userObj.loans = []
         
-            // Create a new loan using the objects with both id and original values
-            return createNewLoan(
-                assetObj,    // Pass object with assetId and serialNumber
-                userObjs,    // Pass array of objects with userId and userName
-                accessoryObjs, // Pass array of objects with accessoryTypeId and accessoryName
-                expectedReturnDate,
-                remarks
-            );
-        });
-    
-      console.log(loans);
+        for (const rowIdx of rowIdxs) {
+          const { serialNumber, accessoryTypes, expectedReturnDate, remarks } = records[rowIdx];
+
+          const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
+          console.log(matchedAssetOption);
+          const assetObj = matchedAssetOption || {serialNumber: serialNumber}; // Pass serialNumber regardless of whether id is found
+
+          const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
+            const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
+            return matchedAccessoryOption || {
+              accessoryName, // Pass accessoryName regardless of whether id is found
+              count: count
+            }
+          });
+          console.log(accessoryObjs);
+
+          userObj.loans.push({
+            asset: assetObj,
+            accessories: accessoryObjs,
+            expectedReturnDate: expectedReturnDate,
+            remarks: remarks
+          })
+        }
+        return userObj;
+      })
     
       setFormData({
-        loans: loans
+        users: users.map(user => createNewUser(user))
       });
     } catch (error) {
       handleError(error);
@@ -172,30 +165,7 @@ export const LoansProvider = ({ children }) => {
 
   const nextStep = (values, actions) => {
     console.log('Manual Form Values:', values);
-    const userLoans = {}
-    const signatures = {};
-
-    values.loans.forEach((loan) =>
-      loan.users?.forEach((user) => {
-
-        if (!userLoans[user.userId]) {
-          userLoans[user.userId] = {
-            loans: [loan],
-            userName: user.userName
-          }
-          signatures[user.userId] = ''
-          console.log(signatures);
-        } else {
-          userLoans[user.userId].loans.push(loan)
-        }
-      })
-    );
-    setUserLoans(userLoans);
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values,
-      signatures: signatures,
-    }));
+    setFormData(values);
     setStep(step + 1);
   };
 

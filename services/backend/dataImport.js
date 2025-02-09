@@ -122,7 +122,6 @@ async function main(data) {
         });
    
     const remarksArr = []
-    const userLoansArr = []
     const assetLoansArr = []
     const loansArr = []
     
@@ -167,13 +166,6 @@ async function main(data) {
             loansArr.push({
                 id: loanId,
                 loanEventId: loanEvent.id,
-            })
-
-            const userLoanId = generateSecureID();
-
-            userLoansArr.push({
-                id: userLoanId,
-                loanId: loanId,
                 userId: loanEvent.userId,
                 filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
             })
@@ -199,12 +191,6 @@ async function main(data) {
         loansArr.push({
             id: loanId,
             loanEventId: loanEvent.id,
-        })
-    
-        const userLoanId = generateSecureID();
-        userLoansArr.push({
-            id: userLoanId,
-            loanId: loanId,
             userId: userId,
             filepath: loanEvent.filepath,
         })
@@ -227,7 +213,6 @@ async function main(data) {
         await db.Ast.bulkCreate(newAssets);
         await db.Rmk.bulkCreate(remarksArr);
         await db.Loan.bulkCreate(loansArr);
-        await db.UsrLoan.bulkCreate(userLoansArr);
         await db.AstLoan.bulkCreate(assetLoansArr);
     }
     

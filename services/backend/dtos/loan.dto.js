@@ -5,9 +5,10 @@ class LoanDTO {
     
     constructor({
         id,
+        loanEventId,
         reserveEventId, 
         cancelEventId, 
-        loanEventId,
+        filepath=null,
         ReserveEvent,
         CancelEvent,
         LoanEvent,
@@ -15,15 +16,15 @@ class LoanDTO {
         expectedLoanDate, 
         AstLoan,
         AccLoans,
-        UsrLoans
+        Usr,
     },
     includeReturnDetails = false
     ) {
         this.loanId = id;
 
+        if (loanEventId) this.loanEventId = loanEventId;
         if (reserveEventId) this.reserveEventId = reserveEventId;
         if (cancelEventId) this.cancelEventId = cancelEventId;
-        if (loanEventId) this.loanEventId = loanEventId;
         if (expectedReturnDate) this.expectedReturnDate = expectedReturnDate;
         if (expectedLoanDate) this.expectedLoanDate = expectedLoanDate;
 
@@ -41,9 +42,13 @@ class LoanDTO {
             this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
         }
 
-        if (UsrLoans) {
-            const UserLoanDTO = require("./usrLoan.dto");
-            this.userLoans = UsrLoans.map(usrLoan => new UserLoanDTO(usrLoan));
+        if (filepath !== null) {
+            this.filepath = filepath;
+        }
+
+        if (Usr) {
+            const UserDTO = require("./usr.dto");
+            this.user = new UserDTO(Usr);
         }
 
         if (includeReturnDetails) this.generateReturnEvents()

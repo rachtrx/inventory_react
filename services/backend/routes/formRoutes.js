@@ -4,6 +4,8 @@ const formAssetController = require('../controllers/formAssetController.js');
 const formUserController = require('../controllers/formUserController.js');
 const multer = require('multer');
 const path = require('path');
+const formAssetTagController = require('../controllers/formAssetTagController.js');
+const formUserTagController = require('../controllers/formUserTagController.js');
 
 const router = express.Router();
 
@@ -35,16 +37,34 @@ router.get('/return', formLoanReturnController.loadReturn);
 
 router.get('/return/accessory', formLoanReturnController.loadAccReturn);
 router.get('/return/asset', formLoanReturnController.loadAstReturn);
+router.get('/delete/asset', formLoanReturnController.loadAstDel);
+router.get('/loan/asset', formLoanReturnController.loadAstLoan);
+router.get('/loan/user', formLoanReturnController.loadUsrLoan);
+router.get('/loan/accessory', formLoanReturnController.loadAccLoan); //
 router.get('/return/user', formLoanReturnController.loadUserReturn);
-router.get('/return', formLoanReturnController.loadReturn);
 
+router.get('/return', formLoanReturnController.loadReturn);
 router.post('/return', formLoanReturnController.return);
 
-router.use('/addAsset', formAssetController.add);
-router.use('/condemnAsset', formAssetController.condemn);
+router.post('/add/asset', formAssetController.add);
 
-router.use('/addUser', formUserController.add);
-router.use('/removeUser', formUserController.remove)
+router.get('/del/asset', formLoanReturnController.loadAstDel);
+router.post('/del/asset', formAssetController.del);
+
+router.post('/add/user', formUserController.add);
+router.post('/del/user', formUserController.del)
+
+router.get('/tag/asset', formAssetTagController.loadAddAssets)
+router.get('/untag/asset', formAssetTagController.loadDelAssets)
+
+router.post('/tag/asset', formAssetTagController.addAssetTag)
+router.post('/untag/asset', formAssetTagController.delAssetTag)
+
+router.get('/tag/user', formUserTagController.loadAddUsers)
+router.get('/untag/user', formUserTagController.loadDelUsers)
+
+router.post('/tag/user', formUserTagController.addUserTag)
+router.post('/untag/user', formUserTagController.delUserTag)
 
 router.post('/download', formLoanReturnController.downloadEvent);
 

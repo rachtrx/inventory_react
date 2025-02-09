@@ -16,7 +16,9 @@ class AssetService {
         "location": [],
         "age": [],
         "serialNumber": '',
-        "assetTag": ''
+        "assetTag": '',
+        "bookmarked": false,
+        "tag": [],
     }
 
     async getItem(id) {
@@ -54,6 +56,24 @@ class AssetService {
             }
         });
     }
+
+    async fetchAstLoan(serialNumbers) {
+        console.log(serialNumbers);
+        return await this.axios.get(`${API_URL}/forms/loan/asset`, {
+            params: {
+                serialNumbers,
+            }
+        });
+    }
+
+    async fetchAstDel(serialNumbers) {
+        console.log(serialNumbers);
+        return await this.axios.get(`${API_URL}/forms/del/asset`, {
+            params: {
+                serialNumbers,
+            }
+        });
+    }
     
     async returnAsset(formData) {
         console.log(formData);
@@ -62,23 +82,42 @@ class AssetService {
 
     async addAsset(formData) {
         // downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/assets/add`, formData);;
+        return await this.axios.post(`${API_URL}/forms/add/asset`, formData);;
     }
 
     async delAsset(formData) {
-        downloadFormData(formData);
-        // return await this.axios.delete(`${API_URL}/assets/condemn`, formData);
+        // downloadFormData(formData);
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/del/asset`, formData);
     }
 
-    async searchAssets(value, formType, mode) {
+    fetchTagAsset = async(serialNumbers, tagId=null) => {
+        return await this.axios.get(`${API_URL}/forms/tag/asset`, {
+            params: {
+                serialNumbers,
+                tagId,
+            }
+        });
+    }
 
-        const params = { value, mode }
+    fetchUntagAsset = async (serialNumbers, tagId=null) => {
+        return await this.axios.get(`${API_URL}/forms/untag/asset`, {
+            params: {
+                serialNumbers,
+                tagId,
+            }
+        });
+    }
 
-        if (formType === FormType.DEL_ASSET || formType === FormType.LOAN) {
-            return await this.axios.get(`${API_URL}/assets/search/available`, {params});
-        } else if (formType === FormType.RETURN) {
-            return await this.axios.get(`${API_URL}/assets/search/loaned`, {params});
-        } else throw new Error("Form Type not found")
+    async tagAsset(formData) {
+        // downloadFormData(formData);
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/tag/asset`, formData);
+    }
+
+    async untagAsset(formData) {
+        console.log(formData);
+        return await this.axios.post(`${API_URL}/forms/untag/asset`, formData);
     }
 }
 

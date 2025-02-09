@@ -5,7 +5,7 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import assetService from "../../../../services/AssetService";
 import { useUI } from "../../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { LoanType } from "./Loan";
+import { LoanType } from "./LoanUser";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
 import { setFieldError } from "../../utils/validation";
@@ -23,32 +23,17 @@ export const LoanStep1 = () => {
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
     
-    const validateUniqueAssetIDs = (loans) => {
+    const validateUniqueAssetIDs = (assets) => {
       const assetIDSet = new Set();
       const duplicates = new Set();
-      loans.forEach(loan => {
-				if (loan.asset['assetId'] === '') return;
-				if (assetIDSet.has(loan.asset['assetId'])) {
-					duplicates.add(loan.asset['assetId']);
-				}
-				assetIDSet.add(loan.asset['assetId']);
+      assets.forEach(asset => {
+				if (asset['assetId'] === '') return;
+        if (assetIDSet.has(asset['assetId'])) {
+          duplicates.add(asset['assetId']);
+        }
+        assetIDSet.add(asset['assetId']);
       });
       // console.log('Duplicate Assets');
-      // console.log(duplicates);
-      return duplicates;
-    };
-  
-    const validateUniqueUserIDs = (users) => {
-      const userIDSet = new Set();
-      const duplicates = new Set();
-      users.forEach(user => {
-        if (user['userId'] === '') return;
-          if (userIDSet.has(user['userId'])) {
-            duplicates.add(user['userId']);
-          }
-          userIDSet.add(user['userId']);
-      });
-      // console.log('Duplicate Users');
       // console.log(duplicates);
       return duplicates;
     };
@@ -69,18 +54,11 @@ export const LoanStep1 = () => {
       return duplicates;
     }
     
-    const validateUser = (user, userIDDuplicates) => {
-      if (userIDDuplicates.has(user['userId'])) return 'Users must be unique for each loan';
-      if (!user['userId'] && user['userName']) return `${user['userName']} is not found / ambiguous.`;
-      if (!user['userId']) return 'User is Required';
-      return null;
-    };
-    
-    const validateAsset = (asset, assetIDDuplicates, mode, userCount) => {
+    const validateAsset = (asset, assetIDDuplicates) => {
       if (assetIDDuplicates.has(asset['assetId'])) return 'Asset must be unique for each loan';
-      if (!asset['assetId'] && asset['serialNumber']) return `${asset['serialNumber']} is not found / is ambiguous`;
+      if (!asset['assetId'] && asset['serialNumber']) return `${asset['serialNumber']} is not found`;
       if (!asset['assetId']) return 'Asset is Required';
-      if (mode === LoanType.SINGLE && userCount > 1) return `${asset.serialNumber} is not a shared asset.`;
+      if (asset['onLoan']) return `${asset['serialNumber']} is on loan`;
       return null;
     };
     
@@ -91,68 +69,61 @@ export const LoanStep1 = () => {
     };
     
     // Generate warnings based on new accessories
-    const generateWarnings = (loans, newAccessories) => {
-      return loans.reduce((acc, loan, loanIndex) => {
-          loan.accessories.forEach((accessory, accessoryIndex) => {
-            if (newAccessories[accessory.accessoryName]) {
-              setFieldError(acc, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], 
-                `New accessory will be created (${newAccessories[accessory.accessoryName]}x found in this form)`);
-            }
-          });
-        return acc;
-      }, {});
-    };
-  
+    const generateWarnings = (accessories, newAccessories={}) => {
+      return new Map(
+        accessories
+            .filter(acc => newAccessories.hasOwnProperty(acc.accessoryName)) // Check if it exists
+            .map(acc => [
+                acc.key,
+                `New accessory will be created (${newAccessories[acc.accessoryName]}x found in this form)`
+            ])
+      );
+    }
+
     const validate = values => {
 			// console.log(formRef.current?.values);
       const errors = {};
       const newAccessories = {};
   
-      const assetIDDuplicates = validateUniqueAssetIDs(values.loans);
+      const assetIDDuplicates = validateUniqueAssetIDs(values.users.flatMap(user => user.loans.map(loan => loan.asset)));
       
-      values.loans.forEach((loan, loanIndex) => {
-        const mode = loan.mode;
+      values.users.forEach((user, userIndex) => {
 
-        if (loan.expectedReturnDate && loan.expectedReturnDate < new Date()) {
-          setFieldError(errors, ['loans', loanIndex, 'expectedReturnDate'], 'Only future dates allowed');
-        }
-  
-        // Validate unique User IDs within each loan
-        const userIDDuplicates = validateUniqueUserIDs(loan.users);
-        loan.users.forEach((user, userIndex) => {
-          const userError = validateUser(user, userIDDuplicates);
-          if (userError) {
-            setFieldError(errors, ['loans', loanIndex, 'users', userIndex, 'userName'], userError);
+        if (user.userName === "") setFieldError(errors, ['users', userIndex, 'userName'], `User is required`)
+        else if (user.userId === "") setFieldError(errors, ['users', userIndex, 'userName'], `User ${user.userName} not found`);
+
+        user.loans.forEach((loan, loanIndex) => {
+          // if (loan.expectedReturnDate && loan.expectedReturnDate < new Date()) {
+          //   setFieldError(errors, ['loans', loanIndex, 'expectedReturnDate'], 'Only future dates allowed'); // TODO how to prevent return
+          // }
+
+          // Validate unique Asset IDs across all loans
+          const assetError = validateAsset(loan.asset, assetIDDuplicates);
+          if (assetError) {
+            setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
           }
-        });
-    
-        // Validate unique Asset IDs across all loans
-				const assetError = validateAsset(loan.asset, assetIDDuplicates, mode, loan.users.length);
-				if (assetError) {
-					setFieldError(errors, ['loans', loanIndex, 'asset', 'serialNumber'], assetError);
-				}
-	
-				// Validate unique Accessory IDs within each asset
-				const accessoryIDDuplicates = validateUniqueAccessoryIDs(loan.accessories);
-				loan.accessories.forEach((accessory, accessoryIndex) => {
-					const accessoryError = validateAccessory(accessory, accessoryIDDuplicates);
-					if (accessoryError) {
-						setFieldError(errors, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
-					}
-					// Track new accessories for warnings
-					if (accessory.id === '' && accessory.accessoryName) {
-						newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
-					}
-				});
+
+          // Validate unique Accessory IDs within each asset
+          const accessoryIDDuplicates = validateUniqueAccessoryIDs(loan.accessories);
+          loan.accessories.forEach((accessory, accessoryIndex) => {
+            const accessoryError = validateAccessory(accessory, accessoryIDDuplicates);
+            if (accessoryError) {
+              setFieldError(errors, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
+            }
+            // Track new accessories for warnings
+            if (accessory.id === '' && accessory.accessoryName) {
+              newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
+            }
+          });
+        })
       });
 
       console.log(errors);
     
       // Set warnings based on new accessories
-      const updatedWarnings = generateWarnings(values.loans, newAccessories);
+      const updatedWarnings = generateWarnings(values.users.flatMap(user => user.loans.flatMap(loan => loan.accessories)), newAccessories);
       console.log(updatedWarnings);
       setWarnings(updatedWarnings);
-    
       return errors;
     };
   
@@ -171,19 +142,19 @@ export const LoanStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['serialNumber', 'userNames', 'accessoryTypes', 'expectedReturnDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['serialNumber', 'userName', 'accessoryTypes', 'expectedReturnDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
-                  <FieldArray name="loans">
+                  <FieldArray name="users">
                   {loanHelpers => (
-                    values.loans.map((loan, loanIndex, array) => (
+                    values.users.map((user, userIndex, array) => (
 											// Change to single asset only
                       <LoanProvider
-                        key={loan.key}
-                        loan={loan}
-                        loanIndex={loanIndex}
-                        loanHelpers={loanHelpers}
-                        warnings={warnings?.loans?.[loanIndex]}
-                        isLast={loanIndex === array.length - 1}
+                        key={user.key}
+                        user={user}
+                        userIndex={userIndex}
+                        userHelpers={loanHelpers}
+                        warnings={warnings}
+                        isLast={userIndex === array.length - 1}
                       >
                       </LoanProvider>
                     ))

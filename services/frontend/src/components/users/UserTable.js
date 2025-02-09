@@ -35,8 +35,8 @@ const UserTable = ({ items }) => {
           >
             <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><UserLink user={user} size={'lg'} fontWeight="bold"/></Td>
-            <Td><ResponsiveText>{user.department.deptName}</ResponsiveText></Td><Td>
-              {user.userLoans?.length > 0 ? 
+            <Td><ResponsiveText>{user.deptName}</ResponsiveText></Td><Td>
+              {user.loans?.length > 0 ? 
                 <AssetList user={user}/> : 
                 <Flex>
                   <UserActionButton 

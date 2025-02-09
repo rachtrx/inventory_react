@@ -1,4 +1,4 @@
-const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan } = require('../models');
+const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
@@ -62,7 +62,7 @@ class FormAssetController {
             
                         if (!assetTypeId) {
                             const existingAssetType = await AstType.findOne({
-                                where: { typeName: { [Op.iLike]: typeName.toLowerCase() } },
+                                where: { typeName: { [Op.eq]: typeName } },
                                 attributes: ['id', 'typeName'],
                                 transaction: t,
                             });
@@ -89,7 +89,7 @@ class FormAssetController {
                                 if (!assetSubTypeId) {
                                     const existingAssetSubType = await AstSType.findOne({
                                         where: {
-                                            subTypeName: { [Op.iLike]: subTypeName },
+                                            subTypeName: { [Op.eq]: subTypeName },
                                         },
                                         include: {
                                             model: AstType,
@@ -117,10 +117,10 @@ class FormAssetController {
                                 }
             
                                 await Promise.all(
-                                    assets.map(async ({ vendor, ...rest }) => {
+                                    assets.map(async ({ vendorName, ...rest }) => {
                                         let vendorData = await Vendor.findOne({
                                             attributes: ['id'],
-                                            where: { vendorName: { [Op.iLike]: vendor } },
+                                            where: { vendorName: { [Op.iLike]: vendorName } },
                                             transaction: t,
                                         });
             
@@ -130,7 +130,7 @@ class FormAssetController {
                                             await Vendor.create(
                                                 {
                                                     id: vendorId,
-                                                    vendorName: vendor,
+                                                    vendorName: vendorName,
                                                 },
                                                 { transaction: t }
                                             );
@@ -166,9 +166,8 @@ class FormAssetController {
                                                 serialNumber: rest.serialNumber.toUpperCase(),
                                                 assetTag: rest.assetTag.toUpperCase(),
                                                 subTypeId: assetSubTypeId,
-                                                shared: rest.shared || false,
-                                                bookmarked: rest.bookmarked,
-                                                leased: rest.leased || false,
+                                                bookmarked: rest.bookmarked ? 1 : 0,
+                                                leased: rest.leased ? 1 : 0,
                                                 location: rest.location,
                                                 vendorId: vendorId,
                                                 addEventId: addEventId,
@@ -192,8 +191,11 @@ class FormAssetController {
         }
     }
 
-    async condemn (req, res) {
+    async del (req, res) {
+        console.log(req.body);
         const data = req.body.assets; // Array of asset details
+
+        console.log(data);
 
         const adminId = req.auth.id;
     
@@ -204,15 +206,14 @@ class FormAssetController {
                     if (assetIds.has(assetId)) {
                         throw new Error("Can't delete the same device!");
                     }
-                    const asset = await Ast.findByPk(assetId, {
-                        attributes: ["delEventId"],
+                    const asset = await Ast.findByPk(assetId, { // TODO combine with the search one?
                         include: {
                             model: AstLoan,
                             attributes: ["returnEventId"],
                             required: false,
-                            where: { returnEventId: { [Op.ne]: null } } // Fixed syntax for where condition
+                            where: { returnEventId: { [Op.ne]: null } }, // Fixed syntax for where condition
                         },
-                        transaction: transaction
+                        transaction: t
                     });
                     
                     if (!asset) {
@@ -248,9 +249,10 @@ class FormAssetController {
                                 id: generateSecureID(),
                                 eventId: delEventId,
                                 text: remarks,
-                                remarkDate: DateTime.now()
-                                    .setZone('Asia/Singapore')
-                                    .toJSDate(),
+                                remarkDate: delDate,
+                                // DateTime.now()
+                                //     .setZone('Asia/Singapore')
+                                //     .toJSDate(),
                                 adminId: adminId,
                             },
                             { transaction: t }
@@ -318,13 +320,13 @@ class FormAssetController {
                     assetTag = assetTag.toUpperCase()
                     serialNumber = serialNumber.toUpperCase()
                     if (await Ast.findOne({ where: { assetTag: assetTag }, transaction: t })) {
-                        throw new Error(`Ast Tag ${assetTag} already exists!`);
+                        throw new Error(`Ast AstTag ${assetTag} already exists!`);
                     }
                     if (await Ast.findOne({ where: { serialNumber: serialNumber }, transaction: t })) {
                         throw new Error(`Serial Number ${serialNumber} already exists!`);
                     }
                     if (assetTags.has(assetTag)) {
-                        throw new Error(`Duplicate Ast Tag ${assetTag}!`);
+                        throw new Error(`Duplicate Ast AstTag ${assetTag}!`);
                     }
                     if (serialNums.has(serialNumber)) {
                         throw new Error(`Duplicate Serial Number ${serialNumber}!`);

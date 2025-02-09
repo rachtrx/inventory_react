@@ -85,7 +85,7 @@ export default function Login() {
     if (admin && admin.canSetupPassword) {
       navigate('/profile', { replace: true });
     } else if (admin) {
-      navigate('/dashboard', { replace: true });
+      navigate('/assets', { replace: true });
     }
   }, [admin]);
 

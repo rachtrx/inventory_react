@@ -1,4 +1,4 @@
-const { AccLoan, Usr, UsrLoan, Ast, AstLoan, Loan, AccReturn } = require("../models");
+const { AccLoan, Usr, Ast, AstLoan, Loan, AccReturn } = require("../models");
 const { Op } = require('sequelize');
 
 class ValidationService {
@@ -48,12 +48,12 @@ class ValidationService {
                 required: false, // device is returned if not found
                 include: {
                     model: Loan,
-                    attributes: ['id', 'loanEventId'],
+                    attributes: ['id', 'loanEventId', 'userId'],
                     ...(includeReturns && {
                         include: [
                             {
-                                model: UsrLoan,
-                                attributes: ['userId']
+                                model: Usr,
+                                attributes: ['userName', 'id'],
                             },
                             {
                                 model: AccLoan,
@@ -75,7 +75,7 @@ class ValidationService {
         if (asset.serialNumber !== serialNumber) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected serialNumber: ${serialNumber}, but found: ${asset.serialNumber}`);
 
         if (asset.delEventId) {
-            throw new Error(`Asset Tag ${assetData.assetTag} is condemned!`);
+            throw new Error(`Asset AstTag ${assetData.assetTag} is condemned!`);
         }
 
         return asset;

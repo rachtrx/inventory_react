@@ -21,6 +21,10 @@ export const FormType = {
   UPDATE_ACC: 'UPDATE_ACC',
   LOAN_ACC: 'LOAN_ACC',
   RETURN_ACC: 'RETURN_ACC',
+  TAG_ASSET: 'TAG_ASSET',
+  UNTAG_ASSET: 'UNTAG_ASSET',
+  TAG_USER: 'TAG_USER',
+  UNTAG_USER: 'UNTAG_USER',
   RESERVE: 'RESERVE',
 }
 
@@ -55,25 +59,10 @@ export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
   });
 };
 
-const initialState = {
-  formType: null,
-};
-
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',
   RESET_STATE: 'RESET_STATE',
-};
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case actionTypes.SET_FORM_TYPE:
-      return { ...state, formType: action.payload };
-    case actionTypes.RESET_STATE:
-      return initialState;
-    default:
-      return state;
-  }
 };
 
 export const ModalProvider = ({ children }) => {
@@ -109,7 +98,7 @@ export const ModalProvider = ({ children }) => {
   const createTouchedStructure = useCallback((values) => {
     if (Array.isArray(values)) {
       return values.map((item) => createTouchedStructure(item));
-    } else if (typeof values === 'object' && values !== null) {
+    } else if (typeof values === 'object' && values !== null && values !== '') {
       return Object.keys(values).reduce((acc, key) => {
         acc[key] = createTouchedStructure(values[key]);
         return acc;

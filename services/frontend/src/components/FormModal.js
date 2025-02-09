@@ -22,6 +22,9 @@ import { AddUsersProvider } from './forms/user/addUser/AddUsersProvider';
 import { DelAssetsProvider } from './forms/asset/delAsset/DelAssetsProvider';
 import { DelUsersProvider } from './forms/user/delUser/DelUsersProvider';
 import UpdateAcc from './forms/accessories/updateAcc/UpdateAcc';
+import { AddAssetTagsProvider, DelAssetTagsProvider } from './forms/asset/addTag/AssetTagsProvider';
+import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/addTag/UserTagsProvider';
+// import { createDelTagsProvider } from './forms/asset/addTag/createDelTagsProvider';
 
 const formMap = {
     [FormType.ADD_ASSET]: <AddAssetsProvider/>,
@@ -31,6 +34,10 @@ const formMap = {
     [FormType.ADD_USER]: <AddUsersProvider/>,
     [FormType.DEL_USER]: <DelUsersProvider/>,
     [FormType.UPDATE_ACC]: <UpdateAcc/>,
+    [FormType.TAG_ASSET]: <AddAssetTagsProvider/>,
+    [FormType.UNTAG_ASSET]: <DelAssetTagsProvider/>,
+    [FormType.TAG_USER]: <AddUserTagsProvider/>,
+    [FormType.UNTAG_USER]: <DelUserTagsProvider/>,
     // [FormType.RESERVE]: <Reserve/>,
 }
 
@@ -42,6 +49,10 @@ const headerMap = {
     [FormType.ADD_USER]: "Add User",
     [FormType.DEL_USER]: "Remove User",
     [FormType.UPDATE_ACC]: "Update Accessory",
+    [FormType.TAG_ASSET]: "Tag Assets",
+    [FormType.UNTAG_ASSET]: "UnTag Assets",
+    [FormType.TAG_USER]: "Tag Users",
+    [FormType.UNTAG_USER]: "UnTag Users",
     [FormType.RESERVE]: "Reserve Items",
 }
 

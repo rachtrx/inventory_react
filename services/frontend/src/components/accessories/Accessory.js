@@ -53,28 +53,28 @@ const Accessory = ({ accType }) => {
             <Heading as="h2" size="sm" mb="2">Current Users:</Heading>
             <Box>
             {currentUsers?.map(user => (
-              <>
+              <Box key={user.userId}>
                 <UserLink user={user} isCopy={false} />
                 <AssetActionButton
                   key={FormType.RETURN} 
                   formType={FormType.RETURN} 
                   accType={accType} 
                 />
-              </>
+              </Box>
             ))}
             </Box>
 
             <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
-                <UserLink isCopy={false} user={user} />
+                <UserLink key={user.userId} isCopy={false} user={user} />
               ))}
             </Flex>
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
             {reservedUsers?.map(user => (
-              <UserLink isCopy={false} user={user} />
+              <UserLink key={user.userId} isCopy={false} user={user} />
             ))}
             </Box>
         </Grid>

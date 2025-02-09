@@ -1,7 +1,6 @@
 const logger = require('../logging.js');
 const Sequelize = require('sequelize');
 const AstLoan = require('./AstLoan.js');
-const UsrLoan = require('./UsrLoan.js');
 const AccLoan = require('./AccLoan.js');
 const { DataTypes, Model } = Sequelize;
 
@@ -12,6 +11,17 @@ module.exports = (sequelize) => {
 		id: {
 			type: DataTypes.STRING,
 			primaryKey: true,
+		},
+		userId: {
+			type: DataTypes.STRING,
+			references: {
+                model: 'usrs',
+                key: 'id'
+            },
+		},
+		filepath: {
+			type: DataTypes.STRING,
+			allowNull: true,
 		},
 		reserveEventId: {
             type: DataTypes.STRING,

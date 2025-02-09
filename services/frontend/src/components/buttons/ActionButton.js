@@ -2,6 +2,7 @@ import { Box, Button } from '@chakra-ui/react';
 import { ACTION_COLORS, ACTION_TEXT } from './constants';
 import { actionTypes, useFormModal } from '../../context/ModalProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
+import { createNewReturn } from '../forms/asset/return/ReturnSearch';
 
 const ActionButton = ({ 
 	formType,
@@ -47,6 +48,24 @@ const AssetActionButton = ({
 	return (
 		<ActionButton
 			initialValues={assetArray.map(ast => ({assetId: ast.assetId, serialNumber: ast.serialNumber}))}
+			{...rest}
+		/>
+	)
+}
+
+export const ReturnAssetButton = ({
+	loans=[],
+	...rest
+}) => {
+
+	return (
+		<ActionButton
+			initialValues={loans.map(loan => createNewReturn({
+				loanId: loan.loanId,
+				asset: loan.astLoan.asset || {},
+				user: loan.user,
+				accLoans: loan.accLoans,
+			}))}
 			{...rest}
 		/>
 	)
