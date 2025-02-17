@@ -1,20 +1,8 @@
 import React, { useState } from "react";
 import {
     Box,
-    Text,
     VStack,
-    HStack,
-    Circle,
-    Button,
-    Flex
 } from "@chakra-ui/react";
-import { AddIcon, DownloadIcon } from "@chakra-ui/icons";
-import { Formik, Form, Field } from "formik";
-import AddRemark from "./AddRemark";
-import AddEvent from "./AddEvent";
-import LoanEvent from "./AssetLoanEvent";
-import DeleteEvent from "./DeleteEvent";
-import ReserveEvent from "./AssetReserveEvent";
 
 const Timeline = ({ 
     events,
@@ -23,6 +11,17 @@ const Timeline = ({
     LoanEventComponent, 
     ReserveEventComponent, 
 }) => {
+
+    // const getEventComponent = (_event) => {
+    //     switch(_event) {
+    //         case "loan":
+    //             return <LoanEventComponent event={events} />;
+    //         case "reserve":
+    //             return <ReserveEventComponent event={events} />;
+    //         default:
+    //             return null;
+    //     }
+    // }
 
     return (
         <VStack spacing={2} align="stretch">
@@ -34,7 +33,7 @@ const Timeline = ({
 
                 {/* Event Content */}
                 <Box
-                    p={6}
+                    p={2}
                     bg="gray.50"
                     borderRadius="lg"
                     boxShadow="md"

@@ -2,9 +2,14 @@ import { Box, Text, List, ListItem, Flex, Divider, HStack, Icon, IconButton, Col
 import { ChatIcon, CalendarIcon, InfoOutlineIcon, AddIcon } from "@chakra-ui/icons";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
+import { useTimeline } from "../../context/TImelineProvider";
+import assetService from "../../services/AssetService";
+import { useUI } from "../../context/UIProvider";
 
-const AddRemark = ({ eventId, handleAddRemark }) => {
+const AddRemark = ({ eventId }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    const { setLoading, handleError, showToast } = useUI();
 
     return (
         <Box>
@@ -23,9 +28,19 @@ const AddRemark = ({ eventId, handleAddRemark }) => {
             <Collapse in={isOpen} animateOpacity>
                 <Formik
                     initialValues={{ remark: "" }}
-                    onSubmit={(values, { setSubmitting, resetForm }) => {
+                    onSubmit={async (values, { setSubmitting, resetForm }) => {
                         if (values.remark.trim()) {
-                            handleAddRemark(eventId, values.remark, Date.now());
+                            try {
+                                await assetService.addRemark(eventId, values.remark, Date.now());
+                                setSubmitting(false);
+                                setLoading(false);
+                                showToast('Remark added', 'success', 500);
+                            } catch (err) {
+                                console.error(err);
+                                handleError(err);
+                                console.error("Error Handled");
+                                setLoading(false);
+                            }
                             resetForm();
                             setIsOpen(false); // Collapse after submit
                         }

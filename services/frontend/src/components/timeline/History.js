@@ -17,6 +17,7 @@ import DeleteEvent from "./DeleteEvent";
 import ReserveEvent from "./AssetReserveEvent";
 import historyService from "../../services/HistoryService";
 import { useUI } from "../../context/UIProvider";
+import { ResponsiveText } from "../utils/ResponsiveText";
 
 const History = () => {
 
@@ -34,7 +35,8 @@ const History = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const response = historyService.loadAllEvents([]);
+                const response = await historyService.loadAllEvents();
+                console.log(response.data);
                 setEvents(response.data);
             } catch (e) {
                 handleError(e);
@@ -46,25 +48,13 @@ const History = () => {
 
     return (
         <VStack spacing={2} align="stretch">
-        {events.map((ev, id, arr) => (
-            <Box
-                key={id}
-                position="relative"
-            >
-
-                {/* Event Content */}
-                <Box
-                    p={6}
-                    bg="gray.50"
-                    borderRadius="lg"
-                    boxShadow="md"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    w="100%"
-                >
-                </Box>
-            </Box>
-        ))}
+        {events?.length > 0 && (
+            <Flex direction="column">
+                {events.map((ev, id, arr) => (
+                    <ResponsiveText>{ev.description}</ResponsiveText>
+                ))}
+            </Flex>
+        )}
     </VStack>
     );
 };

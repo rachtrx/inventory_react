@@ -1,6 +1,6 @@
 import { Box, Collapse, Divider, Text } from "@chakra-ui/react";
 import DateText from "../DateText";
-import AccessoryBadge from "../AccessoryBadge";
+import { BadgeGroup } from "../BadgeGroup";
 import { useEffect, useState } from "react";
 import { useDrawer } from "../../../context/DrawerProvider";
 import accessoryService from "../../../services/AccessoryService";
@@ -18,10 +18,10 @@ const ReturnBadge = ({eventId, event}) => {
             if (hasAccessory) {
                 setIsMain(true);
             } else {
-                setIsMain(event.isAsset);
+                setIsMain(event.asset ? true : false);
             }
         }
-    }, [currentItem, event.accessories, event.isAsset])
+    }, [currentItem, event.accessories, event.asset])
 
     return(
         <Box
@@ -35,7 +35,7 @@ const ReturnBadge = ({eventId, event}) => {
         >
             <DateText
                 colorScheme={isMain ? "yellow" : "gray"}
-                date={event.eventDate}
+                event={event}
             />
             <Collapse in={isOpen} animateOpacity>
                 {event.remarks && (
@@ -53,7 +53,7 @@ const ReturnBadge = ({eventId, event}) => {
                 >
                     Returned Accessories:
                 </Text>
-            <AccessoryBadge accessories={event.accessories} />
+            <BadgeGroup accessories={event.accessories} />
         </Box>
     )
 }

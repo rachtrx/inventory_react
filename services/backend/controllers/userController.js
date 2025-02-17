@@ -334,7 +334,6 @@ class UserController {
                         {
                             model: Usr,
                             attributes: ['id', 'userName'],
-                            where: { id: { [Op.ne]: userId }}
                         },
                     ]
                 },
@@ -368,7 +367,6 @@ class UserController {
                         {
                             model: Usr,
                             attributes: ['id', 'userName'],
-                            where: { id: { [Op.ne]: userId }}
                         }
                     ]
                 }

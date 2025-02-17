@@ -233,6 +233,13 @@ class AccessoryController {
                 },
                 {
                     model: Loan,
+                    // where: { id: { [Op.in]: Sequelize.literal(`
+                    //     SELECT "OtherLoans"."user_id" 
+                    //     FROM loans AS "Loan"
+                    //     JOIN loans AS "OtherLoans" ON "Loan"."id" = "OtherLoans"."id"
+                    //     WHERE "Loan"."user_id" = ${userId}
+
+                    // `) }},
                     as: 'Loan',
                     required: false,
                     attributes: ['filepath'],
@@ -255,7 +262,16 @@ class AccessoryController {
                                     model: Event,
                                     as: 'ReturnEvent',
                                     attributes: ['id', 'eventDate'],
-                                    required: false
+                                    required: false,
+                                    include: {
+                                        model: Rmk,
+                                        attributes: ['id', 'text', 'remarkDate'],
+                                        include: {
+                                            model: Admin,
+                                            attributes: ['id', 'adminName'],
+                                            required: false
+                                        }
+                                    }
                                 }
                             ]
                         },
@@ -276,7 +292,16 @@ class AccessoryController {
                                         model: Event,
                                         as: 'ReturnEvent',
                                         attributes: ['id', 'eventDate'],
-                                        required: true
+                                        required: false,
+                                        include: {
+                                            model: Rmk,
+                                            attributes: ['id', 'text', 'remarkDate'],
+                                            include: {
+                                                model: Admin,
+                                                attributes: ['id', 'adminName'],
+                                                required: false
+                                            }
+                                        }
                                     }
                                 },
                                 {
@@ -614,7 +639,7 @@ class AccessoryController {
                     adminId: authId,
                 }, { transaction: transaction });
 
-                if (remarks !== "") {
+                if (remarks && remarks !== '') {
                     await Rmk.create({
                         id: generateSecureID(),
                         eventId: eventId,

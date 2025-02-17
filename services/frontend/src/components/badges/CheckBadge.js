@@ -1,10 +1,10 @@
 import { CheckCircleIcon } from "@chakra-ui/icons"
 import { Badge, Icon } from "@chakra-ui/react"
 
-const CheckBadge = ({text}) => {
+const CheckBadge = ({text, colorScheme=undefined}) => {
     return (
         <Badge
-            colorScheme="green"
+            colorScheme={colorScheme ? colorScheme : "yellow"}
             fontSize="0.8em"
             borderRadius="md"
         >

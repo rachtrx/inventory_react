@@ -9,12 +9,18 @@ class EventDTO {
         eventDate,
         Admin,
         Rmks,
+        Loan, // ignore returns; paired with loan
+        Reservation, // TODO cancellation?
+        AccType,
+        AccTxn,
         AddedAsset,
         DeletedAsset,
-        AccType,
-        Loan,
-        Reservation,
-        AccTxn
+        AddedUser,
+        DeletedUser,
+        AddedAssetTag,
+        DeletedAssetTag,
+        AddedUsrTag,
+        DeletedUsrTag
     }) {
         if (eventDate) this.eventDate = eventDate;
         if (id) this.eventId = id;
@@ -23,14 +29,23 @@ class EventDTO {
         if (Admin) this.adminName = Admin.adminName;
         if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
 
-        if (Loan) {this.loan = new LoanDTO(Loan, true)}
+        if (Loan) {this.loan = new LoanDTO(Loan, true)} // contains return details AssetReturn and AccReturns
         if (Reservation) this.reservation = new LoanDTO(Reservation);
 
         if (AccType) this.addedAccType = AccType;
         if (AccTxn) this.accTxn = AccTxn;
 
-        // if (AddedAsset) this.addedAsset = AddedAsset;
-        // if (DeletedAsset) this.deletedAsset = DeletedAsset;
+        if (AddedAsset) this.addedAsset = AddedAsset;
+        if (DeletedAsset) this.deletedAsset = DeletedAsset;
+
+        if (AddedUser) this.addedUser = AddedUser;
+        if (DeletedUser) this.deletedUser = DeletedUser;
+
+        if (AddedAssetTag) this.addedAssetTag = AddedAssetTag;
+        if (DeletedAssetTag) this.deletedAssetTag = DeletedAssetTag;
+
+        if (AddedUsrTag) this.addedUsrTag = AddedUsrTag;
+        if (DeletedUsrTag) this.DeletedUsrTag = DeletedUsrTag;
     }
 }
 

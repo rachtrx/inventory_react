@@ -27,7 +27,7 @@ const AddEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="green.600">
                         Added
                     </ResponsiveText>
-                    <DateText colorScheme="green" date={event.eventDate} remarks={event.remarks}/>
+                    <DateText colorScheme="green" event={event}/>
                 </HStack>
             </Flex>
         </VStack>

@@ -9,7 +9,6 @@ class UserDTO {
         bookmarked,
         addEventId, 
         delEventId,
-        remarks,
         AddEvent,
         DeleteEvent,
         Dept,
@@ -29,7 +28,7 @@ class UserDTO {
             }))
         }
 
-        if (remarks !== null) this.remarks = remarks;
+        // if (remarks !== null) this.remarks = remarks;
 
         this.userId = id;
         this.userName = userName;

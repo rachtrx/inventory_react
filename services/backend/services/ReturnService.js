@@ -115,7 +115,7 @@ class ReturnService extends ValidationService{
                 adminId: this.authId,
             }, { transaction: this.transaction });
     
-            if (remarks !== '') {
+            if (remarks && remarks !== '') {
                 await Rmk.create({
                     id: generateSecureID(),
                     eventId: returnEventId,

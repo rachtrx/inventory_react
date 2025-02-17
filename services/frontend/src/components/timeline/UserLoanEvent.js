@@ -13,16 +13,19 @@ import {
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import DateText from "./DateText";
-import AccessoryBadge from "./AccessoryBadge";
+import { BadgeGroup } from "./BadgeGroup";
 import { ResponsiveText } from "../utils/ResponsiveText";
 
 import { AccTypeLink, AssetLink, UserLink } from "../buttons/ItemLink";
+import { AccStatus, ReturnEventTable } from "./utils/AccStatus";
 
 const UserLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
     const { astLoan, accLoans, user, returnEvents } = event.loan;
+
+
 
     return (
         <VStack align="stretch" spacing={6}>
@@ -32,85 +35,45 @@ const UserLoanEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
                         Loaned
                     </ResponsiveText>
-                    <DateText colorScheme="blue" date={event.eventDate} />
+                    <DateText colorScheme="blue" event={event} />
                 </HStack>
 
-                {!isOpen && returnEvents && (
+                {!isOpen && returnEvents && Object.keys(returnEvents)?.length > 0 && (
                     <HStack>
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returned
                         </ResponsiveText>
                         {Object.values(returnEvents).map((event) => (
                             <DateText 
-                                colorScheme={event.isAsset ? "yellow" : "gray"}
+                                colorScheme={event.asset ? "yellow" : "gray"}
                                 date={event.eventDate}
                             />
                         ))}
                     </HStack>
                 )}
 
-                {astLoan && (
+                <Flex position="absolute"
+                    top={0}
+                    right={0}
+                    alignItems="flex-end" // Align content to the right
+                    overflow="hidden"
+                >   
+
+                    {astLoan && <AssetLink asset={astLoan.asset}/>}
+                    {accLoans && accLoans.length > 0 && (
+                            accLoans.map(accLoan => (<AccTypeLink accType={accLoan.accType}/>))
+                    )}
+                </Flex>
+
+                {!isOpen && accLoans && accLoans.length > 0 && (
                     <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="black">
-                            Asset
-                        </ResponsiveText>
-                        <AssetLink asset={astLoan.asset}/>
+                        {
+                            accLoans.map(accLoan => (
+                                <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
+                            ))
+                        }
                     </HStack>
                 )}
-
-                {accLoans && accLoans.length > 0 && (
-                    <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="black">
-                            Accessories
-                        </ResponsiveText>
-                        {accLoans.map(accLoan => (<AccTypeLink accType={accLoan.accType}/>))}
-                    </HStack>
-                )}
-
-                <Collapse in={isOpen} animateOpacity>
-                    {accLoans &&
-                        accLoans.length > 0 &&
-                        accLoans.map((accLoan, index) => (
-                            <Box
-                                key={index}
-                                p={3}
-                                bg="white"
-                                borderRadius="md"
-                                border="1px solid"
-                                borderColor="gray.300"
-                                boxShadow="sm"
-                            >
-                                <Flex justify="space-between" align="center">
-                                    <Text fontWeight="medium" fontSize="sm">
-                                        {accLoan.accType.accessoryName.toUpperCase()}
-                                    </Text>
-                                    <HStack>
-                                        {/* Returned Count */}
-                                        <Badge
-                                            colorScheme="green"
-                                            fontSize="0.8em"
-                                            borderRadius="md"
-                                        >
-                                            <Icon as={CheckCircleIcon} mr={1} />
-                                            Returned: {accLoan.returned}
-                                        </Badge>
-                                        {/* Unreturned Count */}
-                                        {accLoan.unreturned &&
-                                            accLoan.unreturned > 0 && (
-                                                <Badge
-                                                    colorScheme="red"
-                                                    fontSize="0.8em"
-                                                    borderRadius="md"
-                                                >
-                                                    <Icon as={WarningIcon} mr={1} />
-                                                    Unreturned: {accLoan.unreturned}
-                                                </Badge>
-                                            )}
-                                    </HStack>
-                                </Flex>
-                            </Box>
-                        ))}
-                </Collapse>
             </VStack>
 
             {isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
@@ -119,38 +82,16 @@ const UserLoanEvent = ({ event }) => {
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returned
                         </ResponsiveText>
-                        {Object.entries(returnEvents).map(([eventId, event], index) => (
-                            <Box
-                                key={index}
-                                p={4}
-                                bg="white"
-                                borderRadius="md"
-                                border="1px solid"
-                                borderColor="gray.300"
-                                boxShadow="sm"
-                            >
-                                <DateText 
-                                    colorScheme={event.isAsset ? "yellow" : "gray"} 
-                                    date={event.eventDate} />
-                                <Collapse in={isOpen} animateOpacity>
-                                    {event.remarks && (
-                                        <Text fontSize="sm" mt={1} color="gray.600">
-                                            Remark: {event.remarks}
-                                        </Text>
-                                    )}
-                                    <Divider my={2} />
-                                    <Text
-                                        fontSize="xs"
-                                        fontWeight="medium"
-                                        color="gray.500"
-                                        mb={2}
-                                    >
-                                        Returned Accessories:
-                                    </Text>
-                                    <AccessoryBadge accessories={event.accessories} />
-                                </Collapse>
-                            </Box>
-                        ))}
+                        {accLoans && accLoans.length > 0 && (
+                            <HStack>
+                                {
+                                    accLoans.map(accLoan => (
+                                        <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
+                                    ))
+                                }
+                            </HStack>
+                        )}
+                        <ReturnEventTable returnEvents={returnEvents}/>
                     </VStack>
                 </Box>
             )}

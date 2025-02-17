@@ -13,16 +13,24 @@ import DateText from "./DateText";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { AssetLink, UserLink } from "../buttons/ItemLink";
 import { useDrawer } from "../../context/DrawerProvider";
-import AccStatus from "./utils/AccStatus";
+import { AccStatus, AstStatus, ReturnEventTable } from "./utils/AccStatus";
 import ReturnEvents from "./utils/ReturnEvents";
+import { useTimeline } from "../../context/TImelineProvider";
 
 const AccLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { currentItem } = useDrawer();
+    const { accessoryTypeId } = useTimeline();
 
     const { accLoans, user, returnEvents, astLoan } = event.loan;
+
+    console.log(accLoans);
+
+    const accReturnEvents = returnEvents && Object.values(returnEvents)
+        .filter(event => event.accessories.find(accessory => accessory.accessoryTypeId === accessoryTypeId))
+
+    console.log(accReturnEvents);
 
     return (
         <VStack align="stretch" spacing={6}>
@@ -32,68 +40,66 @@ const AccLoanEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
                         Loaned
                     </ResponsiveText>
-                    <DateText colorScheme="blue" date={event.eventDate} remarks={event.remarks}/>
-                    {!isOpen && <AccStatus accLoan={accLoans.find(accLoan => accLoan.accType.accessoryTypeId === currentItem.breadcrumbId)}/>}
+                    <DateText colorScheme="blue" event={event}/>
                 </HStack>
-                {!isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
+
+                {!isOpen && accReturnEvents && (
                     <HStack>
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returned
                         </ResponsiveText>
-                        {Object.entries(returnEvents)
-                            .filter(([eventId, event]) => event.accessories.find(accessory => accessory.accessoryTypeId === currentItem.breadcrumbId))
-                            .map(([eventId, event]) => (<DateText 
+                        {
+                            
+                            accReturnEvents.map(event => (<DateText 
                                 key={event.eventId}
                                 colorScheme={"yellow"}
-                                date={event.eventDate}
-                                remarks={event.remarks}
+                                event={event}
                             />))
                         }
                     </HStack>
                 )}
-                <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="black">
-                        User
-                    </ResponsiveText>
-                    <UserLink key={user.userId} user={user}/>
-                </HStack>
-                
-                {astLoan && (
+
+                {!isOpen && accLoans && accLoans.length > 0 && ( // TODO, remove since accLoans should not be length < 0
                     <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="black">
-                            Asset
-                        </ResponsiveText>
-                        <AssetLink asset={astLoan.asset}/>
+                        {astLoan && <AstStatus astLoan={astLoan}/>}
+                        {
+                            accLoans.map(accLoan => (
+                                <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
+                            ))
+                        }
                     </HStack>
                 )}
-                
-
-                <Collapse in={isOpen} animateOpacity>
-                    {accLoans &&
-                        accLoans.length > 0 &&
-                        accLoans.map((accLoan, index) => (
-                            <Box
-                                key={index}
-                                p={3}
-                                bg="white"
-                                borderRadius="md"
-                                border="1px solid"
-                                borderColor="gray.300"
-                                boxShadow="sm"
-                            >
-                                <Flex justify="space-between" align="center">
-                                    <Text fontWeight="medium" fontSize="sm">
-                                        {accLoan.accType.accessoryName.toUpperCase()}
-                                    </Text>
-                                    <AccStatus accLoan={accLoan}/>
-                                </Flex>
-                            </Box>
-                        ))}
-                </Collapse>
+                <Flex
+                    position="absolute"
+                    top={0}
+                    right={0}
+                    alignItems="flex-end" // Align content to the right
+                    overflow="hidden"
+                >
+                    <UserLink user={user}/>
+                    {astLoan && <AssetLink asset={astLoan.asset}/>}
+                </Flex>
             </VStack>
 
             {isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
-                <ReturnEvents display={isOpen} returnEvents={returnEvents}/>
+                <Box>
+                <VStack spacing={4} align="stretch">
+                    <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        Returned
+                    </ResponsiveText>
+                    {accLoans && accLoans.length > 0 && (
+                        <HStack>
+                            {astLoan && <AstStatus astLoan={astLoan}/>}
+                            {
+                                accLoans.map(accLoan => (
+                                    <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}/>
+                                ))
+                            }
+                        </HStack>
+                    )}
+                    <ReturnEventTable returnEvents={returnEvents}/>
+                </VStack>
+            </Box>
             )}
 
             <Button

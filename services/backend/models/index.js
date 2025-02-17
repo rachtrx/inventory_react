@@ -38,6 +38,7 @@ const config = {
   "password": process.env.POSTGRES_PASSWORD,
   "database": process.env.POSTGRES_DB,
   "host": process.env.DATABASE_HOST,
+  "port": process.env.DATABASE_PORT || 5432,
   "dialect": "postgres",
   "define": {
     "underscored": true
@@ -88,21 +89,11 @@ db.AstTagMap.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' })
 db.AstTag.hasMany(db.AstTagMap, { foreignKey: 'tagId' })
 db.AstTagMap.belongsTo(db.AstTag, { foreignKey: 'tagId', targetKey: 'id' })
 
-db.Event.hasOne(db.AstTagMap, { as: 'AddedAstTag', foreignKey: 'addEventId' });
-db.Event.hasOne(db.AstTagMap, { as: 'DeletedAstTag', foreignKey: 'delEventId' });
-db.AstTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.AstTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
-
 db.Usr.hasMany(db.UsrTagMap, { foreignKey: 'userId' })
 db.UsrTagMap.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' })
 
 db.UsrTag.hasMany(db.UsrTagMap, { foreignKey: 'tagId' })
 db.UsrTagMap.belongsTo(db.UsrTag, { foreignKey: 'tagId', targetKey: 'id' })
-
-db.Event.hasOne(db.UsrTagMap, { as: 'AddedUsrTag', foreignKey: 'addEventId' });
-db.Event.hasOne(db.UsrTagMap, { as: 'DeletedUsrTag', foreignKey: 'delEventId' });
-db.UsrTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.UsrTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 
 // USERS
 db.Dept.hasMany(db.Usr, { foreignKey: 'deptId' });
@@ -156,29 +147,40 @@ db.AstSTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey:
 
 // EVENTS
 db.Event.hasOne(db.Loan, { as: 'Reservation', foreignKey: 'reserveEventId' });
-db.Loan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
 db.Event.hasOne(db.Loan, { as: 'Cancellation', foreignKey: 'cancelEventId' });
-db.Loan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
 db.Event.hasOne(db.Loan, { as: 'Loan', foreignKey: 'loanEventId' });
-db.Loan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
-
 db.Event.hasOne(db.AstLoan, { as: 'AssetReturn', foreignKey: 'returnEventId' })
-db.AstLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
 db.Event.hasMany(db.AccReturn, { as: 'AccReturns', foreignKey: 'returnEventId' })
-db.AccReturn.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
 
 db.Event.hasOne(db.Ast, { as: 'AddedAsset', foreignKey: 'addEventId' });
 db.Event.hasOne(db.Ast, { as: 'DeletedAsset', foreignKey: 'delEventId' });
-db.Ast.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.Ast.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 db.Event.hasOne(db.Usr, { as: 'AddedUser', foreignKey: 'addEventId' });
 db.Event.hasOne(db.Usr, { as: 'DeletedUser', foreignKey: 'delEventId' });
+
+db.Event.hasOne(db.AstTagMap, { as: 'AddedAstTag', foreignKey: 'addEventId' });
+db.Event.hasOne(db.AstTagMap, { as: 'DeletedAstTag', foreignKey: 'delEventId' });
+db.Event.hasOne(db.UsrTagMap, { as: 'AddedUsrTag', foreignKey: 'addEventId' });
+db.Event.hasOne(db.UsrTagMap, { as: 'DeletedUsrTag', foreignKey: 'delEventId' });
+
+db.Loan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
+db.Loan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
+db.Loan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
+db.AstLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
+db.AccReturn.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
+
+db.Ast.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
+db.Ast.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 db.Usr.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
 db.Usr.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
 
+db.AstTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
+db.AstTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
+db.UsrTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
+db.UsrTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
+
 db.Event.hasOne(db.AccType, { foreignKey: 'addEventId' });
-db.AccType.belongsTo(db.Event, { foreignKey: 'addEventId', targetKey: 'id' });
 db.Event.hasOne(db.AccTxn, { foreignKey: 'eventId' });
+db.AccType.belongsTo(db.Event, { foreignKey: 'addEventId', targetKey: 'id' });
 db.AccTxn.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
 
 // Event and Admin

@@ -1,27 +1,13 @@
 const EventDTO = require("../dtos/event.dto");
+const EventLogDTO = require("../dtos/eventLog.dto");
 const logger = require("../logging");
-const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan, Event } = require("../models");
+const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan, Event, Dept, AstSType, AstType } = require("../models");
 
 class HistoryController {
 
     async getAllEvents(req, res) {
 
         const filters = req.params.filters;
-
-        const assetModelDetails = {
-            model: Ast,
-            attributes: ['id', 'serialNumber'],
-        }
-
-        const accTypeModelDetails = {
-            model: AccType,
-            attributes: ['id', 'accessoryName'],
-        }
-
-        const userModelDetails = {
-            model: Usr,
-            attributes: ['id', 'userName'],
-        }
         
         const eventRows = await Event.findAll({
             attributes: ['id', 'adminId', 'eventDate'],
@@ -64,18 +50,37 @@ class HistoryController {
                     as: 'AddedAsset',
                     attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                     required: false,
+                    include: {
+                        model: AstSType,
+                        attributes: ['id','subTypeName'],
+                        include: {
+                            model: AstType,
+                            attributes: ['id', 'typeName']
+                        },
+                    }
                 },
                 {
                     model: Ast,
                     as: 'DeletedAsset',
                     attributes: ['id', 'serialNumber'],
-                    required: false
+                    required: false,
+                    include: {
+                        model: AstSType,
+                        attributes: ['id','subTypeName'],
+                        include: {
+                            model: AstType,
+                            attributes: ['id', 'typeName']
+                        },
+                    }
                 },
                 {
                     model: AccTxn,
                     attributes: ['id', 'count'],
                     required: false,
-                    include: accTypeModelDetails
+                    include: {
+                        model: AccType,
+                        attributes: ['id', 'accessoryName'],
+                    }
                 },
                 {
                     model: AccType,
@@ -87,12 +92,20 @@ class HistoryController {
                     as: 'AddedUser',
                     attributes: ['id', 'userName'],
                     required: false,
+                    include: {
+                        model: Dept,
+                        attributes: ['id', 'deptName']
+                    },
                 },
                 {
                     model: Usr,
                     as: 'DeletedUser',
                     attributes: ['id', 'userName'],
                     required: false,
+                    include: {
+                        model: Dept,
+                        attributes: ['id', 'deptName']
+                    },
                 },
                 {
                     model: Loan,
@@ -100,37 +113,42 @@ class HistoryController {
                     attributes: ['id', 'reserveEventId', 'loanEventId', 'filepath'],
                     required: false,
                     include: [
-                        userModelDetails,
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: false,
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
+                        },
                         {
                             model: AstLoan,
                             attributes: ['id'],
                             include: [
-                                assetModelDetails,
                                 {
-                                    model: Event,
-                                    as: 'ReturnEvent',
-                                    attributes: ['id', 'eventDate'],
-                                    required: false
-                                },
+                                    model: Ast,
+                                    attributes: ['id', 'serialNumber'], // todo add details so timeline can display
+                                    required: false,
+                                    include: {
+                                        model: AstSType,
+                                        attributes: ['id','subTypeName'],
+                                        include: {
+                                            model: AstType,
+                                            attributes: ['id', 'typeName']
+                                        },
+                                    }
+                                }
                             ]
                         },
                         {
                             model: AccLoan,
                             attributes: ['id', 'count'],
                             required: false,
-                            include: [
-                                accTypeModelDetails,
-                                {
-                                    model: AccReturn,
-                                    attributes: ['id', 'count'],
-                                    required: false,
-                                    include: {
-                                        model: Event,
-                                        as: 'ReturnEvent',
-                                        attributes: ['id', 'eventDate']
-                                    }
-                                }
-                            ]
+                            include: {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            }
                         }
                     ]
                 },
@@ -140,34 +158,195 @@ class HistoryController {
                     required: false,
                     attributes: ['id'],
                     include: [
-                        userModelDetails,
                         {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: false,
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
                         },
                         {
                             model: AstLoan,
                             attributes: ['id'],
-                            include: assetModelDetails
+                            include: {
+                                model: Ast,
+                                attributes: ['id', 'serialNumber'], // todo add details so timeline can display
+                                required: false,
+                                include: {
+                                    model: AstSType,
+                                    attributes: ['id','subTypeName'],
+                                    include: {
+                                        model: AstType,
+                                        attributes: ['id', 'typeName']
+                                    },
+                                }
+                            }
                         },
                         {
                             model: AccLoan,
                             attributes: ['id', 'count'],
                             required: false,
-                            include: accTypeModelDetails
+                            include: {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            }
                         },
                     ]
+                },
+                {
+                    model: Loan,
+                    as: 'Cancellation',
+                    required: false,
+                    attributes: ['id'],
+                    include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: false,
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            include: {
+                                model: Ast,
+                                attributes: ['id', 'serialNumber'],
+                                include: {
+                                    model: AstSType,
+                                    attributes: ['id','subTypeName'],
+                                    include: {
+                                        model: AstType,
+                                        attributes: ['id', 'typeName']
+                                    },
+                                }
+                            }
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            }
+                        },
+                    ]
+                },
+                {
+                    model: AstLoan,
+                    as: "AssetReturn",
+                    include: [
+                        {
+                            model: Ast,
+                            attributes: ['id', 'serialNumber'], // todo add details so timeline can display
+                            required: false,
+                            include: {
+                                model: AstSType,
+                                attributes: ['id','subTypeName'],
+                                include: {
+                                    model: AstType,
+                                    attributes: ['id', 'typeName']
+                                },
+                            }
+                        },
+                        {
+                            model: Loan,
+                            attributes: ['id'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName'],
+                                required: false,
+                                include: {
+                                    model: Dept,
+                                    attributes: ['id', 'deptName']
+                                },
+                            },
+                        }
+                    ]
+                },
+                {
+                    model: AccReturn,
+                    as: "AccReturns",
+                    attributes: ['id', 'count'],
+                    required: false,
+                    include: {
+                        model: AccLoan,
+                        include: [
+                            {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            },
+                            {
+                                model: Loan,
+                                attributes: ['id'],
+                                include: {
+                                    model: Usr,
+                                    attributes: ['id', 'userName'],
+                                    required: false,
+                                    include: {
+                                        model: Dept,
+                                        attributes: ['id', 'deptName']
+                                    },
+                                },
+                            }
+                        ]
+                    }
                 }
             ],
             order: [['eventDate', 'DESC']]
         });
 
-        logger.info(eventRows.map(row => row.get({ plain: true })));
-        const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects
-        logger.info(events);
-        return events;
+        // logger.info(eventRows.map(row => row.get({ plain: true })));
+        const events = eventRows.map(row => new EventLogDTO(row)); // Converts Sequelize instances to plain objects
+        // logger.info(events);
+        return res.json(events);
+    }
+
+    async getAllLoans(req, res) {
+        const { page, limit, filter, sort } = req.query;
+        const where = {};
+        if (filter) {
+            where.id = { [Op.like]: `%${filter}%` };
+        }
+        const options = {
+            order: [['id', 'DESC']],
+            limit: parseInt(limit),
+            offset: (parseInt(page) - 1) * parseInt(limit),
+        };
+        if (sort) {
+            options.order = [[sort.split(':')[0], sort.split(':')[1] === 'desc'? 'DESC' : 'ASC']];
+        }
+        const loans = await Loan.findAll({
+            where,
+            include: [
+                {
+                    model: Usr,
+                    attributes: ['id', 'userName'],
+                },
+                {
+                    model: Ast,
+                    attributes: ['id','serialNumber'],
+                    include: {
+                        model: AstSType,
+                        attributes: ['id','subTypeName'],
+                        include: {
+                            model: AstType,
+                            attributes: ['id', 'typeName']
+                        },
+                    },
+                },
+                {
+                    model: AccType,
+                    attributes: ['id', 'accessoryName'],
+                },
+            ],
+           ...options,
+        });
     }
 }
 

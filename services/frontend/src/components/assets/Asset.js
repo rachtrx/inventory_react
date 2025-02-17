@@ -96,9 +96,9 @@ const Asset = ({ asset }) => {
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
-            {asset.reservedUser && (
-              <UserLink key={asset.reservedUser.userId} isCopy={false} user={asset.reservedUser} />
-            )}
+              {asset.reservedUser && (
+                <UserLink key={asset.reservedUser.userId} isCopy={false} user={asset.reservedUser} />
+              )}
             </Box>
         </Grid>
       </Flex>
@@ -125,6 +125,7 @@ const Asset = ({ asset }) => {
 			{asset.history && asset.history.length > 0 &&
 				<AssetTimeline 
 					events={asset.history}
+          assetId={asset.assetId}
 				/>
 			}
 		</VStack>

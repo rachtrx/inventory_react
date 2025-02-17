@@ -26,9 +26,8 @@ export const UIProvider = ({ children }) => {
     console.log(error);  
     let errorMessage = 'An unexpected error occurred. Please try again later.';
 
-    // ✅ Prioritize the server's error message if available
-    if (error.response && error.response.data && error.response.data.message) {
-        errorMessage = error.response.data.message;
+    if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
     } else if (error.response) {
       // Otherwise, use a fallback message based on the status code
       const status = error.response.status;

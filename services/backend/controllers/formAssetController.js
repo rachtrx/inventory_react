@@ -147,7 +147,7 @@ class FormAssetController {
                                             { transaction: t }
                                         );
             
-                                        if (rest.remarks) {
+                                        if (rest.remarks && rest.remarks !== "") {
                                             await Rmk.create(
                                                 {
                                                     id: generateSecureID(),
@@ -243,7 +243,7 @@ class FormAssetController {
                     );
                     
                     // Add remarks if provided
-                    if (remarks) {
+                    if (remarks && remarks !== '') {
                         await Rmk.create(
                             {
                                 id: generateSecureID(),

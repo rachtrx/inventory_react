@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const db = require('./models');
 const data = require('./data_export.json');
 const fs = require('fs');
@@ -77,7 +79,7 @@ async function main(data) {
         const newUser = {
             ...rest,
             addEventId: addUserEvent.id,
-            deleteEventid: delUserEvent && delUserEvent.id || null
+            delEventId: delUserEvent && delUserEvent.id || null
         };
     
         return newUser;
@@ -110,13 +112,14 @@ async function main(data) {
         
             if (delAssetEvents.length === 1) {
                 delAssetEvent = delAssetEvents[0]
+                console.log(delAssetEvent.id)
                 eventsArr.push(createEvent(delAssetEvent.id, delAssetEvent.eventDate))
             }
     
             const newAsset = {
                 ...rest,
                 addEventId: addAssetEvent.id,
-                deleteEventid: delAssetEvent && delAssetEvent.id || null
+                delEventId: delAssetEvent && delAssetEvent.id || null
             };
             return newAsset;
         });

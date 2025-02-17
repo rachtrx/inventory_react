@@ -61,23 +61,29 @@ class LoanDTO {
         this.returnEvents = loanedItems.reduce((returns, loanItem) => {
             if (loanItem.returnEvent) { // AstLoan 
                 if (!returns[loanItem.returnEvent.eventId]) {
+                    logger.info(loanItem)
                     returns[loanItem.returnEvent.eventId] = {
-                        by: loanItem.returnEvent.returnBy,
+                        by: loanItem.returnEvent.adminName,
                         eventDate: loanItem.returnEvent.eventDate,
                         remarks: loanItem.returnEvent.remarks,
-                        isAsset: true,
+                        asset: {
+                            assetId: loanItem.asset.assetId,
+                            serialNumber: loanItem.asset.serialNumber
+                        },
                         accessories: []
                     }
                 } else {
                     returns[loanItem.returnEvent.eventId].isAsset = true;
                 }
-            } else if (loanItem.accReturns && loanItem.accReturns.length > 0) {
+            } 
+            
+            if (loanItem.accReturns && loanItem.accReturns.length > 0) {
                 loanItem.accReturns.forEach(accReturn => {
 
                     const accessoryDetails = {
                         ...accReturn,
-                        accessoryTypeId: loanItem.accessoryTypeId,
-                        accessoryName: loanItem.accessoryName
+                        accessoryTypeId: loanItem.accType.accessoryTypeId,
+                        accessoryName: loanItem.accType.accessoryName
                     }
 
                     if (!returns[accReturn.returnEvent.eventId]) {
@@ -85,7 +91,6 @@ class LoanDTO {
                             by: accReturn.returnEvent.returnBy,
                             eventDate: accReturn.returnEvent.eventDate,
                             remarks: accReturn.returnEvent.remarks,
-                            isAsset: true,
                             accessories: [accessoryDetails]
                         }
                         logger.info(loanItem.accessoryName)

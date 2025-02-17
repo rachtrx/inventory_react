@@ -7,6 +7,8 @@ const path = require('path');
 const formAssetTagController = require('../controllers/formAssetTagController.js');
 const formUserTagController = require('../controllers/formUserTagController.js');
 
+const eventController = require('../controllers/eventController.js');
+
 const router = express.Router();
 
 const uploadPath = process.env.UPLOADS_FOLDER;
@@ -65,6 +67,8 @@ router.get('/untag/user', formUserTagController.loadDelUsers)
 
 router.post('/tag/user', formUserTagController.addUserTag)
 router.post('/untag/user', formUserTagController.delUserTag)
+
+router.post('/add/remark', eventController.addRemark)
 
 router.post('/download', formLoanReturnController.downloadEvent);
 

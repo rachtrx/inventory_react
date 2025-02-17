@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import DateText from "./DateText";
-import AccessoryBadge from "./AccessoryBadge";
+import BadgeGroup from "./BadgeGroup";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { UserLink } from "../buttons/ItemLink";
 import CheckBadge from "../badges/CheckBadge";
@@ -34,7 +34,7 @@ const FullLoanEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
                         Loaned
                     </ResponsiveText>
-                    <DateText colorScheme="blue" date={event.eventDate} remarks={event.remarks}/>
+                    <DateText colorScheme="blue" event={event}/>
                 </HStack>
                 {!isOpen && returnEvents && (
                     <HStack>
@@ -43,7 +43,7 @@ const FullLoanEvent = ({ event }) => {
                         </ResponsiveText>
                         {Object.values(returnEvents).map((event) => (
                             <DateText 
-                                colorScheme={event.isAsset ? "yellow" : "gray"}
+                                colorScheme={event.asset ? "yellow" : "gray"}
                                 date={event.eventDate}
                                 remarks={event.remarks}
                             />
@@ -98,7 +98,7 @@ const FullLoanEvent = ({ event }) => {
                                 boxShadow="sm"
                             >
                                 <DateText 
-                                    colorScheme={event.isAsset ? "yellow" : "gray"} 
+                                    colorScheme={event.asset ? "yellow" : "gray"} 
                                     date={event.eventDate}
                                     remarks={event.remarks}
                                 />
@@ -117,7 +117,7 @@ const FullLoanEvent = ({ event }) => {
                                     >
                                         Returned Accessories:
                                     </Text>
-                                    <AccessoryBadge accessories={event.accessories} />
+                                    <BadgeGroup accessories={event.accessories} />
                                 </Collapse>
                             </Box>
                         ))}

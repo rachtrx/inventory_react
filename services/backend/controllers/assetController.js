@@ -329,7 +329,7 @@ class AssetController {
                 );
 
                 asset.reservedUser = asset.history
-                    .find(event => event.loan?.astLoan && !event.loan.loanEventId)?.loan.user
+                    .find(event => event.reservation)?.loan.user
             }
 
             res.json(asset);
@@ -391,12 +391,27 @@ class AssetController {
                         {
                             model: AstLoan,
                             attributes: ['id'],
-                            include: {
-                                model: Event,
-                                as: 'ReturnEvent',
-                                attributes: ['id', 'eventDate'],
-                                required: false
-                            }
+                            include: [
+                                {
+                                    model: Event,
+                                    as: 'ReturnEvent',
+                                    attributes: ['id', 'eventDate'],
+                                    required: false,
+                                    include: {
+                                        model: Rmk,
+                                        attributes: ['id', 'text', 'remarkDate'],
+                                        include: {
+                                            model: Admin,
+                                            attributes: ['id', 'adminName'],
+                                            required: false
+                                        }
+                                    }
+                                },
+                                {
+                                    model: Ast,
+                                    attributes: ['id', 'serialNumber'],
+                                }
+                            ]
                         },
                         {
                             model: AccLoan,
@@ -415,7 +430,16 @@ class AssetController {
                                         model: Event,
                                         as: 'ReturnEvent',
                                         attributes: ['id', 'eventDate'],
-                                        required: true
+                                        required: true,
+                                        include: {
+                                            model: Rmk,
+                                            attributes: ['id', 'text', 'remarkDate'],
+                                            include: {
+                                                model: Admin,
+                                                attributes: ['id', 'adminName'],
+                                                required: false
+                                            }
+                                        }
                                     }
                                 }
                             ]
@@ -436,7 +460,16 @@ class AssetController {
                             model: Event,
                             as: 'CancelEvent',
                             attributes: ['id', 'eventDate'],
-                            required: false
+                            required: false,
+                            include: {
+                                model: Rmk,
+                                attributes: ['id', 'text', 'remarkDate'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['id', 'adminName'],
+                                    required: false
+                                }
+                            },
                         },
                         {
                             model: AstLoan,

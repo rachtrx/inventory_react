@@ -1,5 +1,5 @@
 import { Box, Collapse, Divider, Text, VStack } from "@chakra-ui/react"
-import AccessoryBadge from "../AccessoryBadge"
+import BadgeGroup from "../BadgeGroup"
 import { useDrawer } from "../../../context/DrawerProvider"
 import { useEffect, useState } from "react";
 import { ResponsiveText } from "../../utils/ResponsiveText";

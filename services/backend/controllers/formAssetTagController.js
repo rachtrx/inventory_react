@@ -113,7 +113,7 @@ class FormAssetTagController {
                         adminId: authId,
                     }, { transaction: transaction });
             
-                    if (remarks !== '') {
+                    if (remarks && remarks !== '') {
                         await Rmk.create({
                             id: generateSecureID(),
                             eventId: addEventId,
@@ -160,7 +160,7 @@ class FormAssetTagController {
                         adminId: authId,
                     }, { transaction: transaction });
             
-                    if (remarks !== '') {
+                    if (remarks && remarks !== '') {
                         await Rmk.create({
                             id: generateSecureID(),
                             eventId: delEventId,

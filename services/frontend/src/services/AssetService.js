@@ -119,6 +119,10 @@ class AssetService {
         console.log(formData);
         return await this.axios.post(`${API_URL}/forms/untag/asset`, formData);
     }
+
+    async addRemark(eventId, remark, dateTime) {
+        return await this.axios.post(`${API_URL}/forms/add/remark`, {eventId, remark, dateTime});
+    }
 }
 
 const downloadFormData = (formData) => {
