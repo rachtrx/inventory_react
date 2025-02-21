@@ -8,10 +8,10 @@ echo "Starting sequential Docker build and deployment..."
 # Loop through each service and build + start it
 for service in "${services[@]}"; do
     echo "Building $service..."
-    docker-compose build "$service"
+    docker-compose -f docker-compose.prod.yml build "$service"
     
     echo "Starting $service..."
-    docker-compose up -d "$service"
+    docker-compose docker-compose.prod.yml up -d "$service"
 
     echo "$service is now running!"
 done
