@@ -11,7 +11,7 @@ for service in "${services[@]}"; do
     docker-compose -f docker-compose.prod.yml build "$service"
     
     echo "Starting $service..."
-    docker-compose docker-compose.prod.yml up -d "$service"
+    docker-compose -f docker-compose.prod.yml up -d "$service"
 
     echo "$service is now running!"
 done

@@ -15,6 +15,6 @@ echo "New certificate generated."
 
 # Restart the Nginx container to apply the new certificate
 echo "Restarting Nginx container..."
-docker restart nginx
+docker restart nginx-inventory
 
 echo "SSL certificate renewed and Nginx restarted successfully!"
