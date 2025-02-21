@@ -59,7 +59,7 @@ services:
   nginx-inventory:
     build: 
       context: ./services/nginx
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: inventory-nginx
     ports:
       - "80:80"

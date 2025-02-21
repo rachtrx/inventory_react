@@ -32,3 +32,5 @@ note.txt
 
 *config.json
 inventory*.sql
+
+certs/
