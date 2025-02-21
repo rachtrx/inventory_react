@@ -34,6 +34,7 @@ class AssetService {
     }
 
     async loadItems(filters = this.defaultFilters) {
+        console.log(API_URL)
         return await this.axios.post(`${API_URL}/assets`, {filters});
     }
 

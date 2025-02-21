@@ -17,7 +17,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_HOST=db
     volumes:
-      - ./services/backend/logs:/usr/src/app/logs
+      # - ./services/backend/node_modules:/usr/src/app/node_modules # TODO map
+      - ./services/backend/logs:/usr/src/app/logs # TODO dont log all
       - ./services/backend/uploads:/usr/src/app/uploads
     restart: always
     networks:
@@ -46,13 +47,12 @@ services:
         - REACT_APP_SSO_REDIRECT_URI=${REACT_APP_SSO_REDIRECT_URI}
         - REACT_APP_SSO_TENANT_ID=${REACT_APP_SSO_TENANT_ID}
         - REACT_APP_SSO_CLIENT_ID=${REACT_APP_SSO_CLIENT_ID}
+        - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
     container_name: inventory-frontend
     ports:
       - "3000:3000"
     # volumes:
     #   - ./services/frontend:/workspace
-    environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
     restart: always
     networks:
       - inventory_app
