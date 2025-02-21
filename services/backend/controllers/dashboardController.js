@@ -4,6 +4,14 @@ const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController
 
 class DashboardController {
 
+	async getReminders() {
+		return;
+	}
+
+	async setReminders() {
+		return;
+	}
+
 	async dashboard (req, res, next) {
 		try {
 			// Top devices

@@ -1,51 +1,78 @@
-version: '3.8'
-
 services:
-  web:
-    build: 
-      context: ./services/web
-      dockerfile: Dockerfile.prod
-    command: gunicorn --bind 0.0.0.0:5000 manage:app
-    volumes:
-      # - static_volume:/home/app/web/project/static
-      - uploads_volume:/home/app/web/project/uploads
-      - ./services/web/logs:/home/app/web/project/logs
-    expose: 
-      - 5000
-    env_file:
-      - ./.env.prod
-    environment:
-      - LIVE=1
-      - PYTHONUNBUFFER=1
+  backend:
+    build: ./services/backend
+    ports:
+      - "3001:3001"
+    expose:
+      - 3001
     depends_on:
       - db
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - SIGNATURES_DIR=${SIGNATURES_DIR}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_HOST=db
+    volumes:
+      - ./services/backend/logs:/usr/src/app/logs
+      - ./services/backend/uploads:/usr/src/app/uploads
+    restart: always
+    networks:
+      - inventory_app
   db:
-    image: postgres:14
+    build: 
+      context: ./services/db
+      dockerfile: Dockerfile
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data/
-    env_file:
-      - ./.env.prod.db
-  react-dev:
-    build: 
-      context: ./services/frontend
-      dockerfile: Dockerfile.prod
     environment:
-      - REACT_APP_API_BASE_URL=/api
-  nginx:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - inventory_app
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV}
+        - REACT_APP_SSO_GRAPH_API_ENDPOINT=${REACT_APP_SSO_GRAPH_API_ENDPOINT}
+        - REACT_APP_SSO_REDIRECT_URI=${REACT_APP_SSO_REDIRECT_URI}
+        - REACT_APP_SSO_TENANT_ID=${REACT_APP_SSO_TENANT_ID}
+        - REACT_APP_SSO_CLIENT_ID=${REACT_APP_SSO_CLIENT_ID}
+    ports:
+      - "3000:3000"
+    # volumes:
+    #   - ./services/frontend:/workspace
+    environment:
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+    restart: always
+    networks:
+      - inventory_app
+  nginx-inventory:
     build: 
       context: ./services/nginx
-      dockerfile: Dockerfile.prod
-    volumes:
-      # - static_volume:/home/app/web/project/static
-      - uploads_volume:/home/app/web/project/uploads
-      - react_build:/usr/share/nginx/html
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     depends_on:
-      - web
-      - react-dev
+      - backend
+      - frontend
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - inventory_app
 
 volumes:
   postgres_data_prod:
-  static_volume:
-  uploads_volume:
+  # static_volume:
+  # uploads_volume:
+
+networks:
+  inventory_app:
+    name: inventory_app
+    driver: bridge
