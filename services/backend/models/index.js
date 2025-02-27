@@ -42,7 +42,7 @@ const config = {
   "dialect": "postgres",
   "define": {
     "underscored": true
-  }
+  },
 }
 
 let sequelize;

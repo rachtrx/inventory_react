@@ -28,8 +28,7 @@ const Nav = () => {
       color={linkHoverColor}
     >
       <Menu>
-        <NavButton next={handleDevError} icon={<MdDashboard />} label="Home" />
-        {/* () => navigate('/dashboard') */}
+        <NavButton next={() => navigate('/dashboard')} icon={<MdDashboard />} label="Home" />
       </Menu>
 
       <Menu>
@@ -61,3 +60,5 @@ const Nav = () => {
 };
 
 export default Nav;
+
+// handleDevError

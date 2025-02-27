@@ -38,6 +38,10 @@ export default function Login() {
   const { instance, accounts } = useMsal();
 
   useEffect(() => {
+    console.log(process.env.REACT_APP_SSO_REDIRECT_URI);
+  })
+
+  useEffect(() => {
     const callbackId = instance.addEventCallback(async (message) => {
         if (message.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
             // console.log('Token acquired successfully', message.payload);

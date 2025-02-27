@@ -9,6 +9,7 @@ import { API_URL } from '../../config';
 import { Container, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './config';
 import { useUI } from '../../context/UIProvider';
+import { Reminders } from './Reminders';
 
 // Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
 Chart.register(ChartjsPluginScrollBar);
@@ -62,6 +63,8 @@ export default function Dashboard() {
 
     return (
         <VStack spacing={8}> {/* Vertical Stack with spacing between children */}
+            <Reminders/>
+
             {/* Doughnut Charts in a 2-row x 3-column formation */}
             <Grid templateColumns="repeat(3, 1fr)" width="100%" gap={6} px={{ base: 4, md: 8 }} py={4}>
             {doughnuts.map((doughnut, index) => (
