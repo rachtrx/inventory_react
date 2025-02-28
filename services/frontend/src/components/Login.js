@@ -49,9 +49,9 @@ export default function Login() {
             try {
                 // console.log("Calling MS Graph with access token", tokenResponse.accessToken);
                 const profile = await authService.callMsGraph(tokenResponse.accessToken);
-                // console.log("MS Graph profile", profile);
+                console.log("MS Graph profile", profile);
                 const response = await authService.loginSSO(profile);
-                // console.log("User Data", response.data);
+                console.log("User Data", response.data);
                 setAdmin(response.data);
             } catch (error) {
                 console.error("Error during token acquisition or profile fetching:", error);
@@ -85,7 +85,7 @@ export default function Login() {
   };
 
   useEffect(() => {
-    // console.log("Admin changed: ", admin);
+    console.log("Admin changed: ", admin);
     if (admin && admin.canSetupPassword) {
       navigate('/profile', { replace: true });
     } else if (admin) {

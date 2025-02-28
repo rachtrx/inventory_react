@@ -5,7 +5,7 @@ const { expressjwt: jwt } = require('express-jwt');
 const cookieParser = require('cookie-parser');
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost', 'http://127.0.0.1:3000', 'http://127.0.0.1'],  // Allow multiple origins, or use a function to dynamically allow origins
+    origin: process.env.CORS_ORIGIN,  // Allow multiple origins, or use a function to dynamically allow origins
     optionsSuccessStatus: 200,  // Some legacy browsers (IE11, various SmartTVs) choke on 204
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],  // Specify HTTP methods allowed
     allowedHeaders: ['Content-Type', 'Authorization', 'Skip-Interceptor'],  // Specify headers that can be sent with the request
