@@ -17,6 +17,10 @@ module.exports = (sequelize) => {
         adminId: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        completed: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         }
     }, {
     sequelize,

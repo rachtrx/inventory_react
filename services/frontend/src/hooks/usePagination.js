@@ -7,7 +7,7 @@ function usePagination(data, itemsPerPage, initialPage, updateUrl) {
 
   useEffect(() => {
     if (data) {
-      const calculatedMaxPage = Math.ceil(data.length / itemsPerPage);
+      const calculatedMaxPage = Math.ceil(data.length / itemsPerPage) || 1;
       setMaxPage(calculatedMaxPage);
       const startIdx = (currentPage - 1) * itemsPerPage;
       const endIdx = startIdx + itemsPerPage;

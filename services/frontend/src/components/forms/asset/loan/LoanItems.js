@@ -57,7 +57,7 @@ export const LoanItems = function({ field, loan, children }) {
 	const handleSwitchChange = () => {
 		if(!loan.excludeAsset) {
 			setFieldValue(`${field}.excludeAsset`, true);
-			setFieldValue(`${field}.asset`, {});
+			setFieldValue(`${field}.asset`, createNewAsset({}));
 		} else {
 			setFieldValue(`${field}.excludeAsset`, false);
 		}

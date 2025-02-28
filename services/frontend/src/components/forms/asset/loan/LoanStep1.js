@@ -98,9 +98,11 @@ export const LoanStep1 = () => {
           // }
 
           // Validate unique Asset IDs across all loans
-          const assetError = validateAsset(loan.asset, assetIDDuplicates);
-          if (assetError) {
-            setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
+          if (!loan.excludeAsset) {
+            const assetError = validateAsset(loan.asset, assetIDDuplicates);
+            if (assetError) {
+              setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
+            }
           }
 
           // Validate unique Accessory IDs within each asset

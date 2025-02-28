@@ -36,7 +36,7 @@ export const createNewLoan = ({
 	remarks=null
 } = {}) => ({
 	'key': uuidv4(),
-	'excludeAsset': asset?.excluded || false,
+	'excludeAsset': false,
 	'asset': createNewAsset(asset),
 	'accessories': accessories.length > 0 ? accessories.map(acc => createNewAccessory(acc)) : [createNewAccessory()],
 	'expectedReturnDate': expectedReturnDate || '',

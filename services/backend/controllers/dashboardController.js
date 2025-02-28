@@ -12,21 +12,23 @@ class DashboardController {
 
 	// async getReminders() {
 	// 	try {
-	// 		const reminders = await 
+	// 		const reminders = await Loan.findAll({
+	// 			attributes: ['expectedLoanDate', 'expectedReturnDate']
+	// 		})
 	// 	} catch(error) {
 	// 		logger.error(error)
 	// 		next(error)
 	// 	}
 	// }
 
-	async setReminders() {
-		try {
+	// async setReminders() {
+	// 	try {
 
-		} catch(error) {
-			logger.error(error)
-			next(error)
-		}
-	}
+	// 	} catch(error) {
+	// 		logger.error(error)
+	// 		next(error)
+	// 	}
+	// }
 
 	async dashboard (req, res, next) {
 		try {
