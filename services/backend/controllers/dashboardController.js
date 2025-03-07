@@ -1,7 +1,8 @@
-const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event } = require('../models');
+const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event, AstReturn, UsrDelete } = require('../models');
 const { Op } = require('sequelize');
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController.js');
 const logger = require('../logging.js');
+const { successfulEventCondition, pendingOrCancelledEventCondition } = require('./utils.js');
 
 class DashboardController {
 
@@ -44,11 +45,23 @@ class DashboardController {
 				},{
 					model: Ast,
 					attributes: [],  // Include only the 'type_name' from AstType
-					where: {
-						delEventId: { [Op.eq]: null }
-					},
+					include: [
+						{
+							model: Event,
+							where: successfulEventCondition()
+						},
+						{
+							model: AstDelete,
+							include: {
+								model: Event,
+								where: pendingOrCancelledEventCondition(),
+								required: false,
+							},
+							required: false
+						}
+					]
 				}],
-				group: ['label'],  // Group by the type_name of the AstType model
+				group: ['label'],  // Group by the type_name of the AstType model, TODO need to group by asset not?
 				order: [[Sequelize.fn('COUNT', Sequelize.col('AstType.type_name')), 'DESC']],  // Order by the count of asset types
 				raw: true,
 				subQuery: false  // May help in certain complex grouping scenarios
@@ -66,9 +79,22 @@ class DashboardController {
 					{
 						model: Ast,
 						attributes: [],
-						where: {
-							delEventId: { [Op.eq]: null }
-						},
+						include: [
+							{
+								model: Event,
+								as: "AddEvent",
+								where: successfulEventCondition()
+							},
+							{
+								model: AstDelete,
+								include: {
+									model: Event,
+									where: pendingOrCancelledEventCondition(),
+									required: false,
+								},
+								required: false
+							}
+						]
 						// required: true  // Ensures an inner join, excluding AssetTypeVariants without valid Assets
 					},
 					{
@@ -87,29 +113,50 @@ class DashboardController {
 			const assetStatus = await Ast.findAll({
 				attributes: [
 					[Sequelize.literal(`CASE
-						WHEN "AstLoans->Loan"."loan_event_id" IS NOT NULL THEN 'Unavailable'
-						WHEN "AstLoans->Loan"."reserve_event_id" IS NOT NULL THEN 'Reserved' 
+						WHEN "AstLoans->Loan->Event"."closed_date" IS NOT NULL AND "AstLoans->AstReturns->Event"."closed_date" IS NULL THEN 'Unavailable'
+						WHEN "AstLoans->Loan->Event"."opened_date" IS NOT NULL THEN 'Reserved' 
 						ELSE 'Available' 
 					END`), 'label'],
 					[Sequelize.fn('COUNT', Sequelize.col('*')), 'data']
 				],
 				include: [
 					{
+						model: Event,
+						as: "AddEvent",
+						where: successfulEventCondition()
+					},
+					{
+						model: AstDelete,
+						include: {
+							model: Event,
+							where: pendingOrCancelledEventCondition(),
+							required: false,
+						},
+						required: false
+					},
+					{
 						model: AstLoan,
 						attributes: [],
-						where: {
-							returnEventId: { [Op.eq]: null }
-						},
-						include: {
-							model: Loan,
-							attributes: [],
-						},
+						include: [
+							{
+								model: Loan,
+								include: {
+									model: Event, // loan event
+									where: { cancelled: { [Op.eq]: false } }
+								}
+							},
+							{
+								model: AstReturn, // asset return events
+								include: {
+									model: Event,
+									where: successfulEventCondition()
+								},
+								required: false
+							}
+						],
 						required: false
 					}
 				],
-				where: {
-					delEventId: { [Op.eq]: null }
-				},
 				group: ['label'],
 				raw: true
 			});
@@ -122,15 +169,26 @@ class DashboardController {
 					[Sequelize.col('Dept.dept_name'), 'label'],
 					[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'data']
 				],
-				include: [{
-					model: Dept,
-					attributes: []
-				}],
-				where: {
-					delEventId: {
-						[Op.eq]: null
+				include: [
+					{
+						model: Dept,
+						attributes: []
+					},
+					{
+						model: Event,
+						as: "AddEvent",
+						where: successfulEventCondition()
+					},
+					{
+						model: UsrDelete,
+						include: {
+							model: Event,
+							where: pendingOrCancelledEventCondition(),
+							required: false,
+						},
+						required: false
 					}
-				},
+				],
 				group: 'label',
 				order: [[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'ASC']],
 				raw: true
@@ -143,7 +201,21 @@ class DashboardController {
 					[Sequelize.col('Dept.dept_name'), 'label'],
 					[Sequelize.fn('COUNT', Sequelize.col('"Loans->AstLoan"."id"')), 'data']
 				],
-				include: [
+				include: [ // Add and Del confitions may not be necessary since only added and uncondemned assets should be on loan 
+					{
+						model: Event,
+						as: "AddEvent",
+						where: successfulEventCondition()
+					},
+					{
+						model: UsrDelete,
+						include: {
+							model: Event,
+							where: pendingOrCancelledEventCondition(),
+							required: false,
+						},
+						required: false
+					},
 					{
 						model: Dept,
 						attributes: []
@@ -151,27 +223,29 @@ class DashboardController {
 					{
 						model: Loan,
                         attributes: [],
-						include: {
-							model: AstLoan,
-							attributes: [],
-							where: {
-								returnEventId: {
-									[Op.eq]: null
-								}
+						include: [
+							{
+								model: Event,
+								where: successfulEventCondition()
+							},
+							{
+								model: AstLoan,
+								attributes: [],
+								include: [
+									
+									{
+										model: AstReturn,
+										include: {
+											model: Event,
+											where: pendingOrCancelledEventCondition()
+										},
+										required: false
+									}
+								],
 							}
-						},
-                        where: {
-                            loanEventId: {
-                                [Op.ne]: null
-                            }
-                        }
+						],
 					}
 				],
-				where: {
-					delEventId: {
-						[Op.eq]: null
-					}
-				},
 				group: 'label',
 				order: [[Sequelize.fn('COUNT', Sequelize.col('Dept.dept_name')), 'ASC']],
 				raw: true
@@ -182,18 +256,26 @@ class DashboardController {
 			// Age of assets
 			const devicesAge = await Ast.findAll({
 				attributes: [
-				  [Sequelize.literal(`FLOOR(DATE_PART('day', NOW() - "AddEvent"."event_date") / 365.25)`), 'label'],
+				  [Sequelize.literal(`FLOOR(DATE_PART('day', NOW() - "AddEvent"."closed_date") / 365.25)`), 'label'],
 				  [Sequelize.fn('COUNT', Sequelize.col('*')), 'data']
 				],
-				include: {
-					model: Event,
-					as: "AddEvent",
-					attributes: []
-				},
-				where: {
-				  delEventId: { [Op.is]: null }
-				},
-				group: [Sequelize.literal(`FLOOR(DATE_PART('day', NOW() - "AddEvent"."event_date") / 365.25)`)],
+				include: [
+					{
+						model: Event,
+						as: "AddEvent",
+						where: successfulEventCondition()
+					},
+					{
+						model: AstDelete,
+						include: {
+							model: Event,
+							where: pendingOrCancelledEventCondition(),
+							required: false,
+						},
+						required: false
+					}
+				],
+				group: [Sequelize.literal(`FLOOR(DATE_PART('day', NOW() - "AddEvent"."closed_date") / 365.25)`)],
 				order: [[Sequelize.literal(`label`), 'DESC']],
 				raw: true
 			  });
@@ -210,9 +292,22 @@ class DashboardController {
 				include: [{
 						model: Ast,
 						attributes: [],  // No attributes are needed from the Ast model directly
-						where: {
-							delEventId: { [Op.eq]: null }
-						},
+						include: [
+							{
+								model: Event,
+								as: "AddEvent",
+								where: successfulEventCondition()
+							},
+							{
+								model: AstDelete,
+								include: {
+									model: Event,
+									where: pendingOrCancelledEventCondition(),
+									required: false,
+								},
+								required: false
+							}
+						]
 				}, {
 						model: AstType,
 						attributes: []  // Including AstType but not selecting attributes directly here, used in the top-level attributes instead
@@ -233,9 +328,22 @@ class DashboardController {
 				include: [{
 						model: Ast,
 						attributes: [],
-						where: {
-							delEventId: { [Op.eq]: null }
-						},
+						include: [
+							{
+								model: Event,
+								as: "AddEvent",
+								where: successfulEventCondition()
+							},
+							{
+								model: AstDelete,
+								include: {
+									model: Event,
+									where: pendingOrCancelledEventCondition(),
+									required: false,
+								},
+								required: false
+							}
+						],
 						where: {
 							value: { [Op.ne]: 0 }
 						}
@@ -259,22 +367,28 @@ class DashboardController {
 				],
 				include: [
 					{
+						model: Event,
+						as: "AddEvent",
+						where: successfulEventCondition()
+					},
+					{
+						model: AstDelete,
+						include: {
+							model: Event,
+							where: pendingOrCancelledEventCondition(),
+							required: false,
+						},
+						required: false
+					},
+					{
 						model: AstSType,
 						attributes: [],
 						include: {
 							model: AstType,
 							attributes: []
 						}
-					},
-					{
-						model: Event,
-                        as: 'AddEvent',
-                        attributes: []
 					}
 				],
-				where: {
-					delEventId: { [Op.eq]: null }
-				},
 				group: ['group', '"AstSType->AstType"."type_name"'],
 				order: [['group', 'ASC'], ['label', 'ASC']],
 				raw: true

@@ -23,14 +23,6 @@ module.exports = (sequelize) => {
                 key: 'id'
             },
         },
-        returnEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-            allowNull: true,
-        },
 	}, {
 		sequelize,
 		modelName: 'AstLoan',

@@ -35,7 +35,9 @@ class AccLoanDTO {
         if (AccReturns) {
             this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn));
             if (count && AccReturns.every(accReturn => accReturn.count)) {
-                this.returned = AccReturns.reduce((returnCount, accReturn) => {
+                this.returned = this.accReturns
+                    .filter(accReturn => accReturn.event.closedDate && !accReturn.event.cancelled)
+                    .reduce((returnCount, accReturn) => {
                     return returnCount += accReturn.count;
                 }, 0)
                 this.unreturned = this.count - this.returned;

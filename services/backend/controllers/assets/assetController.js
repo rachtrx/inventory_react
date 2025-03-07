@@ -1,9 +1,12 @@
-const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, 
+    sequelize, Event, AccType, AccLoan, AccReturn, Loan, 
+    Admin, Rmk, AstTagMap, AstTag, AstReturn, AstDelete, AstTagMapDel 
+} = require('../../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
-const logger = require('../logging.js');
-const AssetDTO = require('../dtos/ast.dto.js');
-const EventDTO = require('../dtos/event.dto.js');
+const { createSelection, getAllOptions, getDistinctOptions, assetReturnedQuery, getFullEventDetails, successfulEventCondition, pendingOrCancelledEventCondition } = require('../utils.js');
+const logger = require('../../logging.js');
+const AssetDTO = require('../../dtos/ast.dto.js');
+const EventDTO = require('../../dtos/event.dto.js');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -70,7 +73,9 @@ class AssetController {
                     SELECT DISTINCT 
                         FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
                     FROM "asts" a
-                    JOIN "events" e ON a.add_event_id = e.id;
+                    JOIN "events" e ON a.event_id = e.id
+                    WHERE e.cancelled = FALSE
+                    AND e.closed_date IS NOT NULL;
                 `;
                 const distinctAges = await sequelize.query(devicesAgeQuery, {
                     type: Sequelize.QueryTypes.SELECT
@@ -119,10 +124,12 @@ class AssetController {
             } else if (field === 'age') { // no id
                 const devicesAgeQuery = `
                     SELECT DISTINCT 
-                        FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
+                        FLOOR(DATE_PART('day', NOW() - e.closed_date) / 365.25) AS age
                     FROM "asts" a
-                    JOIN "events" e ON a.add_event_id = e.id
-                    ORDER BY FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) DESC;
+                    JOIN "events" e ON a.event_id = e.id
+                    WHERE e.cancelled = FALSE
+                    AND e.closed_date IS NOT NULL
+                    ORDER BY FLOOR(DATE_PART('day', NOW() - e.closed_date) / 365.25) DESC;
                 `;
                 const distinctAges = await sequelize.query(devicesAgeQuery, {
                     type: Sequelize.QueryTypes.SELECT
@@ -175,7 +182,14 @@ class AssetController {
                     {
                         model: AstTagMap,
                         attributes: ['id'],
-                        where: { delEventId: { [Op.eq]: null }}, 
+                        include: {
+                            model: AstTagMapDel,
+                            include: {
+                                model: Event,
+                                where: successfulEventCondition(),
+                            },
+                            required: false
+                        }, 
                         include: {
                             model: AstTag,
                             attributes: ['id', 'tagName'],
@@ -197,14 +211,19 @@ class AssetController {
                     },
                     {
                         model: Event,
-                        as: 'AddEvent',
-                        attributes: ['eventDate']
+                        attributes: ['closedDate'],
+                        where: successfulEventCondition(),
+                        required: true,
                     },
                     {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['eventDate'],
-                        required: false,
+                        model: AstDelete,
+                        include: {
+                            model: Event,
+                            attributes: ['id', 'cancelled', 'closedDate'],
+                            where: successfulEventCondition(),
+                            required: false,
+                        },
+                        required: false
                     },
                     {
                         model: Vendor,
@@ -213,18 +232,33 @@ class AssetController {
                     },
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
-                        include: {
-                            model: Loan,
-                            attributes: ['id', 'reserveEventId', 'loanEventId', 'filepath'],
-                            where: { cancelEventId: null },
-                            include: {
-                                model: Usr,
-                                attributes: ['id', 'userName', 'bookmarked'],
+                        attributes: ['id'],
+                        required: false,
+                        include: [
+                            assetReturnedQuery(),
+                            {
+                                model: Loan,
+                                attributes: ['id', 'eventId', 'filepath'],
+                                include: [
+                                    {
+                                        model: Usr,
+                                        attributes: ['id', 'userName', 'bookmarked'],
+                                    },
+                                    {
+                                        model: Event,
+                                        attributes: ['id', 'openedDate', 'cancelled', 'expectedCloseDate', 'closedDate'],
+                                    }
+                                ],
                             },
-                        },
-                        where: { returnEventId: null },
-                        required: false
+                        ],
+                        where: Sequelize.literal(`NOT EXISTS (
+                            SELECT 1 
+                            FROM ast_returns AS "AstReturns"
+                            JOIN events AS "AstReturns->Event" ON "AstReturns->Event"."id" = "AstReturns"."event_id" 
+                            WHERE "AstReturns"."ast_loan_id" = "AstLoans"."id"
+                            AND "AstReturns->Event"."cancelled" = FALSE
+                            AND "AstReturns->Event"."closed_date" IS NULL -- Asset scheduled to be returned but not cancelled or completed
+                        )`)
                     }
                 ],
                 where: whereClause
@@ -239,16 +273,20 @@ class AssetController {
 
             let result = query.map(assetRow => {
                 const asset = new AssetDTO(assetRow);
-                return asset;
+                return {
+                    ...asset,
+                    ...(asset.ongoingLoanId && { ongoingLoan: asset.astLoans.find(astLoan => astLoan.loan.loanId === asset.ongoingLoanId).loan }),
+                    ...(asset.ongoingReservationId && { ongoingReservation: asset.astLoans.find(astLoan => astLoan.loan.loanId === asset.ongoingReservationId).loan })
+                };
             });
     
             if (filters.status.length > 0) {
                 result = result.filter(asset => {
-                    const hasLoan = asset.ongoingLoan ? true : false;
+                    const hasLoan = asset.ongoingLoanId ? true : false; // TODO check for ongoing loan
 
                     // next line: dont need to filter out cancelled reservations (done in query already) 
-                    const isReserved = asset.ongoingReservation ? true : false;
-                    const isDeleted = asset.delEventId ? true : false;
+                    const isReserved = asset.ongoingReservationId ? true : false;
+                    const isDeleted = asset.delEvent ? true : false;
         
                     if (filters.status.includes('Condemned') && isDeleted) {
                         return true;
@@ -294,6 +332,24 @@ class AssetController {
                 ],
                 include: [
                     {
+                        model: AstTagMap,
+                        include: [
+                            {
+                                model: AstTag,
+                                attributes: ['id', 'tagName']
+                            },
+                            {
+                                model: AstTagMapDel,
+                                include: {
+                                    model: Event,
+                                    where: pendingOrCancelledEventCondition()
+                                },
+                                required: false
+                            }
+                        ],
+                        required: false
+                    },
+                    {
                         model: AstSType,
                         attributes: ['subTypeName'],
                         include: {
@@ -317,23 +373,27 @@ class AssetController {
 
             if (asset.history && asset.history.length > 0) {
 
-                asset.currentUser = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
-                    .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.loan.user
+                asset.currentUser = asset.history
+                    // loaned (not cancelled), and 
+                    .find(event => event.loan && event.isCompleted() &&
+                        !event.loan.astLoan.astReturns.find(_return => _return.event.isCompleted())
+                    )?.loan.user
 
                 asset.pastUsers = Array.from(
                     new Map(
                         asset.history
-                            .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent) // Filter events with returnEvent
+                            .filter(event => event.loan?.astLoan.astReturns?.find(_return => _return.event.isCompleted())) // Filter events with returnEvent
                             .map(event => [event.loan.user.userId, event.loan.user])
                     ).values()
                 );
 
                 asset.reservedUser = asset.history
-                    .find(event => event.reservation)?.loan.user
+                    .find(event => event.loan && event.isScheduled())?.loan.user
             }
 
             res.json(asset);
         } catch (error) {
+            console.log(error);
             logger.error("Error fetching asset details:", error);
             res.status(500).send({ error: "Internal server error" });
         }
@@ -341,13 +401,12 @@ class AssetController {
 
     async getAllEvents(assetId) {
         const eventRows = await Event.findAll({
-            attributes: ['id', 'adminId', 'eventDate'],
+            // attributes: ['id', 'openedAdminId', 'openedDate', 'closedAdminId', 'closedDate', 'expectedCloseDate', 'cancelled'],
             where: {
                 [Op.or]: [
-                    { '$AddedAsset.id$': assetId },
-                    { '$DeletedAsset.id$': assetId },
+                    { '$Ast.id$': assetId },
+                    { '$AstDelete.asset_id$': assetId },
                     { '$Loan->AstLoan.asset_id$': assetId },
-                    { '$Reservation->AstLoan.asset_id$': assetId }
                 ]
             },
             include: [
@@ -363,24 +422,28 @@ class AssetController {
                 },
                 {
                     model: Admin,
+                    as: "OpenedAdmin",
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: Admin,
+                    as: "ClosedAdmin",
                     attributes: ['id', 'adminName'],
                     required: false
                 },
                 {
                     model: Ast,
-                    as: 'AddedAsset',
-                    attributes: [], // todo add details so timeline can display
+                    attributes: ['id'],
                     required: false
                 },
                 {
-                    model: Ast,
-                    as: 'DeletedAsset',
-                    attributes: [],
+                    model: AstDelete,
+                    attributes: ['id'], 
                     required: false
                 },
                 {
                     model: Loan,
-                    as: 'Loan',
                     required: false,
                     attributes: ['filepath'],
                     include: [
@@ -393,19 +456,9 @@ class AssetController {
                             attributes: ['id'],
                             include: [
                                 {
-                                    model: Event,
-                                    as: 'ReturnEvent',
-                                    attributes: ['id', 'eventDate'],
-                                    required: false,
-                                    include: {
-                                        model: Rmk,
-                                        attributes: ['id', 'text', 'remarkDate'],
-                                        include: {
-                                            model: Admin,
-                                            attributes: ['id', 'adminName'],
-                                            required: false
-                                        }
-                                    }
+                                    model: AstReturn,
+                                    attributes: ['id'],
+                                    include: getFullEventDetails()
                                 },
                                 {
                                     model: Ast,
@@ -426,70 +479,14 @@ class AssetController {
                                     model: AccReturn,
                                     attributes: ['id', 'count'],
                                     required: false,
-                                    include: {
-                                        model: Event,
-                                        as: 'ReturnEvent',
-                                        attributes: ['id', 'eventDate'],
-                                        required: true,
-                                        include: {
-                                            model: Rmk,
-                                            attributes: ['id', 'text', 'remarkDate'],
-                                            include: {
-                                                model: Admin,
-                                                attributes: ['id', 'adminName'],
-                                                required: false
-                                            }
-                                        }
-                                    }
+                                    include: getFullEventDetails()
                                 }
                             ]
                         },
-                    ]
-                },
-                {
-                    model: Loan,
-                    required: false,
-                    as: 'Reservation',
-                    where: { loanEventId: { [Op.eq]: null }},
-                    include: [
-                        {
-                            model: Usr,
-                            attributes: ['id', 'userName', 'bookmarked']
-                        },
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false,
-                            include: {
-                                model: Rmk,
-                                attributes: ['id', 'text', 'remarkDate'],
-                                include: {
-                                    model: Admin,
-                                    attributes: ['id', 'adminName'],
-                                    required: false
-                                }
-                            },
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id'],
-                        },
-                        {
-                            model: AccLoan,
-                            attributes: ['id', 'count'],
-                            required: false,
-                            include: [
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName']
-                                }
-                            ]
-                        }
                     ]
                 }
             ],
-            order: [['eventDate', 'DESC']]
+            order: [['closedDate', 'DESC']]
         });
 
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects

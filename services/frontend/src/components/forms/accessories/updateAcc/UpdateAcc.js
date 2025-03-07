@@ -7,7 +7,6 @@ import { FieldArray, Form, Formik, useFormikContext } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import accessoryService from "../../../../services/AccessoryService";
-import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "../../utils/ItemButtons";
 import { v4 as uuidv4 } from 'uuid';

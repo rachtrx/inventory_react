@@ -29,55 +29,72 @@ class ValidationService {
     }
 
     async getUser(userId, userName) {
-        const user = await Usr.findByPk(userId, { 
+        const user = await Usr.findByPk(userId, {
             transaction: this.transaction,
+            include: {
+                model: UsrDelete,
+                include: {
+                    model: Event,
+                    where: { cancelled: { [Op.ne]: null }},
+                    required: false,
+                }
+            },
         });
         if (!user) throw new Error(`No record found for User ID: ${userId}`);
         else if (user.userName !== userName) throw new Error(`Username for user ID: ${userId} mismatched ${userName}.`);
         
+        if (user.UsrDeletes) {
+            if (user.UsrDeletes.length > 0) {
+                throw new Error(`Multiple delete entries (scheduled or completed) found!`);
+            } else {
+                const delEvent = user.UsrDeletes[0].Event;
+                throw new Error(`User ${user.userName} is already ${delEvent.closedDate ? 'deleted' : 'scheduled to delete'}!`);
+            }
+        }
+
         return user;
     }
 
-    async getAsset(assetId, serialNumber, includeReturns=false) {
+    async getAssetOnLoan(assetId, serialNumber) {
         const asset = await Ast.findByPk(assetId, {
             transaction: this.transaction,
-            include: {
-                model: AstLoan,
-                attributes: ['id', 'loanId'],
-                where: { returnEventId: { [Op.eq]: null } }, // find the loaned device
-                required: false, // device is returned if not found
-                include: {
-                    model: Loan,
-                    attributes: ['id', 'loanEventId', 'userId'],
-                    ...(includeReturns && {
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['userName', 'id'],
-                            },
-                            {
-                                model: AccLoan,
-                                attributes: ['id', 'accessoryTypeId', 'count'],
-                                include: {
-                                    model: AccReturn,
-                                    attributes: ['count'],
-                                    where: { returnEventId: { [Op.eq]: null } },
-                                    required: false,
-                                },
-                                required: false,
-                            }
-                        ]
-                    })
+            include: [
+                {
+                    model: AstDelete,
+                    include: {
+                        model: Event,
+                        where: { cancelled: { [Op.ne]: null }},
+                        required: false,
+                    }
+                },
+                {
+                    model: AstLoan,
+                    attributes: ['id', 'loanId'],
+                    required: false, // device is returned if not found
+                    where: Sequelize.literal(`NOT EXISTS ( -- Get all returned astloan IDs
+                        SELECT 1
+                        FROM "ast_returns" AS "AstReturns"
+                        JOIN "events" AS "AstReturns->Event" 
+                            ON "AstReturns"."event_id" = "AstReturns->Event"."id" 
+                            AND "AstReturns->Event"."cancelled" = FALSE
+                            AND "AstReturns->Event"."closed_date" IS NOT NULL 
+                        WHERE "AstReturns"."ast_loan_id" = "AstLoans"."id"
+                        GROUP BY "AstReturns"."ast_loan_id"
+                    )`),
                 }
-            }
+            ]
         });
         if (!asset) throw new Error(`No record found for Asset ID: ${assetId}`);
         if (asset.serialNumber !== serialNumber) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected serialNumber: ${serialNumber}, but found: ${asset.serialNumber}`);
 
-        if (asset.delEventId) {
-            throw new Error(`Asset AstTag ${assetData.assetTag} is condemned!`);
+        if (asset.AstDeletes) {
+            if (asset.AstDeletes.length > 0) {
+                throw new Error(`Multiple delete entries (scheduled or completed) found!`);
+            } else {
+                const delEvent = asset.AstDeletes[0].Event;
+                throw new Error(`Asset ${assetData.serialNumber} is already ${delEvent.closedDate ? 'condemned' : 'scheduled to condemn'}!`);
+            }
         }
-
         return asset;
     }
     

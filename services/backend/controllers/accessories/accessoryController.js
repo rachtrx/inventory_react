@@ -1,12 +1,12 @@
-const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk, Sequelize } = require('../models/index.js');
-const logger = require('../logging.js');
-const { getAllOptions } = require('./utils.js');
-const AccTypeDTO = require('../dtos/accType.dto.js');
-const EventDTO = require('../dtos/event.dto.js');
+const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk, Sequelize } = require('../../models/index.js');
+const logger = require('../../logging.js');
+const { getAllOptions, accessoryReturnedQuery, successfulEventCondition } = require('../utils.js');
+const AccTypeDTO = require('../../dtos/accType.dto.js');
+const EventDTO = require('../../dtos/event.dto.js');
 
 const { DateTime } = require("luxon");
 const { Op } = require('sequelize');
-const { generateSecureID } = require('../utils/nanoidValidation.js');
+const { generateSecureID } = require('../../utils/nanoidValidation.js');
 
 class AccessoryController {
 
@@ -55,23 +55,28 @@ class AccessoryController {
                     model: AccTxn,
                     required: false,
                     attributes: ['id', 'count'], // TODO change to count
+                    include: {
+                        model: Event,
+                        where: successfulEventCondition()
+                    }
                 },
                 {
                     model: AccLoan,
                     required: false,
                     attributes: ['id', 'count'],
                     include: [
-                        {
-                            model: AccReturn,
-                            attributes: ['id', 'count'],
-                            required: false
-                        },
+                        accessoryReturnedQuery(),
                         {
                             model: Loan,
-                            attributes: ['id', 'loanEventId', 'reserveEventId'],
+                            attributes: ['id'],
                             required: true,
-                            where: { cancelEventId: null },
                             include: [
+                                {
+                                    model: Event,
+                                    as: 'LoanEvent',
+                                    attributes: ['id', 'openedDate', 'expectedCloseDate', 'closedDate'],
+                                    where: { cancelled: { [Op.eq]: false } },
+                                },
                                 {
                                     model: Usr,
                                     attributes: ['id', 'userName', 'bookmarked'],
@@ -129,17 +134,6 @@ class AccessoryController {
                     'stock',
                 ],
                 where: { id: accTypeId } //,
-                // include: [
-                //     {
-                //         model: AstSType,
-                //         attributes: ['subTypeName'],
-                //         
-                //     },
-                    // include: {
-                    //             model: AstType,
-                    //             attributes: ['typeName']
-                    //         }
-                // ],
             });
             
             if (!accTypeDetails) return res.status(404).send({ error: "Ast not found" });
@@ -153,7 +147,7 @@ class AccessoryController {
                 accType.currentUsers = Array.from(
                     new Map( // IMPT ensuring no duplicate keys by creating a map before extracting users through values
                         accType.history
-                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
+                            .filter(event => event.loan?.accLoans && event.closedDate && !event.cancelled && event.loan.accLoans.length > 0 && (
                                 event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned !== 0)
                             ))
                             .map(event => { 
@@ -165,7 +159,8 @@ class AccessoryController {
                 accType.pastUsers = Array.from(
                     new Map(
                         accType.history
-                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
+                            // filter for LOANED and RETURNED
+                            .filter(event => event.loan?.accLoans && event.closedDate && !event.cancelled && event.loan.accLoans.length > 0 && (
                                 event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned === 0)
                             ))
                             .map(event => { 
@@ -177,8 +172,9 @@ class AccessoryController {
                 accType.reservedUsers = Array.from(
                     new Map(
                         accType.history
-                            .filter(event => event.reservation?.accLoans && event.reservation.accLoans.length > 0 && !event.reservation.cancelEvent && (
-                                event.reservation.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId)
+                            // filter for NOT LOANED
+                            .filter(event => event.loan?.accLoans && !event.closedDate && event.loan.accLoans.length > 0 && (
+                                event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId)
                             ))
                             .map(event => { 
                                 [event.loan.user.userId, event.loan.user]
@@ -196,13 +192,11 @@ class AccessoryController {
 
     async getAllEvents(accTypeId) {
         const eventRows = await Event.findAll({
-            attributes: ['id', 'adminId', 'eventDate'],
+            attributes: ['id', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
             where: {
                 [Op.or]: [
                     { '$AccType.id$': accTypeId },
-                    { '$AccTxn.accessory_type_id$': accTypeId },
-                    { '$Loan->AccLoans.accessory_type_id$': accTypeId },
-                    { '$Reservation->AccLoans.accessory_type_id$': accTypeId }
+                    { '$AccTxn.accessory_type_id$': accTypeId }
                 ]
             },
             include: [
@@ -233,16 +227,16 @@ class AccessoryController {
                 },
                 {
                     model: Loan,
-                    // where: { id: { [Op.in]: Sequelize.literal(`
-                    //     SELECT "OtherLoans"."user_id" 
-                    //     FROM loans AS "Loan"
-                    //     JOIN loans AS "OtherLoans" ON "Loan"."id" = "OtherLoans"."id"
-                    //     WHERE "Loan"."user_id" = ${userId}
-
-                    // `) }},
                     as: 'Loan',
                     required: false,
                     attributes: ['filepath'],
+                    where: Sequelize.literal(`
+                        "Loans"."id" IN ("
+                        SELECT DISTINCT "AccLoans->Loan"."id" 
+                        FROM acc_loans AS "AccLoans" 
+                        JOIN loans AS "AccLoans->Loan" ON "AccLoans->Loan"."id" = "AccLoans"."loan_id" 
+                        WHERE "AccLoans"."accessory_type_id" = ${accTypeId})    
+                    `),
                     include: [
                         {
                             model: Usr,
@@ -261,7 +255,8 @@ class AccessoryController {
                                 {
                                     model: Event,
                                     as: 'ReturnEvent',
-                                    attributes: ['id', 'eventDate'],
+                                    attributes: ['id', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+                                    where: { cancelled: { [Op.eq]: false } },
                                     required: false,
                                     include: {
                                         model: Rmk,
@@ -269,9 +264,9 @@ class AccessoryController {
                                         include: {
                                             model: Admin,
                                             attributes: ['id', 'adminName'],
-                                            required: false
+                                            required: false,
                                         }
-                                    }
+                                    },
                                 }
                             ]
                         },
@@ -287,12 +282,13 @@ class AccessoryController {
                                 {
                                     model: AccReturn,
                                     attributes: ['id', 'count'],
+                                    // TODO can place the closedDate requirement here? otherwise accReturn might return with no event...
                                     required: false,
                                     include: {
                                         model: Event,
                                         as: 'ReturnEvent',
-                                        attributes: ['id', 'eventDate'],
-                                        required: false,
+                                        attributes: ['id', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+                                        where: { cancelled: { [Op.eq]: false } },
                                         include: {
                                             model: Rmk,
                                             attributes: ['id', 'text', 'remarkDate'],
@@ -301,106 +297,13 @@ class AccessoryController {
                                                 attributes: ['id', 'adminName'],
                                                 required: false
                                             }
-                                        }
+                                        },
                                     }
                                 },
-                                {
-                                    model: Loan,
-                                    required: false,
-                                    include: {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                                where: { id: { [Op.ne]: accTypeId } }
-                                            },
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['id', 'count'],
-                                                required: false,
-                                                include: {
-                                                    model: Event,
-                                                    as: 'ReturnEvent',
-                                                    attributes: ['id', 'eventDate'],
-                                                    required: true
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
                             ]
                         },
                     ]
                 },
-                {
-                    model: Loan,
-                    required: false,
-                    as: 'Reservation',
-                    attributes: ['filepath'],
-                    include: [
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false
-                        },
-                        {
-                            model: Usr,
-                            attributes: ['id', 'userName', 'bookmarked']
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id'],
-                            required: false,
-                            include: {
-                                model: Ast,
-                                required: true,
-                                attributes: ['id', 'assetTag', 'serialNumber'],
-                            }
-                        },
-                        {
-                            model: AccLoan,
-                            attributes: ['id', 'count'],
-                            required: false,
-                            include: [
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName']
-                                },
-                                {
-                                    model: Loan,
-                                    required: false,
-                                    include: {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                                where: { id: { [Op.ne]: accTypeId } }
-                                            },
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['id', 'count'],
-                                                required: false,
-                                                include: {
-                                                    model: Event,
-                                                    as: 'ReturnEvent',
-                                                    attributes: ['id', 'eventDate'],
-                                                    required: true
-                                                }
-                                            },
-                                        ]
-                                    },
-                                }
-                            ]
-                        }
-                    ]
-                }
             ],
             order: [['eventDate', 'DESC']]
         });
@@ -408,21 +311,6 @@ class AccessoryController {
         logger.info(eventRows.map(row => row.get({plain: true})))
 
         const events = eventRows.map(event => {
-            if (event.Loan && event.Loan.AccLoans) {
-                if (event.Loan.AccLoans.Loan && event.Loan.AccLoans.Loan.AccLoans) {
-                    event.Loan.AccLoans = event.Loan.AccLoans.concat(event.Loan.AccLoans.Loan.AccLoans);
-                }
-                event.Loan.AccLoans.forEach(accLoan => {
-                    accLoan.Loan = null;
-                });
-            } else if (event.Reservation && event.Reservation.AccLoans) {
-                if (event.Reservation.AccLoans.Loan && event.Reservation.AccLoans.Loan.AccLoans) {
-                    event.Reservation.AccLoans = event.Reservation.AccLoans.concat(event.Reservation.AccLoans.Loan.AccLoans);
-                }
-                event.Reservation.AccLoans.forEach(accLoan => {
-                    accLoan.Loan = null;
-                });
-            }
             return new EventDTO(event);
         });
         
@@ -583,39 +471,6 @@ class AccessoryController {
     }
 
     // SECTION helpers
-
-    async createAccessoryType(accessoryName, count, authId, transaction, remarks="") {
-        // console.log("Creating Acc");
-
-        const addAccTypeEventId = generateSecureID();
-
-        const dateTimeNow = DateTime.now().setZone('Asia/Singapore').toJSDate();
-
-        const accRow = await AccType.findOne({
-            attributes: ["accessoryName"],
-            where: { accessoryName }
-        })
-
-        // console.log(accRow);
-
-        if (accRow) {
-            throw new Error(`Accessory with name ${accessoryName} already exists.`);
-        }
-
-        await Event.create({
-            id: addAccTypeEventId,
-            eventDate: dateTimeNow, // TODO
-            adminId: authId, // req.auth.id
-        }, { transaction: this.transaction });
-
-        const accType = await AccType.create({ 
-            id: generateSecureID(), 
-            accessoryName: accessoryName, 
-            stock: count 
-        }, { transaction });
-
-        return accType;
-    }
 
     // Method to reduce accessory count
 

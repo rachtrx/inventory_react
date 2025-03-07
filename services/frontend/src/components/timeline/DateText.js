@@ -5,7 +5,7 @@ import AddRemark from "./AddRemark";
 
 const DateText = ({ colorScheme, event }) => {
 
-    const { eventDate, remarks, eventId } = event;
+    const { closedDate, openedDate, remarks, eventId } = event;
     return (
         <Badge 
             colorScheme={colorScheme} 
@@ -15,7 +15,7 @@ const DateText = ({ colorScheme, event }) => {
             borderRadius="md"
         >
             <Text as="span" fontSize="sm" fontWeight="bold">
-                {new Date(eventDate).toLocaleDateString("en-SG", {
+                {new Date(closedDate).toLocaleDateString("en-SG", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",

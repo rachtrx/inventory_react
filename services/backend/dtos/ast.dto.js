@@ -3,6 +3,11 @@ const EventDTO = require("./event.dto");
 
 class AssetDTO {
 
+    /**
+     * Has the following optional attributes: tags, remarks, assetId, serialNumber, assetTag, bookmarked, subTypeName, subTypeId, typeName, typeId, value, vendorName, vendorId, astLoans, addEvent, ongoingLoanId, ongoingReservationId, addEventId, delEventId
+     * 
+     * **/
+
     constructor({
         id, 
         serialNumber, 
@@ -14,10 +19,9 @@ class AssetDTO {
         location,
         AstSType,
         AstLoans,
-        addEventId,
-        delEventId,
-        AddEvent,
-        DeleteEvent,
+        eventId,
+        Event,
+        AstDeletes,
         AstTagMaps=null,
         lastEventDate=null
     }) {
@@ -27,12 +31,17 @@ class AssetDTO {
         }
 
         if (AstTagMaps !== null) {
-            this.tags = AstTagMaps.map(astTagMap => ({
-                tagId: astTagMap.AstTag?.id,
-                tagName: astTagMap.AstTag?.tagName,
-                assetTagId: astTagMap.id,
-                isMatching: astTagMap.get('isMatching'),
-            }))
+            this.tags = AstTagMaps
+                .filter(astTagMap => {
+                    const delEvent = astTagMap.AstTagMapDels.find(tagDel => !tagDel.Event.cancelled && tagDel.Event.closedDate)
+                    return !delEvent
+                })
+                .map(astTagMap => ({
+                    tagId: astTagMap.AstTag?.id,
+                    tagName: astTagMap.AstTag?.tagName,
+                    assetTagId: astTagMap.id,
+                    isMatching: astTagMap.get('isMatching'),
+                }))
         }
 
         if (remarks) this.remarks = remarks;
@@ -61,33 +70,41 @@ class AssetDTO {
         this.location = location;
 
         if (AstLoans) {
-            this.ongoingLoan = null;
-            
             this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan));
 
-            const ongoingAssetLoans = this.astLoans.filter(astLoan =>
-                astLoan.returnEventId == null && astLoan.returnEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
-                (astLoan.loan.loanEventId != null || astLoan.loan.loanEvent?.eventId != null)
-            ) || null;
-
-            if (ongoingAssetLoans.length === 1) this.ongoingLoan = ongoingAssetLoans[0].loan;
+            const ongoingAssetLoans = this.astLoans.filter(
+                astLoan => !astLoan.astReturns?.some(astReturn => !astReturn.event.cancelled && astReturn.event.closedDate)) || null;
+            
+            if (ongoingAssetLoans.length === 1) {
+                this.ongoingLoanId = ongoingAssetLoans[0].loan.loanId;
+            }
             else if (ongoingAssetLoans.length > 1) throw new Error(`Multiple ongoing loans found for ${this.serialNumber}`);
 
-            this.ongoingReservation = null;
-
             const ongoingAssetReservations = this.astLoans.filter(astLoan =>
-                astLoan.loan.loanEventId == null && astLoan.loan.loanEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
-                astLoan.loan.cancelEventId == null && astLoan.loan.cancelEvent?.eventId == null) || null;
+                // Filter for scheduled loans
+                !astLoan.loan.event.closedDate
+            ) || null;
 
-            if (ongoingAssetReservations.length === 1) this.ongoingReservation = ongoingAssetReservations[0].loan;
+            if (ongoingAssetReservations.length === 1) {
+                this.ongoingReservationId = ongoingAssetReservations[0].loan.loanId;
+            }
             else if (ongoingAssetReservations.length > 1) throw new Error(`Multiple ongoing reservations found for ${this.serialNumber}`);
         }
 
-        if (addEventId) this.addEventId = addEventId;
-        if (delEventId !== undefined) this.delEventId = delEventId;
+        if (eventId) this.addEventId = eventId;
+        if (Event) {
+            this.addEvent = new EventDTO(Event);
+            this.addEventId = Event.id;
+        }
         
-        if (AddEvent) this.addEvent = new EventDTO(AddEvent);
-        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);
+        if (AstDeletes && AstDeletes.length > 0) {
+            this.astDeletes = AstDeletes.map(astDelete => new EventDTO(astDelete.Event));
+            this.delEvent = AstDeletes.find(astDelete => astDelete.cancelled === false && astDelete.closedDate)?.event;
+            // console.log(this.delEvent);
+            if (this.delEvent) {
+                this.delEventId = this.delEvent.id;
+            }
+        }
     }
 }
   

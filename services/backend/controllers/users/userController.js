@@ -1,9 +1,10 @@
-const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
+const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap, UsrDelete, AstReturn, UsrTagMapDel } = require('../../models');
 const { Op, where } = require('sequelize');
-const logger = require('../logging.js');
-const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
-const UserDTO = require('../dtos/usr.dto.js');
-const EventDTO = require('../dtos/event.dto.js');
+const logger = require('../../logging.js');
+const { createSelection, getAllOptions, getDistinctOptions } = require('../utils.js');
+const UserDTO = require('../../dtos/usr.dto.js');
+const EventDTO = require('../../dtos/event.dto.js');
+const { pendingOrCancelledEventCondition, assetReturnedQuery, accessoryReturnedQuery, successfulEventCondition } = require('../utils.js');
 
 class UserController {
 
@@ -29,19 +30,35 @@ class UserController {
                 const result = await AstLoan.findAll({
                     attributes: [
                         [Sequelize.col('"Loan->Usr"."id"'), 'userId'],
-                        [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
+                        [Sequelize.fn('COUNT', Sequelize.col('*')), 'assetCount']
                     ],
                     include: {
                         model: Loan,
                         attributes: [],
-                        include: {
-                            model: Usr,
-                            attributes: [],
-                        },
+                        required: true,
+                        include: [
+                            {
+                                model: Usr,
+                                attributes: [],
+                            },
+                            {
+                                model: Event,
+                                attributes: [],
+                                where: successfulEventCondition(),
+                                required: true,
+                            }
+                        ],
                     },
-                    where: { returnEventId: null },
+                    where: Sequelize.literal(`NOT EXISTS (
+                        SELECT 1
+                        FROM "ast_returns" AS "AstReturns"
+                        JOIN "events" AS "AstReturns->Event" ON "AstReturns->Event"."id" = "AstReturns"."event_id"
+                        WHERE "AstReturns"."ast_loan_id" = "AstLoan"."id"
+                        AND "AstReturns->Event"."cancelled" = FALSE
+                        AND "AstReturns->Event"."closed_date" IS NOT NULL
+                    )`),
                     group: [
-                        '"Loan->Usr"."id"' // Only group by userId
+                        '"Loan->Usr"."id"', // Only group by userId
                     ],
                     raw: true
                 });
@@ -50,7 +67,7 @@ class UserController {
                 options = distinctCounts.map((count) => ({
                     label: count,
                     value: count,
-                }))
+                })).sort((a, b) => a.value - b.value)
             }
             // console.log(options);
             return res.json(options || []);
@@ -85,62 +102,73 @@ class UserController {
                     {
                         model: UsrTagMap,
                         attributes: ['id'],
-                        where: { delEventId: { [Op.eq]: null }}, 
-                        include: {
-                            model: UsrTag,
-                            attributes: ['id', 'tagName'],
-                            ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
-                        },
+                        include: [
+                            {
+                                model: UsrTag,
+                                attributes: ['id', 'tagName'],
+                                ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
+                            },
+                            {
+                                model: UsrTagMapDel,
+                                include: {
+                                    model: Event,
+                                    where: pendingOrCancelledEventCondition()
+                                },
+                                required: false
+                            }
+                        ],
                         required: filters.tag.length > 0 ? true : false
                     },
                     {
                         model: Event,
-                        as: 'AddEvent',
-                        attributes: ['eventDate'],
+                        attributes: ['id', 'openedDate', 'closedDate'],
                     },
                     {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['eventDate'],
-                        required: false,
+                        model: UsrDelete,
+                        include: {
+                            model: Event,
+                            attributes: ['id', 'closedDate'],
+                            where: successfulEventCondition(),
+                            required: false,
+                        },
+                        required: false
                     },
                     {
                         model: Loan,
                         required: false,
-                        attributes: [
-                            'id', 
-                            'reserveEventId',
-                            'cancelEventId', 
-                            'expectedReturnDate', 
-                            'loanEventId'
-                        ],
+                        attributes: ['id', 'eventId'],
                         include: [
+                            {
+                                model: Event,
+                                where: { cancelled: false } // LOANED OR PENDING LOANS
+                            },
                             {
                                 model: AstLoan,
                                 required: false,
-                                attributes: ['id', 'returnEventId'],
-                                include: [
-                                    {
-                                        model: Ast,
+                                attributes: ['id'],
+                                include: {
+                                    model: Ast,
+                                    required: true,
+                                    attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                    include: {
+                                        model: AstSType,
                                         required: true,
-                                        attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                        attributes: ['id', 'subTypeName'],
                                         include: {
-                                            model: AstSType,
+                                            model: AstType,
                                             required: true,
-                                            attributes: ['id', 'subTypeName'],
-                                            include: {
-                                                model: AstType,
-                                                required: true,
-                                                attributes: ['id', 'typeName']
-                                            }
+                                            attributes: ['id', 'typeName']
                                         }
-                                    },
-                                ],
-                                where: {
-                                    returnEventId: {
-                                        [Op.is]: null
                                     }
                                 },
+                                where: Sequelize.literal(`NOT EXISTS ( -- Asset already returned
+                                    SELECT 1
+                                    FROM "ast_returns" AS "AstReturns"
+                                    JOIN "events" AS "AstReturns->Event" ON "AstReturns->Event"."id" = "AstReturns"."event_id"
+                                    WHERE "AstReturns"."ast_loan_id" = "Loans->AstLoan"."id"
+                                    AND "AstReturns->Event"."cancelled" = FALSE
+                                    AND "AstReturns->Event"."closed_date" IS NOT NULL
+                                )`),
                             },
                             {
                                 model: AccLoan,
@@ -155,13 +183,23 @@ class UserController {
                                     {
                                         model: AccReturn,
                                         required: false,
-                                        where: {
-                                            returnEventId: {
-                                                [Op.is]: null
-                                            }
-                                        }
-                                    }
+                                        include: {
+                                            model: Event,
+                                            where: { cancelled: false }
+                                        },
+                                    },
                                 ],
+                                where: Sequelize.literal(`NOT EXISTS ( -- All accessories returned
+                                    SELECT 1 
+                                    FROM "acc_returns" AS "AccReturns"
+                                    JOIN "events" AS "AccReturns->Event" 
+                                        ON "AccReturns->Event"."id" = "AccReturns"."event_id"
+                                        AND "AccReturns->Event"."cancelled" = FALSE
+                                        AND "AccReturns->Event"."closed_date" IS NOT NULL
+                                    WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                                    GROUP BY "AccReturns"."acc_loan_id"
+                                    HAVING COALESCE(SUM("AccReturns"."count"), 0) = "AccLoans"."count"
+                                )`),
                             },
                         ],
                     },
@@ -173,7 +211,7 @@ class UserController {
                     }
                 ],
                 where: whereClause,
-                order: [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']],
+                order: [[{ model: Event }, 'closedDate', 'DESC']],
                 // order: [[Sequelize.literal('"AddEvent"."event_date"'), 'DESC']],
             });
 
@@ -204,11 +242,31 @@ class UserController {
     
         try {
             const userDetails = await Usr.findByPk(userId, {
-                include: {
-                    model: Dept,
-                    attributes: ['id', 'deptName']
-                },
-                attributes: ['id', 'userName', 'bookmarked']
+                attributes: ['id', 'userName', 'bookmarked'],
+                include: [
+                    {
+                        model: Dept,
+                        attributes: ['id', 'deptName']
+                    },
+                    {
+                        model: UsrTagMap,
+                        include: [
+                            {
+                                model: UsrTag,
+                                attributes: ['id', 'tagName']
+                            },
+                            {
+                                model: UsrTagMapDel,
+                                include: {
+                                    model: Event,
+                                    where: pendingOrCancelledEventCondition()
+                                },
+                                required: false
+                            }
+                        ],
+                        required: false
+                    },
+                ],
             });
 
             if (!userDetails) return res.status(404).send({ error: "User not found" });
@@ -220,11 +278,19 @@ class UserController {
             if (user.history && user.history.length > 0) {
 
                 user.pastAssets = user.history
-                    .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent)
+                    .filter(event => event.loan?.astLoan && 
+                        event.loan.astLoan.astReturns.some(
+                            astReturn => !astReturn.event.cancelled && astReturn.event.closedDate
+                        )
+                    )
                     .map(event => event.loan.astLoan.asset)
 
                 user.currentAssets = user.history
-                    .filter(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)
+                    .filter(event => event.loan?.astLoan && 
+                        event.loan.astLoan.astReturns.every(
+                            astReturn => !astReturn.event.closedDate || astReturn.event.cancelled
+                        )
+                    )
                     .map(event => event.loan.astLoan.asset)
             }
     
@@ -239,13 +305,12 @@ class UserController {
 
     async getAllEvents(userId) {
         const eventRows = await Event.findAll({
-            attributes: ['id', 'adminId', 'eventDate'],
+            attributes: ['id', 'adminId', 'openedDate', 'closedDate', 'expectedCloseDate', 'cancelled'],
             where: {
                 [Op.or]: [
-                    { '$AddedUser.id$': userId },
-                    { '$DeletedUser.id$': userId },
+                    { '$Usr.id$': userId },
+                    { '$UsrDelete.user_id$': userId },
                     { '$Loan.user_id$': userId },
-                    { '$Reservation.user_id$': userId } // TODO is it possible to extract out other users of that loan?
                 ]
             },
             include: [
@@ -261,18 +326,23 @@ class UserController {
                 },
                 {
                     model: Admin,
+                    as: 'OpenedAdmin',
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: Admin,
+                    as: 'ClosedAdmin',
                     attributes: ['id', 'adminName'],
                     required: false
                 },
                 {
                     model: Usr,
-                    as: 'AddedUser',
                     attributes: ['id'],
                     required: false
                 },
                 {
-                    model: Usr,
-                    as: 'DeletedUser',
+                    model: UsrDelete,
                     attributes: ['id'],
                     required: false
                 },
@@ -287,12 +357,7 @@ class UserController {
                             attributes: ['id'],
                             required: false,
                             include: [
-                                {
-                                    model: Event,
-                                    as: 'ReturnEvent',
-                                    attributes: ['id', 'eventDate'],
-                                    required: false
-                                },
+                                assetReturnedQuery(),
                                 {
                                     model: Ast,
                                     attributes: ['id', 'serialNumber', 'assetTag', 'bookmarked'],
@@ -313,21 +378,11 @@ class UserController {
                             attributes: ['id', 'count'],
                             required: false,
                             include: [
+                                accessoryReturnedQuery(),
                                 {
                                     model: AccType,
                                     attributes: ['id', 'accessoryName'],
                                     required: true
-                                },
-                                {
-                                    model: AccReturn,
-                                    attributes: ['id', 'count'],
-                                    required: false,
-                                    include: {
-                                        model: Event,
-                                        as: 'ReturnEvent',
-                                        attributes: ['id', 'eventDate'],
-                                        required: true
-                                    }
                                 }
                             ]
                         },
@@ -337,39 +392,6 @@ class UserController {
                         },
                     ]
                 },
-                {
-                    model: Loan,
-                    required: false,
-                    as: 'Reservation',
-                    include: [
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id'],
-                            required: false
-                        },
-                        {
-                            model: AccLoan,
-                            attributes: ['id', 'count'],
-                            required: false,
-                            include: [
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName']
-                                }
-                            ]
-                        },
-                        {
-                            model: Usr,
-                            attributes: ['id', 'userName'],
-                        }
-                    ]
-                }
             ],
             order: [['eventDate', 'DESC']]
         });
@@ -378,49 +400,6 @@ class UserController {
         logger.info(events);
 
         return events;
-    }
-
-    userIsDeleted = (user) => !!user.deletedDate
-    userHasNoAsset = (user) => user.loanCount === 0 && user.reserveCount === 0
-
-    searchUsersLoan = async (req, res) => {
-        try {
-            const { value } = req.query;
-            const orderByClause = `
-                ORDER BY
-                    "deletedDate" IS NOT NULL ASC,
-                    "lastEventDate" DESC
-            `;
-    
-            const data = await this.searchUsers(value, orderByClause, this.userIsDeleted)
-            return res.json(data);
-        } catch (error) {
-            logger.error('Error fetching users:', error)
-            console.error('Error fetching users:', error);
-            res.status(500).send('Internal Server Error');
-        }
-        
-    }
-    
-    searchUsersDelete = async (req, res) => {
-        try {
-            const { value } = req.query;
-            const orderByClause = `
-                ORDER BY 
-                    "deletedDate" IS NOT NULL ASC,
-                    ("reserveCount" = 0 AND "loanCount" = 0) DESC,
-                    "reserveCount" = 0 DESC,
-                    "loanCount" = 0 DESC,
-                    "lastEventDate" DESC
-            `;
-
-            const data = await this.searchUsers(value, orderByClause, this.userHasNoAsset)
-            return res.json(data);
-        } catch (error) {
-            logger.error('Error fetching users:', error)
-            console.error('Error fetching users:', error);
-            res.status(500).send('Internal Server Error');
-        }
     }
 
     async updateUser(req, res) {

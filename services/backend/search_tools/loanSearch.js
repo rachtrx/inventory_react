@@ -2,6 +2,7 @@ const { Op, where } = require("sequelize")
 const LoanDTO = require("../dtos/loan.dto")
 const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
 const logger = require("../logging");
+const { successfulEventCondition } = require("../controllers/utils");
 
 class LoanSearch {
 
@@ -17,11 +18,15 @@ class LoanSearch {
 
     async run() {
         try {
-
             let query = await Loan.findAll({
-                attributes: ['id', 'loanEventId', 'reserveEventId', 'cancelEventId'],
+                attributes: ['id'],
                 where: loanCondition,
                 include: [
+                    {
+                        model: Event,
+                        where: successfulEventCondition(),
+                        required: true,
+                    },
                     {
                         model: Usr,
                         attributes: ['id', 'userName'],

@@ -7,9 +7,11 @@ const logger = require('../logging.js');
 
 const AstTagModel = require('./AstTag.js')
 const AstTagMapModel = require('./AstTagMap.js')
+const AstTagMapDelModel = require('./AstTagMapDel.js')
 
 const UsrTagModel = require('./UsrTag.js')
 const UsrTagMapModel = require('./UsrTagMap.js')
+const UsrTagMapDelModel = require('./UsrTagMapDel.js')
 
 const AdminModel = require('./Admin.js');
 const EventModel = require('./Event.js');
@@ -18,12 +20,15 @@ const LoanModel = require('./Loan.js');
 
 const DeptModel = require('./Dept.js');
 const UserModel = require('./Usr.js');
+const UserDelModel = require('./UsrDelete.js');
 
 const AssetTypeModel = require('./AstType.js');
 const AssetTypeVariantModel = require('./AstSType.js');
 const VendorModel = require('./Vendor.js');
 const AssetModel = require('./Ast.js');
+const AssetDelModel = require('./AstDelete.js');
 const AssetLoanModel = require('./AstLoan.js');
+const AssetReturnModel = require('./AstReturn.js');
 
 const AccessoryTypeModel = require('./AccType.js');
 const AccessoryTxnModel = require('./AccTxn.js');
@@ -55,9 +60,11 @@ if (config.use_env_variable) {
 const db = {
   AstTag: AstTagModel(sequelize),
   AstTagMap: AstTagMapModel(sequelize),
+  AstTagMapDel: AstTagMapDelModel(sequelize),
 
   UsrTag: UsrTagModel(sequelize),
   UsrTagMap: UsrTagMapModel(sequelize),
+  UsrTagMapDel: UsrTagMapDelModel(sequelize),
 
   Admin: AdminModel(sequelize),
   Event: EventModel(sequelize),
@@ -66,12 +73,15 @@ const db = {
 
   Dept: DeptModel(sequelize),
   Usr: UserModel(sequelize),
+  UsrDelete: UserDelModel(sequelize),
 
   AstType: AssetTypeModel(sequelize),
   AstSType: AssetTypeVariantModel(sequelize),
   Vendor: VendorModel(sequelize),
   Ast: AssetModel(sequelize),
+  AstDelete: AssetDelModel(sequelize),
   AstLoan: AssetLoanModel(sequelize),
+  AstReturn: AssetReturnModel(sequelize),
 
   AccType: AccessoryTypeModel(sequelize),
   AccTxn: AccessoryTxnModel(sequelize),
@@ -85,19 +95,26 @@ const db = {
 // TAGS
 db.Ast.hasMany(db.AstTagMap, { foreignKey: 'assetId' })
 db.AstTagMap.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' })
-
 db.AstTag.hasMany(db.AstTagMap, { foreignKey: 'tagId' })
 db.AstTagMap.belongsTo(db.AstTag, { foreignKey: 'tagId', targetKey: 'id' })
 
+db.AstTagMap.hasMany(db.AstTagMapDel, { foreignKey: 'astTagMapId' })
+db.AstTagMapDel.belongsTo(db.AstTagMap, { foreignKey: 'astTagMapId', targetKey: 'id' })
+
 db.Usr.hasMany(db.UsrTagMap, { foreignKey: 'userId' })
 db.UsrTagMap.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' })
-
 db.UsrTag.hasMany(db.UsrTagMap, { foreignKey: 'tagId' })
 db.UsrTagMap.belongsTo(db.UsrTag, { foreignKey: 'tagId', targetKey: 'id' })
+
+db.UsrTagMap.belongsTo(db.UsrTagMapDel, { foreignKey: 'usrTagMapId' })
+db.UsrTagMapDel.belongsTo(db.UsrTagMap, { foreignKey: 'usrTagMapId', targetKey: 'id' })
 
 // USERS
 db.Dept.hasMany(db.Usr, { foreignKey: 'deptId' });
 db.Usr.belongsTo(db.Dept, { foreignKey: 'deptId', targetKey: 'id' }); // IMPT JAVASCRIPT NAME
+
+db.Usr.hasMany(db.UsrDelete, {foreignKey: 'userId'});
+db.UsrDelete.belongsTo(db.Usr, { foreignKey: 'eventId' });
 
 // ASSETS
 db.AstType.hasMany(db.AstSType, { foreignKey: 'assetTypeId' });
@@ -109,7 +126,10 @@ db.Ast.belongsTo(db.AstSType, { foreignKey: 'subTypeId', targetKey: 'id' });
 db.Vendor.hasMany(db.Ast, { foreignKey: 'vendorId' });
 db.Ast.belongsTo(db.Vendor, { foreignKey: 'vendorId', targetKey: 'id' });
 
-// PERIPHERALS
+db.Ast.hasMany(db.AstDelete, {foreignKey: 'assetId'});
+db.AstDelete.belongsTo(db.Ast, { foreignKey: 'eventId' });
+
+// ACCESSORIES
 db.AccType.hasMany(db.AccTxn, { foreignKey: 'accessoryTypeId' });
 db.AccTxn.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
@@ -119,6 +139,9 @@ db.AccLoan.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id
 
 db.Ast.hasMany(db.AstLoan, { foreignKey: 'assetId' });
 db.AstLoan.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' });
+
+db.AstLoan.hasMany(db.AstReturn, { foreignKey: 'astLoanId' });
+db.AstReturn.belongsTo(db.AstLoan, { foreignKey: 'astLoanId', targetKey: 'id' });
 
 db.Usr.hasMany(db.Loan, { foreignKey: 'userId' });
 db.Loan.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' });
@@ -146,46 +169,45 @@ db.AccType.hasMany(db.AstSTypeAcc, { foreignKey: 'accessoryTypeId' });
 db.AstSTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
 // EVENTS
-db.Event.hasOne(db.Loan, { as: 'Reservation', foreignKey: 'reserveEventId' });
-db.Event.hasOne(db.Loan, { as: 'Cancellation', foreignKey: 'cancelEventId' });
-db.Event.hasOne(db.Loan, { as: 'Loan', foreignKey: 'loanEventId' });
-db.Event.hasOne(db.AstLoan, { as: 'AssetReturn', foreignKey: 'returnEventId' })
-db.Event.hasMany(db.AccReturn, { as: 'AccReturns', foreignKey: 'returnEventId' })
+db.Event.hasOne(db.Loan, { foreignKey: 'eventId' });
+db.Event.hasOne(db.AstReturn, { foreignKey: 'eventId' });
+db.Event.hasMany(db.AccReturn, { foreignKey: 'eventId' });
 
-db.Event.hasOne(db.Ast, { as: 'AddedAsset', foreignKey: 'addEventId' });
-db.Event.hasOne(db.Ast, { as: 'DeletedAsset', foreignKey: 'delEventId' });
-db.Event.hasOne(db.Usr, { as: 'AddedUser', foreignKey: 'addEventId' });
-db.Event.hasOne(db.Usr, { as: 'DeletedUser', foreignKey: 'delEventId' });
+db.Loan.belongsTo(db.Event, { foreignKey: 'eventId' });
+db.AstReturn.belongsTo(db.Event, { foreignKey: 'eventId' });
+db.AccReturn.belongsTo(db.Event, { foreignKey: 'eventId' });
 
-db.Event.hasOne(db.AstTagMap, { as: 'AddedAstTag', foreignKey: 'addEventId' });
-db.Event.hasOne(db.AstTagMap, { as: 'DeletedAstTag', foreignKey: 'delEventId' });
-db.Event.hasOne(db.UsrTagMap, { as: 'AddedUsrTag', foreignKey: 'addEventId' });
-db.Event.hasOne(db.UsrTagMap, { as: 'DeletedUsrTag', foreignKey: 'delEventId' });
+db.Event.hasOne(db.Ast, { foreignKey: 'eventId' });
+db.Event.hasOne(db.Usr, { foreignKey: 'eventId' });
+db.Ast.belongsTo(db.Event, { foreignKey: 'eventId' });
+db.Usr.belongsTo(db.Event, { foreignKey: 'eventId' });
 
-db.Loan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
-db.Loan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
-db.Loan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
-db.AstLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
-db.AccReturn.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
+db.Event.hasOne(db.AstDelete, { foreignKey: 'eventId' });
+db.Event.hasOne(db.UsrDelete, { foreignKey: 'eventId' });
+db.AstDelete.belongsTo(db.Event, { foreignKey: 'eventId' });
+db.UsrDelete.belongsTo(db.Event, { foreignKey: 'eventId' });
 
-db.Ast.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.Ast.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
-db.Usr.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.Usr.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
-
-db.AstTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.AstTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
-db.UsrTagMap.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
-db.UsrTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' });
-
-db.Event.hasOne(db.AccType, { foreignKey: 'addEventId' });
+db.Event.hasOne(db.AccType, { foreignKey: 'eventId' });
 db.Event.hasOne(db.AccTxn, { foreignKey: 'eventId' });
-db.AccType.belongsTo(db.Event, { foreignKey: 'addEventId', targetKey: 'id' });
+db.AccType.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
 db.AccTxn.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
 
+db.Event.hasOne(db.AstTagMap, { foreignKey: 'eventId' });
+db.Event.hasOne(db.AstTagMapDel, { foreignKey: 'eventId' });
+db.Event.hasOne(db.UsrTagMap, { foreignKey: 'eventId' });
+db.Event.hasOne(db.UsrTagMapDel, { foreignKey: 'eventId' });
+
+db.AstTagMap.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
+db.AstTagMapDel.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
+db.UsrTagMap.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
+db.UsrTagMapDel.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
+
 // Event and Admin
-db.Admin.hasMany(db.Event, { foreignKey: 'adminId' })
-db.Event.belongsTo(db.Admin, { foreignKey: 'adminId', targetKey: 'id' });
+db.Admin.hasMany(db.Event, { as: 'OpenedEvents', foreignKey: 'openedAdminId' })
+db.Event.belongsTo(db.Admin, { as: 'OpenedAdmin', foreignKey: 'openedAdminId', targetKey: 'id' });
+
+db.Admin.hasMany(db.Event, { as: 'ClosedEvents', foreignKey: 'closedAdminId' })
+db.Event.belongsTo(db.Admin, { as: 'ClosedAdmin', foreignKey: 'closedAdminId', targetKey: 'id' });
 
 // Remarks
 db.Event.hasMany(db.Rmk, { foreignKey: 'eventId' });

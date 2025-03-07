@@ -25,14 +25,7 @@ module.exports = (sequelize) => {
                 key: 'id'
             }
         },
-        addEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id',
-            },
-        },
-        delEventId: {
+        eventId: {
             type: DataTypes.STRING,
             references: {
                 model: 'events',

@@ -14,6 +14,7 @@ import StarButton from '../buttons/StarButton';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
+import { useEffect } from 'react';
 
 function AssetCards({items}) {
     
@@ -23,7 +24,7 @@ function AssetCards({items}) {
             <Box key={asset.assetId}>
                 <Card 
                     h="100%"
-                    w="100%" 
+                    w="100%"
                     bg="transparent" 
                     _hover={{ bg:  'gray.100' }}
                     overflow="hidden"
@@ -37,7 +38,7 @@ function AssetCards({items}) {
                                     <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
                                 {asset.ongoingLoan && <UserLink 
-                                    user={asset.ongoingLoan.user} 
+                                    user={asset.ongoingLoan.user}
                                 />}
                             </VStack>
                             

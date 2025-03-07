@@ -19,6 +19,8 @@ import CheckBadge from "../badges/CheckBadge";
 import WarningBadge from "../badges/WarningBadge";
 import { AccStatus, AssetStatus, ReturnEventTable } from "./utils/AccStatus";
 
+// TODO include reservation
+
 const AssetLoanEvent = ({ event }) => {
     // console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse

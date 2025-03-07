@@ -6,14 +6,13 @@ class AccReturnDTO {
         id,
         accLoanId,
         count,
-        returnEventId,
-        ReturnEvent
+        Event
     }) {
-        if (returnEventId) this.returnEventId = returnEventId;
+        // if (returnEventId) this.returnEventId = returnEventId;
         if (id) this.accReturnId = id;
         if (accLoanId) this.accLoanId = accLoanId;
         if (count) this.count = count;
-        if (ReturnEvent) this.returnEvent = new EventDTO(ReturnEvent);
+        if (Event) this.event = new EventDTO(Event);
     }
 } 
 

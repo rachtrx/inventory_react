@@ -23,33 +23,11 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			allowNull: true,
 		},
-		reserveEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-			allowNull: true,
-        },
-        cancelEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-			allowNull: true,
-        },
-        expectedLoanDate: {
-			type: DataTypes.DATE,
-			allowNull: true,
-			defaultValue: null
-		},
 		expectedReturnDate: {
 			type: DataTypes.DATE,
-			allowNull: true,
-			defaultValue: null
+            defaultValue: null
 		},
-		loanEventId: {
+		eventId: {
             type: DataTypes.STRING,
             references: {
                 model: 'events',

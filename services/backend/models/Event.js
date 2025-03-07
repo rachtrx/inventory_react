@@ -10,21 +10,41 @@ module.exports = (sequelize) => {
             primaryKey: true,
             unique: true
         },
-        eventDate: {
+        openedDate: {
             type: DataTypes.DATE,
             allowNull: false,
         },
-        adminId: {
+        openedAdminId: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
+            references: {
+                model: 'admins',
+                key: 'id',
+            },
         },
-        completed: {
+        expectedCloseDate: {
+            type: DataTypes.DATE,
+            defaultValue: null
+        },
+        closedDate: {
+            type: DataTypes.DATE,
+            defaultValue: null
+        },
+        closedAdminId: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            references: {
+                model: 'admins',
+                key: 'id',
+            },
+        },
+        cancelled: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
-        }
+        },
     }, {
-    sequelize,
-    modelName: 'Event'
+        sequelize,
+        modelName: 'Event'
     });
 
     return Event;

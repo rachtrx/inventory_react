@@ -5,12 +5,16 @@ class RemarkDTO {
         eventId,
         text,
         remarkDate,
-        adminId
+        adminId,
+        Admin
     }) {
+        this.id = id;
         this.eventId = eventId;
         this.text = text;
         this.remarkDate = remarkDate;
         this.adminId = adminId;
+
+        if (Admin) this.admin = Admin;
     }
 }
 

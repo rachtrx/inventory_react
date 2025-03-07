@@ -45,12 +45,15 @@ async function main(data) {
 
     const createEvent = (id, date) => ({
         id: id,
-        eventDate: date
+        openedDate: date,
+        closedDate: date
     })
 
     const eventsArr = []
-    
-    const newUsers = newData.users.map(user => {
+
+    const newUsers = []
+    const userDeletes = []
+    newData.users.forEach(user => {
         const { registeredDate, hasResigned, ...rest } = user;
     
         let addUserEvent = null;
@@ -78,15 +81,24 @@ async function main(data) {
     
         const newUser = {
             ...rest,
-            addEventId: addUserEvent.id,
-            delEventId: delUserEvent && delUserEvent.id || null
+            eventId: addUserEvent.id,
         };
+
+        if (delUserEvent) {
+            userDeletes.push({
+                id: generateSecureID(),
+                userId: user.id,
+                eventId: delUserEvent.id
+            });
+        }
     
-        return newUser;
+        newUsers.push(newUser);
     });
     
-    const newAssets = newData.devices
-        .map(asset => {
+    const newAssets = []
+    const assetDeletes = []
+    newData.devices
+        .forEach(asset => {
     
             const { registeredDate, status, userId, ...rest } = asset;
     
@@ -118,10 +130,18 @@ async function main(data) {
     
             const newAsset = {
                 ...rest,
-                addEventId: addAssetEvent.id,
-                delEventId: delAssetEvent && delAssetEvent.id || null
+                eventId: addAssetEvent.id
             };
-            return newAsset;
+
+            if (delAssetEvent) {
+                assetDeletes.push({
+                    id: generateSecureID(),
+                    assetId: asset.id,
+                    eventId: delAssetEvent.id
+                })
+            } 
+
+            newAssets.push(newAsset);
         });
    
     const remarksArr = []
@@ -143,7 +163,8 @@ async function main(data) {
     const sortedTransactionEvents = newData.events.filter((event) => (event.eventType === 'loaned' || event.eventType === 'returned')).sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
     
     trackedAssetIds = {}
-    
+    const assetReturns = []
+
     sortedTransactionEvents.forEach((event) => {
     
         const {assetId=null, userId=null, eventType} = event;
@@ -168,17 +189,24 @@ async function main(data) {
 
             loansArr.push({
                 id: loanId,
-                loanEventId: loanEvent.id,
+                eventId: loanEvent.id,
                 userId: loanEvent.userId,
                 filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
             })
+
+            const assetLoanId = generateSecureID()
     
             assetLoansArr.push({
-                id: generateSecureID(),
+                id: assetLoanId,
                 loanId: loanId,
                 assetId: assetId,
-                returnEventId: returnEvent.id
             });
+
+            assetReturns.push({
+                id: generateSecureID(),
+                astLoanId: assetLoanId,
+                eventId: returnEvent.id
+            })
     
             delete trackedAssetIds[event.assetId]
         }
@@ -193,7 +221,7 @@ async function main(data) {
 
         loansArr.push({
             id: loanId,
-            loanEventId: loanEvent.id,
+            eventId: loanEvent.id,
             userId: userId,
             filepath: loanEvent.filepath,
         })
@@ -210,13 +238,16 @@ async function main(data) {
         await db.Event.bulkCreate(eventsArr);
         await db.Dept.bulkCreate(newData.depts);
         await db.Usr.bulkCreate(newUsers);
+        await db.UsrDelete.bulkCreate(userDeletes);
         await db.AstType.bulkCreate(newData.device_types);
         await db.AstSType.bulkCreate(newData.models);
         await db.Vendor.bulkCreate(newData.vendors);
         await db.Ast.bulkCreate(newAssets);
+        await db.AstDelete.bulkCreate(assetDeletes);
         await db.Rmk.bulkCreate(remarksArr);
         await db.Loan.bulkCreate(loansArr);
         await db.AstLoan.bulkCreate(assetLoansArr);
+        await db.AstReturn.bulkCreate(assetReturns);
     }
     
     importData().then(() => {

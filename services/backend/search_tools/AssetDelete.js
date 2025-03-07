@@ -1,8 +1,9 @@
 const { Op } = require("sequelize");
-const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event } = require("../models");
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event, AstDelete, AstReturn } = require("../models");
 const AssetDTO = require("../dtos/ast.dto");
 const logger = require("../logging");
 const { LoanSearch } = require("./loanSearch");
+const { assetDeletedQuery, accessoryReturnedQuery } = require("../controllers/utils");
 
 class AssetDelete {
 
@@ -33,9 +34,16 @@ class AssetDelete {
                         Sequelize.literal(`
                             GREATEST(
                                 COALESCE("AddEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->ReserveEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->LoanEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->ReturnEvent"."event_date", '1970-01-01')
+                                COALESCE("AstLoans->Loan->Event"."opened_date", '1970-01-01'),
+                                MIN(
+                                    COALESCE("AstLoans->Loan->Event"."closed_date", '1970-01-01'),
+                                    COALESCE("AstLoans->Loan->Event"."expected_close_date", '1970-01-01'),
+                                )
+                                COALESCE("AstLoans->AstReturns->Event"."opened_date", '1970-01-01'),
+                                MIN(
+                                    COALESCE("AstLoans->AstReturns->Event"."closed_date", '1970-01-01'),
+                                    COALESCE("AstLoans->AstReturns->Event"."expected_close_date", '1970-01-01'),
+                                )
                             )
                         `),
                         "lastEventDate" // TODO is this causing error with raw = true?
@@ -45,34 +53,31 @@ class AssetDelete {
                     this.assetCondition
                 ]},
                 include: [
+                    assetDeletedQuery,
                     {
                         model: Event,
-                        as: "AddEvent",
-                        attributes: ['eventDate']
+                        attributes: ['closedDate'],
+                        where: { cancelled: { [Op.ne]: true} }
                     },
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
+                        attributes: ['id'],
                         required: false,
                         include: [
                             {
-                                model: Event,
-                                as: "ReturnEvent",
-                                attributes: ['eventDate']
+                                model: AstReturn,
+                                include: {
+                                    model: Event,
+                                    attributes: ['openedDate', 'closedDate', 'expectedCloseDate', 'cancelled'],
+                                }
                             },
                             {
                                 model: Loan,
-                                attributes: ['id', 'loanEventId', 'reserveEventId', 'cancelEventId'],
+                                attributes: ['id'],
                                 include: [
                                     {
                                         model: Event,
-                                        as: "LoanEvent",
-                                        attributes: ['eventDate'],
-                                    },
-                                    {
-                                        model: Event,
-                                        as: "ReserveEvent",
-                                        attributes: ['eventDate'],
+                                        attributes: ['openedDate', 'closedDate', 'expectedCloseDate', 'cancelled'],
                                     },
                                     {
                                         model: Usr,
@@ -82,62 +87,12 @@ class AssetDelete {
                                             attributes: ['id', 'deptName'],
                                             where: {},
                                         }
-                                        // where: Sequelize.literal(`
-                                        //     EXISTS (
-                                        //         SELECT 1
-                                        //         FROM "usr_loans" AS "UsrLoans"
-                                        //         INNER JOIN "usrs" AS "UsrLoans->Usr"
-                                        //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
-                                        //         WHERE "UsrLoans"."loan_id" = "AstLoans->Loan"."id"
-                                        //     )
-                                        // `),
-                                        // required: true,
-                                    },
-                                    {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        include: [
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['id', 'count']
-                                            },
-                                            {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                            }
-                                        ],
-                                        where: Sequelize.literal(`
-                                            EXISTS (
-                                                SELECT 1
-                                                FROM "acc_loans" AS "AccLoans"
-                                                INNER JOIN "acc_types" AS "AccLoans->AccType"
-                                                ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
-                                                WHERE "AccLoans"."loan_id" = "AstLoans->Loan"."id"
-                                                AND "AccLoans"."count" > (
-                                                    SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
-                                                    FROM "acc_returns" AS "AccLoans->AccReturns"
-                                                    WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
-                                                )
-                                            )
-                                        `),
-                                        required: false
                                     }
                                 ]
                             }
                         ],
-                        where: { // get (asset on loan or asset reserved) and not returned to disable them
-                            [Op.and]: [
-                                Sequelize.literal(`"AstLoans"."return_event_id" IS NULL`) ,
-                                Sequelize.literal(`
-                                    "AstLoans"."loan_id" IN (
-                                        SELECT "Loans"."id" 
-                                        FROM "loans" AS "Loans" 
-                                        WHERE "Loans"."loan_event_id" IS NOT NULL
-                                        OR "Loans"."reserve_event_id" IS NOT NULL
-                                    )
-                                `),
-                            ]
-                        }
+                        // get (asset on loan or asset reserved) and not returned to disable them
+                        where: Sequelize.literal(`"AstLoans"."loan_id" IN (${getUnreturnedAstLoanIds()})`)
                     },
                     {
                         model: AstSType,

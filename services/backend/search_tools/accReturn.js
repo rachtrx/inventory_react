@@ -2,6 +2,7 @@ const { Op, where } = require("sequelize")
 const LoanDTO = require("../dtos/loan.dto")
 const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
 const logger = require("../logging");
+const { successfulEventCondition, assetReturnedQuery } = require("../controllers/utils");
 
 class AccReturnSearch {
 
@@ -21,8 +22,8 @@ class AccReturnSearch {
         this.accessoryName = accessoryName
 
         this.accExistCondition = Sequelize.literal(`
-            EXISTS (
-                SELECT 1
+            "AccLoans"."id" IN (
+                SELECT id
                 FROM "acc_loans" AS "AccLoans"
                 INNER JOIN "acc_types" AS "AccLoans->AccType"
                 ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
@@ -46,37 +47,44 @@ class AccReturnSearch {
     async run() {
         try {
             let query = await Loan.findAll({
-                attributes: ['id', 'expectedReturnDate','loanEventId', 'reserveEventId', 'cancelEventId'],
-                    include: [
-                        {
-                            model: AccLoan,
-                            attributes: ['id', 'count'],
-                            include: [
-                                {
-                                    model: AccReturn,
-                                    attributes: ['id', 'count']
-                                },
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName', [
-                                        Sequelize.literal(`
-                                            CASE
-                                                WHEN "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%' THEN true
-                                                ELSE false
-                                            END
-                                        `),
-                                        'isMatching'
-                                    ]],
-                                    where: {}
-                                }
-                            ],
-                            where: this.accExistCondition,
-                            required: true // IMPT
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id', 'returnEventId'],
-                            include: {
+                attributes: ['id'],
+                include: [
+                    {
+                        model: Event,
+                        where: successfulEventCondition(),
+                        required: true // IMPT
+                    },
+                    {
+                        model: AccLoan,
+                        attributes: ['id', 'count'],
+                        include: [
+                            {
+                                model: AccReturn,
+                                attributes: ['id', 'count']
+                            },
+                            {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName', [
+                                    Sequelize.literal(`
+                                        CASE
+                                            WHEN "AccLoans->AccType"."accessory_name" ILIKE '%${this.accessoryName}%' THEN true
+                                            ELSE false
+                                        END
+                                    `),
+                                    'isMatching'
+                                ]],
+                                where: {}
+                            }
+                        ],
+                        where: this.accExistCondition,
+                        required: true // IMPT
+                    },
+                    {
+                        model: AstLoan,
+                        attributes: ['id'],
+                        include: [
+                            assetReturnedQuery(),
+                            {
                                 model: Ast,
                                 attributes: ['id', 'serialNumber', 'assetTag'],
                                 include: {
@@ -89,34 +97,25 @@ class AccReturnSearch {
                                     },
                                     required: true,
                                 },
-                            },
-                            required: false
+                            }
+                        ],
+                        required: false
+                    },
+                    {
+                        model: Usr,
+                        attributes: ['id', 'userName'],
+                        where: [],
+                        include: {
+                            model: Dept,
+                            attributes: ['id', 'deptName'],
+                            where: {},
                         },
-                        {
-                            model: Usr,
-                            attributes: ['id', 'userName'],
-                            where: [],
-                            include: {
-                                model: Dept,
-                                attributes: ['id', 'deptName'],
-                                where: {},
-                            },
-                            // where: Sequelize.literal(`
-                            //     EXISTS (
-                            //         SELECT 1
-                            //         FROM "usr_loans" AS "UsrLoans"
-                            //         INNER JOIN "usrs" AS "UsrLoans->Usr"
-                            //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
-                            //         WHERE "UsrLoans"."loan_id" = "Loan"."id"
-                            //     )
-                            // `),
-                            required: true
-                        }
-                    ],
-                    where: this.accExistCondition,
-                    order: this.accessoryName ? Sequelize.literal(`
-                        "AstLoan"."id" IS NULL DESC
-                    `) : []
+                        required: true
+                    }
+                ],
+                order: this.accessoryName ? Sequelize.literal(`
+                    "AstLoan"."id" IS NULL DESC
+                `) : []
             });
             return query.map(loanRow => new LoanDTO(loanRow));
         } catch(e) {

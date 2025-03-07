@@ -19,7 +19,7 @@ module.exports = (sequelize) => {
 		count: {
 			type: DataTypes.INTEGER
 		},
-        returnEventId: {
+        eventId: {
             type: DataTypes.STRING,
             references: {
                 model: 'events',

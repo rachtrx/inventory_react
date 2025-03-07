@@ -24,7 +24,7 @@ const Asset = ({ asset }) => {
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
-				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
+				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary

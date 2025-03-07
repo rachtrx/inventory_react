@@ -1,7 +1,8 @@
 const { Op } = require("sequelize");
-const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event, AstTagMap, AstTag } = require("../models");
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event, AstTagMap, AstTag, AstTagMapDel } = require("../models");
 const AssetDTO = require("../dtos/ast.dto");
 const logger = require("../logging");
+const { pendingOrCancelledEventCondition } = require("../controllers/utils");
 
 class AssetTagSearch {
 
@@ -26,7 +27,7 @@ class AssetTagSearch {
         this.includeArray = [
             {
                 model: Event,
-                as: 'DeleteEvent',
+                as: 'DelEvent',
                 attributes: ['eventDate']
             },
             {
@@ -50,11 +51,21 @@ class AssetTagSearch {
                     `),
                     'isMatching'
                 ]],
-                where: { delEventId: { [Op.eq]: null } }, // get all current tags
-                include: {
-                    model: AstTag,
-                    attributes: ['id', 'tagName']
-                },
+                include: [ // get all current tags
+                    {
+                        model: AstTagMapDel,
+                        include: {
+                            model: Event,
+                            where: pendingOrCancelledEventCondition(),
+                            required: true
+                        },
+                        required: false
+                    },
+                    {
+                        model: AstTag,
+                        attributes: ['id', 'tagName']
+                    },
+                ],
                 required: false
             }
         ];
@@ -70,7 +81,7 @@ class AssetTagSearch {
                     SELECT COUNT(*) 
                     FROM ast_tag_maps AS "AstTagMaps" 
                     WHERE "AstTagMaps"."asset_id" = "Ast"."id" 
-                    AND "AstTagMaps"."del_event_id" IS NULL 
+                    AND "AstTagMaps->AstTagMapDels->Event"."cancelled" IS NULL
                     AND "AstTagMaps"."tag_id" = '${this.tagId}'
                 )`), 
                 isAdd ? 'ASC' : 'DESC'
@@ -79,7 +90,7 @@ class AssetTagSearch {
         
         // Always apply the delete event order
         orderByArr.push([
-            Sequelize.literal('CASE WHEN "Ast"."del_event_id" IS NOT NULL THEN 0 ELSE 1 END'),
+            Sequelize.literal('CASE WHEN "AstTagMaps->AstTagMapDels->Event"."cancelled" IS NULL THEN 1 ELSE 0 END'),
             'DESC'
         ]);
 

@@ -1,7 +1,8 @@
 const { Op, where } = require("sequelize")
 const LoanDTO = require("../dtos/loan.dto")
-const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, UsrDelete } = require("../models");
 const logger = require("../logging");
+const { successfulEventCondition, pendingOrCancelledEventCondition } = require("../controllers/utils");
 
 class UserReturnSearch {
 
@@ -22,32 +23,6 @@ class UserReturnSearch {
         this.userName = userName;
         this.deptId = deptId;
 
-        // EXISTS (
-        //     SELECT 1
-        //     FROM "loans" AS "Loans"
-        //     INNER JOIN "usrs" AS "Loans->Usr"
-        //     ON "Loans"."user_id" = "Loans->Usr"."id"
-        //     ${this.userId ? 
-        //         `WHERE "Loans->Usr"."id" = '%${this.userId}%'` : "" + this.userName ? 
-        //         `WHERE "Loans->Usr"."user_name" ILIKE '%${this.userName}%'` : ""
-        //     }
-        // )
-
-        this.accExistCondition = Sequelize.literal(`
-            EXISTS (
-                SELECT 1
-                FROM "acc_loans" AS "AccLoans"
-                INNER JOIN "acc_types" AS "AccLoans->AccType"
-                ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
-                WHERE "AccLoans"."loan_id" = "Loan"."id"
-                AND "AccLoans"."count" > (
-                    SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
-                    FROM "acc_returns" AS "AccLoans->AccReturns"
-                    WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
-                )
-            )
-        `)
-
         this.userCondition = this.userId
             ? { id : this.userId } : this.userName ? 
             { userName: { [Op.iLike]: `%${this.userName}%` } } : []
@@ -56,20 +31,20 @@ class UserReturnSearch {
     async run() {
         try {
             let query = await Loan.findAll({
-                attributes: ['id', 'expectedReturnDate', 'loanEventId', 'reserveEventId', 'cancelEventId'],
+                attributes: ['id'],
                 include: [
                     {
                         model: Usr,
                         where: this.userCondition,
-                        attributes: ['id', 'userName', [
-                            Sequelize.literal(`
-                                CASE
-                                    WHEN "Usr"."user_name" ILIKE '%${this.userName}%' THEN true
-                                    ELSE false
-                                END
-                            `),
-                            'isMatching'
-                        ]],
+                        include: {
+                            model: UsrDelete,
+                            include: {
+                                model: Event,
+                                attributes: ['id', 'openedDate', 'expectedCloseDate', 'closedDate'],
+                                where: successfulEventCondition()
+                            },
+                            required: false
+                        },
                         required: true,
                         include: {
                             model: Dept,
@@ -88,7 +63,6 @@ class UserReturnSearch {
                             {
                                 model: AccType,
                                 attributes: ['id', 'accessoryName'],
-                                where: {}
                             }
                         ],
                         where: this.accExistCondition,
@@ -97,27 +71,67 @@ class UserReturnSearch {
                     {
                         model: AstLoan,
                         attributes: ['id', 'returnEventId'],
-                        include: {
-                            model: Ast,
-                            attributes: ['id', 'serialNumber', 'assetTag'],
-                            include: {
-                                model: AstSType,
-                                attributes: ['subTypeName'],
+                        include: [
+                            {
+                                model: Ast,
+                                attributes: ['id', 'serialNumber', 'assetTag'],
                                 include: {
-                                    model: AstType,
-                                    attributes: ['typeName'],                           
+                                    model: AstSType,
+                                    attributes: ['subTypeName'],
+                                    include: {
+                                        model: AstType,
+                                        attributes: ['typeName'],                           
+                                        required: true,
+                                    },
                                     required: true,
                                 },
-                                required: true,
                             },
-                        },
-                        required: false
+                            {
+                                model: AstReturn,
+                                include: {
+                                    model: Event,
+                                    attributes: ['id', 'openedDate', 'expectedCloseDate', 'closedDate'],
+                                    where: pendingOrCancelledEventCondition()
+                                },
+                                required: false
+                            },
+                        ],
+                        required: false,
                     },
                 ],
-                where: { [Op.or]: [
-                    Sequelize.literal(`EXISTS (SELECT 1 FROM "ast_loans" AS "AstLoan" WHERE "AstLoan"."loan_id" = "Loan"."id")`), // At least either unreturned asset of accessory
-                    this.accExistCondition
-                ] },
+                where: {
+                    [Op.or]: [
+                        Sequelize.literal(`EXISTS (
+                            SELECT 1 FROM "ast_loans" AS "AstLoan"                                       
+                            WHERE "AstLoan"."loan_id" = "Loans"."id"
+                            AND NOT EXISTS ( -- Get all returned astloan IDs
+                                SELECT 1
+                                FROM "ast_returns" AS "AstReturns"
+                                JOIN "events" AS "AstReturns->Event" 
+                                    ON "AstReturns"."event_id" = "AstReturns->Event"."id" 
+                                    AND "AstReturns->Event"."cancelled" = FALSE
+                                    AND "AstReturns->Event"."closed_date" IS NOT NULL 
+                                WHERE "AstReturns"."ast_loan_id" = "AstLoan"."id"
+                                GROUP BY "AstReturns"."ast_loan_id"
+                            )
+                        )`),
+                        Sequelize.literal(`EXISTS (
+                            SELECT 1 FROM "acc_loans" AS "AccLoans"."id" 
+                            WHERE "acc_loans"."loan_id"  = "Loans"."id"
+                            AND NOT EXISTS ( -- Get all returned accloan IDs
+                                SELECT 1 
+                                FROM "acc_returns" AS "AccReturns"
+                                JOIN "events" AS "AccReturns->Event" 
+                                    ON "AccReturns->Event"."id" = "AccReturns"."event_id"
+                                    AND "AccReturns->Event"."cancelled" = FALSE
+                                    AND "AccReturns->Event"."closed_date" IS NOT NULL
+                                WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
+                                GROUP BY "AccReturns"."acc_loan_id"
+                                HAVING COALESCE(SUM("AccReturns"."count"), 0) = "AccLoans"."count"
+                            )
+                        )`),
+                    ]
+                },
                 order: this.accessoryName ? Sequelize.literal(`
                     "AstLoan"."id" IS NULL DESC
                 `) : []

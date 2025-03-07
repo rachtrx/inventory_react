@@ -1,4 +1,6 @@
-const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize } = require('../models');
+const { Op } = require('sequelize');
+const { Ast, Admin, Rmk, AstType, AstSType, Vendor, Usr, Loan, 
+    Sequelize, sequelize, AccReturn, Event, AstReturn, AstDelete, UsrDelete } = require('../models');
 
 exports.FormType = {
     ADD_ASSET: 'ADD_ASSET',
@@ -22,6 +24,25 @@ exports.formToEventMap = {
     [this.FormType.TAG]: 'TAG',
     [this.FormType.UNTAG]: 'UNTAG',
 }
+
+exports.downloadEvent = async (req, res) => {
+    const id = req.body.id;
+
+    try {
+        const event = await Event.findById(id);
+        if (!event) {
+            return res.status(404).send('File not found.');
+        }
+
+        const filePath = path.join(uploadPath, event.filePath);
+        // console.log(filePath);
+
+        res.download(filePath, event.filePath, { headers: { 'Content-Type': 'application/pdf' } });
+    } catch (error) {
+        console.error("Error downloading file:", error);
+        res.status(500).send('Internal Server Error');
+    }
+};
 
 exports.createSelection = (arr, labelField, valueField) => {
     return arr
@@ -59,3 +80,99 @@ exports.getDistinctOptions = async (table, field) => {
 
     return options;
 }
+
+// IMPT can have multiple
+exports.accessoryReturnedQuery = () => ({
+    model: AccReturn,
+    include: {
+        model: Event,
+        attributes: ['id', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+        where: { [Op.and]: [
+            {cancelled: { [Op.eq]: false }},
+            {closedDate: { [Op.ne]: null }}
+        ] }
+    },
+    required: false
+})
+
+// IMPT can only have 1
+exports.assetReturnedQuery = () => ({
+    model: AstReturn,
+    include: {
+        model: Event,
+        attributes: ['id', 'cancelled', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+        where: { [Op.and]: [
+            {cancelled: { [Op.eq]: false }},
+            {closedDate: { [Op.ne]: null }}
+        ] }
+    },
+    required: false
+})
+
+exports.assetDeletedQuery = () => ({
+    model: AstDelete,
+    include: {
+        model: Event,
+        attributes: ['id', 'cancelled', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+        where: { [Op.and]: [
+            {cancelled: { [Op.eq]: false }},
+            {closedDate: { [Op.ne]: null }}
+        ] }
+    },
+    required: false
+})
+
+exports.userDeletedQuery = () => ({
+    model: UsrDelete,
+    include: {
+        model: Event,
+        attributes: ['id', 'openedAdminId', 'openedDate', 'expectedCloseDate', 'closedAdminId', 'closedDate'],
+        where: { [Op.and]: [
+            {cancelled: { [Op.eq]: false }},
+            {closedDate: { [Op.ne]: null }}
+        ] }
+    },
+    required: false
+})
+
+exports.getFullEventDetails = () => ({
+    model: Event,
+    attributes: ['id', 'openedDate', 'expectedCloseDate', 'closedDate', 'cancelled'],
+    required: false,
+    include: [
+        {
+            model: Admin,
+            as: "OpenedAdmin",
+            attributes: ['id', 'adminName']
+        },
+        {
+            model: Admin,
+            as: "ClosedAdmin",
+            attributes: ['id', 'adminName'],
+            required: false
+        },
+        {
+            model: Rmk,
+            attributes: ['id', 'text', 'remarkDate'],
+            include: {
+                model: Admin,
+                attributes: ['id', 'adminName'],
+                required: false
+            }
+        }
+    ]
+})
+
+exports.successfulEventCondition = () => ({
+    [Op.and]: [
+        { cancelled: { [Op.eq]: false } },
+        { closedDate: { [Op.ne]: null } }
+    ]
+})
+
+exports.pendingOrCancelledEventCondition = () => ({
+    [Op.or]: [
+        { closedDate: { [Op.eq]: null } },
+        { cancelled: { [Op.eq]: true } },
+    ]
+})

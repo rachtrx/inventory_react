@@ -4,8 +4,9 @@ const AssetDTO = require("../dtos/ast.dto");
 const logger = require("../logging");
 const { LoanSearch } = require("./loanSearch");
 const UserDTO = require("../dtos/usr.dto");
+const { userDeletedQuery } = require("../controllers/utils");
 
-class UserLoan {
+class UserAvilable {
 
     constructor({
         userNames = "",
@@ -30,16 +31,16 @@ class UserLoan {
         try {
             const query = await Usr.findAll({
                 attributes: ['id', 'userName', 'delEventId'],
-                where: { [Op.and] : [
-                    this.userCondition,
-                    { delEventId: null}
-                ]},
-                include: {
-                    model: Dept,
-                    attributes: ['id', 'deptName'],
-                    ...(this.deptId && { where: { id: this.deptId } }),
-                },
-                order: Sequelize.literal(`"Usr"."del_event_id" IS NOT NULL DESC`)
+                where: this.userCondition,
+                include: [
+                    userDeletedQuery(),
+                    {
+                        model: Dept,
+                        attributes: ['id', 'deptName'],
+                        ...(this.deptId && { where: { id: this.deptId } }),
+                    }
+                ],
+                order: Sequelize.literal(`"Usr->UsrDeletes->Event"."closed_date" IS NOT NULL AND "Usr->UsrDeletes->Event"."cancelled" = FALSE ASC`)
             })
             return query.map(usrRow => new UserDTO(usrRow));
         } catch (e) {
@@ -48,4 +49,4 @@ class UserLoan {
     }
 }
 
-module.exports = { UserLoan }
+module.exports = { UserAvilable }

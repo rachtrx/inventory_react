@@ -8,19 +8,20 @@ class EventLogDTO {
 
         const {
             id,
-            adminId,
-            eventDate,
-            Admin,
+            openedDate,
+            expectedCloseDate,
+            closedDate,
+            cancelled,
+            OpenedAdmin,
+            ClosedAdmin,
             Rmks,
-            Loan, // ignore returns; paired with loan
-            Reservation,
-            Cancellation,
-            AssetReturn,
+            Loan,
+            AstReturn,
             AccReturns,
-            AddedAsset,
-            DeletedAsset,
-            AddedUser,
-            DeletedUser,
+            Ast,
+            AstDelete,
+            Usr,
+            UsrDelete,
             AddedAstTag,
             DeletedAstTag,
             AddedUsrTag,
@@ -28,41 +29,45 @@ class EventLogDTO {
             AccType,
             AccTxn,
         } = item;
-        if (eventDate) this.eventDate = eventDate;
         if (id) this.eventId = id;
-        if (adminId) this.adminId = adminId;
+        if (openedDate) this.openedDate = openedDate;
+        if (expectedCloseDate) this.expectedCloseDate = expectedCloseDate;
+        if (closedDate) this.closedDate = closedDate;
+        if (cancelled != null) this.cancelled = cancelled;
 
-        if (Admin) this.adminName = Admin.adminName;
+        if (OpenedAdmin) this.openedAdminName = OpenedAdmin.adminName;
+        if (ClosedAdmin) this.closedAdminName = ClosedAdmin.adminName;
         if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
 
-        if (Loan || Reservation || Cancellation) {
-            const eventObj = Loan || Reservation || Cancellation;
+        // TODO INDICATE COMPLETED OR CANCELLED OR RESERVED!
+
+        if (Loan) {
             const items = []
-            if (eventObj.AstLoan) {
-                items.push(`Asset: ${eventObj.AstLoan.Ast.serialNumber}`);
+            if (Loan.AstLoan) {
+                items.push(`Asset: ${Loan.AstLoan.Ast.serialNumber}`);
             } 
-            if (eventObj.AccLoans?.length > 0) {
-                const accessories = eventObj.AccLoans
+            if (Loan.AccLoans?.length > 0) {
+                const accessories = Loan.AccLoans
                     .map(accLoan => `${accLoan.AccType.accName} (${accLoan.count})`)
                     .join(', ');
                 items.push(`Accessories: ${accessories}`);
             }
-            const userName = eventObj.Usr.userName;
-            if (Loan) {
-                this.type = "Loan"
-                this.description = `${items.join(' + ')} loaned by ${userName}`;
-            } else if (Reservation) {
+            const userName = Loan.Usr.userName;
+            if (!closedDate) {
                 this.type = "Reservation";
                 this.description = `${items.join(' + ')} reserved for ${userName}`;
+            } else if (!cancelled) {
+                this.type = "Loan"
+                this.description = `${items.join(' + ')} loaned by ${userName}`;
             } else {
                 this.type = "Cancellation";
                 this.description = `${items.join(' + ')} cancelled for ${userName}`;
             }
-        } else if (AssetReturn || AccReturns?.length > 0) {
+        } else if (AstReturn || AccReturns?.length > 0) {
             this.type = "Return";
             this.items = []
-            if (AssetReturn) {
-                this.items.push(`Asset: ${AssetReturn.Ast.serialNumber}`);
+            if (AstReturn) {
+                this.items.push(`Asset: ${AstReturn.AstLoan.Ast.serialNumber}`);
             } 
             if (AccReturns.length > 0) {
                 const accessories = AccReturns
@@ -70,8 +75,8 @@ class EventLogDTO {
                     .join(', ');
                 this.items.push(`Accessories: ${accessories}`);
             }
-            const userName = AssetReturn ? 
-                AssetReturn.Loan.Usr.userName :
+            const userName = AstReturn ? 
+                AstReturn.AstLoan.Loan.Usr.userName :
                 AccReturns[0].AccLoan.Loan.Usr.userName;
             this.description = `${this.items.join(' + ')} returned by ${userName}`;
         } else if (AccType) {
@@ -80,18 +85,19 @@ class EventLogDTO {
         } else if (AccTxn) {
             this.type = "AccTxn";
             this.description = `${AccTxn.AccType.accessoryName} quantity changed by ${AccTxn.count > 0 ? `+${AccTxn.count}` : AccTxn.count}`;
-        } else if (AddedAsset) {
+        } else if (Ast) {
+            
             this.type = "AddAst";
-            this.description = `New Asset added: ${AddedAsset.serialNumber} (${AddedAsset.AstSType.AstType.typeName} / ${AddedAsset.AstSType.subTypeName})`;
-        } else if (DeletedAsset) {
+            this.description = `New Asset added: ${Ast.serialNumber} (${Ast.AstSType.AstType.typeName} / ${Ast.AstSType.subTypeName})`;
+        } else if (AstDelete) {
             this.type = "DelAst";
-            this.description = `Asset condemned: ${DeletedAsset.serialNumber} (${DeletedAsset.AstSType.AstType.typeName} / ${DeletedAsset.AstSType.subTypeName})`;
-        } else if (AddedUser) {
+            this.description = `Asset condemned: ${AstDelete.Asset.serialNumber} (${AstDelete.Asset.AstSType.AstType.typeName} / ${AstDelete.Asset.AstSType.subTypeName})`;
+        } else if (Usr) {
             this.type = "AddUsr";
-            this.description = `New User added: ${AddedUser.userName} (${AddedUser.Dept.deptName})`;
-        } else if (DeletedUser) {
+            this.description = `New User added: ${Usr.userName} (${Usr.Dept.deptName})`;
+        } else if (UsrDelete) {
             this.type = "DelUsr";
-            this.description = `User deleted: ${DeletedUser.userName} (${DeletedUser.Dept.deptName})`;
+            this.description = `User deleted: ${UsrDelete.Usr.userName} (${UsrDelete.Usr.Dept.deptName})`;
         } else if (AddedAstTag) {
             this.type = "AddAstTag";
             this.description = `Tag "${AddedAstTag.AstTag.tagName}" added for (${AddedAstTag.Ast.serialNumber})`
@@ -107,6 +113,14 @@ c        } else if (DeletedAstTag) {
         } else {
             logger.info(item.get({ plain: true }))
             // throw new Error("Unexpected event type found.")
+        }
+
+        if (!closedDate) {
+            this.type = "Reservation";
+        } else if (!cancelled) {
+            this.type = "Loan"
+        } else {
+            this.type = "Cancellation";
         }
     }
 }

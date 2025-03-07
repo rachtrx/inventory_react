@@ -33,20 +33,12 @@ module.exports = (sequelize) => {
 		remarks: {
 			type: DataTypes.TEXT,
 		},
-		addEventId: {
+		eventId: {
 			type: DataTypes.STRING,
 			references: {
 			  model: 'events',
 			  key: 'id',
 			},
-		},
-		delEventId: {
-			type: DataTypes.STRING,
-			references: {
-			  model: 'events',
-			  key: 'id',
-			},
-			allowNull: true
 		},
 	}, {
 		sequelize,

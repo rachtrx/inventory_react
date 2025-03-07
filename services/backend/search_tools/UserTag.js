@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { Usr, Dept, Sequelize, Event, UsrTagMap, UsrTag } = require("../models");
+const { Usr, Dept, Sequelize, Event, UsrTagMap, UsrTag, UsrTagMapDel } = require("../models");
 const logger = require("../logging");
 const UserDTO = require("../dtos/usr.dto");
 
@@ -25,7 +25,7 @@ class UserTagSearch {
         this.includeArray = [
             {
                 model: Event,
-                as: 'DeleteEvent',
+                as: 'DelEvent',
                 attributes: ['eventDate']
             },
             {
@@ -44,11 +44,21 @@ class UserTagSearch {
                     `),
                     'isMatching'
                 ]],
-                where: { delEventId: { [Op.eq]: null } }, // get all current tags
-                include: {
-                    model: UsrTag,
-                    attributes: ['id', 'tagName']
-                },
+                include: [ // get all current tags
+                    {
+                        model: UsrTagMapDel,
+                        include: {
+                            model: Event,
+                            where: pendingOrCancelledEventCondition(),
+                            required: true
+                        },
+                        required: false
+                    },
+                    {
+                        model: UsrTag,
+                        attributes: ['id', 'tagName']
+                    }
+                ],
                 required: false
             }
         ];
@@ -64,7 +74,7 @@ class UserTagSearch {
                     SELECT COUNT(*) 
                     FROM usr_tag_maps AS "UsrTagMaps" 
                     WHERE "UsrTagMaps"."user_id" = "Usr"."id" 
-                    AND "UsrTagMaps"."del_event_id" IS NULL 
+                    AND "UsrTagMaps->UsrTagMapDels->Event"."cancelled" IS NULL 
                     AND "UsrTagMaps"."tag_id" = '${this.tagId}'
                 )`), 
                 isAdd ? 'ASC' : 'DESC'
@@ -73,7 +83,7 @@ class UserTagSearch {
         
         // Always apply the delete event order
         orderByArr.push([
-            Sequelize.literal('CASE WHEN "Usr"."del_event_id" IS NOT NULL THEN 0 ELSE 1 END'),
+            Sequelize.literal('CASE WHEN "UsrTagMaps->UsrTagMapDels->Event"."cancelled" IS NULL THEN 1 ELSE 0 END'),
             'DESC'
         ]);
 

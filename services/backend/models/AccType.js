@@ -61,7 +61,7 @@ module.exports = (sequelize) => {
 		remarks: {
 			type: DataTypes.TEXT,
 		},
-		addEventId: {
+		eventId: {
 			type: DataTypes.STRING,
 			references: {
 			  model: 'events',

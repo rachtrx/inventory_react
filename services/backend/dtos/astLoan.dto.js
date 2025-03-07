@@ -1,3 +1,4 @@
+const AstReturnDTO = require("./astReturn");
 const EventDTO = require("./event.dto");
 
 class AstLoanDTO {
@@ -7,8 +8,7 @@ class AstLoanDTO {
         Loan,
         loanId,
         Ast,
-        returnEventId,
-        ReturnEvent
+        AstReturns
     }) {
         this.assetLoanId = id;
 
@@ -22,8 +22,10 @@ class AstLoanDTO {
             const AssetDTO = require("./ast.dto");
             this.asset = new AssetDTO(Ast);
         }
-        if (returnEventId !== undefined) this.returnEventId = returnEventId
-        if (ReturnEvent) this.returnEvent = new EventDTO(ReturnEvent);
+
+        if (AstReturns) {
+            this.astReturns = AstReturns.map(astReturn => new AstReturnDTO(astReturn));
+        }
     }
 }
 

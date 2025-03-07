@@ -1,8 +1,10 @@
 const { Op } = require("sequelize");
-const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, AstDelete } = require("../models");
 const AssetDTO = require("../dtos/ast.dto");
 const logger = require("../logging");
 const { LoanSearch } = require("./loanSearch");
+const { getUnreturnedAccLoanIds, getUnreturnedAstLoanIds } = require("./utils");
+const { assetDeletedQuery } = require("../controllers/utils");
 
 class AssetLoan {
 
@@ -31,78 +33,49 @@ class AssetLoan {
                 attributes: ['id', 'serialNumber', 'assetTag', 'delEventId'],
                 where: this.assetCondition,
                 include: [
+                    assetDeletedQuery,
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
+                        attributes: ['id'],
                         include: {
                             model: Loan,
-                            attributes: ['id', 'loanEventId', 'reserveEventId', 'cancelEventId'],
+                            attributes: ['id'],
                             include: [
+                                {
+                                    model: Event,
+                                    attributes: ['openedDate', 'closedDate', 'cancelled'],
+                                },
                                 {
                                     model: Usr,
                                     attributes: ['id', 'userName'],
-                                    where: [],
                                     include: {
                                         model: Dept,
                                         attributes: ['id', 'deptName'],
                                         where: {},
                                     },
-                                    // where: Sequelize.literal(`
-                                    //     EXISTS (
-                                    //         SELECT 1
-                                    //         FROM "usr_loans" AS "UsrLoans"
-                                    //         INNER JOIN "usrs" AS "UsrLoans->Usr"
-                                    //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
-                                    //         WHERE "UsrLoans"."loan_id" = "AstLoans->Loan"."id"
-                                    //     )
-                                    // `),
-                                    // required: true
                                 },
-                                {
-                                    model: AccLoan,
-                                    attributes: ['id', 'count'],
-                                    include: [
-                                        {
-                                            model: AccReturn,
-                                            attributes: ['id', 'count']
-                                        },
-                                        {
-                                            model: AccType,
-                                            attributes: ['id', 'accessoryName'],
-                                        }
-                                    ],
-                                    where: Sequelize.literal(`
-                                        EXISTS (
-                                            SELECT 1
-                                            FROM "acc_loans" AS "AccLoans"
-                                            INNER JOIN "acc_types" AS "AccLoans->AccType"
-                                            ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
-                                            WHERE "AccLoans"."loan_id" = "AstLoans->Loan"."id"
-                                            AND "AccLoans"."count" > (
-                                                SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
-                                                FROM "acc_returns" AS "AccLoans->AccReturns"
-                                                WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
-                                            )
-                                        )
-                                    `),
-                                    required: false
-                                }
+                                // {
+                                //     model: AccLoan,
+                                //     attributes: ['id', 'count'],
+                                //     include: [
+                                //         {
+                                //             model: AccReturn,
+                                //             attributes: ['id', 'count']
+                                //         },
+                                //         {
+                                //             model: AccType,
+                                //             attributes: ['id', 'accessoryName'],
+                                //         }
+                                //     ],
+                                //     where: Sequelize.literal(`
+                                //         "AstLoans->Loan->AccLoans"."loan_id" IN (${getUnreturnedAccLoanIds()})
+                                //     `),
+                                //     required: false
+                                // }
                             ]
                         },
                         required: false,
-                        where: { // get (asset on loan or asset reserved) and not returned so we can disable them later
-                            [Op.and]: [
-                                Sequelize.literal(`"AstLoans"."return_event_id" IS NULL`) ,
-                                Sequelize.literal(`
-                                    "AstLoans"."loan_id" IN (
-                                        SELECT "Loans"."id" 
-                                        FROM "loans" AS "Loans" 
-                                        WHERE "Loans"."loan_event_id" IS NOT NULL
-                                        OR "Loans"."reserve_event_id" IS NOT NULL
-                                    )
-                                `),
-                            ]
-                        }
+                        where: Sequelize.literal(`"AstLoans"."loan_id" IN (${getUnreturnedAstLoanIds()})`)
                     },
                     {
                         model: AstSType,
@@ -117,8 +90,8 @@ class AssetLoan {
                 ],
                 order: Sequelize.literal(`
                     CASE 
-                        WHEN "AstLoans->Loan"."loan_event_id" IS NULL AND "AstLoans->Loan"."reserve_event_id" IS NULL THEN 1
-                        WHEN "AstLoans->Loan"."loan_event_id" IS NULL THEN 2
+                        WHEN "AstLoans->Loan->Event"."opened_date" IS NULL AND "AstLoans->Loan"."closed_date" IS NULL THEN 1
+                        WHEN "AstLoans->Loan"."closed_date" IS NULL THEN 2
                         WHEN "Ast"."del_event_id" IS NOT NULL THEN 4
                         ELSE 3
                     END ASC

@@ -11,14 +11,13 @@ class ReturnService extends ValidationService{
     constructor(returns, authId, transaction) {
         super(transaction, authId);
         this.returns = returns;
-        this.returnDate = new Date();
     }
 
-    async processReturns() {
+    async processReturns(expectedDate=null) {
         await Promise.all(
             this.returns.map(async _return => {
                 const valLoanRow = await this.validate(_return);
-                await this.returnAsset(valLoanRow, _return);
+                await this._return(valLoanRow, _return, expectedDate);
             })
         );
     }
@@ -103,23 +102,30 @@ class ReturnService extends ValidationService{
         return loanRow; // IMPT return the ORM Object!
     }
 
-    async returnAsset(loanRow, _return) {
+    async _return(loanRow, _return, expectedDate=null) {
         const { asset, accessoryTypes, remarks } = _return;
 
         const returnEventId = generateSecureID(); // Attribute of loan instance
-    
+        
+        const curDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+
         try {
             await Event.create({
                 id: returnEventId,
-                eventDate: this.returnDate,
-                adminId: this.authId,
+                openedDate: curDate,
+                openedAdminId: this.authId,
+                ...(expectedDate && { expectedCloseDate: expectedDate }),
+                ...(!expectedDate && {
+                    closedDate: curDate,
+                    closedAdminId: this.authId,
+                }),
             }, { transaction: this.transaction });
     
             if (remarks && remarks !== '') {
                 await Rmk.create({
                     id: generateSecureID(),
                     eventId: returnEventId,
-                    remarkDate: this.returnDate,
+                    remarkDate: curDate,
                     remarks: remarks,
                     adminId: this.authId
                 }, { transaction: this.transaction });

@@ -1,13 +1,13 @@
-const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
+const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
-const logger = require('../logging.js');
-const AssetDTO = require('../dtos/ast.dto.js');
-const EventDTO = require('../dtos/event.dto.js');
-const { AssetTagSearch } = require('../search_tools/AssetTag.js');
-const { generateSecureID } = require('../utils/nanoidValidation.js');
+const { createSelection, getAllOptions, getDistinctOptions } = require('../utils.js');
+const logger = require('../../logging.js');
+const AssetDTO = require('../../dtos/ast.dto.js');
+const EventDTO = require('../../dtos/event.dto.js');
+const { AssetTagSearch } = require('../../search_tools/AssetTag.js');
+const { generateSecureID } = require('../../utils/nanoidValidation.js');
 
-class FormAssetTagController {
+class AddAssetTagController {
 
     async loadAddAssets(req, res) {
         try {
@@ -57,15 +57,35 @@ class FormAssetTagController {
         }
     };
 
-
     async addAssetTag(req, res) {
-        const newTags = req.body.tags;
+        try {
+            const { tags } = req.body;
+            const authId = req.auth.id;
+            await this._dbAdd(tags, authId)
+            return res.json({ message: 'All tags added successfully.' });
+        } catch (error) {
+            logger.error(error);
+            res.status(500).send(`An error occurred while adding the tags: ${error.message}`);
+        }
+    }
+
+    async scheduleAddAssetTag(req, res) {
+        try {
+            const { tags, expectedDate } = req.body;
+            const authId = req.auth.id;
+            await this._dbAdd(tags, authId, expectedDate)
+            return res.json({ message: 'All tags added successfully.' });
+        } catch (error) {
+            logger.error(error);
+            res.status(500).send(`An error occurred while adding the tags: ${error.message}`);
+        }
+    }
+
+    async _dbAdd(newTags, authId, expectedDate) {
         logger.info(newTags);
         const transaction = await sequelize.transaction(); // Start transaction
 
-        const authId = req.auth.id;
-
-        const addDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+        const curDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
 
         try {
             for (const { tagId, tagName, assets } of newTags) {
@@ -109,15 +129,20 @@ class FormAssetTagController {
                     
                     await Event.create({
                         id: addEventId,
-                        eventDate: addDate,
-                        adminId: authId,
+                        eventDate: curDate,
+                        openedAdminId: authId,
+                        ...(expectedDate && { expectedCloseDate: expectedDate }),
+                        ...(!expectedDate && {
+                            closedDate: curDate,
+                            closedAdminId: authId,
+                        }),
                     }, { transaction: transaction });
             
                     if (remarks && remarks !== '') {
                         await Rmk.create({
                             id: generateSecureID(),
                             eventId: addEventId,
-                            remarkDate: addDate,
+                            remarkDate: curDate,
                             remarks: remarks,
                             adminId: authId
                         }, { transaction: transaction });
@@ -127,7 +152,7 @@ class FormAssetTagController {
                         id: generateSecureID(),
                         tagId: tag.id,
                         assetId: assetId,
-                        addEventId: addEventId,
+                        eventId: addEventId,
                     }, { transaction: transaction });
                 }
             }
@@ -139,56 +164,6 @@ class FormAssetTagController {
             res.status(500).send(`An error occurred while creating the tags: ${error.message}`);
         }
     };
-
-    async delAssetTag(req, res) {
-        const removeTags = req.body.tags;
-        const transaction = await sequelize.transaction(); // Start transaction
-
-        const authId = req.auth.id;
-
-        const delDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
-
-        try {
-            for (const { assets } of removeTags) {
-                
-                for (const { assetTagId, remarks } of assets) {
-                    const delEventId = generateSecureID();
-
-                    await Event.create({
-                        id: delEventId,
-                        eventDate: delDate,
-                        adminId: authId,
-                    }, { transaction: transaction });
-            
-                    if (remarks && remarks !== '') {
-                        await Rmk.create({
-                            id: generateSecureID(),
-                            eventId: delEventId,
-                            remarkDate: delDate,
-                            remarks: remarks,
-                            adminId: authId
-                        }, { transaction: transaction });
-                    }
-
-                    await AstTagMap.update(
-                        { 
-                            delEventId: delEventId
-                        },
-                        { 
-                            where: { id: assetTagId },
-                            transaction: transaction
-                        }
-                    );
-                }
-            }
-            
-            await transaction.commit();
-            return res.json({ message: 'All tags deleted successfully.' });
-        } catch (error) {
-            logger.error(error);
-            res.status(500).send(`An error occurred while deleting the tags: ${error.message}`);
-        }
-    }
 }
 
-module.exports = new FormAssetTagController();
+module.exports = new AddAssetTagController();

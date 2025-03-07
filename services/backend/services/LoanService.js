@@ -3,8 +3,9 @@ const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
 const fs = require('fs');
-const accessoryController = require("../controllers/accessoryController");
+const accessoryController = require("../controllers/accessories/accessoryController");
 const logger = require("../logging");
+const addAccessoryController = require("../controllers/accessories/addAccessoryController");
 
 class LoanService extends ValidationService {
 
@@ -23,14 +24,18 @@ class LoanService extends ValidationService {
             }
             userIdToNameMap.set(user.userId, user.userName);
 
-            const assets = this.users.flatMap(user => user.loans.filter(loan => loan.asset?.assetId).map(loan => loan.asset))
-
-            assets.forEach(asset => {
-                if (assetIdToSNMap.has(asset.assetId) && assetIdToSNMap.get(asset.assetId)!== asset.serialNumber) {
-                    throw new Error(`Ambiguous record for Asset ID ${asset.assetId} with asset tags ${assetIdToSNMap.get(asset.assetId)} and ${asset.serialNumber}`);
+            user.loans.forEach(loan => {
+                if (!loan.asset?.assetId && loan.accessories?.length === 0) {
+                    throw new Error("Loan must include at least 1 asset or 1 accessory")
                 }
-                assetIdToSNMap.set(asset.assetId, asset.serialNumber);
-            });
+
+                if (loan.asset?.assetId) {
+                    if (assetIdToSNMap.has(asset.assetId) && assetIdToSNMap.get(asset.assetId)!== asset.serialNumber) {
+                        throw new Error(`Ambiguous record for Asset ID ${asset.assetId} with serial number and ${asset.serialNumber}`);
+                    }
+                    assetIdToSNMap.set(asset.assetId, asset.serialNumber);
+                }
+            })
         });
 
         return { assetIdToSNMap, userIdToNameMap };
@@ -41,7 +46,7 @@ class LoanService extends ValidationService {
             [...assetIdToSNMap].map(async ([assetId, serialNumber]) => {
                 // Fetch the asset using findByPk
                 // console.log(assetId, serialNumber);
-                const asset = await this.getAsset(assetId, serialNumber);
+                const asset = await this.getAssetOnLoan(assetId, serialNumber);
                 if (asset.AstLoans && asset.AstLoans.length > 0) {
                     throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
                 }
@@ -58,40 +63,7 @@ class LoanService extends ValidationService {
             if (!typeof userData === 'object') {
                 throw new MissingIdError(userData);
             }
-
-            if (userData.delEventId) {
-                throw new Error(`Usr with ID ${userData.userId} is deleted.`);
-            }
         });
-    }
-
-    async handleNewAccessories() {
-        const newAccessories = {}; // tracks <newAccTypeName>: <newAccTypeId>
-        for (const { loans } of this.users) {
-            for (const loan of loans) {
-                if (loan.accessories) {
-                    for (const accessory of loan.accessories) {
-                        let accType;
-    
-                        // id === name means new. Check if added to newAccessories already
-                        if (!accessory.accessoryTypeId && accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
-                            accType = await accessoryController.createAccessoryType(
-                                accessory.accessoryName,
-                                0,
-                                this.authId,
-                                this.transaction
-                            );
-                            console.log(`New accessory ${accType.accessoryName} created`);
-                            newAccessories[accessory.accessoryName] = accType.id;
-                            accessory.accessoryTypeId = accType.id;
-                        } else if (newAccessories[accessory.accessoryName]) {
-                            // if new but added to newAccessories already, just need to update the id
-                            accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
-                        }
-                    }
-                }
-            }
-        }
     }
 
     async createLoans() {
@@ -114,7 +86,14 @@ class LoanService extends ValidationService {
         await this.saveSignatures(signatures);
     }
 
-    async createUserLoans(loans, user) {
+    async createScheduledLoans() {
+        for (const user of this.users) {
+            const loans = user.loans;
+            await this.createUserLoans(loans, user, false);
+        }
+    }
+
+    async createUserLoans(loans, user, expectedDate) {
 
         const loanDate = new Date();
 
@@ -128,17 +107,24 @@ class LoanService extends ValidationService {
             
             const userId = user.userId;
 
+            const curDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+
             // Event, Remarks
             await Event.create({
                 id: loanEventId,
-                eventDate: loanDate,
-                adminId: this.authId,
+                openedDate: curDate,
+                openedAdminId: this.authId,
+                ...(expectedDate && { expectedCloseDate: expectedDate }),
+                ...(!expectedDate && {
+                    closedDate: curDate,
+                    closedAdminId: this.authId,
+                }),
             }, { transaction: this.transaction });
 
             const newLoan = await Loan.create({
                 id: loanId,
                 expectedReturnDate: expectedReturnDate || null,
-                loanEventId: loanEventId,
+                eventId: loanEventId,
                 userId: userId,
             }, { transaction: this.transaction })
 
