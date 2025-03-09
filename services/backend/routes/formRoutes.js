@@ -49,6 +49,10 @@ router.get('/return', formLoanReturnController.loadReturn);
 router.post('/return', formLoanReturnController.return);
 
 router.post('/add/asset', formAssetController.add);
+router.post('/add/type', formAssetController.createNewAssetType);
+router.post('/add/subType', formAssetController.createNewAssetSubType);
+router.post('/add/vendor', formAssetController.createNewVendor);
+
 
 router.get('/del/asset', formAssetController.loadAstDel);
 router.post('/del/asset', formAssetController.del);

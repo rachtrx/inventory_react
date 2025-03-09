@@ -1,7 +1,7 @@
 const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
-const { eventTypes } = require('./utils.js');
+const { eventTypes, getAssetFilters, getSubTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');
@@ -47,7 +47,42 @@ class FormAssetController {
         }
     };
 
-    async createNewAssetType(req, res) { // TODO reload filters on frontend after created
+    async createNewVendor(req, res) {
+        const { vendorName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+    
+            const existingVendor = await Vendor.findOne({
+                where: { vendorName: { [Op.eq]: vendorName } },
+                attributes: ['id', 'vendorName'],
+                transaction,
+            });
+    
+            if (existingVendor) {
+                throw new Error(`${vendorName} already exists!`);
+            }
+    
+            const vendor = await Vendor.create(
+                {
+                    id: generateSecureID(),
+                    vendorName: vendorName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+
+            const newVendorOptions = await getAssetFilters('vendor');
+
+            return res.json(newVendorOptions);
+
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async createNewAssetType(req, res) {
         const { typeName } = req.body;
 
         try {
@@ -71,8 +106,11 @@ class FormAssetController {
                 { transaction }
             );
             transaction.commit();
+            console.log(assetType.get({plain: true}));
 
-            return res.json(assetType.get({plain: true}));
+            const newTypeOptions = await getAssetFilters('typeName');
+
+            return res.json(newTypeOptions);
 
         } catch (error) {
             logger.info(error)
@@ -112,7 +150,9 @@ class FormAssetController {
                 { transaction }
             );
             transaction.commit();
-            return res.json(assetSubType.get({ plain: true}));
+
+            const newSubTypeDict = await getSubTypes([typeId]);
+            return res.json(newSubTypeDict);
             
         } catch (error) {
             logger.info(error)

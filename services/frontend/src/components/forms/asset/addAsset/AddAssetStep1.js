@@ -46,29 +46,31 @@ export const AddAssetStep1 = () => {
       const errors = {};
   
       const tNameDuplicates = validateUniqueValues(values.types, ['typeName']);
-      const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'alias']);
+      // const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'alias']);
       const snDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'serialNumber']);
 
       values.types.forEach((type, typeIndex) => {
         const typeError = validateFieldName(tNameDuplicates, type['typeName'], "Type");
-        if (typeError) {
-          setFieldError(errors, ['types', typeIndex, 'typeName'], typeError);
-        }
+
+        if (typeError) setFieldError(errors, ['types', typeIndex, 'typeName'], typeError);
+        if (type['typeName'] && !type['typeId']) setFieldError(errors, ['types', typeIndex, 'typeName'], `Please create new type ${type['typeName']}`);
+
         const stNameDuplicates = validateUniqueValues(type.subTypes, ['subTypeName']);
-  
         type.subTypes.forEach((subType, subTypeIndex) => {
           const subTypeError = validateFieldName(stNameDuplicates, subType['subTypeName'], "Sub Type");
           if (subTypeError) {
             setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'subTypeName'], subTypeError);
           }
+          if (subType['subTypeName'] && !subType['subTypeId']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'subTypeName'], `Please create new sub type ${subType['subTypeName']}`);
 
           subType.assets.forEach((asset, assetIndex) => {
             if (!asset['vendorName']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], 'Vendor is required');
+            if (asset['vendorName'] && !asset['vendorId']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], `Please create new vendor ${asset['vendorName']}`);
 
-            const alError = validateField(atDuplicates, asset['alias'], "Alias");
-            if (alError) {
-              setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'alias'], alError);
-            }
+            // const alError = validateField(atDuplicates, asset['alias'], "Alias");
+            // if (alError) {
+            //   setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'alias'], alError);
+            // }
             const snError = validateField(snDuplicates, asset['serialNumber'], "Serial Number");
             if (snError) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'serialNumber'], snError);

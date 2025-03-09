@@ -41,6 +41,21 @@ class AssetService {
         return await this.axios.patch(`${API_URL}/assets/update`, {id, field, newValue});
     }
 
+    async createNewType(typeName) {
+        console.log(typeName);
+        return await this.axios.post(`${API_URL}/forms/add/type`, { typeName });
+    }
+
+    async createNewSubType(subTypeName, typeId) {
+        console.log(subTypeName);
+        return await this.axios.post(`${API_URL}/forms/add/aubType`, { subTypeName, typeId });
+    }
+
+    async createNewVendor(vendorName) {
+        console.log(vendorName);
+        return await this.axios.post(`${API_URL}/forms/add/vendor`, { vendorName });
+    }
+
     async loanAsset(formData) {
         console.log('loaning asset');
         console.log(formData);

@@ -8,19 +8,21 @@ import { AddAsset, LoanAsset } from "./AddAsset";
 import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useFormModal } from "../../../../context/ModalProvider"
 import DateInputControl from "../../utils/DateInputControl"
-import { createNewAsset, createNewSubType, useLoans } from "./AddAssetsProvider"
+import { createNewAsset, useAddAssets } from "./AddAssetsProvider"
 import { Outlet } from "react-router-dom"
 import assetService from "../../../../services/AssetService"
+import WarningCard from "./Warnings"
 
 export const AddSubType = ({
 	field,
+	typeId,
 	subType,
 	subTypeOptions,
 	children
 }) => {
 
 	const { setFieldValue } = useFormikContext();
-
+	const { addNewSubType } = useAddAssets()
 	const [ cost, setCost ] = useState(0);
 
 	// console.log(field);
@@ -48,13 +50,23 @@ export const AddSubType = ({
 	return (
 		<Flex direction="column">
 			<Grid position="relative" templateColumns="40% 60%" gap={2}>
-				<CreatableSingleSelectFormControl
-					label={`Sub Type`}
-					name={`${field}.subTypeName`}
-					placeholder="Select Sub Type"
-					updateFields={handleSubTypeUpdate}
-					initialOptions={subTypeOptions}
-				/>
+				<Flex direction="column">
+					<CreatableSingleSelectFormControl
+						label={`Sub Type`}
+						name={`${field}.subTypeName`}
+						placeholder="Select Sub Type"
+						updateFields={handleSubTypeUpdate}
+						initialOptions={subTypeOptions}
+					/>
+					{typeId && subType.subTypeName && !subType.subTypeId && 
+						<WarningCard
+							message={`Create ${subType.subTypeName}?`}
+							// items={subType}
+							itemAttr="value"
+							onCreate={() => addNewSubType(subType.subTypeName, typeId)}
+						/>
+					}
+				</Flex>
 				<Box>
 					<FieldArray name={`${field}.assets`}>
 						{assetHelpers => (

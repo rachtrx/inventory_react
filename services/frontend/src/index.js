@@ -64,8 +64,8 @@ root.render(
     <GlobalStyles/>
     <ChakraProvider>
       <ResponsiveProvider>
+        <LoadingSpinner/>
         <UIProvider>
-          <LoadingSpinner/>
           <RouterProvider router={App}/>
         {/* Insert footer here? */}
         </UIProvider>

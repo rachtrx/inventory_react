@@ -26,6 +26,7 @@ export const createNewAsset = (asset={}) => ({
   'key': uuidv4(),
   'alias': asset.alias || '',
   'serialNumber': asset.serialNumber || '',
+  'vendorId': asset.vendorId || '',
   'vendorName': asset.vendorName || '',
   'cost': asset.cost || '',
   'remarks': asset.remarks || '',
@@ -50,8 +51,6 @@ export const AddAssetsProvider = ({ children }) => {
   });
   const [step, setStep] = useState(1);
 
-  const createNewAstType = 
-
   useEffect(() => {
     // console.log(typeOptions);
     // console.log(vendorOptions);
@@ -69,24 +68,24 @@ export const AddAssetsProvider = ({ children }) => {
     fetchFilters();
   }, []);
 
+  const parseOptions = (options, idAttr) => {
+    return options.map(option => ({
+      [idAttr]: option.value,
+      value: option.label,
+      label: option.label
+  }));
+  } 
+
   const getTypeFilters = async () => {
       const response = await assetService.getFilters('typeName');
       const options = response.data;
-      return options.map(option => ({
-          typeId: option.value,
-          value: option.label,
-          label: option.label
-      }));
+      return parseOptions(options, 'typeId');
   };
 
   const getVendorFilters = async () => {
       const response = await assetService.getFilters('vendor');
       const options = response.data;
-      return options.map(option => ({
-          vendorId: option.value,
-          value: option.label,
-          label: option.label
-      }));
+      return parseOptions(options, 'vendorId');
   };
 
   const setValuesExcel = async (records) => {
@@ -207,6 +206,57 @@ export const AddAssetsProvider = ({ children }) => {
     }
   };
 
+  const addNewType = async (typeName) => {
+    try {
+      setLoading(true);
+      const response = await assetService.createNewType(typeName);
+      const options = response.data;
+      console.log(options);
+      setTypeOptions(parseOptions(options, 'typeId'));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
+  const addNewVendor = async (vendorName) => {
+    try {
+      setLoading(true);
+      const response = await assetService.createNewVendor(vendorName);
+      const options = response.data;
+      setVendorOptions(parseOptions(options, 'vendorId'));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
+  const addNewSubType = async (subTypeName, typeId) => {
+    try {
+      setLoading(true);
+      const response = await assetService.createNewSubType(subTypeName, typeId);
+      const { newSubType } = response.data;
+
+      setSubTypeOptionsDict((oldDict) => ({
+        ...oldDict,
+        [typeId]: [
+          ...(oldDict[typeId] || []), // Preserve existing subtypes for the typeId
+          { 
+            subTypeId: newSubType.id,
+            value: newSubType.subTypeName, 
+            label: newSubType.subTypeName 
+          }
+        ]
+      }));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
   const prevStep = () => {
     setStep(step - 1)
   };
@@ -241,9 +291,12 @@ export const AddAssetsProvider = ({ children }) => {
     typeOptions,
     vendorOptions,
     subTypeOptionsDict,
+    setSubTypeOptionsDict,
+    addNewSubType,
+    addNewType,
+    addNewVendor,
     formData,
     step,
-    setSubTypeOptionsDict,
     setFormData,
     setStep,
     setValuesExcel,
