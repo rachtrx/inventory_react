@@ -6,8 +6,9 @@ import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from '../../constants/AssetStatus';
-import { AssetActionButton } from '../buttons/ActionButton';
+import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/AssetTimeline';
+import Tags from '../tags/Tags';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
@@ -100,6 +101,9 @@ const Asset = ({ asset }) => {
                 <UserLink key={asset.reservedUser.userId} isCopy={false} user={asset.reservedUser} />
               )}
             </Box>
+
+            <Heading as="h2" size="sm" mb="2">Tags</Heading>
+            <Tags tags={asset.tags}/>
         </Grid>
       </Flex>
 

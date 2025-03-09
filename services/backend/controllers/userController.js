@@ -1,7 +1,7 @@
 const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getUserFilters } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
@@ -10,48 +10,8 @@ class UserController {
     async getFilters (req, res) {
         const { field } = req.body;
     
-        let options;
         try {
-            if (['deptName', 'tag'].includes(field)) {
-                let meta = null;
-                switch(field) {
-                    case 'deptName':
-                        meta = [Dept, 'deptName', 'id'];
-                        break;
-                    case 'tag':
-                        meta = [UsrTag, 'tagName', 'id'];
-                        break;
-                }
-                logger.info(meta)
-                options = await getAllOptions(meta)
-                
-            } else if (field === 'assetCount') {
-                const result = await AstLoan.findAll({
-                    attributes: [
-                        [Sequelize.col('"Loan->Usr"."id"'), 'userId'],
-                        [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
-                    ],
-                    include: {
-                        model: Loan,
-                        attributes: [],
-                        include: {
-                            model: Usr,
-                            attributes: [],
-                        },
-                    },
-                    where: { returnEventId: null },
-                    group: [
-                        '"Loan->Usr"."id"' // Only group by userId
-                    ],
-                    raw: true
-                });
-                const counts = result.map(item => item.assetCount);
-                const distinctCounts = [...new Set(counts)];
-                options = distinctCounts.map((count) => ({
-                    label: count,
-                    value: count,
-                }))
-            }
+            const options = await getUserFilters(field);
             // console.log(options);
             return res.json(options || []);
         } catch (error) {
@@ -76,8 +36,10 @@ class UserController {
     
             const whereClause = {
                 ...(filters.userName && { userName: { [Op.iLike]: `%${filters.userName}%` } }),
-                ...(filters.bookmarked && { bookmarked: 1 }),
+                ...(filters.bookmarked && { bookmarked: true }),
             };
+
+            // IMPT allow reservations
     
             let query = await Usr.findAll({
                 attributes: ['id', 'userName', 'bookmarked'],
@@ -89,9 +51,9 @@ class UserController {
                         include: {
                             model: UsrTag,
                             attributes: ['id', 'tagName'],
-                            ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
+                            ...(filters.userTag.length > 0 && { where: { id: { [Op.in]: filters.userTag } } }),
                         },
-                        required: filters.tag.length > 0 ? true : false
+                        required: filters.userTag.length > 0 ? true : false
                     },
                     {
                         model: Event,
@@ -107,13 +69,6 @@ class UserController {
                     {
                         model: Loan,
                         required: false,
-                        attributes: [
-                            'id', 
-                            'reserveEventId',
-                            'cancelEventId', 
-                            'expectedReturnDate', 
-                            'loanEventId'
-                        ],
                         include: [
                             {
                                 model: AstLoan,
@@ -153,13 +108,9 @@ class UserController {
                                         attributes: ['id', 'accessoryName'],
                                     },
                                     {
-                                        model: AccReturn,
+                                        model: AccReturn, // need to calculate the remainder later
+                                        attributes: ['id', 'count'],
                                         required: false,
-                                        where: {
-                                            returnEventId: {
-                                                [Op.is]: null
-                                            }
-                                        }
                                     }
                                 ],
                             },
@@ -172,12 +123,30 @@ class UserController {
                         ...(filters.deptName.length > 0 && { where: { id: { [Op.in]: filters.deptName } } }),
                     }
                 ],
-                where: whereClause,
+                where: {[Op.and]: [
+                    whereClause,
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM "acc_returns" AS "AccReturns"
+                            WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                            GROUP BY "Loans->AccLoans"."id"
+                            HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
+                        )
+                    `),
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1 FROM "ast_loans" AS "AstLoans"
+                            WHERE "AstLoans"."id" = "Loans->AstLoan"."id"
+                            AND "AstLoans"."return_event_id" IS NOT NULL
+                        )
+                    `)
+                ]},
                 order: [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']],
                 // order: [[Sequelize.literal('"AddEvent"."event_date"'), 'DESC']],
             });
 
-            logger.info(query.slice(1, 10).map(user => user.get({plain: true})));
+            // logger.info(query.slice(1, 10).map(user => user.get({plain: true})));
     
             if (filters.assetCount.length > 0) {
                 filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
@@ -188,10 +157,22 @@ class UserController {
             
             // Mapping over the result to modify each user object
             const result = query.map(user => {
-                return new UserDTO(user);
+
+                const initialUser = new UserDTO(user);
+                
+                initialUser.loans = initialUser.loans.filter(loan => {
+                    if (loan.accLoans?.length) {
+                        loan.accLoans = loan.accLoans.filter(accLoan => accLoan.unreturned > 0)
+                    }
+
+                    return loan.accLoans?.length || loan.astLoan; 
+                })
+
+                return initialUser;
             });
+            
     
-            logger.info(result.slice(10, 20));
+            // logger.info(result.slice(10, 20));
             res.json(result);
         } catch (error) {
             console.error('Error fetching user views:', error);
@@ -204,11 +185,23 @@ class UserController {
     
         try {
             const userDetails = await Usr.findByPk(userId, {
-                include: {
-                    model: Dept,
-                    attributes: ['id', 'deptName']
-                },
-                attributes: ['id', 'userName', 'bookmarked']
+                attributes: ['id', 'userName', 'bookmarked'],
+                include: [
+                    {
+                        model: UsrTagMap,
+                        attributes: ['id'],
+                        where: { delEventId: { [Op.eq]: null }}, 
+                        include: {
+                            model: UsrTag,
+                            attributes: ['id', 'tagName'],
+                        },
+                        required: false
+                    },
+                    {
+                        model: Dept,
+                        attributes: ['id', 'deptName']
+                    }
+                ],
             });
 
             if (!userDetails) return res.status(404).send({ error: "User not found" });
@@ -280,7 +273,6 @@ class UserController {
                     model: Loan,
                     as: 'Loan',
                     required: false,
-                    attributes: ['filepath'],
                     include: [
                         {
                             model: AstLoan,
@@ -378,49 +370,6 @@ class UserController {
         logger.info(events);
 
         return events;
-    }
-
-    userIsDeleted = (user) => !!user.deletedDate
-    userHasNoAsset = (user) => user.loanCount === 0 && user.reserveCount === 0
-
-    searchUsersLoan = async (req, res) => {
-        try {
-            const { value } = req.query;
-            const orderByClause = `
-                ORDER BY
-                    "deletedDate" IS NOT NULL ASC,
-                    "lastEventDate" DESC
-            `;
-    
-            const data = await this.searchUsers(value, orderByClause, this.userIsDeleted)
-            return res.json(data);
-        } catch (error) {
-            logger.error('Error fetching users:', error)
-            console.error('Error fetching users:', error);
-            res.status(500).send('Internal Server Error');
-        }
-        
-    }
-    
-    searchUsersDelete = async (req, res) => {
-        try {
-            const { value } = req.query;
-            const orderByClause = `
-                ORDER BY 
-                    "deletedDate" IS NOT NULL ASC,
-                    ("reserveCount" = 0 AND "loanCount" = 0) DESC,
-                    "reserveCount" = 0 DESC,
-                    "loanCount" = 0 DESC,
-                    "lastEventDate" DESC
-            `;
-
-            const data = await this.searchUsers(value, orderByClause, this.userHasNoAsset)
-            return res.json(data);
-        } catch (error) {
-            logger.error('Error fetching users:', error)
-            console.error('Error fetching users:', error);
-            res.status(500).send('Internal Server Error');
-        }
     }
 
     async updateUser(req, res) {

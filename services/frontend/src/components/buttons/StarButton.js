@@ -6,7 +6,7 @@ const StarButton = ({ id, isBookmarked, ...props }) => {
   const { handleUpdate } = useItems();
 
   const handleClick = async () => {
-    const response = await handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
+    const response = await handleUpdate(id, 'bookmarked', isBookmarked ? false : true);
     console.log(response);
   };
 

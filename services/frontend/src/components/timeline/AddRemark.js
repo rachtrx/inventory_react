@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTimeline } from "../../context/TImelineProvider";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
+import eventService from "../../services/EventService";
 
 const AddRemark = ({ eventId }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +32,7 @@ const AddRemark = ({ eventId }) => {
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                         if (values.remark.trim()) {
                             try {
-                                await assetService.addRemark(eventId, values.remark, Date.now());
+                                await eventService.addRemark(eventId, values.remark, Date.now());
                                 setSubmitting(false);
                                 setLoading(false);
                                 showToast('Remark added', 'success', 500);

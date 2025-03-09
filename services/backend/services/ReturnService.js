@@ -17,22 +17,38 @@ class ReturnService extends ValidationService{
     async processReturns() {
         await Promise.all(
             this.returns.map(async _return => {
-                const valLoanRow = await this.validate(_return);
-                await this.returnAsset(valLoanRow, _return);
+                const { astLoan, accLoans } = await this.validate(_return);
+                const returnEventId = generateSecureID();
+                await this.insertReturnEvent(returnEventId, _return.remarks);
+
+                if (astLoan && _return.asset.count > 0) await this.returnAsset(returnEventId, astLoan, _return.asset.serialNumber);
+
+                if (accLoans.length === 0) return;
+
+                console.log(_return.accessoryTypes[0].count);
+                console.log(typeof _return.accessoryTypes[0].count);
+                
+                const accsToReturn = _return.accessoryTypes.filter(accessoryType => accessoryType.count > 0);
+                for (const accToReturn of accsToReturn) {
+                    const AccLoan = accLoans.find(accLoan => accLoan.accessoryTypeId === accToReturn.accessoryTypeId);
+                    if (!AccLoan) {
+                        throw new Error(`Accessory Loan not found for ${accToReturn.accessoryName}`);
+                    }
+                    await this.returnAccessory(returnEventId, AccLoan, accToReturn.count, accToReturn.accessoryName);
+                }
             })
         );
     }
 
-    async getLoan(loanId, hasAst=true) {
+    async getLoan(loanId, assetId) {
         const loan = await Loan.findByPk(loanId, {
             transaction: this.transaction,
-            attributes: ['id', 'loanEventId', 'userId'],
             include: [
                 {
                     model: AstLoan,
                     attributes: ['id', 'loanId'],
                     where: { returnEventId: { [Op.eq]: null } }, // find the loaned device
-                    required: hasAst ? true : false, // device is returned if not found
+                    required: assetId ? true : false, // device is returned if not found
                     include: {
                         model: Ast,
                         required: true,
@@ -49,116 +65,109 @@ class ReturnService extends ValidationService{
                     include: {
                         model: AccReturn,
                         attributes: ['count'],
-                        where: { returnEventId: { [Op.eq]: null } },
                         required: false,
                     },
-                    required: !hasAst ? false : true,
+                    required: assetId ? false : true,
                 }
             ]
         });
+
         if (!loan || !loan.id) throw new Error(`No record found for Loan ID: ${loanId}`);
 
-        if (loan.AstLoan.Ast.delEventId) {
-            throw new Error(`Asset AstTag ${assetData.assetTag} is condemned!`);
+        if (assetId && loan.AstLoan?.Ast?.delEventId) {
+            throw new Error(`Asset ${loan.AstLoan.Ast.serialNumber} is condemned!`);
+        }
+
+        if (assetId && !loan.AstLoan?.Ast?.id) {
+            throw new Error(`Asset is not on loan for loan ID ${loan.id}!`);
+        }
+
+        if(assetId && assetId !== loanRow.AstLoan?.Ast?.id) {
+            throw new Error(`Mismatch for Asset ID: ${_return.asset?.assetId}. 
+                Expected serialNumber: ${_return.asset.serialNumber}, but found: ${loanRow.AstLoan.Ast.serialNumber}`);
         }
 
         return loan;
     }
 
     async validate(_return) {
-        const { asset, accessoryTypes, remarks } = _return;
+        const { loanId, asset={}, accessoryTypes=[], userId } = _return;
 
-        const loanRow = await this.getLoan(_return.loanId, _return.asset?.assetId);
+        const returningAst = asset.count && asset.count > 0;
+        const loanRow = await this.getLoan(loanId, returningAst ? asset.assetId : null);
 
-        if(_return.asset?.assetId) {
-
-            if (!loanRow.AstLoan || !loanRow.AstLoan.id) {
-                throw new Error(`Asset with ID ${_return.asset.serialNumber} is not on loan!`);
-            }
-
-            if (loanRow.AstLoan.Ast.id !== _return.asset?.assetId) {
-                throw new Error(`Mismatch for Asset ID: ${_return.asset?.assetId}. 
-                    Expected serialNumber: ${_return.asset.serialNumber}, but found: ${loanRow.AstLoan.Ast.serialNumber}`);
-            }
-
-            if (_return.asset.count !== 0) {
-                loanRow.AstLoan
-            }
-        }
-
-        const userMatch = _return.userId = loanRow.Usr.id;
-
-        if (!userMatch) throw new Error(`Unexpected mismatch of users for Loan ID ${_return.loanId}: 
+        if (!(userId === loanRow.Usr.id)) throw new Error(`Unexpected mismatch of users for Loan ID ${_return.loanId}: 
             ${_return.userName} and ${loanRow.Usr.userName}`);
+        
+        // ensure accessories match and have sufficient to return
+        loanRow.AccLoans?.forEach(accLoan => {
+            const foundAccType = accessoryTypes.find(accType => accLoan.accessoryTypeId === accType.accessoryTypeId);
 
-            loanRow.accLoans?.every(accLoan => {
+            if (foundAccType) {
+                const returnCount = accLoan.AccReturns.reduce((count, accReturn) => count + accReturn.count, 0)
+                foundAccType.count = Number(foundAccType.count);
+                if (foundAccType.count + returnCount > accLoan.count) throw new Error(`Returning more (${foundAccType.count}) ${foundAccType.accessoryName} than loaned (${accLoan.count}) for Loan ID ${loanRow.id}`);
+            } else throw new Error(`Missing Return Count for Accessory ID ${accLoan.accessoryTypeId} for Loan ID ${loanRow.id}`);
+        });
 
-                const foundAccType = accessoryTypes.find(accType => accLoan.accessoryTypeId === accType.accessoryTypeId);
-
-                if (foundAccType) {
-                    if (accLoan.unreturned < foundAccType.count) throw new Error(`Returning more (${foundAccType.count}) ${foundAccType.accessoryName} than loaned (${accLoan.count}) for ${assetObj.assetTag}`);
-                } else throw new Error(`Missing Return Count for Accessory ID ${accLoan.accessoryTypeId} for ${asset.assetTag}`);
-            });
-
-        return loanRow; // IMPT return the ORM Object!
+        return {
+            astLoan: loanRow.AstLoan || null, 
+            accLoans: loanRow.AccLoans || []
+        }; // IMPT return the ORM Object!
     }
 
-    async returnAsset(loanRow, _return) {
-        const { asset, accessoryTypes, remarks } = _return;
+    async insertReturnEvent(returnEventId, remarks) {
+        await Event.create({
+            id: returnEventId,
+            eventDate: this.returnDate,
+            adminId: this.authId,
+        }, { transaction: this.transaction });
 
-        const returnEventId = generateSecureID(); // Attribute of loan instance
-    
-        try {
-            await Event.create({
-                id: returnEventId,
-                eventDate: this.returnDate,
-                adminId: this.authId,
+        if (remarks && remarks !== '') {
+            await Rmk.create({
+                id: generateSecureID(),
+                eventId: returnEventId,
+                remarkDate: this.returnDate,
+                remarks: remarks,
+                adminId: this.authId
             }, { transaction: this.transaction });
-    
-            if (remarks && remarks !== '') {
-                await Rmk.create({
-                    id: generateSecureID(),
-                    eventId: returnEventId,
-                    remarkDate: this.returnDate,
-                    remarks: remarks,
-                    adminId: this.authId
-                }, { transaction: this.transaction });
-            }
+        }
+    }
 
-            if (asset && asset.count > 0) {
-                await AstLoan.update(
-                    { returnEventId },
-                    { 
-                        where: { id: loanRow.AstLoan.id },
-                        transaction: this.transaction
-                    }
-                );
-            }
-
-            if (accessoryTypes && accessoryTypes.length > 0) {
-                for (const accLoan of loanRow.AccLoans) {
-                    const returnCount = accessoryTypes.find(accType => accType.accessoryTypeId === accLoan.accessoryTypeId).count;
-
-                    await AccReturn.create({
-                        id: generateSecureID(),
-                        count: returnCount,
-                        accLoanId: accLoan.id,
-                        returnEventId: returnEventId
-                    }, { transaction: this.transaction });
-
-                    await AccType.update(
-                        { 
-                            stock: Sequelize.literal(`stock + ${returnCount}`)
-                        },
-                        { 
-                            where: { id: accLoan.accessoryTypeId },
-                            transaction: this.transaction
-                        }
-                    );
+    async returnAsset(returnEventId, astLoan, serialNumber) {
+        try {
+            await AstLoan.update(
+                { returnEventId },
+                { 
+                    where: { id: astLoan.id },
+                    transaction: this.transaction
                 }
-            }
+            );
         } catch (error) {
-            throw new Error(`Failed to return asset ${assetRow.assetTag}: ${error.message}`);
+            throw new Error(`Failed to return asset ${serialNumber}: ${error.message}`);
+        }
+    }
+
+    async returnAccessory(returnEventId, accLoan, count, accName) {
+        try {
+            await AccReturn.create({
+                id: generateSecureID(),
+                count: count,
+                accLoanId: accLoan.id,
+                returnEventId
+            }, { transaction: this.transaction });
+
+            await AccType.update(
+                { 
+                    stock: Sequelize.literal(`stock + ${count}`)
+                },
+                { 
+                    where: { id: accLoan.accessoryTypeId },
+                    transaction: this.transaction
+                }
+            );
+        } catch (error) {
+            throw new Error(`Failed to return accessory ${accName}: ${error.message}`);
         }
     }
 }

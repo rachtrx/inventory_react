@@ -34,13 +34,17 @@ class AccLoanDTO {
 
         if (AccReturns) {
             this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn));
-            if (count && AccReturns.every(accReturn => accReturn.count)) {
+            if (count && AccReturns.every(accReturn => Number.isFinite(accReturn.count))) {
                 this.returned = AccReturns.reduce((returnCount, accReturn) => {
                     return returnCount += accReturn.count;
                 }, 0)
                 this.unreturned = this.count - this.returned;
             }
-        }   
+        } else {
+            this.returned = 0;
+            this.unreturned = this.count;
+            this.accReturns = [];
+        }
     }
 }
 

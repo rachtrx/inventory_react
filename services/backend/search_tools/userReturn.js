@@ -1,6 +1,6 @@
 const { Op, where } = require("sequelize")
 const LoanDTO = require("../dtos/loan.dto")
-const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
+const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event } = require("../models");
 const logger = require("../logging");
 
 class UserReturnSearch {
@@ -22,29 +22,13 @@ class UserReturnSearch {
         this.userName = userName;
         this.deptId = deptId;
 
-        // EXISTS (
-        //     SELECT 1
-        //     FROM "loans" AS "Loans"
-        //     INNER JOIN "usrs" AS "Loans->Usr"
-        //     ON "Loans"."user_id" = "Loans->Usr"."id"
-        //     ${this.userId ? 
-        //         `WHERE "Loans->Usr"."id" = '%${this.userId}%'` : "" + this.userName ? 
-        //         `WHERE "Loans->Usr"."user_name" ILIKE '%${this.userName}%'` : ""
-        //     }
-        // )
-
         this.accExistCondition = Sequelize.literal(`
-            EXISTS (
+            NOT EXISTS (
                 SELECT 1
-                FROM "acc_loans" AS "AccLoans"
-                INNER JOIN "acc_types" AS "AccLoans->AccType"
-                ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
-                WHERE "AccLoans"."loan_id" = "Loan"."id"
-                AND "AccLoans"."count" > (
-                    SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
-                    FROM "acc_returns" AS "AccLoans->AccReturns"
-                    WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
-                )
+                FROM "acc_returns" AS "AccReturns"
+                WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
+                GROUP BY "AccLoans"."id"
+                HAVING COALESCE(SUM("AccReturns"."count"), 0) = "AccLoans"."count"
             )
         `)
 
@@ -56,8 +40,12 @@ class UserReturnSearch {
     async run() {
         try {
             let query = await Loan.findAll({
-                attributes: ['id', 'expectedReturnDate', 'loanEventId', 'reserveEventId', 'cancelEventId'],
                 include: [
+                    {
+                        model: Event,
+                        as: 'LoanEvent',
+                        required: true
+                    },
                     {
                         model: Usr,
                         where: this.userCondition,
@@ -91,7 +79,6 @@ class UserReturnSearch {
                                 where: {}
                             }
                         ],
-                        where: this.accExistCondition,
                         required: false
                     },
                     {
@@ -114,8 +101,14 @@ class UserReturnSearch {
                         required: false
                     },
                 ],
-                where: { [Op.or]: [
-                    Sequelize.literal(`EXISTS (SELECT 1 FROM "ast_loans" AS "AstLoan" WHERE "AstLoan"."loan_id" = "Loan"."id")`), // At least either unreturned asset of accessory
+                where: { [Op.and]: [
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1 FROM "ast_loans" AS "AstLoans"
+                            WHERE "AstLoans"."id" = "AstLoan"."id"
+                            AND "AstLoans"."return_event_id" IS NOT NULL
+                        )
+                    `), // At least either unreturned asset of accessory
                     this.accExistCondition
                 ] },
                 order: this.accessoryName ? Sequelize.literal(`

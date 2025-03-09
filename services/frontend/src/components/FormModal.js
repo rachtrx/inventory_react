@@ -22,8 +22,8 @@ import { AddUsersProvider } from './forms/user/addUser/AddUsersProvider';
 import { DelAssetsProvider } from './forms/asset/delAsset/DelAssetsProvider';
 import { DelUsersProvider } from './forms/user/delUser/DelUsersProvider';
 import UpdateAcc from './forms/accessories/updateAcc/UpdateAcc';
-import { AddAssetTagsProvider, DelAssetTagsProvider } from './forms/asset/addTag/AssetTagsProvider';
-import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/addTag/UserTagsProvider';
+import { AddAssetTagsProvider, DelAssetTagsProvider } from './forms/asset/tags/AssetTagsProvider';
+import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/tags/UserTagsProvider';
 // import { createDelTagsProvider } from './forms/asset/addTag/createDelTagsProvider';
 
 const formMap = {
@@ -38,7 +38,6 @@ const formMap = {
     [FormType.UNTAG_ASSET]: <DelAssetTagsProvider/>,
     [FormType.TAG_USER]: <AddUserTagsProvider/>,
     [FormType.UNTAG_USER]: <DelUserTagsProvider/>,
-    // [FormType.RESERVE]: <Reserve/>,
 }
 
 const headerMap = {
@@ -53,7 +52,6 @@ const headerMap = {
     [FormType.UNTAG_ASSET]: "UnTag Assets",
     [FormType.TAG_USER]: "Tag Users",
     [FormType.UNTAG_USER]: "UnTag Users",
-    [FormType.RESERVE]: "Reserve Items",
 }
 
 export default function FormModal() { 

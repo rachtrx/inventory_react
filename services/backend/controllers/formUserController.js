@@ -5,6 +5,7 @@ const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event, Loan, AstLo
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 const { Op } = require('sequelize');
+const { UserDelete } = require('../search_tools/userDelete.js');
 
 
 class FormUserController {
@@ -206,6 +207,27 @@ class FormUserController {
             return res.status(500).json({ error: error.message });
         }
     };
+
+    async loadUsrDel (req, res) {
+        try {
+            const search = new UserDelete(req.query)
+            const query = await search.run()
+
+            const users = query.map(
+                user => ({
+                        ...user,
+                        value: user.serialNumber,
+                        label: user.serialNumber,
+                        isDisabled: user.delEventId || user.loans.length
+                })
+            )
+            // console.log(users);
+            res.json(users);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new FormUserController();

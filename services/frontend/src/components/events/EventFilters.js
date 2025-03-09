@@ -1,61 +1,117 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BookmarkFilter from '../forms/utils/BookmarkFilter';
 import InputFormControl from '../forms/utils/InputFormControl';
-import SelectFormControl from '../forms/utils/SelectFormControl';
+import SelectFormControl, { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
+import { Form, Formik } from 'formik';
+import FilterContainer from '../utils/FilterContainer';
+import { useItems } from '../../context/ItemsProvider';
+import eventService from '../../services/EventService';
+import DateInputControl from '../forms/utils/DateInputControl';
+import { FormType } from '../../context/ModalProvider';
+import ToggleButton from '../buttons/ToggleButton';
 
 
-const EventFilters = ({ filters }) => {
+const EventFilters = () => {
+
+    const { filters, fetchFilters, onSubmit } = useItems();
+
+    useEffect(() => {
+        fetchFilters('typeName');
+        fetchFilters('subTypeName');
+        fetchFilters('deptName');
+        fetchFilters('assetTag');
+        fetchFilters('userTag');
+        fetchFilters('admin');
+    }, [fetchFilters]);
 
     return (
-        <>
-            <SelectFormControl
-                name="deviceType"
-                label="Device Type"
-                placeholder="All"
-                options={filters?.device_types?.map((device_type) => ({ label: device_type, value: device_type })) ?? []}
-            />
+        <Formik initialValues={eventService.defaultFilters} onSubmit={onSubmit}>
+            <Form>
+                <FilterContainer>
+				    <DateInputControl
+                        placeholder="Start Date" 
+                        name={`startDate`} 
+                    />
 
-            <InputFormControl
-                name="modelName"
-                label="Model Name"
-                placeholder="All"
-            />
+                    <DateInputControl 
+                        placeholder="End Date" 
+                        name={`endDate`} 
+                    />
 
-            <SelectFormControl
-                name="eventType"
-                label="Event Type"
-                placeholder="All"
-                options={[
-                    { label: "Registered", value: "registered" },
-                    { label: "Loaned", value: "loaned" },
-                    { label: "Returned", value: "returned" },
-                    { label: "Condemned", value: "condemned" },
-                    { label: "Created", value: "created" },
-                    { label: "Removed", value: "removed" },
-                ]}
-            />
+                    <MultiSelectFormControl
+                        name="eventType"
+                        initialOptions={
+                            [
+                                {'label': 'Loan', 'value': FormType.LOAN},
+                                {'label': 'Return', 'value': FormType.RETURN},
+                                {'label': 'Add Asset', 'value': FormType.ADD_ASSET},
+                                {'label': 'Del Asset', 'value': FormType.DEL_ASSET},
+                                {'label': 'Add User', 'value': FormType.ADD_USER},
+                                {'label': 'Del User', 'value': FormType.DEL_USER},
+                                {'label': 'Update Accessory', 'value': FormType.UPDATE_ACC},
+                                {'label': 'Tag Asset', 'value': FormType.TAG_ASSET},
+                                {'label': 'Untag Asset', 'value': FormType.UNTAG_ASSET},
+                                {'label': 'Tag User', 'value': FormType.TAG_USER},
+                                {'label': 'Untag User', 'value': FormType.UNTAG_USER},
+                            ]
+                        }
+                    />
 
-            <InputFormControl
-                name="userName"
-                label="Username"
-                placeholder="All"
-            />
+                    <MultiSelectFormControl
+                        name="typeName"
+                        // label="Asset Type"
+                        placeholder="Asset Type"
+                        initialOptions={filters.typeName}
+                    />
 
-            <InputFormControl
-                name="serial-number"
-                label="Serial Number"
-                placeholder="All"
-            />
+                    <MultiSelectFormControl
+                        name="subTypeName"
+                        // label="Specific Model"
+                        placeholder="Specific Model"
+                        initialOptions={filters.subTypeName}
+                    />
 
-            <InputFormControl
-                name="asset-tag"
-                label="Asset Tag"
-                placeholder="All"
-            />
+                    <InputFormControl
+                        name="serialNumber"
+                        // label="Serial Number"
+                        placeholder="Serial Number"
+                    />
 
-            <BookmarkFilter/>
+                    <MultiSelectFormControl
+                        name="deptName"
+                        // label="Department"
+                        placeholder="Department"
+                        initialOptions={filters.deptName}
+                    />
 
-        </>
+                    <MultiSelectFormControl
+                        name="userName"
+                        // label="Username"
+                        placeholder="Username"
+                    />
+
+                    <MultiSelectFormControl
+                        name="userTag"
+                        placeholder="User Tag"
+                        initialOptions={filters.userTag}
+                    />
+
+                    <MultiSelectFormControl
+                        name="assetTag"
+                        placeholder="Asset Tag"
+                        initialOptions={filters.assetTag}
+                    />
+
+                    <MultiSelectFormControl
+                        name="admin"
+                        placeholder="Admin"
+                        initialOptions={filters.admin}
+                    />
+
+                    <ToggleButton name="bookmarked" label="Bookmarked" />
+                </FilterContainer>
+            </Form>
+        </Formik>
     )
 };
 

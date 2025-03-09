@@ -36,13 +36,35 @@ class LoanService extends ValidationService {
         return { assetIdToSNMap, userIdToNameMap };
     }
 
+    async getAssetOnLoan(assetId, serialNumber) {
+        const asset = await Ast.findByPk(assetId, {
+            transaction: this.transaction,
+            attributes: ['delEventId'],
+            include: [
+                {
+                    model: AstLoan,
+                    attributes: ['id', 'loanId'],
+                    where: { returnEventId: null },
+                    required: false, // device is returned if not found
+                }
+            ]
+        });
+        if (!asset) throw new Error(`No record found for Asset ID: ${assetId}`);
+        if (asset.serialNumber !== serialNumber) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected serialNumber: ${serialNumber}, but found: ${asset.serialNumber}`);
+
+        if (asset.delEventId) {
+            throw new Error(`Asset ${assetData.serialNumber} is already condemned!`);
+        }
+        return asset;
+    }
+
     async validateAssets(assetIdToSNMap) {
         await Promise.all(
             [...assetIdToSNMap].map(async ([assetId, serialNumber]) => {
                 // Fetch the asset using findByPk
                 // console.log(assetId, serialNumber);
-                const asset = await this.getAsset(assetId, serialNumber);
-                if (asset.AstLoans && asset.AstLoans.length > 0) {
+                const asset = await this.getAssetOnLoan(assetId, serialNumber);
+                if (asset.AstLoans?.length > 0) {
                     throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
                 }
             })

@@ -12,7 +12,7 @@ const AssetDTO = require('../dtos/ast.dto.js');
 const { model } = require('mongoose');
 const LoanDTO = require('../dtos/loan.dto.js');
 const AccessorySearch = require('../search_tools/accessory.js');
-const { LoanSearch } = require('../search_tools/loanSearch.js');
+const { ReturnSearch } = require('../search_tools/allReturn.js');
 const { UserReturnSearch } = require('../search_tools/userReturn.js');
 const { AssetLoan } = require('../search_tools/assetLoan.js');
 const { AssetReturn } = require('../search_tools/assetReturn.js');
@@ -62,10 +62,14 @@ class FormLoanReturnController {
 
     async loadReturn (req, res) {
         try {
-            const search = new LoanSearch(req.query)
-            const loans = search.runAll()
+            const search = new ReturnSearch(req.query)
+            const loans = await search.run()
+            loans.forEach(loan => {
+                loan.value = loan.loanId;
+                loan.label = loan.user.userName;
+            });
 
-            return loans;
+            res.json(loans);
         } catch (error) {
             logger.error('Error fetching Loan:', error)
             return res.status(500).json({ error: error.message });
@@ -213,111 +217,6 @@ class FormLoanReturnController {
             return res.status(500).json({ error: error.message });
         }
     }
-
-    async loadAstDel (req, res) {
-        try {
-            const search = new AssetDelete(req.query)
-            const query = await search.run()
-
-            const assets = query.map(
-                asset => ({
-                        ...asset,
-                        value: asset.serialNumber,
-                        label: asset.serialNumber,
-                        isDisabled: asset.delEventId || !asset.astLoans || asset.astLoans.length === 0 ? false : true
-                })
-            )
-            // console.log(assets);
-            res.json(assets);
-        } catch (error) {
-            logger.error('Error fetching Loan:', error)
-            return res.status(500).json({ error: error.message });
-        }
-    }
-
-    async loadReturn (req, res) {
-
-        const assetIds = req.query.assetIds;
-
-        try {
-            const queries = ids.map(async (id) => {
-                const query = await Ast.findOne({
-                    attributes: ['id','serialNumber', 'assetTag'],
-                    include: [
-                        {
-                            model: AstSType,
-                            attributes: ['subTypeName'],
-                            include: {
-                                model: AstType,
-                                attributes: ['typeName']
-                            }
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id'],
-                            where: { returnEventId: null },
-                            include: {
-                                model: Loan,
-                                attributes: ['expectedReturnDate', 'loanEventId'],
-                                include: [
-                                    {
-                                        model: Usr,
-                                        attributes: ['userName', 'id'],
-                                        include: {
-                                            model: Dept,
-                                            attributes: ['deptName']
-                                        },
-                                        required: true,
-                                    },
-                                    {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        include: [
-                                            {
-                                                model: AccType,
-                                                attributes: ['accessoryName', 'id'],
-                                            },
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['returnEventId', 'count'],
-                                                required: false
-                                            }
-                                        ],
-                                        required: false,
-                                    }
-                                ]
-                            },
-                        },
-                    ],
-                    where: { 
-                        id: id
-                    },
-                });
-
-                // console.log(query);
-        
-                return new AssetDTO(query); 
-            });
-        
-            // Use Promise.all to await all promises and get the array of results
-            const assets = await Promise.all(queries);
-
-            const assetsDict = assets.reduce((dict, asset) => {
-                if (!asset.ongoingLoan) throw new Error(`No ongoing loan found for ${asset.serialNumber}`);
-
-                const { assetId, ...rest } = asset;
-                dict[assetId] = rest;
-
-                return dict;
-            }, {});
-                
-            logger.info('Details for Assets:', assetsDict);
-            res.json(assetsDict);
-        } catch (error) {
-            console.error("Search failed:", error);
-            return res.status(500).json({ error: error.message });
-        }
-    }
     
     async return (req, res) {
         const { returns } = req.body;
@@ -330,7 +229,7 @@ class FormLoanReturnController {
             const returnService = new ReturnService(returns, req.auth.id, transaction);
 
             await returnService.processReturns();
-            await returnService.transaction.commit();
+            await transaction.commit();
 
             return res.json({ message: 'All items returned successfully.' });
         } catch (error) {

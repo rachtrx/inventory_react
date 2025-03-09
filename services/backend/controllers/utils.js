@@ -1,4 +1,5 @@
-const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize } = require('../models');
+const logger = require('../logging');
+const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept } = require('../models');
 
 exports.FormType = {
     ADD_ASSET: 'ADD_ASSET',
@@ -7,20 +8,17 @@ exports.FormType = {
     RETURN: 'RETURN',
     ADD_USER: 'ADD_USER',
     DEL_USER: 'DEL_USER',
-    ADD_PERIPHERAL: 'ADD_PERIPHERAL',
+    RESTORE_ASSET: 'RESTORE_ASSET',
+    RESTORE_USER: 'RESTORE_USER',
+    UPDATE_ACC: 'UPDATE_ACC',
+    LOAN_ACC: 'LOAN_ACC',
+    RETURN_ACC: 'RETURN_ACC',
+    TAG_ASSET: 'TAG_ASSET',
+    UNTAG_ASSET: 'UNTAG_ASSET',
+    TAG_USER: 'TAG_USER',
+    UNTAG_USER: 'UNTAG_USER',
     RESERVE: 'RESERVE',
-}
-
-exports.formToEventMap = {
-    [this.FormType.ADD_ASSET]: 'ADD',
-    [this.FormType.DEL_ASSET]: 'DEL',
-    [this.FormType.LOAN]: 'LOAN',
-    [this.FormType.RETURN]: 'RETURN',
-    [this.FormType.ADD_USER]: 'ADD',
-    [this.FormType.DEL_USER]: 'DEL',
-    [this.FormType.ADD_PERIPHERAL]: 'ADD',
-    [this.FormType.TAG]: 'TAG',
-    [this.FormType.UNTAG]: 'UNTAG',
+    CANCEL: 'CANCEL',
 }
 
 exports.createSelection = (arr, labelField, valueField) => {
@@ -58,4 +56,129 @@ exports.getDistinctOptions = async (table, field) => {
     });
 
     return options;
+}
+
+exports.getAssetFilters = async (field) => {
+
+    let options;
+    try {
+        if (['typeName', 'subTypeName', 'vendor', 'assetTag'].includes(field)) {
+            let meta = null;
+            switch(field) {
+                case 'typeName':
+                    meta = [AstType, 'typeName', 'id'];
+                    break;
+                case 'subTypeName':
+                    meta = [AstSType, 'subTypeName', 'id'];
+                    break;
+                case 'vendor':
+                    meta = [Vendor, 'vendorName', 'id'];
+                    break;
+                case 'assetTag':
+                    meta = [AstTag, 'tagName', 'id'];
+                    break;
+                default:
+                    meta = null;
+            }
+            logger.info(meta);
+            options = await this.getAllOptions(meta);
+        } else if (field === 'location') { // no id
+            const distinctOptions = await this.getDistinctOptions(Ast, field);
+            options = this.createSelection(distinctOptions, field, field);
+        } else if (field === 'age') { // no id
+            const devicesAgeQuery = `
+                SELECT DISTINCT 
+                    FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
+                FROM "asts" a
+                JOIN "events" e ON a.add_event_id = e.id
+                ORDER BY FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) DESC;
+            `;
+            const distinctAges = await sequelize.query(devicesAgeQuery, {
+                type: Sequelize.QueryTypes.SELECT
+            });
+            options = this.createSelection(distinctAges, field, field);
+            options = options.map(option => ({ 
+                ...option, 
+                value: String(option.value) 
+            }));
+            
+        } else throw new Error()
+        return options || []
+        
+    } catch (error) {
+        throw error;
+    }
+}
+
+exports.getSubTypes = async (typeIds) => {
+    try {
+        const result = {};
+
+        for (const typeId of typeIds) {
+            const options = await AstSType.findAll({
+                attributes: ['id', 'subTypeName'],
+                where: { assetTypeId: typeId }
+            });
+
+            result[typeId] = options.map(option => ({
+                value: option.subTypeName, 
+                label: option.subTypeName,
+                subTypeId: option.id
+            }));
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+exports.getUserFilters = async (field) => {
+    let options;
+    try {
+        if (['deptName', 'userTag'].includes(field)) {
+            let meta = null;
+            switch(field) {
+                case 'deptName':
+                    meta = [Dept, 'deptName', 'id'];
+                    break;
+                case 'userTag':
+                    meta = [UsrTag, 'tagName', 'id'];
+                    break;
+            }
+            logger.info(meta)
+            options = await this.getAllOptions(meta)
+            
+        } else if (field === 'assetCount') {
+            const result = await AstLoan.findAll({
+                attributes: [
+                    [Sequelize.col('"Loan->Usr"."id"'), 'userId'],
+                    [Sequelize.fn('COUNT', Sequelize.col('"AstLoan"."id"')), 'assetCount']
+                ],
+                include: {
+                    model: Loan,
+                    attributes: [],
+                    include: {
+                        model: Usr,
+                        attributes: [],
+                    },
+                },
+                where: { returnEventId: null },
+                group: [
+                    '"Loan->Usr"."id"' // Only group by userId
+                ],
+                raw: true
+            });
+            const counts = result.map(item => item.assetCount);
+            const distinctCounts = [...new Set(counts)];
+            options = distinctCounts.map((count) => ({
+                label: count,
+                value: count,
+            }))
+        }
+        // console.log(options);
+        return options || [];
+    } catch (error) {
+        throw error;
+    }
 }

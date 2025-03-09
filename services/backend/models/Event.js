@@ -18,10 +18,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        completed: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
-        }
+        bookmarked: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		},
     }, {
     sequelize,
     modelName: 'Event'

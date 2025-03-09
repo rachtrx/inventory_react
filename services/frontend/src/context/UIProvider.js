@@ -1,5 +1,6 @@
 import { useToast } from '@chakra-ui/react';
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState, Alert, AlertIcon, CloseButton } from 'react';
+import { ResponsiveText } from '../components/utils/ResponsiveText';
 
 const UIContext = createContext(false);
 
@@ -67,8 +68,20 @@ export const UIProvider = ({ children }) => {
     showToast("This feature is under development", 'error');
   }, [showToast])
 
+  const DismissableAlert = (text) => {
+    const [show, setShow] = useState(true);
+  
+    return show ? (
+      <Alert status="error">
+        <AlertIcon />
+        <ResponsiveText>{text}</ResponsiveText>
+        <CloseButton position="absolute" right="8px" top="8px" onClick={() => setShow(false)} />
+      </Alert>
+    ) : null;
+  };
+
   return (
-    <UIContext.Provider value={{ loading, setLoading, error, setError, showToast, handleError, handleDevError }}>
+    <UIContext.Provider value={{ DismissableAlert, loading, setLoading, error, setError, showToast, handleError, handleDevError }}>
       {children}
     </UIContext.Provider>
   );

@@ -14,6 +14,7 @@ import StarButton from '../buttons/StarButton';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
+import Tags from '../tags/Tags';
 
 function AssetCards({items}) {
     
@@ -39,6 +40,7 @@ function AssetCards({items}) {
                                 {asset.ongoingLoan && <UserLink 
                                     user={asset.ongoingLoan.user} 
                                 />}
+                                <Tags tags={asset.tags}/>
                             </VStack>
                             
                             <StarButton

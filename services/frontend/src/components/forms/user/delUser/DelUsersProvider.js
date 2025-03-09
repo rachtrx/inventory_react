@@ -34,18 +34,23 @@ export const DelUsersProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (initialValues) {
-      console.log(initialValues);
-      let user = null;
-      if(initialValues.userId) {
-        user = initialValues;
-        setUserOptions([{value: initialValues.userName, label: initialValues.userName, userId: initialValues.userId}])
-      }
-      
-      setFormData({
-        users: [delNewUser(user)]
-      });
+    if (!initialValues?.userNames?.length) return;
+
+    const fetchUsrDeletes = async () => {
+      const userResponse = await userService.fetchUserDel(initialValues.serialNumbers);
+      setUserOptions(userResponse.data);
+
+      const userObjs = initialValues.userNames.map(userName => {
+        const matchedUserOption = userResponse.data.find(assetOption => assetOption.userName === userName);
+        if (!matchedUserOption || matchedUserOption.isDisabled) return { userName }
+        else return matchedUserOption;
+      })
+      const assets = userObjs.map(user => {
+        return delNewUser(user);
+      })
+      setFormData({assets});
     }
+    fetchUsrDeletes()
   }, [initialValues, setFormData]);
 
   const setValuesExcel = async (records) => {
@@ -72,7 +77,7 @@ export const DelUsersProvider = ({ children }) => {
 
       if (userNames.size === 0) throw new Error("No user names found!")
 
-      const userResponse = await handleUserSearch([...userNames]);
+      const userResponse = await userService.fetchUserDel([...userNames]);
       const newUserOptions = userResponse.data;
       setUserOptions(newUserOptions);
 
@@ -80,13 +85,21 @@ export const DelUsersProvider = ({ children }) => {
         const { userName, remarks, delDate } = record;
         const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
         
-        return {
-            userId: matchedUserOption ? matchedUserOption.userId : null,
-            lastEventDate: matchedUserOption ? matchedUserOption.lastEventDate : null,
+        if (!matchedUserOption || matchedUserOption.isDisabled) {
+          return {
             userName, // Pass userName regardless of whether id is found
             delDate,
             remarks,
         };
+        } else {
+          return {
+              userId: matchedUserOption ? matchedUserOption.userId : null,
+              lastEventDate: matchedUserOption ? matchedUserOption.lastEventDate : null,
+              userName,
+              delDate,
+              remarks,
+          };
+        }
       })
     
       setFormData({

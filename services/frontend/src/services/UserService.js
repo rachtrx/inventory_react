@@ -12,7 +12,7 @@ class UserService {
         userName: '',
         assetCount: [],
         bookmarked: false,
-        tag: [],
+        userTag: [],
     }
 
     async getItem(id) {
@@ -52,10 +52,19 @@ class UserService {
         return await this.axios.post(`${API_URL}/forms/del/user`, data);
     }
 
-    async fetchUserReturn(userName) {
+    // Only fetched through single search
+    fetchUserReturn = async (userName) => {
         return await this.axios.get(`${API_URL}/forms/return/user`, {
             params: {
                 userName
+            }
+        });
+    }
+
+    fetchUserDel = async (userNames) => {
+        return await this.axios.get(`${API_URL}/forms/del/user`, {
+            params: {
+                userNames
             }
         });
     }
@@ -69,12 +78,13 @@ class UserService {
     }
 
     fetchTagUser = async(userNames, tagId=null) => {
-        return await this.axios.get(`${API_URL}/forms/tag/user`, {
+        const options = await this.axios.get(`${API_URL}/forms/tag/user`, {
             params: {
                 userNames,
                 tagId,
             }
         });
+        return options;
     }
 
     fetchUntagUser = async (userNames, tagId=null) => {

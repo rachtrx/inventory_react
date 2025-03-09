@@ -44,7 +44,10 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
       </ResponsiveText>
 
       <ReturnSearch/>
-      {ret.loanId && <ManageReturn/>}
+      {ret.loanId && (
+          ret.asset.unreturned !== 0 || 
+          ret.accessoryTypes.some(accType => accType.unreturned > 0) 
+        ) && <ManageReturn/>}
       
       <Flex mt={2} gap={4} justifyContent="space-between">
         {values.returns.length > 1 && (

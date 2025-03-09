@@ -27,8 +27,8 @@ module.exports = (sequelize) => {
 			}
 		},
 		bookmarked: {
-			type: DataTypes.INTEGER,
-			allowNull: false
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
 		},
 		remarks: {
 			type: DataTypes.TEXT,

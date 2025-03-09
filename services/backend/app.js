@@ -52,7 +52,7 @@ const userRoutes = require('./routes/userRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes.js');
 const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
-const historyRoutes = require('./routes/historyRoutes')
+const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
 
 app.use('/auth', authRoutes);
@@ -60,7 +60,7 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/history', historyRoutes);
+app.use('/api/events', eventRoutes);
 app.use('/api/accessories', accessoryRoutes);
 app.use('/api/forms', formRoutes);
 

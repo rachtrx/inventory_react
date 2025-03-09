@@ -9,7 +9,7 @@ import { ResponsiveText } from '../../utils/ResponsiveText';
 // Chakra-styled version of the date input
 const ChakraDatePicker = chakra(DatePicker);
 
-const DateInputControl = ({ label, name }) => {
+const DateInputControl = ({ label, name, placeholder }) => {
 
   const { setFieldValue, setFieldTouched } = useFormikContext();
   const [field, meta] = useField(name);
@@ -28,15 +28,18 @@ const DateInputControl = ({ label, name }) => {
 
   return (
     <FormControl isInvalid={meta.touched && !!meta.error}>
-      <FormLabel><ResponsiveText>{label}</ResponsiveText></FormLabel>
+      {label && <FormLabel><ResponsiveText>{label}</ResponsiveText></FormLabel>}
       <ChakraDatePicker
         {...field}
-        selected={(field.value && new Date(field.value)) || null}
-        onChange={val => setValue(name, val)}
+        placeholderText={placeholder}
+        selected={field.value ? new Date(field.value) : null}
+        onChange={(val) => setValue(name, val)}
         customInput={<Input />}
         dateFormat="MMMM d, yyyy"
-        portal 
+        isClearable
+        portal
       />
+
       {meta.error && (
         <FormErrorMessage>{meta.error}</FormErrorMessage>
       )}

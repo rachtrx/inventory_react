@@ -11,7 +11,6 @@ import { ResponsiveText } from '../../../utils/ResponsiveText';
 import { useReturns } from './ReturnsProvider';
 
 export const ManageReturn = () => {
-  const { userOptions } = useReturns();
   const { ret, returnIndex, expectedReturnDate } = useReturn();
   const { setFieldValue } = useFormikContext();
   const { handleError } = useUI();
@@ -46,14 +45,15 @@ export const ManageReturn = () => {
             (
               <Tr key={ret.asset.assetId}>
                 <Td>{ret.asset.serialNumber}</Td>
-                <Td>1</Td>
+                <Td>{ret.asset.unreturned}</Td>
                 <Td>
                   <InputFormControl
                     name={`returns.${returnIndex}.asset.count`}
+                    type="number"
                     placeholder="Enter count"
-                    max={ret.assetId ? 0 : 1}
+                    max={ret.asset.unreturned ? 1 : 0}
                     min={0}
-                    disabled={ret.asset.returnEventId}
+                    disabled={ret.asset.unreturned === 0}
                   />
                 </Td>
               </Tr>
@@ -77,12 +77,7 @@ export const ManageReturn = () => {
             ))}
         </Tbody>
       </Table>
-      <SingleSelectFormControl
-        label="User"
-        isDisabled={true}
-        name={`returns.${returnIndex}.userName`}
-        initialOptions={userOptions}
-      />
+      <ResponsiveText>User: {ret.userName}</ResponsiveText>
     </Flex>
   );
 };

@@ -8,7 +8,6 @@ import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdEve
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
 import { useCallback } from 'react';
-import historyService from '../services/HistoryService';
 import { useUI } from '../context/UIProvider';
 
 const Nav = () => {

@@ -1,6 +1,7 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { AssetLink, UserLink } from "./ItemLink";
-import { AssetActionButton as AstActionButton, UserActionButton as UsrActionButton } from "./ActionButton";
+import { AssetActionButton as AstActionButton } from "./AssetActionButton";
+import { UserActionButton as UsrActionButton } from "./UserActionButton";
 import { FormType } from "../../context/ModalProvider";
 
 export const SplitButton = ({ renderLeftButton, renderRightButton, onMouseEnterFn = () => null, onMouseLeaveFn = () => null }) => { // These 2 functions ensure that hovering the button does not hover the parent element

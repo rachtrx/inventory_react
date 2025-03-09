@@ -19,7 +19,7 @@ export default function AssetFilters() { // TODO can have external filters from 
         fetchFilters('vendor');
         fetchFilters('location');
         fetchFilters('age');
-        fetchFilters('tag');
+        fetchFilters('assetTag');
     }, [fetchFilters]);
 
   return (
@@ -44,11 +44,6 @@ export default function AssetFilters() { // TODO can have external filters from 
                             {'label': 'Condemned', 'value': 'Condemned'},
                         ]
                     }
-                />
-                <InputFormControl
-                    name="assetTag"
-                    // label="Asset Tag"
-                    placeholder="Asset Tag"
                 />
                 <InputFormControl
                     name="serialNumber"
@@ -80,10 +75,10 @@ export default function AssetFilters() { // TODO can have external filters from 
                     initialOptions={filters.age}
                 />
                 <MultiSelectFormControl
-                    name="tag"
+                    name="assetTag"
                     // label="Asset Age"
                     placeholder="Tag"
-                    initialOptions={filters.tag}
+                    initialOptions={filters.assetTag}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

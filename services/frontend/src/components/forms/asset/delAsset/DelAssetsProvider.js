@@ -35,19 +35,23 @@ export const DelAssetsProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (initialValues.length > 0) {
-      const assets = initialValues.map(asset => {
+    if (!initialValues?.serialNumbers?.length) return;
+
+    const fetchAstDeletes = async () => {
+      const assetResponse = await assetService.fetchAstDel(initialValues.serialNumbers);
+      setAssetOptions(assetResponse.data);
+
+      const assetObjs = initialValues.serialNumbers.map(serialNumber => {
+        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.serialNumber === serialNumber);
+        if (!matchedAssetOption || matchedAssetOption.isDisabled) return { serialNumber }
+        else return matchedAssetOption;
+      })
+      const assets = assetObjs.map(asset => {
         return delNewAsset(asset);
       })
-
-      setAssetOptions(assets.map(asset => ({
-        value: asset.serialNumber, 
-        label: asset.serialNumber,
-        assetId: asset.assetId
-      })))
-      
       setFormData({assets});
     }
+    fetchAstDeletes()
   }, [initialValues, setFormData]);
 
   const setValuesExcel = async (records) => {
@@ -80,14 +84,22 @@ export const DelAssetsProvider = ({ children }) => {
       const assets = records.map((record) => {
         const { serialNumber, remarks, delDate } = record;
         const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
-        
-        return {
-            assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
-            lastEventDate: matchedAssetOption ? matchedAssetOption.lastEventDate : null,
-            serialNumber, // Pass assetTag regardless of whether id is found
+
+        if (!matchedAssetOption || matchedAssetOption.isDisabled) {
+          return {
+            serialNumber, // Pass serialNumber regardless of whether id is found
             delDate,
             remarks,
-        };
+          }
+        } else {  
+          return {
+            assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
+            lastEventDate: matchedAssetOption ? matchedAssetOption.lastEventDate : null,
+            serialNumber,
+            delDate,
+            remarks,
+          }
+        }
       })
     
       setFormData({

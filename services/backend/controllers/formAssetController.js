@@ -357,6 +357,27 @@ class FormAssetController {
             return res.status(500).json({ error: error.message });
         }
     }
+
+    async loadAstDel (req, res) {
+        try {
+            const search = new AssetDelete(req.query)
+            const query = await search.run()
+
+            const assets = query.map(
+                asset => ({
+                        ...asset,
+                        value: asset.serialNumber,
+                        label: asset.serialNumber,
+                        isDisabled: asset.delEventId || asset.ongoingLoan || asset.ongoingReservation
+                })
+            )
+            // console.log(assets);
+            res.json(assets);
+        } catch (error) {
+            logger.error('Error fetching Loan:', error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new FormAssetController();

@@ -6,6 +6,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { CardActions } from './CardActions';
+import Tags from '../tags/Tags';
 
 const AssetTable = ({ items }) => {
 
@@ -18,7 +19,8 @@ const AssetTable = ({ items }) => {
           <Th></Th>
           <Th>Device Type</Th>
           <Th>Model</Th>
-          <Th>Asset Tag</Th>
+          <Th>S/N</Th>
+          <Th>Tags</Th>
           <Th>Options</Th>
           <Th>Users</Th>
         </Tr>
@@ -39,6 +41,7 @@ const AssetTable = ({ items }) => {
             <Td><ResponsiveText>{asset.typeName}</ResponsiveText></Td>
             <Td><ResponsiveText>{asset.subTypeName}</ResponsiveText></Td>
             <Td><AssetLink item={asset} fontWeight="bold"/></Td>
+            <Td><Tags tags={asset.tags}/></Td>
             <Td>
               <CardActions asset={asset}/>
             </Td>

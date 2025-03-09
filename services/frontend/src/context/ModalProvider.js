@@ -28,37 +28,6 @@ export const FormType = {
   RESERVE: 'RESERVE',
 }
 
-export const updateOptions = (setOptionsState, fieldName, key, newValues) => {
-  setOptionsState(prevOptions => {
-    // Get the current items for the specified fieldName and key
-    const existingItems = prevOptions[fieldName]?.[key] || [];
-
-    console.log(newValues);
-
-    // Create a set from the existing items to avoid duplicates easily
-    const updatedItemsSet = new Set(existingItems);
-
-    // Add new values to the set (automatically handles duplicates)
-    newValues.forEach(value => {
-      updatedItemsSet.add(value);
-    });
-
-    // Return the updated options state only if new items were added
-    if (updatedItemsSet.size !== existingItems.length) {
-      return {
-        ...prevOptions,
-        [fieldName]: {
-          ...prevOptions[fieldName],
-          [key]: Array.from(updatedItemsSet)
-        }
-      };
-    }
-
-    // Return previous state if no new items were added
-    return prevOptions;
-  });
-};
-
 export const actionTypes = {
   SET_FORM_TYPE: 'SET_FORM_TYPE',
   SET_ON_SUBMIT: 'SET_ON_SUBMIT',

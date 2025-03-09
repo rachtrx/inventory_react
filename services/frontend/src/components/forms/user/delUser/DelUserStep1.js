@@ -39,6 +39,9 @@ export const DelUserStep1 = () => {
       const atDuplicates = validateUniqueValues(values.users, ['userName']);
 
       values.users.forEach((user, userIndex) => {
+
+        if (!user.userId && user.userName) setFieldError(errors, ['users', userIndex, 'userName'], "User name not found / cannot be deleted");
+
         const unError = validateFieldWithId(atDuplicates, user['userName'], user['userId'], "User Name");
         if (unError) {
           setFieldError(errors, ['users', userIndex, 'userName'], unError);

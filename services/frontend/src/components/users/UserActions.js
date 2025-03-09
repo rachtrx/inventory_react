@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useFormModal, actionTypes, FormType } from '../../context/ModalProvider';
-import { UserActionButton } from '../buttons/ActionButton';
+import { UserActionButton } from '../buttons/actions/UserActionButton';
 
 export default function UserActions() {
 

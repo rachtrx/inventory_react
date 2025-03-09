@@ -1,6 +1,4 @@
 const logger = require("../logging");
-const EventDTO = require("./event.dto");
-
 class LoanDTO {
     
     constructor({
@@ -28,6 +26,7 @@ class LoanDTO {
         if (expectedReturnDate) this.expectedReturnDate = expectedReturnDate;
         if (expectedLoanDate) this.expectedLoanDate = expectedLoanDate;
 
+        const EventDTO = require("./event.dto");
         if (ReserveEvent) this.reserveEvent = new EventDTO(ReserveEvent);
         if (CancelEvent) this.cancelEvent = new EventDTO(CancelEvent);
         if (LoanEvent) this.loanEvent = new EventDTO(LoanEvent);

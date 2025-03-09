@@ -30,23 +30,46 @@ export const LoansProvider = ({ children }) => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (initialValues) {
-      console.log(initialValues);
-      let asset = null;
-      if(initialValues.assetId) {
-        asset = initialValues;
-        setAssetOptions([{value: initialValues.serialNumber, label: initialValues.serialNumber, assetId: initialValues.assetId}])
+    console.log(initialValues);
+    if (!initialValues?.serialNumbers?.length || !initialValues?.userNames?.length) return;
+
+    const fetchAstLoans = async () => {
+      const assetResponse = await assetService.fetchAstLoan(initialValues.serialNumbers);
+      setAssetOptions(assetResponse.data);
+
+      const assetObjs = initialValues.serialNumbers.map(serialNumber => {
+        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.serialNumber === serialNumber);
+        if (!matchedAssetOption) return { serialNumber }
+        else return matchedAssetOption;
+      })
+      if (initialValues.grouped) {
+        const loans = assetObjs.map(asset => ({ asset }))
+        setFormData({
+          users: [createNewUser({ loans })]
+        });
+      } else {
+        const users = assetObjs.map(asset => createNewUser({ loans: [createNewLoan({ asset })] }))
+        setFormData({ users });
       }
+    }
+
+    const fetchUserLoans = async () => {
+      const userResponse = await userService.fetchUserLoan(initialValues.userNames);
+      setUserOptions(userResponse.data);
       
-      const user = []
-      if(initialValues.userId) {
-        user.push(initialValues)
-        setUserOptions([{value: initialValues.userName, label: initialValues.userName, userId: initialValues.userId}])
-      }
-      
-      setFormData({
-        users: [createNewUser(user)]
-      });
+      const userObjs = initialValues.userNames.map(userName => {
+        const matchedUserOption = userResponse.data.find(userOption => userOption.userName === userName);
+        if (!matchedUserOption) return { userName }
+        else return matchedUserOption;
+      })
+      const users = userObjs.map(user => createNewUser(user));
+      setFormData({ users });
+    }
+
+    if(initialValues.serialNumbers) {
+      fetchAstLoans();
+    } else if (initialValues.userNames) {
+      fetchUserLoans();
     }
   }, [initialValues, setFormData]);
 

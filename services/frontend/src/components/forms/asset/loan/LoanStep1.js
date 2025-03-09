@@ -18,8 +18,9 @@ export const LoanStep1 = () => {
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
-    console.log('loan form rendered');
-		console.log(formData);
+    useEffect(() => console.log('loan form rendered'))
+		
+    useEffect(() => console.log(formData), [formData]);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
     
@@ -102,6 +103,17 @@ export const LoanStep1 = () => {
             const assetError = validateAsset(loan.asset, assetIDDuplicates);
             if (assetError) {
               setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
+            }
+          }
+
+          if (!loan.expectedReturnDate) {
+            setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'expectedReturnDate'], "Date cannot be empty");
+          } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const returnDate = new Date(loan.expectedReturnDate);
+            if (returnDate < today) {
+              setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'expectedReturnDate'], "Date must be in the future");
             }
           }
 

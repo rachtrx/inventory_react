@@ -12,13 +12,14 @@ import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import Cards from '../utils/Cards';
 import { useDrawer } from "../../context/DrawerProvider";
-import { UserActionButton } from "../buttons/ActionButton";
+import { UserActionButton } from "../buttons/actions/UserActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
-import { AssetList } from "./AssetList";
+import { ItemsList } from "./popovers/ItemsList";
 import StarButton from "../buttons/StarButton";
 import { useItems } from "../../context/ItemsProvider";
 import { UserLink } from "../buttons/ItemLink";
+import Tags from "../tags/Tags";
 
 function UserCards({ items }) {
 
@@ -29,30 +30,37 @@ function UserCards({ items }) {
         <Card 
           h="100%" 
           w="100%" 
-          _hover={{bg: 'gray.100',}}
+          bg="transparent" 
+          _hover={{bg: 'gray.100'}}
+          overflow="visible"
+          role="group"
         >
           <CardBody>
-          <VStack align="start">
-            <UserLink user={user} size={'lg'} fontWeight="bold"/>
-            <Text fontSize="md" fontWeight="semibold">
-              {user.deptName}
-            </Text>
-            {user.loans?.length > 0 && <AssetList user={user}/>}
             <Flex>
-              <UserActionButton 
-                formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
-                user={user} 
-                style={{ marginLeft: 'auto' }} 
+              <VStack align="start" flex='1'>
+                <UserLink user={user} size={'lg'} fontWeight="bold"/>
+                <Text fontSize="md" fontWeight="semibold">
+                  {user.deptName}
+                </Text>
+                {user.loans?.length > 0 && <ItemsList user={user}/>}
+                <Flex>
+                  <UserActionButton 
+                    formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
+                    user={user} 
+                    style={{ marginLeft: 'auto' }} 
+                  />
+                </Flex>
+                <Tags tags={user.tags}/>
+              </VStack>
+
+              <StarButton
+                id={user.userId}
+                isBookmarked={user.bookmarked}
               />
             </Flex>
-          </VStack>
           </CardBody>
           
-          <StarButton
-            position="absolute" top={2} right={2}
-            id={user.userId}
-            isBookmarked={user.bookmarked}
-          />
+          
         </Card>
       </Box>
       ))}

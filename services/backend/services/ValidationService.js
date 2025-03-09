@@ -37,49 +37,6 @@ class ValidationService {
         
         return user;
     }
-
-    async getAsset(assetId, serialNumber, includeReturns=false) {
-        const asset = await Ast.findByPk(assetId, {
-            transaction: this.transaction,
-            include: {
-                model: AstLoan,
-                attributes: ['id', 'loanId'],
-                where: { returnEventId: { [Op.eq]: null } }, // find the loaned device
-                required: false, // device is returned if not found
-                include: {
-                    model: Loan,
-                    attributes: ['id', 'loanEventId', 'userId'],
-                    ...(includeReturns && {
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['userName', 'id'],
-                            },
-                            {
-                                model: AccLoan,
-                                attributes: ['id', 'accessoryTypeId', 'count'],
-                                include: {
-                                    model: AccReturn,
-                                    attributes: ['count'],
-                                    where: { returnEventId: { [Op.eq]: null } },
-                                    required: false,
-                                },
-                                required: false,
-                            }
-                        ]
-                    })
-                }
-            }
-        });
-        if (!asset) throw new Error(`No record found for Asset ID: ${assetId}`);
-        if (asset.serialNumber !== serialNumber) throw new Error(`Mismatch for Asset ID: ${assetId}. Expected serialNumber: ${serialNumber}, but found: ${asset.serialNumber}`);
-
-        if (asset.delEventId) {
-            throw new Error(`Asset AstTag ${assetData.assetTag} is condemned!`);
-        }
-
-        return asset;
-    }
     
 }
 

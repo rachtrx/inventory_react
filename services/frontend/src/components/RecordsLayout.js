@@ -21,7 +21,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
 
   const { items, loading, error } = useItems();
 
-  const [isGridView, setIsGridView] = useState(true);
+  const [isGridView, setIsGridView] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = parseInt(searchParams.get('page'), 10) || 1;
   const itemsPerPage = 30;

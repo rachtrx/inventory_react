@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType } = require("../models");
 const AssetDTO = require("../dtos/ast.dto");
 const logger = require("../logging");
-const { LoanSearch } = require("./loanSearch");
+const { LoanSearch } = require("./allReturn");
 
 class AssetReturn {
 
@@ -39,7 +39,6 @@ class AssetReturn {
                         attributes: ['id', 'returnEventId'],
                         include: {
                             model: Loan,
-                            attributes: ['id', 'expectedReturnDate', 'loanEventId', 'reserveEventId', 'cancelEventId'],
                             include: [
                                 {
                                     model: Usr,

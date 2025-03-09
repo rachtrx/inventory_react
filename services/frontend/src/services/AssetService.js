@@ -16,9 +16,8 @@ class AssetService {
         "location": [],
         "age": [],
         "serialNumber": '',
-        "assetTag": '',
         "bookmarked": false,
-        "tag": [],
+        "assetTag": [],
     }
 
     async getItem(id) {
@@ -54,6 +53,15 @@ class AssetService {
         return await this.axios.get(`${API_URL}/forms/return/asset`, {
             params: {
                 serialNumbers,
+            }
+        });
+    }
+
+    async fetchReturns(loanIds) {
+        console.log(loanIds);
+        return await this.axios.get(`${API_URL}/forms/return`, {
+            params: {
+                loanIds,
             }
         });
     }
@@ -121,9 +129,7 @@ class AssetService {
         return await this.axios.post(`${API_URL}/forms/untag/asset`, formData);
     }
 
-    async addRemark(eventId, remark, dateTime) {
-        return await this.axios.post(`${API_URL}/forms/add/remark`, {eventId, remark, dateTime});
-    }
+    
 }
 
 const downloadFormData = (formData) => {

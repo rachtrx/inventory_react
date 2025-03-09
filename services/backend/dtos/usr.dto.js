@@ -1,6 +1,7 @@
 const EventDTO = require("./event.dto");
 const LoanDTO = require("./loan.dto");
-
+const UserTagMapDTO = require("./usrTagMap.dto");
+const { runInitialLoanCheck, assetIsOnLoan } = require("./utils");
 class UserDTO {
 
     constructor({
@@ -15,17 +16,17 @@ class UserDTO {
         Loans,
         UsrTagMaps=null,
         isMatching=null,
+        lastEventDate=null
     }) {
+
+        if (lastEventDate !== null) {
+            this.lastEventDate = lastEventDate
+        }
 
         if (!isMatching === null) this.isMatching = isMatching;
 
         if (UsrTagMaps !== null) {
-            this.tags = UsrTagMaps.map(usrTagMap => ({
-                tagId: usrTagMap.UsrTag?.id,
-                tagName: usrTagMap.UsrTag?.tagName,
-                userTagId: usrTagMap.id,
-                isMatching: usrTagMap.get('isMatching'),
-            }))
+            this.tags = UsrTagMaps.map(usrTagMap => new UserTagMapDTO(usrTagMap));
         }
 
         // if (remarks !== null) this.remarks = remarks;
@@ -44,8 +45,22 @@ class UserDTO {
         if (Dept?.id) this.deptId = Dept.id;
         if (Dept?.deptName) this.deptName = Dept.deptName;
 
+        this.loans = [];
+        this.reservations = [];
+
         if (Loans) {
-            this.loans = Loans.map(loan => new LoanDTO(loan));
+            Loans.forEach(loan => runInitialLoanCheck(loan));
+            
+            this.loans = Loans
+                .filter(({ AstLoan, AccLoans, loanEventId }) => loanEventId && 
+                    ((AstLoan && AstLoan.returnEventId === null) || 
+                    (AccLoans?.length && (AccLoans.some(accLoan => accLoan.AccReturns.some(accReturn => accReturn.returnEventId === null))))
+                ))
+                .map(loan => new LoanDTO(loan));
+
+            this.reservations = Loans
+                .filter(({ reserveEventId, cancelEventId, loanEventId }) => reserveEventId && !cancelEventId && !loanEventId)
+                .map(reservation => new LoanDTO(reservation));
         }
     }
 }

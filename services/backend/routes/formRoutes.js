@@ -50,10 +50,12 @@ router.post('/return', formLoanReturnController.return);
 
 router.post('/add/asset', formAssetController.add);
 
-router.get('/del/asset', formLoanReturnController.loadAstDel);
+router.get('/del/asset', formAssetController.loadAstDel);
 router.post('/del/asset', formAssetController.del);
 
 router.post('/add/user', formUserController.add);
+
+router.get('/del/user', formUserController.loadUsrDel)
 router.post('/del/user', formUserController.del)
 
 router.get('/tag/asset', formAssetTagController.loadAddAssets)
@@ -67,8 +69,6 @@ router.get('/untag/user', formUserTagController.loadDelUsers)
 
 router.post('/tag/user', formUserTagController.addUserTag)
 router.post('/untag/user', formUserTagController.delUserTag)
-
-router.post('/add/remark', eventController.addRemark)
 
 router.post('/download', formLoanReturnController.downloadEvent);
 

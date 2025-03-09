@@ -68,7 +68,6 @@ class AccessoryController {
                         },
                         {
                             model: Loan,
-                            attributes: ['id', 'loanEventId', 'reserveEventId'],
                             required: true,
                             where: { cancelEventId: null },
                             include: [
@@ -233,13 +232,6 @@ class AccessoryController {
                 },
                 {
                     model: Loan,
-                    // where: { id: { [Op.in]: Sequelize.literal(`
-                    //     SELECT "OtherLoans"."user_id" 
-                    //     FROM loans AS "Loan"
-                    //     JOIN loans AS "OtherLoans" ON "Loan"."id" = "OtherLoans"."id"
-                    //     WHERE "Loan"."user_id" = ${userId}
-
-                    // `) }},
                     as: 'Loan',
                     required: false,
                     attributes: ['filepath'],

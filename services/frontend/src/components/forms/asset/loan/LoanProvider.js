@@ -20,6 +20,8 @@ export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) =
   const { values, setFieldValue } = useFormikContext();
   // console.log(values);
 
+  useEffect(() => console.log(values), [values]);
+
   const removeUser = useCallback(() => userHelpers.remove(userIndex), [userHelpers, userIndex])
 
   return (

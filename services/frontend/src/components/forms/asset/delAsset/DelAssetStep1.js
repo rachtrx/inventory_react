@@ -39,6 +39,9 @@ export const DelAssetStep1 = () => {
       const SNDuplicates = validateUniqueValues(values.assets, ['serialNumber']);
 
       values.assets.forEach((asset, assetIndex) => {
+
+        if (!asset.assetId && asset.serialNumber) setFieldError(errors, ['assets', assetIndex, 'serialNumber'], "Serial Number not found / cannot be deleted");
+
         const snError = validateFieldWithId(SNDuplicates, asset['serialNumber'], asset['assetId'], "Serial Number");
         if (snError) {
           setFieldError(errors, ['assets', assetIndex, 'serialNumber'], snError);

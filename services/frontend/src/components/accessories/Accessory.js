@@ -6,7 +6,7 @@ import EditableField from '../utils/EditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from '../../constants/AssetStatus';
-import { AssetActionButton } from '../buttons/ActionButton';
+import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/AssetTimeline';
 import AccTimeline from '../timeline/AccTimeline';
 

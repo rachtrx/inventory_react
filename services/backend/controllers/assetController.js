@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
@@ -20,21 +20,7 @@ class AssetController {
         const { typeIds } = req.body;
 
         try {
-            const result = {};
-
-            for (const typeId of typeIds) {
-                const options = await AstSType.findAll({
-                    attributes: ['id', 'subTypeName'],
-                    where: { assetTypeId: typeId }
-                });
-
-                result[typeId] = options.map(option => ({
-                    value: option.subTypeName, 
-                    label: option.subTypeName,
-                    subTypeId: option.id
-                }));
-            }
-
+            const result = await getSubTypes(typeIds);
             return res.json(result);
         } catch (error) {
             console.error("Error fetching options:", error);
@@ -42,101 +28,11 @@ class AssetController {
         }
     }
 
-    async getAllFilters(req, res) {
-        let options;
-        try {
-            if (['typeName', 'subTypeName', 'vendor'].includes(field)) {
-                let meta = null;
-                switch(field) {
-                    case 'typeName':
-                        meta = [AstType, 'typeName', 'id'];
-                        break;
-                    case 'subTypeName':
-                        meta = [AstSType, 'subTypeName', 'id'];
-                        break;
-                    case 'vendor':
-                        meta = [Vendor, 'vendorName', 'id'];
-                        break;
-                    default:
-                        meta = null;
-                }
-                logger.info(meta);
-                options = await getAllOptions(meta);
-            } else if (field === 'location') { // no id
-                const distinctOptions = await getDistinctOptions(Ast, field);
-                options = createSelection(distinctOptions, field, field);
-            } else if (field === 'age') { // no id
-                const devicesAgeQuery = `
-                    SELECT DISTINCT 
-                        FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
-                    FROM "asts" a
-                    JOIN "events" e ON a.add_event_id = e.id;
-                `;
-                const distinctAges = await sequelize.query(devicesAgeQuery, {
-                    type: Sequelize.QueryTypes.SELECT
-                });
-                options = createSelection(distinctAges, field, field);
-    
-            } else throw new Error()
-            
-            return res.json(options || [])
-            
-        } catch (error) {
-            logger.error(error)
-            console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
-        }
-    }
-
     async getFilters(req, res) {
         const { field } = req.body;
-    
-        let options;
         try {
-            if (['typeName', 'subTypeName', 'vendor', 'tag'].includes(field)) {
-                let meta = null;
-                switch(field) {
-                    case 'typeName':
-                        meta = [AstType, 'typeName', 'id'];
-                        break;
-                    case 'subTypeName':
-                        meta = [AstSType, 'subTypeName', 'id'];
-                        break;
-                    case 'vendor':
-                        meta = [Vendor, 'vendorName', 'id'];
-                        break;
-                    case 'tag':
-                        meta = [AstTag, 'tagName', 'id'];
-                        break;
-                    default:
-                        meta = null;
-                }
-                logger.info(meta);
-                options = await getAllOptions(meta);
-            } else if (field === 'location') { // no id
-                const distinctOptions = await getDistinctOptions(Ast, field);
-                options = createSelection(distinctOptions, field, field);
-            } else if (field === 'age') { // no id
-                const devicesAgeQuery = `
-                    SELECT DISTINCT 
-                        FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) AS age
-                    FROM "asts" a
-                    JOIN "events" e ON a.add_event_id = e.id
-                    ORDER BY FLOOR(DATE_PART('day', NOW() - e.event_date) / 365.25) DESC;
-                `;
-                const distinctAges = await sequelize.query(devicesAgeQuery, {
-                    type: Sequelize.QueryTypes.SELECT
-                });
-                options = createSelection(distinctAges, field, field);
-                options = options.map(option => ({ 
-                    ...option, 
-                    value: String(option.value) 
-                }));
-                
-            } else throw new Error()
-            
+            const options = await getAssetFilters(field);
             return res.json(options || [])
-            
         } catch (error) {
             logger.error(error)
             console.error(error);
@@ -156,9 +52,8 @@ class AssetController {
     
         const whereClause = {
             ...(filters.serialNumber && { serialNumber: { [Op.iLike]: `%${filters.serialNumber}%` } }),
-            ...(filters.assetTag && { assetTag: { [Op.iLike]: `%${filters.assetTag}%` } }),
             ...(filters.location.length > 0 && { location: filters.location }),
-            ...(filters.bookmarked && { bookmarked: 1 }),
+            ...(filters.bookmarked && { bookmarked: true }),
         };
     
         try {
@@ -179,9 +74,9 @@ class AssetController {
                         include: {
                             model: AstTag,
                             attributes: ['id', 'tagName'],
-                            ...(filters.tag.length > 0 && { where: { id: { [Op.in]: filters.tag } } }),
+                            ...(filters.assetTag.length > 0 && { where: { id: { [Op.in]: filters.assetTag } } }),
                         },
-                        required: filters.tag.length > 0 ? true : false
+                        required: filters.assetTag.length > 0 ? true : false
                     },
                     {
                         model: AstSType,
@@ -216,7 +111,6 @@ class AssetController {
                         attributes: ['id', 'returnEventId'],
                         include: {
                             model: Loan,
-                            attributes: ['id', 'reserveEventId', 'loanEventId', 'filepath'],
                             where: { cancelEventId: null },
                             include: {
                                 model: Usr,
@@ -293,6 +187,16 @@ class AssetController {
                     'bookmarked',
                 ],
                 include: [
+                    {
+                        model: AstTagMap,
+                        attributes: ['id'],
+                        where: { delEventId: { [Op.eq]: null }}, 
+                        include: {
+                            model: AstTag,
+                            attributes: ['id', 'tagName'],
+                        },
+                        required: false
+                    },
                     {
                         model: AstSType,
                         attributes: ['subTypeName'],
@@ -382,7 +286,6 @@ class AssetController {
                     model: Loan,
                     as: 'Loan',
                     required: false,
-                    attributes: ['filepath'],
                     include: [
                         {
                             model: Usr,

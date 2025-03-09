@@ -46,7 +46,6 @@ const LoanAccessory = ({accessory, field, index, helpers, children}) => {
                     handleClick={() => helpers.remove(index)}
                 />
             </LoanAccSelectFormControl>
-            {children}
         </Box>
     )
 }

@@ -16,7 +16,7 @@ export default function UserFilters() { // TODO can have external filters from D
 	useEffect(() => {
         fetchFilters('deptName');
         fetchFilters('assetCount');
-        fetchFilters('tag');
+        fetchFilters('userTag');
     }, [fetchFilters]);
 
   return (
@@ -41,10 +41,10 @@ export default function UserFilters() { // TODO can have external filters from D
                     placeholder="User Name"
                 />
                 <MultiSelectFormControl
-                    name="tag"
+                    name="userTag"
                     // label="Number of Assets"
                     placeholder="Tag"
-                    initialOptions={filters.tag}
+                    initialOptions={filters.userTag}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
             </FilterContainer>

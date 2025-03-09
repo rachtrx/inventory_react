@@ -1,11 +1,11 @@
 import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody, Text } from "@chakra-ui/react";
 import { AssetLink } from "../buttons/ItemLink";
-import { AssetActionButton } from "../buttons/ActionButton";
+import { AssetActionButton } from "../buttons/actions/AssetActionButton";
 import { FormType } from "../../context/ModalProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText, CircleTextTooltip, OverlappingCircles } from "../utils/CircleText";
 
-export const AssetList = ({ user }) => {
+export const ItemsList = ({ user }) => {
 
   	return (
 		<Popover placement="bottom">

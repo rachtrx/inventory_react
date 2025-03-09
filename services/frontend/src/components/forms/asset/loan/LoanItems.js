@@ -49,9 +49,10 @@ export const LoanItems = function({ field, loan, children }) {
 	}, [loan.asset, handleError, setFieldValue]);
 
 	const updateAssetFields = (selected) => {
-		// console.log(selected);
+		console.log(selected);
+		console.log(`${field}.asset.assetId`);
 		setFieldValue(`${field}.asset.assetId`, selected?.assetId || '');
-		setFieldValue(`${field}.asset.onLoan`, selected?.astLoans?.length > 0 ? true : false);
+		setFieldValue(`${field}.asset.onLoan`, selected?.ongoingLoan ? true : false);
 	}
 
 	const handleSwitchChange = () => {
@@ -78,9 +79,10 @@ export const LoanItems = function({ field, loan, children }) {
 			</FormControl>
 			<Flex direction="column" gap={1} alignItems={'flex-start'}>
 				 {/* SECTION ASSET  */}
-				{!loan.excludeAsset && <LoanAstSelectFormControl
+				{!loan.excludeAsset && 
+				<LoanAstSelectFormControl
 					name={`${field}.asset.serialNumber`}
-					searchFn={value => assetService.fetchAstLoan(value)} // TODO handle shareds
+					searchFn={value => assetService.fetchAstLoan(value)}
 					updateFields={updateAssetFields}
 					label={`Serial Number`}
 					placeholder="Serial Number"
@@ -105,19 +107,16 @@ export const LoanItems = function({ field, loan, children }) {
 									field={`${field}.accessories.${accessoryIndex}`}
 									index={accessoryIndex}
 									helpers={accessoryHelpers}
-								>
-									{accessoryIndex === accessoryArray.length - 1 && (
-										<AddButton
-											ariaLabel="Add Accessory"
-											handleClick={() => {
-												accessoryHelpers.push(createNewAccessory());
-											}}
-											label={`Add Accessory`}
-											size='xs'
-										/>
-									)}
-								</LoanAccessory>
+								/>
 							)}
+							<AddButton
+								ariaLabel="Add Accessory"
+								handleClick={() => {
+									accessoryHelpers.push(createNewAccessory());
+								}}
+								label={`Add Accessory`}
+								size='xs'
+							/>
 						</Box>
 					)}
 				</FieldArray>

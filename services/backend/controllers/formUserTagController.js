@@ -10,6 +10,7 @@ class FormUserTagController {
     async loadAddUsers(req, res) {
         try {
             const search = new UserTagSearch(req.query)
+            console.log(req.query);
             const users = await search.run(true)
 
             users.forEach(user => {

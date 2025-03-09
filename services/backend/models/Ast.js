@@ -29,8 +29,8 @@ module.exports = (sequelize) => {
 			}
 		},
 		bookmarked: {
-			type: DataTypes.INTEGER,
-			allowNull: false
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
 		},
 		leased: {
 			type: DataTypes.INTEGER,

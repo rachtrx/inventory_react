@@ -20,31 +20,31 @@ export const createNewAccessory = (accLoan) => ({
 	count: accLoan.unreturned,
   });
 
-const createNewAsset = (asset) => ({
-	assetId: asset?.assetId || '',
-	serialNumber: asset?.serialNumber || '',
-	unreturned: asset?.returnEventId ? 0 : 1,
-	count: asset?.returnEventId ? 0 : 1,
+const createNewAsset = (assetLoan={}) => ({
+	assetId: assetLoan.asset?.assetId || '',
+	serialNumber: assetLoan.asset?.serialNumber || '',
+	unreturned: assetLoan.returnEventId ? 0 : 1,
+	count: assetLoan.returnEventId ? 0 : 1,
 })
 
-export const createNewReturn = (
+export const createNewReturn = ({
 	loanId = null, 
-	asset = null, 
+	astLoan = {}, 
 	user = {},
 	// newUser = {},
 	accLoans = [],
 	remarks = null,
 	search = ""
-) => ({
+} = {}) => ({
 	key: uuidv4(),
 	loanId: loanId || null,
-	asset: createNewAsset(asset),
+	asset: createNewAsset(astLoan),
 	accessoryTypes: accLoans?.map((accLoan) => createNewAccessory(accLoan)) || [],
 	userId: user.userId || user.userId || '',
 	userName: user.userName || '',
 	// newUser: createNewUser(newUser),
 	remarks: remarks || '',
-	search: search,
+	// search: search,
 });
 
 export const ReturnSearch = () => {
@@ -59,14 +59,19 @@ export const ReturnSearch = () => {
 		setSelectedType(event.target.value);
 	  };
 	
-	  const updateDetailsFromLoan = useCallback(async (returnIndex, selected) => {
+	const updateDetailsFromLoan = useCallback(async (returnIndex, selected) => {
 		try {
+			console.log(selectedType);
 			if (!selected?.value) {
-				setFieldValue(`returns.${returnIndex}`, createNewReturn());
+				console.log(selectedType);
+				setFieldValue(`returns.${returnIndex}.loanId`, "")
+				setFieldValue(`returns.${returnIndex}.asset`, createNewAsset())
+				setFieldValue(`returns.${returnIndex}.userId`, "")
+				setFieldValue(`returns.${returnIndex}.userName`, "")
+				setFieldValue(`returns.${returnIndex}.accessoryTypes`, []);
+				setFieldValue(`returns.${returnIndex}.remarks`, "");
 				return;
 			}
-	
-			const asset = selected.astLoan?.asset || null;
 
 			console.log(selected.value);
 
@@ -81,21 +86,22 @@ export const ReturnSearch = () => {
 			  
 	
 			setFieldValue(`returns.${returnIndex}.loanId`, selected.value)
-			setFieldValue(`returns.${returnIndex}.asset`, createNewAsset(asset))
+			setFieldValue(`returns.${returnIndex}.asset`, createNewAsset(selected.astLoan))
 			setFieldValue(`returns.${returnIndex}.userId`, selected.user.userId)
 			setFieldValue(`returns.${returnIndex}.userName`, selected.user.userName)
-			setFieldValue(`returns.${returnIndex}.accLoans`, selected.accLoans)
+			setFieldValue(`returns.${returnIndex}.accessoryTypes`, selected.accLoans.map(accLoan => createNewAccessory(accLoan)));
 		} catch (err) {
 			console.error(err);
 			handleError('Loan not found');
 		}
-	}, [setFieldValue, handleError]);
+	}, [setFieldValue, handleError, setUserOptions, selectedType]);
 
 	const renderedDropdown = useMemo(() => {
 		switch (selectedType) {
 		  case "asset":
 			return (
 			  <ReturnAstSelectFormControl
+			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => assetService.fetchAstReturn(value)}
@@ -107,6 +113,7 @@ export const ReturnSearch = () => {
 		  case "user":
 			return (
 			  <ReturnUsrSelectFormControl
+			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => userService.fetchUserReturn(value)}
@@ -118,6 +125,7 @@ export const ReturnSearch = () => {
 		  case "accessory":
 			return (
 			  <ReturnAccSelectFormControl
+			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => accessoryService.fetchAccReturn(value)}

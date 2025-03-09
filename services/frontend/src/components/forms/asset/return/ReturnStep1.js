@@ -31,6 +31,30 @@ const ReturnStep1 = () => {
       // Validate 'returns' for duplicate assetIds and assetTag !== assetId
       values.returns.forEach((ret, returnIndex) => {
 
+        // BULK EXCEL LOADING
+        if (ret.asset.serialNumber && !ret.loanId) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            ...errors.returns[returnIndex],
+            search: `Serial Number ${ret.asset.serialNumber} is not on loan`
+          };
+        } else if (ret.search && !ret.asset.serialNumber) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            ...errors.returns[returnIndex],
+            search: `Serial Number ${ret.search} was not found`
+          };
+        }
+
+        // INITIAL LOADING → Loan ID found but all returned already
+        if (ret.loanId && !ret.asset.assetId && !ret.accLoans?.length) {
+          errors.returns = errors.returns || {};
+          errors.returns[returnIndex] = {
+            ...errors.returns[returnIndex],
+            search: `Loan ID ${ret.loanId} has already been returned`
+          };
+        }
+
         // Check for duplicate assetIds
         if (ret.asset.assetId && assetIds.has(ret.asset.assetId)) {
           errors.returns = errors.returns || {};
@@ -41,19 +65,12 @@ const ReturnStep1 = () => {
         } else {
           assetIds.add(ret.assetId);
         }
-  
-        // Check if assetTag equals assetId
-        if (ret.asset.serialNumber && !ret.loanId) {
+
+        if (ret.asset.count === 0 && ret.accessoryTypes.every(accType => accType.count === 0)) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],
-            search: `Serial Number ${ret.asset.serialNumber} is not on loan`
-          };
-        } else if (ret.search && !ret.loanId) {
-          errors.returns = errors.returns || {};
-          errors.returns[returnIndex] = {
-            ...errors.returns[returnIndex],
-            search: `Serial Number ${ret.search} was not found`
+            search: `At least 1 item must be returned`
           };
         }
       });

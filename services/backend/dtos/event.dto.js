@@ -22,7 +22,11 @@ class EventDTO {
         AddedUsrTag,
         DeletedUsrTag
     }) {
-        if (eventDate) this.eventDate = eventDate;
+        if (eventDate) {
+            this.eventDate = new Date(eventDate).toLocaleString("en-SG", {
+                timeZone: "Asia/Singapore",
+            });
+        }
         if (id) this.eventId = id;
         if (adminId) this.adminId = adminId;
 

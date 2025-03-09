@@ -1,6 +1,6 @@
 import { Flex } from "@chakra-ui/react";
 import { FormType } from "../../context/ModalProvider";
-import { AssetActionButton } from "../buttons/ActionButton";
+import { AssetActionButton } from "../buttons/actions/AssetActionButton";
 
 export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Reserve, Assign, 
 
@@ -24,8 +24,8 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 		<Flex justifyContent={'stretch'} alignItems="stretch" >
 			{Array.from(actionSet).map((action) => (
 				<AssetActionButton 
-					key={action} 
-					formType={action} 
+					key={action}
+					formType={action}
 					asset={asset}
 					{...buttonProps}
 				/>

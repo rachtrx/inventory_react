@@ -46,7 +46,7 @@ module.exports = (sequelize) => {
 		},
 		expectedReturnDate: {
 			type: DataTypes.DATE,
-			allowNull: true,
+			allowNull: false,
 			defaultValue: null
 		},
 		loanEventId: {

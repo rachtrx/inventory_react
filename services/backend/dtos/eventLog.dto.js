@@ -1,6 +1,11 @@
+const { FormType } = require("../controllers/utils");
 const logger = require("../logging");
-const LoanDTO = require("./loan.dto");
+const AccTypeDTO = require("./accType.dto");
+const AssetDTO = require("./ast.dto");
+const AssetTagMapDTO = require("./astTagMap.dto");
 const RemarkDTO = require("./remark.dto");
+const UserDTO = require("./usr.dto");
+const UserTagMapDTO = require("./usrTagMap.dto");
 
 class EventLogDTO {
 
@@ -28,85 +33,103 @@ class EventLogDTO {
             AccType,
             AccTxn,
         } = item;
-        if (eventDate) this.eventDate = eventDate;
-        if (id) this.eventId = id;
-        if (adminId) this.adminId = adminId;
+        if (eventDate) {
+            this.eventDate = new Date(eventDate).toLocaleString("en-SG", {
+                timeZone: "Asia/Singapore",
+            });
+        }
 
-        if (Admin) this.adminName = Admin.adminName;
+        if (id) this.eventId = id;
+
+        if (Admin) {
+            this.adminName = Admin.adminName;
+            this.adminId = Admin.id;
+        }
         if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
+
+        let asset;
+        let user;
+        let accessories;
+        let tag;
 
         if (Loan || Reservation || Cancellation) {
             const eventObj = Loan || Reservation || Cancellation;
-            const items = []
+
             if (eventObj.AstLoan) {
-                items.push(`Asset: ${eventObj.AstLoan.Ast.serialNumber}`);
+                asset = eventObj.AstLoan.asset;
             } 
             if (eventObj.AccLoans?.length > 0) {
-                const accessories = eventObj.AccLoans
-                    .map(accLoan => `${accLoan.AccType.accName} (${accLoan.count})`)
-                    .join(', ');
-                items.push(`Accessories: ${accessories}`);
-            }
-            const userName = eventObj.Usr.userName;
+                accessories = eventObj.AccLoans
+                    .map(accLoan => ({ accessoryType: accLoan.AccType, count: accLoan.count }))
+                }
+                user = eventObj.Usr;
             if (Loan) {
-                this.type = "Loan"
-                this.description = `${items.join(' + ')} loaned by ${userName}`;
+                this.type = FormType.LOAN
             } else if (Reservation) {
-                this.type = "Reservation";
-                this.description = `${items.join(' + ')} reserved for ${userName}`;
+                this.type = FormType.RESERVE
             } else {
-                this.type = "Cancellation";
-                this.description = `${items.join(' + ')} cancelled for ${userName}`;
+                this.type = FormType.CANCEL
             }
         } else if (AssetReturn || AccReturns?.length > 0) {
-            this.type = "Return";
-            this.items = []
+            this.type = FormType.RETURN;
             if (AssetReturn) {
-                this.items.push(`Asset: ${AssetReturn.Ast.serialNumber}`);
+                asset = AssetReturn.Ast;
             } 
             if (AccReturns.length > 0) {
-                const accessories = AccReturns
-                    .map(accReturn => `${accReturn.AccLoan.AccType.accessoryName} (${accReturn.count})`)
-                    .join(', ');
-                this.items.push(`Accessories: ${accessories}`);
+                accessories = AccReturns
+                    .map(accReturn => ({accessoryType: accReturn.AccLoan.AccType, count: accReturn.count}))
             }
-            const userName = AssetReturn ? 
-                AssetReturn.Loan.Usr.userName :
-                AccReturns[0].AccLoan.Loan.Usr.userName;
-            this.description = `${this.items.join(' + ')} returned by ${userName}`;
-        } else if (AccType) {
-            this.type = "AddAcc";
-            this.description = `Added new accessory type: ${AccType.accessoryName}`;
-        } else if (AccTxn) {
-            this.type = "AccTxn";
-            this.description = `${AccTxn.AccType.accessoryName} quantity changed by ${AccTxn.count > 0 ? `+${AccTxn.count}` : AccTxn.count}`;
+            user = AssetReturn ? 
+                AssetReturn.Loan.Usr :
+                AccReturns[0].AccLoan.Loan.Usr;
+        } else if (AccType || AccTxn) {
+            this.type = FormType.UPDATE_ACC;
+            if (AccType && AccTxn) accessories = [{accessoryType: AccType, count: AccTxn.count}]
+            else if (AccType) accessories = [{accessoryType: AccType, count: 0}]
+            else if (AccTxn) accessories = [{accessoryType: AccTxn.AccType, count: AccTxn.count}]
         } else if (AddedAsset) {
-            this.type = "AddAst";
-            this.description = `New Asset added: ${AddedAsset.serialNumber} (${AddedAsset.AstSType.AstType.typeName} / ${AddedAsset.AstSType.subTypeName})`;
+            this.type = FormType.ADD_ASSET;
+            asset = AddedAsset;
         } else if (DeletedAsset) {
-            this.type = "DelAst";
-            this.description = `Asset condemned: ${DeletedAsset.serialNumber} (${DeletedAsset.AstSType.AstType.typeName} / ${DeletedAsset.AstSType.subTypeName})`;
+            this.type = FormType.DEL_ASSET;
+            asset = DeletedAsset;
         } else if (AddedUser) {
-            this.type = "AddUsr";
-            this.description = `New User added: ${AddedUser.userName} (${AddedUser.Dept.deptName})`;
+            this.type = FormType.ADD_USER;
+            user = AddedUser;
         } else if (DeletedUser) {
-            this.type = "DelUsr";
-            this.description = `User deleted: ${DeletedUser.userName} (${DeletedUser.Dept.deptName})`;
+            this.type = FormType.DEL_USER;
+            user = DeletedUser;
         } else if (AddedAstTag) {
-            this.type = "AddAstTag";
-            this.description = `Tag "${AddedAstTag.AstTag.tagName}" added for (${AddedAstTag.Ast.serialNumber})`
-c        } else if (DeletedAstTag) {
-            this.type = "DelAstTag";
-            this.description = `Tag "${DeletedAstTag.AstTag.tagName}" removed for (${DeletedAstTag.Ast.serialNumber})`
+            this.type = FormType.TAG_ASSET;
+            asset = AddedAstTag.Ast;
+            tag = AddedAstTag;
+        } else if (DeletedAstTag) {
+            this.type = FormType.UNTAG_ASSET;
+            asset = DeletedAstTag.Ast;
+            tag = DeletedAstTag;
         } else if (AddedUsrTag) {
-            this.type = "AddUsrTag";
-            this.description = `Tag "${AddedUsrTag.UsrTag.tagName}" added for (${AddedUsrTag.Usr.userName})`
+            this.type = FormType.TAG_USER;
+            user = AddedUsrTag.Usr;
+            tag = AddedUsrTag;
         } else if (DeletedUsrTag) {
-            this.type = "DelUsrTag";
-            this.description = `Tag "${DeletedUsrTag.UsrTag.tagName}" removed for (${DeletedUsrTag.Usr.userName})`;
+            this.type = FormType.UNTAG_USER;
+            user = DeletedUsrTag.Usr;
+            tag = DeletedUsrTag;
         } else {
             logger.info(item.get({ plain: true }))
-            // throw new Error("Unexpected event type found.")
+            throw new Error("Unexpected event type found.")
+        }
+
+        if (asset) this.asset = new AssetDTO(asset);
+        if (user) this.user = new UserDTO(user);
+        if (accessories) this.accessories = accessories.map(({accessoryType, count}) => ({
+            accessoryType: new AccTypeDTO(accessoryType),
+            count
+        }))
+        if (tag) {
+            if (tag.AstTag) this.tags = [new AssetTagMapDTO(tag)];
+            else if (tag.UsrTag) this.tags = [new UserTagMapDTO(tag)];
+            else throw new Error(`Unexpected tag found: ${tag}`);
         }
     }
 }

@@ -51,7 +51,7 @@ async function main(data) {
     const eventsArr = []
     
     const newUsers = newData.users.map(user => {
-        const { registeredDate, hasResigned, ...rest } = user;
+        const { registeredDate, hasResigned, bookmarked, ...rest } = user;
     
         let addUserEvent = null;
         let delUserEvent = null;
@@ -78,6 +78,7 @@ async function main(data) {
     
         const newUser = {
             ...rest,
+            bookmarked: bookmarked === 1 ? true : false,
             addEventId: addUserEvent.id,
             delEventId: delUserEvent && delUserEvent.id || null
         };
@@ -88,7 +89,7 @@ async function main(data) {
     const newAssets = newData.devices
         .map(asset => {
     
-            const { registeredDate, status, userId, ...rest } = asset;
+            const { registeredDate, status, userId, bookmarked, ...rest } = asset;
     
             let addAssetEvent = null;
             let delAssetEvent = null;
@@ -118,6 +119,7 @@ async function main(data) {
     
             const newAsset = {
                 ...rest,
+                bookmarked: bookmarked === 1 ? true : false,
                 addEventId: addAssetEvent.id,
                 delEventId: delAssetEvent && delAssetEvent.id || null
             };
@@ -169,6 +171,7 @@ async function main(data) {
             loansArr.push({
                 id: loanId,
                 loanEventId: loanEvent.id,
+                expectedReturnDate: returnEvent.eventDate,
                 userId: loanEvent.userId,
                 filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
             })
@@ -194,9 +197,10 @@ async function main(data) {
         loansArr.push({
             id: loanId,
             loanEventId: loanEvent.id,
+            expectedReturnDate: new Date(2025, 11, 31, 23, 59, 59), 
             userId: userId,
             filepath: loanEvent.filepath,
-        })
+        });        
     
         assetLoansArr.push({
             id: generateSecureID(),

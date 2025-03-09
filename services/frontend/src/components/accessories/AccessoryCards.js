@@ -12,7 +12,7 @@ import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import Cards from '../utils/Cards';
 import { useDrawer } from "../../context/DrawerProvider";
-import { AccessoryTypeActionButton } from "../buttons/ActionButton";
+import { AccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
 import StarButton from "../buttons/StarButton";
@@ -40,7 +40,7 @@ function AccessoryCards({ items }) {
                 <Flex gap={2} alignItems="center">
                   <AccTypeLink accType={accessoryType}/>
                   <Box alignSelf='flex-end'>
-                    <AccessoryTypeActionButton
+                    <AccTypeActionButton
                       key={FormType.UPDATE_ACC}
                       formType={FormType.UPDATE_ACC}
                       accType={accessoryType}

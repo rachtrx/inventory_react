@@ -31,14 +31,14 @@ export const createNewAsset = (asset) => ({ // 1 loan only can have 1 asset
 
 export const createNewLoan = ({
 	asset={},
-	accessories=[], 
+	accessories=[],
 	expectedReturnDate=null, 
 	remarks=null
 } = {}) => ({
 	'key': uuidv4(),
 	'excludeAsset': false,
 	'asset': createNewAsset(asset),
-	'accessories': accessories.length > 0 ? accessories.map(acc => createNewAccessory(acc)) : [createNewAccessory()],
+	'accessories': accessories.length > 0 ? accessories.map(acc => createNewAccessory(acc)) : [],
 	'expectedReturnDate': expectedReturnDate || '',
 	'remarks': remarks || '',
 })
@@ -60,6 +60,11 @@ export const LoanUser = () => {
 	const { setFieldValue } = useFormikContext();
 
 	const updateUserFields = (userIndex, selected) => {
+		if (!selected?.value) {
+			setFieldValue(`users.${userIndex}.userId`, '');
+            setFieldValue(`users.${userIndex}.userName`, '');
+            return;
+		}
 		setFieldValue(`users.${userIndex}.userId`, selected.userId || "");
 	}
 

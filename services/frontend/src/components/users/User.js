@@ -2,7 +2,8 @@ import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure, Grid
 import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
-import { AssetActionButton, UserActionButton } from '../buttons/ActionButton';
+import { AssetActionButton } from '../buttons/actions/AssetActionButton';
+import { UserActionButton } from '../buttons/actions/UserActionButton';
 import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { useEffect } from 'react';

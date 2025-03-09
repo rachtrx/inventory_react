@@ -54,6 +54,7 @@ const ItemLink = ({
     handleClick, 
     isCopy=true, 
     bg=null, 
+    textSize="sm",
     ...props 
 }) => {
     const { showToast, handleError } = useUI();
@@ -82,6 +83,7 @@ const ItemLink = ({
             {...props}
         >
             <ResponsiveText
+            size={textSize}
                 onClick={(e) => {
                     handleClick(item);
                 }}

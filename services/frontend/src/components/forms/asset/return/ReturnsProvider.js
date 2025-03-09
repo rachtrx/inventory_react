@@ -17,7 +17,7 @@ export const ReturnsProvider = ({ children }) => {
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
-  const [ userOptions, setUserOptions ] = useState([]) 
+  const [ userOptions, setUserOptions ] = useState([])
 
   const [formData, setFormData] = useState({
     returns: [createNewReturn()],
@@ -27,32 +27,44 @@ export const ReturnsProvider = ({ children }) => {
   useEffect(() => console.log(formData), [formData])
 
   useEffect(() => {
+    console.log(initialValues);
     if (!initialValues || Object.entries(initialValues).length === 0) return;
-      const loadPresetValues = async () => {
-        try {
-          console.log(initialValues);
-          const {assetId, serialNumber} = initialValues;
-          if (!serialNumber) return;
-          
-          const response = await assetService.fetchAstReturn(serialNumber);
-          console.log(response.data);
-          const loan = response.data[0];
-          const user = loan.user;
 
-          setFormData({
-            returns: [createNewReturn(
-              loan.loanId,
-              {assetId, serialNumber},
-              user,
-              loan.accLoans
-            )]
-          });
-        } catch (err) {
-          console.error(err);
-          handleError('Error Loading Details')
-        }
-      };
-      loadPresetValues();
+    const loadPresetValues = async () => {
+      try {
+        console.log(initialValues);
+        
+        const response = await assetService.fetchReturns(initialValues);
+        console.log(response.data);
+
+        const loans = response.data;
+
+        const newReturns = initialValues.map(loanId => {
+          const _return = loans.find(loan => loan.loanId === loanId);
+
+          if (_return.astLoan?.returnEventId && _return.accLoans?.every(accLoan => accLoan.unreturned === 0)) {
+            return createNewReturn({
+              loanId: _return.loanId,
+            })
+          } else {
+            return createNewReturn({
+              loanId: _return.loanId,
+              astLoan: _return.astLoan,
+              user: _return.user,
+              accLoans: _return.accLoans
+            })
+          }
+        })
+
+        setFormData({
+          returns: newReturns
+        });
+      } catch (err) {
+        console.error(err);
+        handleError('Error Loading Details')
+      }
+    };
+    loadPresetValues()
   }, [initialValues, handleError]);
 
   const setValuesExcel = useCallback(async (records) => {
@@ -79,56 +91,37 @@ export const ReturnsProvider = ({ children }) => {
       const assetResponse = await assetService.fetchAstReturn([...serialNumbers])
       console.log(assetResponse);
 
-      const loanOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
+      const assetOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
+      const userOptions = assetOptions
+        .filter(assetOption => assetOption.user)
+        .map(assetOption => ({
+          ...assetOption.user,
+          value: assetOption.user.userName,
+          label: assetOption.user.userName,
+        })
+      )
 
       const returns = records.map(({serialNumber, remarks}) => {
-        const matchedLoanOption = loanOptions.find(option => compareStrings(option.label, serialNumber));
+        const matchedAssetOption = assetOptions.find(option => compareStrings(option.label, serialNumber));
+        console.log(matchedAssetOption);
 
-        if (!matchedLoanOption) {
-          loanOptions.append(
-            {
-              loanId: null,
-              search: serialNumber,
-              value: serialNumber,
-              label: serialNumber,
-              remarks,
-            }
-          )
-          // throw new Error(`Serial number ${serialNumber} not found!`);
-        }
-
-        // IMPT handled in errors
-        // if (matchedLoanOption.isDisabled) {
-        //   throw new Error(`No ongoing loan found for serial number ${serialNumber}!`);
-        // }
-
-        setReturnOptions(loanOptions)
-
-        console.log(matchedLoanOption);
-
-        setUserOptions((prevOptions) => [
-          ...prevOptions, // Include previous user options
-          {
-            ...matchedLoanOption.user,
-            value: matchedLoanOption.user.userName,
-            label: matchedLoanOption.user.userName,
-          },
-        ]);        
-
-        return createNewReturn(
-          matchedLoanOption.loanId,
-          matchedLoanOption.astLoan.asset,
-          matchedLoanOption.user,
-          matchedLoanOption.accLoans,
+        return {
+          loanId: matchedAssetOption?.loanId,
+          astLoan: matchedAssetOption?.astLoan,
+          user: matchedAssetOption?.user,
+          accLoans: matchedAssetOption?.accLoans,
           remarks,
-          serialNumber
-        )
+          search: serialNumber
+        }
       })
+
+      setReturnOptions(assetOptions);
+      setUserOptions(userOptions); 
     
-      console.log(returns);
+      console.log(userOptions);
     
       setFormData({
-        returns: returns
+        returns: returns.map(_return => createNewReturn(_return))
       });
     } catch (error) {
       handleError(error);

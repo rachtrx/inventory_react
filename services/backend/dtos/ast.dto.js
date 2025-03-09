@@ -1,4 +1,5 @@
 const AstLoanDTO = require("./astLoan.dto");
+const AssetTagMapDTO = require("./astTagMap.dto");
 const EventDTO = require("./event.dto");
 
 class AssetDTO {
@@ -23,16 +24,10 @@ class AssetDTO {
     }) {
         if (lastEventDate !== null) {
             this.lastEventDate = lastEventDate
-            // toISOString();
         }
 
         if (AstTagMaps !== null) {
-            this.tags = AstTagMaps.map(astTagMap => ({
-                tagId: astTagMap.AstTag?.id,
-                tagName: astTagMap.AstTag?.tagName,
-                assetTagId: astTagMap.id,
-                isMatching: astTagMap.get('isMatching'),
-            }))
+            this.tags = AstTagMaps.map(astTagMap => new AssetTagMapDTO(astTagMap));
         }
 
         if (remarks) this.remarks = remarks;
