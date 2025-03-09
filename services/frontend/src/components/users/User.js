@@ -8,7 +8,7 @@ import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { useEffect } from 'react';
 import { AssetLink } from '../buttons/ItemLink';
-import UserTimeline from '../timeline/UserTimeline';
+import UserTimeline from '../timeline/users/UserTimeline';
 
 const User = ({ user }) => {
 	const { editKey, editedValue, handleSave, handleEdit, handleChange } = useDrawer()

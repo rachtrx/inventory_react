@@ -28,7 +28,7 @@ const ReturnStep1 = () => {
       const errors = {};
       const assetIds = new Set();
   
-      // Validate 'returns' for duplicate assetIds and assetTag !== assetId
+      // Validate 'returns' for duplicate assetIds
       values.returns.forEach((ret, returnIndex) => {
 
         // BULK EXCEL LOADING
@@ -47,7 +47,7 @@ const ReturnStep1 = () => {
         }
 
         // INITIAL LOADING → Loan ID found but all returned already
-        if (ret.loanId && !ret.asset.assetId && !ret.accLoans?.length) {
+        if (ret.loanId && ret.asset.unreturned === 0 && ret.accessoryTypes.every(accType => accType.unreturned === 0)) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],

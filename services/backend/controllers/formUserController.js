@@ -218,7 +218,7 @@ class FormUserController {
                         ...user,
                         value: user.serialNumber,
                         label: user.serialNumber,
-                        isDisabled: user.delEventId || user.loans.length
+                        isDisabled: user.delEventId || user.loans.length > 1 || user.reservations.length > 1
                 })
             )
             // console.log(users);

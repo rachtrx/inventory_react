@@ -28,7 +28,7 @@ class SearchController {
             res.json(models);
         } catch (error) {
             console.error('Error fetching models:', error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     };
     
@@ -65,7 +65,7 @@ class SearchController {
             res.json(response);
         } catch (error) {
             console.error('Error fetching user and event:', error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     };
 }

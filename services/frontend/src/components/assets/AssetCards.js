@@ -37,8 +37,8 @@ function AssetCards({items}) {
                                     <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.typeName}</ResponsiveText>
                                     <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
                                 </Box>
-                                {asset.ongoingLoan && <UserLink 
-                                    user={asset.ongoingLoan.user} 
+                                {asset.loan && <UserLink 
+                                    user={asset.loan.user} 
                                 />}
                                 <Tags tags={asset.tags}/>
                             </VStack>

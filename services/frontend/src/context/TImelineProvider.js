@@ -4,8 +4,6 @@ import assetService from "../services/AssetService";
 const TimelineContext = createContext(false);
 
 export const TimelineProvider = ({ children, assetId, accessoryTypeId }) => {
-
-  console.log(assetId);
     
     const [selectedEvent, setSelectedEvent ] = useState(null);
 

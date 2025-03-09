@@ -1,9 +1,11 @@
 import { Badge, Text, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../utils/ResponsiveText"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import RemarksPopover from "./RemarksPopover";
-import AddRemark from "./AddRemark";
+import AddRemark from "../AddRemark";
 
 const DateText = ({ colorScheme, event }) => {
+
+    console.log(event);
 
     const { eventDate, remarks, eventId } = event;
     return (
@@ -14,16 +16,7 @@ const DateText = ({ colorScheme, event }) => {
             gap={0.5}
             borderRadius="md"
         >
-            <Text as="span" fontSize="sm" fontWeight="bold">
-                {new Date(eventDate).toLocaleDateString("en-SG", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour12: false,
-                    hour: "2-digit",
-                    minute: "2-digit",
-                })}
-            </Text>
+            <Text as="span" fontSize="sm" fontWeight="bold">{eventDate}</Text>
             <RemarksPopover>
                 {/* Existing Remarks */}
                 <VStack align="stretch" spacing={3} mb={4}>

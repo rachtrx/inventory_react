@@ -34,8 +34,8 @@ class UserDelete {
                         Sequelize.literal(`
                             GREATEST(
                                 COALESCE("AddEvent"."event_date", '1970-01-01'),
-                                COALESCE("Loans->"."expected_loan_date", '1970-01-01'),
-                                COALESCE("Loans->"."expected_return_date", '1970-01-01'),
+                                COALESCE("Loans"."expected_loan_date", '1970-01-01'),
+                                COALESCE("Loans"."expected_return_date", '1970-01-01'),
                                 COALESCE("Loans->ReserveEvent"."event_date", '1970-01-01'),
                                 COALESCE("Loans->LoanEvent"."event_date", '1970-01-01'),
                                 COALESCE("ReturnEvent"."event_date", '1970-01-01')
@@ -66,7 +66,6 @@ class UserDelete {
                             },
                             {
                                 model: AstLoan,
-                                attributes: [],
                                 include: {
                                     model: Event,
                                     as: "ReturnEvent",
@@ -75,10 +74,8 @@ class UserDelete {
                             },
                             {
                                 model: AccLoan,
-                                attributes: [],
                                 include: {
                                     model: AccReturn,
-                                    attributes: [],
                                     include: {
                                         model: Event,
                                         as: "ReturnEvent",
@@ -91,7 +88,7 @@ class UserDelete {
                 ],
                 order: Sequelize.literal(`"Usr"."del_event_id" IS NOT NULL DESC`)
             })
-            return query.map(usrRow => new UserDTO(usrRow));
+            return query.map(usrRow => new UserDTO(usrRow).setOngoingLoans().setOngoingReservations());
         } catch (e) {
             throw e;
         }

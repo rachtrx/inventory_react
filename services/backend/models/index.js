@@ -147,7 +147,6 @@ db.AstSTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey:
 
 // EVENTS
 db.Event.hasOne(db.Loan, { as: 'Reservation', foreignKey: 'reserveEventId' });
-db.Event.hasOne(db.Loan, { as: 'Cancellation', foreignKey: 'cancelEventId' });
 db.Event.hasOne(db.Loan, { as: 'Loan', foreignKey: 'loanEventId' });
 db.Event.hasOne(db.AstLoan, { as: 'AssetReturn', foreignKey: 'returnEventId' })
 db.Event.hasMany(db.AccReturn, { as: 'AccReturns', foreignKey: 'returnEventId' })
@@ -163,7 +162,6 @@ db.Event.hasOne(db.UsrTagMap, { as: 'AddedUsrTag', foreignKey: 'addEventId' });
 db.Event.hasOne(db.UsrTagMap, { as: 'DeletedUsrTag', foreignKey: 'delEventId' });
 
 db.Loan.belongsTo(db.Event, { as: 'ReserveEvent', foreignKey: 'reserveEventId' });
-db.Loan.belongsTo(db.Event, { as: 'CancelEvent', foreignKey: 'cancelEventId' });
 db.Loan.belongsTo(db.Event, { as: 'LoanEvent', foreignKey: 'loanEventId' });
 db.AstLoan.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });
 db.AccReturn.belongsTo(db.Event, { as: 'ReturnEvent', foreignKey: 'returnEventId' });

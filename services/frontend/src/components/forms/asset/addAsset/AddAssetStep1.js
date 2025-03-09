@@ -46,7 +46,7 @@ export const AddAssetStep1 = () => {
       const errors = {};
   
       const tNameDuplicates = validateUniqueValues(values.types, ['typeName']);
-      const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'assetTag']);
+      const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'alias']);
       const snDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'serialNumber']);
 
       values.types.forEach((type, typeIndex) => {
@@ -65,16 +65,16 @@ export const AddAssetStep1 = () => {
           subType.assets.forEach((asset, assetIndex) => {
             if (!asset['vendorName']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], 'Vendor is required');
 
-            const atError = validateField(atDuplicates, asset['assetTag'], "Asset Tag");
-            if (atError) {
-              setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'assetTag'], atError);
+            const alError = validateField(atDuplicates, asset['alias'], "Alias");
+            if (alError) {
+              setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'alias'], alError);
             }
             const snError = validateField(snDuplicates, asset['serialNumber'], "Serial Number");
             if (snError) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'serialNumber'], snError);
             }
 
-            if (compareDates(asset['addDate'])) {
+            if (asset['addDate'] && compareDates(asset['addDate'])) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'addDate'], "Date cannot be after today");
             }
           })
@@ -101,7 +101,7 @@ export const AddAssetStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'assetTag', 'serialNumber', 'vendorName', 'cost', 'addDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'alias', 'serialNumber', 'vendorName', 'cost', 'addDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="types">
                   {typeHelpers => (

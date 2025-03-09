@@ -1,5 +1,5 @@
 import { Badge, HStack } from "@chakra-ui/react"
-import { useTimeline } from "../../context/TImelineProvider";
+import { useTimeline } from "../../../context/TimelineProvider";
 
 const BadgeGroup = ({ asset, accessories }) => {
 

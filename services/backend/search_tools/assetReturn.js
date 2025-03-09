@@ -28,7 +28,7 @@ class AssetReturn {
     async run() {
         try {
             const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'assetTag'],
+                attributes: ['id', 'serialNumber', 'alias'],
                 where: { [Op.and] : [
                     this.assetCondition,
                     { delEventId: null}
@@ -48,16 +48,6 @@ class AssetReturn {
                                         attributes: ['id', 'deptName'],
                                         where: {},
                                     },
-                                    // where: Sequelize.literal(`
-                                    //     EXISTS (
-                                    //         SELECT 1
-                                    //         FROM "usr_loans" AS "UsrLoans"
-                                    //         INNER JOIN "usrs" AS "UsrLoans->Usr"
-                                    //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
-                                    //         WHERE "UsrLoans"."loan_id" = "AstLoans->Loan"."id"
-                                    //     )
-                                    // `),
-                                    // required: true
                                 },
                                 {
                                     model: AccLoan,

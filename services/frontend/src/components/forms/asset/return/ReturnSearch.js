@@ -38,13 +38,13 @@ export const createNewReturn = ({
 } = {}) => ({
 	key: uuidv4(),
 	loanId: loanId || null,
-	asset: createNewAsset(astLoan),
+	asset: createNewAsset(astLoan || {}),
 	accessoryTypes: accLoans?.map((accLoan) => createNewAccessory(accLoan)) || [],
 	userId: user.userId || user.userId || '',
 	userName: user.userName || '',
 	// newUser: createNewUser(newUser),
 	remarks: remarks || '',
-	// search: search,
+	search: search,
 });
 
 export const ReturnSearch = () => {
@@ -101,7 +101,6 @@ export const ReturnSearch = () => {
 		  case "asset":
 			return (
 			  <ReturnAstSelectFormControl
-			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => assetService.fetchAstReturn(value)}
@@ -113,7 +112,6 @@ export const ReturnSearch = () => {
 		  case "user":
 			return (
 			  <ReturnUsrSelectFormControl
-			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => userService.fetchUserReturn(value)}
@@ -125,7 +123,6 @@ export const ReturnSearch = () => {
 		  case "accessory":
 			return (
 			  <ReturnAccSelectFormControl
-			  	// type="hidden" 
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => accessoryService.fetchAccReturn(value)}

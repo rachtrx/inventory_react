@@ -11,16 +11,14 @@ const ReturnService = require('../services/ReturnService.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const { model } = require('mongoose');
 const LoanDTO = require('../dtos/loan.dto.js');
-const AccessorySearch = require('../search_tools/accessory.js');
 const { ReturnSearch } = require('../search_tools/allReturn.js');
 const { UserReturnSearch } = require('../search_tools/userReturn.js');
 const { AssetLoan } = require('../search_tools/assetLoan.js');
 const { AssetReturn } = require('../search_tools/assetReturn.js');
 const { AccReturnSearch } = require('../search_tools/accReturn.js');
-const { AssetDelete } = require('../search_tools/AssetDelete.js');
+const { AssetDelete } = require('../search_tools/assetDelete.js');
 const { UserLoan } = require('../search_tools/userLoan.js');
 const { AccLoanSearch } = require('../search_tools/accLoan.js');
-const { assetSearch } = require('../search_tools/AssetTag.js');
 
 // req.file.filename, // Accessing the filename
 // req.file.path,     // Accessing the full path
@@ -168,7 +166,7 @@ class FormLoanReturnController {
                     ...asset,
                     value: asset.serialNumber,
                     label: asset.serialNumber,
-                    isDisabled: asset.delEventId || asset.astLoans?.length > 0 ? true : false
+                    isDisabled: (asset.delEventId || asset.loan || asset.reservation) ? true : false
                 })
             )
             
@@ -246,7 +244,7 @@ class FormLoanReturnController {
         try {
             const event = await Event.findById(id);
             if (!event) {
-                return res.status(404).send('File not found.');
+                return res.status(404).send('Event not found.');
             }
     
             const filePath = path.join(uploadPath, event.filePath);
@@ -255,7 +253,7 @@ class FormLoanReturnController {
             res.download(filePath, event.filePath, { headers: { 'Content-Type': 'application/pdf' } });
         } catch (error) {
             console.error("Error downloading file:", error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     };
 }

@@ -45,7 +45,7 @@ const AssetTable = ({ items }) => {
             <Td>
               <CardActions asset={asset}/>
             </Td>
-            <Td>{asset.ongoingLoan && <UserLink item={asset.ongoingLoan.user} fontWeight="bold"/>}</Td>
+            <Td>{asset.loan && <UserLink item={asset.loan.user} fontWeight="bold"/>}</Td>
           </Tr>
         ))}
       </Tbody>

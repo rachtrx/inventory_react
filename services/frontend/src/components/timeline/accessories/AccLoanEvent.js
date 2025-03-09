@@ -9,13 +9,13 @@ import {
     Button,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import DateText from "./DateText";
-import { ResponsiveText } from "../utils/ResponsiveText";
-import { AssetLink, UserLink } from "../buttons/ItemLink";
-import { useDrawer } from "../../context/DrawerProvider";
-import { AccStatus, AstStatus, ReturnEventTable } from "./utils/AccStatus";
-import ReturnEvents from "./utils/ReturnEvents";
-import { useTimeline } from "../../context/TImelineProvider";
+import DateText from "../utils/DateText";
+import { ResponsiveText } from "../../utils/ResponsiveText";
+import { AssetLink, UserLink } from "../../buttons/ItemLink";
+import { useDrawer } from "../../../context/DrawerProvider";
+import { AccStatus, AstStatus, ReturnEventTable } from "../utils/AccStatus";
+import { useTimeline } from "../../../context/TimelineProvider";
+import { withEventBox } from "../utils/withEventBox";
 
 const AccLoanEvent = ({ event }) => {
     console.log(event);
@@ -27,8 +27,7 @@ const AccLoanEvent = ({ event }) => {
 
     console.log(accLoans);
 
-    const accReturnEvents = returnEvents && Object.values(returnEvents)
-        .filter(event => event.accessories.find(accessory => accessory.accessoryTypeId === accessoryTypeId))
+    const accReturnEvents = returnEvents.filter(event => event.accessories.find(accessory => accessory.accessoryTypeId === accessoryTypeId))
 
     console.log(accReturnEvents);
 
@@ -81,7 +80,7 @@ const AccLoanEvent = ({ event }) => {
                 </Flex>
             </VStack>
 
-            {isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
+            {isOpen && returnEvents?.length && (
                 <Box>
                 <VStack spacing={4} align="stretch">
                     <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
@@ -113,4 +112,4 @@ const AccLoanEvent = ({ event }) => {
     );
 };
 
-export default AccLoanEvent;
+export const AccLoanEventBox = withEventBox(AccLoanEvent)

@@ -1,7 +1,8 @@
 import { Flex, HStack, VStack } from "@chakra-ui/react";
 import React from "react";
-import DateText from "./DateText";
+import DateText from "./utils/DateText";
 import { ResponsiveText } from "../utils/ResponsiveText";
+import { withEventBox } from "./utils/withEventBox";
 
 const DeleteEvent = ({ event }) => {
     return (
@@ -21,4 +22,4 @@ const DeleteEvent = ({ event }) => {
     );
 };
 
-export default DeleteEvent;
+export const DeleteEventBox = withEventBox(DeleteEvent)

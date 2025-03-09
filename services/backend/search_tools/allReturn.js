@@ -33,11 +33,9 @@ class ReturnSearch {
                     },
                     {
                         model: AccLoan,
-                        attributes: ['id', 'count'],
                         include: [
                             {
                                 model: AccReturn,
-                                attributes: ['id', 'count']
                             },
                             {
                                 model: AccType,
@@ -49,10 +47,9 @@ class ReturnSearch {
                     },
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
                         include: {
                             model: Ast,
-                            attributes: ['id', 'serialNumber', 'assetTag'],
+                            attributes: ['id', 'serialNumber', 'alias'],
                             include: {
                                 model: AstSType,
                                 attributes: ['subTypeName'],
@@ -67,32 +64,6 @@ class ReturnSearch {
                         required: false
                     },
                 ],
-                // where: { [Op.and]: [
-                //     Sequelize.literal(`
-                //         NOT EXISTS (
-                //             SELECT 1
-                //             FROM "acc_returns" AS "AccReturns"
-                //             WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
-                //             GROUP BY "AccLoans"."id"
-                //             HAVING COALESCE(SUM("AccReturns"."count"), 0) = "AccLoans"."count"
-                //         )
-                //     `),
-                //     Sequelize.literal(`
-                //         NOT EXISTS (
-                //             SELECT 1 FROM "ast_loans" AS "AstLoans"
-                //             WHERE "AstLoans"."id" = "AstLoan"."id"
-                //             AND "AstLoans"."return_event_id" IS NOT NULL
-                //         )
-                //     `)
-                // ]},
-                // order: [
-                //     Sequelize.literal(`
-                //         "LoanEvent"."event_date" DESC
-                //     `),
-                //     Sequelize.literal(`
-                //         "AstLoans"."id" IS NULL DESC
-                //     `)
-                // ]
             });
             return query.map(usrRow => new LoanDTO(usrRow));
         } catch (e) {
@@ -102,3 +73,30 @@ class ReturnSearch {
 }
 
 module.exports = { ReturnSearch }
+
+// where: { [Op.and]: [
+//     Sequelize.literal(`
+//         NOT EXISTS (
+//             SELECT 1
+//             FROM "acc_returns" AS "AccReturns"
+//             WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
+//             GROUP BY "AccLoans"."id"
+//             HAVING COALESCE(SUM("AccReturns"."count"), 0) = "AccLoans"."count"
+//         )
+//     `),
+//     Sequelize.literal(`
+//         NOT EXISTS (
+//             SELECT 1 FROM "ast_loans" AS "AstLoans"
+//             WHERE "AstLoans"."id" = "AstLoan"."id"
+//             AND "AstLoans"."return_event_id" IS NOT NULL
+//         )
+//     `)
+// ]},
+// order: [
+//     Sequelize.literal(`
+//         "LoanEvent"."event_date" DESC
+//     `),
+//     Sequelize.literal(`
+//         "AstLoans"."id" IS NULL DESC
+//     `)
+// ]

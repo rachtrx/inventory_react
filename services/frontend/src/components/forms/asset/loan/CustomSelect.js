@@ -8,13 +8,13 @@ import { ResponsiveText } from '../../../utils/ResponsiveText';
 const CustomOption = (props) => {
 //   console.log(props.data);
 
-  const { serialNumber, assetTag=null, ongoingLoan=null, ongoingReservation=null } = props.data || {};
+  const { serialNumber, alias=null, ongoingLoan=null, ongoingReservation=null } = props.data || {};
 
   return (
   <components.Option {...props}>
       <Flex direction="column" style={{ fontWeight: props.isSelected ? "bold" : "normal" }}>
         <ResponsiveText>{serialNumber}</ResponsiveText>
-        {assetTag && <ResponsiveText>{assetTag}</ResponsiveText>}
+        {alias && <ResponsiveText>{alias}</ResponsiveText>}
         {
             ongoingLoan && (
                 <>
@@ -42,11 +42,12 @@ const CustomOption = (props) => {
 const CustomAccOption = (props) => {
   //   console.log(props.data);
   
-    const { accessoryName, stock } = props.data || {};
+    const { accessoryName, stock, value } = props.data || {};
   
     return (
     <components.Option {...props}>
       <Flex direction="column" style={{ fontWeight: props.isSelected ? "bold" : "normal" }}>
+        {!accessoryName && value && <ResponsiveText>Create {value}...</ResponsiveText>}
         {accessoryName && <ResponsiveText>{accessoryName}</ResponsiveText>}
         {stock && <ResponsiveText>{stock}</ResponsiveText>}
       </Flex>

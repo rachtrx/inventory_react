@@ -46,13 +46,12 @@ class ReturnService extends ValidationService{
             include: [
                 {
                     model: AstLoan,
-                    attributes: ['id', 'loanId'],
                     where: { returnEventId: { [Op.eq]: null } }, // find the loaned device
                     required: assetId ? true : false, // device is returned if not found
                     include: {
                         model: Ast,
                         required: true,
-                        attributes: ['id', 'assetTag', 'serialNumber'],
+                        attributes: ['id', 'alias', 'serialNumber'],
                     }
                 },
                 {
@@ -61,10 +60,8 @@ class ReturnService extends ValidationService{
                 },
                 {
                     model: AccLoan,
-                    attributes: ['id', 'accessoryTypeId', 'count'],
                     include: {
                         model: AccReturn,
-                        attributes: ['count'],
                         required: false,
                     },
                     required: assetId ? false : true,

@@ -66,8 +66,8 @@ class AssetTagSearch {
 
         if (this.tagId) {
             orderByArr.push([
-                Sequelize.literal(`(
-                    SELECT COUNT(*) 
+                Sequelize.literal(`EXISTS (
+                    SELECT 1
                     FROM ast_tag_maps AS "AstTagMaps" 
                     WHERE "AstTagMaps"."asset_id" = "Ast"."id" 
                     AND "AstTagMaps"."del_event_id" IS NULL 
@@ -85,12 +85,12 @@ class AssetTagSearch {
 
         try {
             const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'assetTag'],
+                attributes: ['id', 'serialNumber', 'alias'],
                 where: this.assetCondition,
                 include: this.includeArray,
                 order: orderByArr
             })
-            return query.map(astRow => new AssetDTO(astRow));
+            return query.map(astRow => new AssetDTO(astRow.dataValues));
         } catch (e) {
             throw e;
         }

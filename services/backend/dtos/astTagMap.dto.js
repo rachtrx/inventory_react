@@ -11,10 +11,11 @@ class AssetTagMapDTO {
         isMatching
     }) {
         if (id) this.assetTagId = id;
-
+        console.log(id);
+        console.log(isMatching);
         if (assetId) this.assetId = assetId;
         if (tagId) this.tagId = tagId;
-        if (isMatching) this.isMatching = isMatching;
+        if (isMatching !== undefined) this.isMatching = isMatching;
 
         const AssetDTO = require("./ast.dto");
         if (Ast) this.asset = new AssetDTO(Ast);

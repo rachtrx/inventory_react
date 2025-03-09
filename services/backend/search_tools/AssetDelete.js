@@ -28,13 +28,13 @@ class AssetDelete {
     async run() {
         try {
             const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'assetTag',
+                attributes: ['id', 'serialNumber', 'alias',
                     [
                         Sequelize.literal(`
                             GREATEST(
                                 COALESCE("AddEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->"."expected_loan_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->"."expected_return_date", '1970-01-01'),
+                                COALESCE("AstLoans->Loan"."expected_loan_date", '1970-01-01'),
+                                COALESCE("AstLoans->Loan"."expected_return_date", '1970-01-01'),
                                 COALESCE("AstLoans->Loan->ReserveEvent"."event_date", '1970-01-01'),
                                 COALESCE("AstLoans->Loan->LoanEvent"."event_date", '1970-01-01'),
                                 COALESCE("AstLoans->ReturnEvent"."event_date", '1970-01-01')
@@ -54,7 +54,6 @@ class AssetDelete {
                     },
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
                         required: false,
                         include: [
                             {
@@ -97,13 +96,12 @@ class AssetDelete {
                             attributes: ['typeName'],
                             ...(this.typeId && { where: { id: this.typeId } })
                         }
-                    }
+                    },
                 ],
                 order: Sequelize.literal(`"AddEvent"."event_date" DESC`),
-                raw: true // IMPT dont convert to sequelize model instances, otherwise cant retrive lastEventData
             })
             console.log(query.map(astRow => astRow.lastEventDate));
-            return query.map(astRow => new AssetDTO(astRow));
+            return query.map(astRow => new AssetDTO(astRow.dataValues).setOngoingLoan().setOngoingReservation());
         } catch (e) {
             throw e;
         }

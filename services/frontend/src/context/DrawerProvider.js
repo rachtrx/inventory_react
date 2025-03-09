@@ -27,7 +27,7 @@ const types = {
 export const DrawerProvider = ({ children }) => {
 	console.log("In drawer provider");
 
-	const { handleDevError } = useUI();
+	const { handleDevError, setLoading, handleError } = useUI();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
 	const [editedValue, setEditedValue] = useState(null);
@@ -95,6 +95,8 @@ export const DrawerProvider = ({ children }) => {
 			try {
 				const id = item[key];
 
+				setLoading(true);
+
 				const response = await service.getItem(id);
 
 				const newItem = response.data;
@@ -103,13 +105,17 @@ export const DrawerProvider = ({ children }) => {
 				newItem.breadcrumbId = id;
 				newItem.service = service;
 
+				setLoading(true);
 				setState(prev => ({
 					...prev,
 					currentItem: newItem,
 					itemsHistory: [...prev.itemsHistory, newItem], // Ensure fetched data is pushed into history
 					loading: false
 				}));
+				setLoading(false);
 			} catch (error) {
+				setLoading(false);
+				handleError(error);
 				setState(prev => ({ ...prev, error: error, loading: false }));
 			}
 		}

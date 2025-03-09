@@ -5,35 +5,29 @@ class LoanDTO {
         id,
         loanEventId,
         reserveEventId, 
-        cancelEventId, 
         filepath=null,
         ReserveEvent,
-        CancelEvent,
         LoanEvent,
         expectedReturnDate, 
         expectedLoanDate, 
         AstLoan,
         AccLoans,
         Usr,
-    },
-    includeReturnDetails = false
-    ) {
+    }) {
         this.loanId = id;
 
-        if (loanEventId) this.loanEventId = loanEventId;
-        if (reserveEventId) this.reserveEventId = reserveEventId;
-        if (cancelEventId) this.cancelEventId = cancelEventId;
-        if (expectedReturnDate) this.expectedReturnDate = expectedReturnDate;
-        if (expectedLoanDate) this.expectedLoanDate = expectedLoanDate;
+        this.loanEventId = loanEventId;
+        this.reserveEventId = reserveEventId;
+        this.expectedReturnDate = expectedReturnDate;
+        this.expectedLoanDate = expectedLoanDate;
 
         const EventDTO = require("./event.dto");
-        if (ReserveEvent) this.reserveEvent = new EventDTO(ReserveEvent);
-        if (CancelEvent) this.cancelEvent = new EventDTO(CancelEvent);
-        if (LoanEvent) this.loanEvent = new EventDTO(LoanEvent);
+        this.reserveEvent = ReserveEvent && new EventDTO(ReserveEvent);
+        this.loanEvent = LoanEvent && new EventDTO(LoanEvent);
         
-        if (AstLoan) {
+        if (AstLoan !== undefined) {
             const AstLoanDTO = require("./astLoan.dto");
-            this.astLoan = new AstLoanDTO(AstLoan);
+            this.astLoan = AstLoan && new AstLoanDTO(AstLoan);
         }
 
         if (AccLoans) {
@@ -41,67 +35,74 @@ class LoanDTO {
             this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
         }
 
-        if (filepath !== null) {
-            this.filepath = filepath;
-        }
+        this.filepath = filepath;
 
         if (Usr) {
             const UserDTO = require("./usr.dto");
             this.user = new UserDTO(Usr);
         }
-
-        if (includeReturnDetails) this.generateReturnEvents()
     }
 
-    generateReturnEvents() {
-        const loanedItems = [this.astLoan ?? [], ...(this.accLoans ?? [])];
-        if (!loanedItems || loanedItems.length === 0) return;
+    setReturnEvents() {
+        const events = {};
+    
+        if (this.astLoan === undefined) throw new Error("Dev Error: Include AstLoan model in Loan");
+        if (this.astLoan && this.astLoan.returnEvent === undefined) throw new Error("Dev Error: Include Event model in AstLoan");
 
-        this.returnEvents = loanedItems.reduce((returns, loanItem) => {
-            if (loanItem.returnEvent) { // AstLoan 
-                if (!returns[loanItem.returnEvent.eventId]) {
-                    logger.info(loanItem)
-                    returns[loanItem.returnEvent.eventId] = {
-                        by: loanItem.returnEvent.adminName,
-                        eventDate: loanItem.returnEvent.eventDate,
-                        remarks: loanItem.returnEvent.remarks,
-                        asset: {
-                            assetId: loanItem.asset.assetId,
-                            serialNumber: loanItem.asset.serialNumber
-                        },
-                        accessories: []
-                    }
-                } else {
-                    returns[loanItem.returnEvent.eventId].isAsset = true;
+        // return event can be null
+        if (this.astLoan?.returnEvent) {
+            events[this.astLoan.returnEvent.eventId] = {
+                eventId: this.astLoan.returnEvent.eventId,
+                by: this.astLoan.returnEvent.adminName,
+                eventDate: this.astLoan.returnEvent.eventDate,
+                remarks: this.astLoan.returnEvent.remarks,
+                asset: {
+                    assetId: this.astLoan.asset.assetId,
+                    serialNumber: this.astLoan.asset.serialNumber
+                },
+                accessories: []
+            };
+        }
+
+        if (this.accLoans === undefined) throw new Error("Dev Error: Include AccLoan model in Loan");
+    
+        if (this.accLoans?.length) {
+            this.accLoans.forEach(accLoan => {
+                if (accLoan.accReturns === undefined) {
+                    throw new Error("Dev Error: Include AccReturns model in AccLoan");
                 }
-            } 
-            
-            if (loanItem.accReturns && loanItem.accReturns.length > 0) {
-                loanItem.accReturns.forEach(accReturn => {
-
+                if (accLoan.accType === undefined) {
+                    throw new Error("Dev Error: Include AccType model in AccLoan");
+                }
+    
+                accLoan.accReturns.forEach(accReturn => {
+                    const eventId = accReturn.returnEvent.eventId;
                     const accessoryDetails = {
                         ...accReturn,
-                        accessoryTypeId: loanItem.accType.accessoryTypeId,
-                        accessoryName: loanItem.accType.accessoryName
-                    }
-
-                    if (!returns[accReturn.returnEvent.eventId]) {
-                        returns[accReturn.returnEvent.eventId] = {
-                            by: accReturn.returnEvent.returnBy,
+                        accessoryTypeId: accLoan.accType.accessoryTypeId,
+                        accessoryName: accLoan.accType.accessoryName
+                    };
+    
+                    if (!events[eventId]) {
+                        events[eventId] = {
+                            eventId: accReturn.returnEvent.eventId,
+                            by: accReturn.returnEvent.adminName,
                             eventDate: accReturn.returnEvent.eventDate,
                             remarks: accReturn.returnEvent.remarks,
                             accessories: [accessoryDetails]
-                        }
-                        logger.info(loanItem.accessoryName)
+                        };
                     } else {
-                        returns[accReturn.returnEvent.eventId].accessories.push(accessoryDetails);
+                        events[eventId].accessories.push(accessoryDetails);
                     }
-                })
-            }
+                });
+            });
+        }
 
-            return returns;
-        }, {})
-    }
+        this.returnEvents = Object.values(events)
+            .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+
+        return this;
+    }    
 }
 
 module.exports = LoanDTO;

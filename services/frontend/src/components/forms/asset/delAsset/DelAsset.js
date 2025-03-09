@@ -11,14 +11,13 @@ import assetService from "../../../../services/AssetService";
 
 export const DelAsset = function({ field, asset, children }) {
 
-	const { handleAssetSearch } = useFormModal();
 	const { assetOptions } = useDelAssets();
 	const { setFieldValue } = useFormikContext();
 
 	const updateAssetFields = async (selected) => {
-        if (!selected || selected.typeId) { // IMPT dont update for new created types
-            setFieldValue(`]${field}.assetId`, selected?.typeId || '');
-            setFieldValue(`]${field}.lastEventDate`, selected?.lastEventDate || '');
+        if (!selected || selected.assetId) {
+            setFieldValue(`${field}.assetId`, selected?.assetId || '');
+            setFieldValue(`${field}.lastEventDate`, selected?.lastEventDate || '');
         } 
     };
 

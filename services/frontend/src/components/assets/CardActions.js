@@ -11,7 +11,7 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 	if (asset.reservation) {
 		// actionSet.add(FormType.CONFIRM);
 		// actionSet.add(FormType.CANCEL);
-	} else if (!asset.ongoingLoan) {
+	} else if (!asset.loan) {
 		actionSet.add(FormType.LOAN);
 		// actionSet.add(FormType.RESERVE);
 		// actionSet.add(FormType.CONDEMN);

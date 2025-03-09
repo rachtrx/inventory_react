@@ -24,7 +24,7 @@ export const createNewSubType = (subType={}) => ({
 
 export const createNewAsset = (asset={}) => ({
   'key': uuidv4(),
-  'assetTag': asset.assetTag || '',
+  'alias': asset.alias || '',
   'serialNumber': asset.serialNumber || '',
   'vendorName': asset.vendorName || '',
   'cost': asset.cost || '',
@@ -42,7 +42,6 @@ export const AddAssetsProvider = ({ children }) => {
   const [ warnings, setWarnings ] = useState({});
 
   const [vendorOptions, setVendorOptions] = useState([]);
-
   const [typeOptions, setTypeOptions] = useState([]);
   const [subTypeOptionsDict, setSubTypeOptionsDict] = useState([]);
 
@@ -50,6 +49,8 @@ export const AddAssetsProvider = ({ children }) => {
     types: [createNewType()],
   });
   const [step, setStep] = useState(1);
+
+  const createNewAstType = 
 
   useEffect(() => {
     // console.log(typeOptions);
@@ -91,7 +92,7 @@ export const AddAssetsProvider = ({ children }) => {
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
     try {
-      const assetTags = new Set();
+      const aliases = new Set();
       const serialNumbers = new Set();
       const subTypeSet = new Set();
 
@@ -105,14 +106,14 @@ export const AddAssetsProvider = ({ children }) => {
             : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
         });
 
-        ['type', 'subType', 'assetTag', 'serialNumber'].forEach(field => {
+        ['type', 'subType', 'alias', 'serialNumber'].forEach(field => {
           if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
         });
 
-        const { type, subType, assetTag, serialNumber, vendorName, cost, remarks, addDate } = record;
+        const { type, subType, alias, serialNumber, vendorName, cost, remarks, addDate } = record;
         
-        if (assetTags.has(assetTag)) throw new Error(`Duplicate records for assetTag: ${assetTag} were found`);
-        else assetTags.add(assetTag);
+        if (aliases.has(alias)) throw new Error(`Duplicate records for alias: ${alias} were found`);
+        else aliases.add(alias);
         
         if (serialNumbers.has(serialNumber)) throw new Error(`Duplicate records for Serial Number: ${serialNumber} were found`);
         else serialNumbers.add(serialNumber);     
@@ -128,7 +129,7 @@ export const AddAssetsProvider = ({ children }) => {
         }
         
         recordsMap[type][subType].push({
-          assetTag,
+          alias,
           serialNumber,
           vendorName,
           cost,

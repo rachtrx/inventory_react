@@ -13,15 +13,15 @@ export const axiosInstance = axios.create({
 });
 
 export const itemKeys = {
-  ASSET_TAG: 'assetTag',
+  SERIAL_NUMBER: 'serialNumber',
   USER_NAME: 'userName',
   ACCESSORY_NAME: 'accessoryName'
 }
 
 export const getDisplayValue = (item, raw=false) => {
   let attr;
-  if (item.hasOwnProperty(itemKeys.ASSET_TAG)) {
-    attr = itemKeys.ASSET_TAG;
+  if (item.hasOwnProperty(itemKeys.SERIAL_NUMBER)) {
+    attr = itemKeys.SERIAL_NUMBER;
   } else if (item.hasOwnProperty(itemKeys.USER_NAME)) {
     attr = itemKeys.USER_NAME;
   } else if (item.hasOwnProperty(itemKeys.ACCESSORY_NAME)) {

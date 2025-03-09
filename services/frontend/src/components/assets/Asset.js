@@ -7,7 +7,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from '../../constants/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
-import AssetTimeline from '../timeline/AssetTimeline';
+import AssetTimeline from '../timeline/assets/AssetTimeline';
 import Tags from '../tags/Tags';
 
 const Asset = ({ asset }) => {
@@ -24,7 +24,7 @@ const Asset = ({ asset }) => {
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
-        <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
+        <Heading as="h1" size="lg" mb={4}>{asset.serialNumber}</Heading>
 				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
 
         <Grid
@@ -38,6 +38,11 @@ const Asset = ({ asset }) => {
 						label="Serial Number"
             fieldKey="serialNumber"
             value={asset.serialNumber}
+					/>
+          <EditableField 
+						label="Alias"
+            fieldKey="alias"
+            value={asset.alias}
 					/>
 					<EditableField 
 						label="Model"

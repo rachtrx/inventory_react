@@ -40,9 +40,7 @@ class AccTypeDTO {
 
                 const loanCount = this.accLoans
                     .filter(accLoan => 
-                        (accLoan.loan.loanEventId || accLoan.loan.loanEvent) &&
-                        !accLoan.loan.reserveEventId && !accLoan.loan.reserveEvent &&
-                        !accLoan.loan.cancelEventId && !accLoan.loan.cancelEvent
+                        (accLoan.loan.loanEventId || accLoan.loan.loanEvent)
                     ).reduce((count, accLoan) => {
                         if (Number.isFinite(accLoan.unreturned)) count += accLoan.unreturned // returns made
                         else count += accLoan.count // no accReturns yet
@@ -52,8 +50,7 @@ class AccTypeDTO {
                 const reserveCount = this.accLoans
                     .filter(accLoan => 
                         (accLoan.loan.reserveEventId || accLoan.loan.reserveEvent) &&
-                        !accLoan.loan.loanEventId && !accLoan.loan.loanEvent &&
-                        !accLoan.loan.cancelEventId && !accLoan.loan.cancelEvent
+                        !accLoan.loan.loanEventId && !accLoan.loan.loanEvent
                     ).reduce((count, accLoan) => {
                         count += accLoan.count // no accReturns yet
                         return count;

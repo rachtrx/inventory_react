@@ -19,7 +19,6 @@ class EventLogDTO {
             Rmks,
             Loan, // ignore returns; paired with loan
             Reservation,
-            Cancellation,
             AssetReturn,
             AccReturns,
             AddedAsset,
@@ -52,11 +51,11 @@ class EventLogDTO {
         let accessories;
         let tag;
 
-        if (Loan || Reservation || Cancellation) {
-            const eventObj = Loan || Reservation || Cancellation;
+        if (Loan || Reservation) {
+            const eventObj = Loan || Reservation;
 
             if (eventObj.AstLoan) {
-                asset = eventObj.AstLoan.asset;
+                asset = eventObj.AstLoan.Ast;
             } 
             if (eventObj.AccLoans?.length > 0) {
                 accessories = eventObj.AccLoans
@@ -67,8 +66,6 @@ class EventLogDTO {
                 this.type = FormType.LOAN
             } else if (Reservation) {
                 this.type = FormType.RESERVE
-            } else {
-                this.type = FormType.CANCEL
             }
         } else if (AssetReturn || AccReturns?.length > 0) {
             this.type = FormType.RETURN;

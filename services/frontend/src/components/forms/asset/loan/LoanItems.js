@@ -32,7 +32,7 @@ export const LoanItems = function({ field, loan, children }) {
 	useEffect(() => {
 		if (!loan?.asset) setSuggestedOptions([]);
 
-		if (!loan.asset.assetId || loan.asset.assetTag === loan.asset.assetId) return;
+		if (!loan.asset.assetId) return;
 		const fetchItems = async () => {
 			try {
 			const response = await accessoryService.getSuggestedAccessories(loan.asset.assetId);
@@ -52,7 +52,7 @@ export const LoanItems = function({ field, loan, children }) {
 		console.log(selected);
 		console.log(`${field}.asset.assetId`);
 		setFieldValue(`${field}.asset.assetId`, selected?.assetId || '');
-		setFieldValue(`${field}.asset.onLoan`, selected?.ongoingLoan ? true : false);
+		setFieldValue(`${field}.asset.onLoan`, selected?.loan ? true : false);
 	}
 
 	const handleSwitchChange = () => {

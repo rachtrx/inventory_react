@@ -16,10 +16,6 @@ import {
     useToast,
 } from "@chakra-ui/react";
 import { ChatIcon, AddIcon } from "@chakra-ui/icons";
-import { Formik, Form, Field } from "formik";
-import AddRemark from "./AddRemark";
-import { useDrawer } from "../../context/DrawerProvider";
-import { useTimeline } from "../../context/TImelineProvider";
 
 const RemarksPopover = ({ children }) => {
 

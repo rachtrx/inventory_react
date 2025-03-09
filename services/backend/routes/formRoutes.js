@@ -37,13 +37,13 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 router.post('/loan', formLoanReturnController.loan);
 router.get('/return', formLoanReturnController.loadReturn);
 
-router.get('/return/accessory', formLoanReturnController.loadAccReturn);
 router.get('/return/asset', formLoanReturnController.loadAstReturn);
-router.get('/delete/asset', formLoanReturnController.loadAstDel);
+router.get('/return/user', formLoanReturnController.loadUserReturn);
+router.get('/return/accessory', formLoanReturnController.loadAccReturn);
+
 router.get('/loan/asset', formLoanReturnController.loadAstLoan);
 router.get('/loan/user', formLoanReturnController.loadUsrLoan);
 router.get('/loan/accessory', formLoanReturnController.loadAccLoan); //
-router.get('/return/user', formLoanReturnController.loadUserReturn);
 
 router.get('/return', formLoanReturnController.loadReturn);
 router.post('/return', formLoanReturnController.return);

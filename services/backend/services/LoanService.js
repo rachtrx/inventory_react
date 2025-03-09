@@ -1,4 +1,4 @@
-const { Event, Loan, Rmk, AstLoan, AccLoan, AccType, Sequelize } = require("../models");
+const { Event, Loan, Rmk, AstLoan, AccLoan, AccType, Sequelize, Ast } = require("../models");
 const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
@@ -23,14 +23,18 @@ class LoanService extends ValidationService {
             }
             userIdToNameMap.set(user.userId, user.userName);
 
-            const assets = this.users.flatMap(user => user.loans.filter(loan => loan.asset?.assetId).map(loan => loan.asset))
-
-            assets.forEach(asset => {
-                if (assetIdToSNMap.has(asset.assetId) && assetIdToSNMap.get(asset.assetId)!== asset.serialNumber) {
-                    throw new Error(`Ambiguous record for Asset ID ${asset.assetId} with asset tags ${assetIdToSNMap.get(asset.assetId)} and ${asset.serialNumber}`);
+            user.loans.forEach(loan => {
+                if (!loan.asset?.assetId && loan.accessories?.length === 0) {
+                    throw new Error("Loan must include at least 1 asset or 1 accessory")
                 }
-                assetIdToSNMap.set(asset.assetId, asset.serialNumber);
-            });
+
+                if (loan.asset?.assetId) {
+                    if (assetIdToSNMap.has(loan.asset.assetId) && assetIdToSNMap.get(loan.asset.assetId)!== loan.asset.serialNumber) {
+                        throw new Error(`Ambiguous record for Asset ID ${loan.asset.assetId} with serial number and ${loan.asset.serialNumber}`);
+                    }
+                    assetIdToSNMap.set(loan.asset.assetId, loan.asset.serialNumber);
+                }
+            })
         });
 
         return { assetIdToSNMap, userIdToNameMap };
@@ -39,7 +43,7 @@ class LoanService extends ValidationService {
     async getAssetOnLoan(assetId, serialNumber) {
         const asset = await Ast.findByPk(assetId, {
             transaction: this.transaction,
-            attributes: ['delEventId'],
+            attributes: ['delEventId', 'serialNumber'],
             include: [
                 {
                     model: AstLoan,
@@ -65,7 +69,7 @@ class LoanService extends ValidationService {
                 // console.log(assetId, serialNumber);
                 const asset = await this.getAssetOnLoan(assetId, serialNumber);
                 if (asset.AstLoans?.length > 0) {
-                    throw new Error(`Asset with ID ${asset.assetTag} is still on loan!`);
+                    throw new Error(`Asset with ID ${asset.serialNumber} is still on loan!`);
                 }
             })
         );

@@ -32,7 +32,7 @@ class AccessoryController {
         } catch (error) {
             logger.error(error)
             console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
+            res.status(500).json({ error: error.message });
         }
         return
     }
@@ -69,7 +69,6 @@ class AccessoryController {
                         {
                             model: Loan,
                             required: true,
-                            where: { cancelEventId: null },
                             include: [
                                 {
                                     model: Usr,
@@ -77,11 +76,10 @@ class AccessoryController {
                                 },
                                 {
                                     model: AstLoan,
-                                    attributes: ['id'],
                                     required: false,
                                     include: {
                                         model: Ast,
-                                        attributes: ['id', 'assetTag', 'serialNumber'],
+                                        attributes: ['id', 'alias', 'serialNumber'],
                                     }
                                 }
                             ]
@@ -113,7 +111,7 @@ class AccessoryController {
             res.json(result);
         } catch (error) {
             logger.error(error)
-            return res.status(500).json({ error: "Internal Server Error" })
+            return res.status(500).json({ error: error.message })
         }
     }
 
@@ -189,7 +187,7 @@ class AccessoryController {
             res.json(accType);
         } catch (error) {
             logger.error("Error fetching accessory details:", error);
-            res.status(500).send({ error: "Internal server error" });
+            res.status(500).send({ error: error.message });
         }
     }
 
@@ -234,7 +232,6 @@ class AccessoryController {
                     model: Loan,
                     as: 'Loan',
                     required: false,
-                    attributes: ['filepath'],
                     include: [
                         {
                             model: Usr,
@@ -242,13 +239,12 @@ class AccessoryController {
                         },
                         {
                             model: AstLoan,
-                            attributes: ['id'],
                             required: false,
                             include: [
                                 {
                                     model: Ast,
                                     required: true,
-                                    attributes: ['id', 'assetTag', 'serialNumber'],
+                                    attributes: ['id', 'alias', 'serialNumber'],
                                 },
                                 {
                                     model: Event,
@@ -269,7 +265,6 @@ class AccessoryController {
                         },
                         {
                             model: AccLoan,
-                            attributes: ['id', 'count'],
                             required: false,
                             include: [
                                 {
@@ -278,7 +273,6 @@ class AccessoryController {
                                 },
                                 {
                                     model: AccReturn,
-                                    attributes: ['id', 'count'],
                                     required: false,
                                     include: {
                                         model: Event,
@@ -299,100 +293,112 @@ class AccessoryController {
                                 {
                                     model: Loan,
                                     required: false,
-                                    include: {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                                where: { id: { [Op.ne]: accTypeId } }
-                                            },
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['id', 'count'],
-                                                required: false,
+                                    include: [
+                                        {
+                                            model: AccLoan,
+                                            required: false,
+                                            include: [
+                                                {
+                                                    model: AccType,
+                                                    attributes: ['id', 'accessoryName'],
+                                                    where: { id: { [Op.ne]: accTypeId } }
+                                                },
+                                                {
+                                                    model: AccReturn,
+                                                    required: false,
+                                                    include: {
+                                                        model: Event,
+                                                        as: 'ReturnEvent',
+                                                        attributes: ['id', 'eventDate'],
+                                                        required: true
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            model: Event,
+                                            as: "ReserveEvent",
+                                            attributes: ['id', 'eventDate'],
+                                            required: false,
+                                            include: {
+                                                model: Rmk,
+                                                attributes: ['id', 'text', 'remarkDate'],
                                                 include: {
-                                                    model: Event,
-                                                    as: 'ReturnEvent',
-                                                    attributes: ['id', 'eventDate'],
-                                                    required: true
+                                                    model: Admin,
+                                                    attributes: ['id', 'adminName'],
+                                                    required: false
                                                 }
                                             }
-                                        ]
-                                    }
+                                        }
+                                    ]
                                 }
                             ]
                         },
                     ]
                 },
-                {
-                    model: Loan,
-                    required: false,
-                    as: 'Reservation',
-                    attributes: ['filepath'],
-                    include: [
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false
-                        },
-                        {
-                            model: Usr,
-                            attributes: ['id', 'userName', 'bookmarked']
-                        },
-                        {
-                            model: AstLoan,
-                            attributes: ['id'],
-                            required: false,
-                            include: {
-                                model: Ast,
-                                required: true,
-                                attributes: ['id', 'assetTag', 'serialNumber'],
-                            }
-                        },
-                        {
-                            model: AccLoan,
-                            attributes: ['id', 'count'],
-                            required: false,
-                            include: [
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName']
-                                },
-                                {
-                                    model: Loan,
-                                    required: false,
-                                    include: {
-                                        model: AccLoan,
-                                        attributes: ['id', 'count'],
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AccType,
-                                                attributes: ['id', 'accessoryName'],
-                                                where: { id: { [Op.ne]: accTypeId } }
-                                            },
-                                            {
-                                                model: AccReturn,
-                                                attributes: ['id', 'count'],
-                                                required: false,
-                                                include: {
-                                                    model: Event,
-                                                    as: 'ReturnEvent',
-                                                    attributes: ['id', 'eventDate'],
-                                                    required: true
-                                                }
-                                            },
-                                        ]
-                                    },
-                                }
-                            ]
-                        }
-                    ]
-                }
+                // {
+                //     model: Loan,
+                //     required: false,
+                //     as: 'Reservation',
+                //     where: { [Op.and]: [
+                //         {loanEventId: { [Op.eq]: null}},
+                //         {reserveEventId: { [Op.ne]: null}}
+                //     ]},
+                //     include: [
+                //         {
+                //             model: Usr,
+                //             attributes: ['id', 'userName', 'bookmarked']
+                //         },
+                //         {
+                //             model: AstLoan,
+                //             attributes: ['id'],
+                //             required: false,
+                //             include: {
+                //                 model: Ast,
+                //                 required: true,
+                //                 attributes: ['id', 'alias', 'serialNumber'],
+                //             }
+                //         },
+                //         {
+                //             model: AccLoan,
+                //             attributes: ['id', 'count'],
+                //             required: false,
+                //             include: [
+                //                 {
+                //                     model: AccType,
+                //                     attributes: ['id', 'accessoryName']
+                //                 },
+                //                 {
+                //                     model: Loan,
+                //                     required: false,
+                //                     include: {
+                //                         model: AccLoan,
+                //                         attributes: ['id', 'count'],
+                //                         required: false,
+                //                         include: [
+                //                             {
+                //                                 model: AccType,
+                //                                 attributes: ['id', 'accessoryName'],
+                //                                 where: { id: { [Op.ne]: accTypeId } }
+                //                             },
+                //                             {
+                //                                 model: AccReturn,
+                //                                 attributes: ['id', 'count'],
+                //                                 required: false,
+                //                                 include: {
+                //                                     model: Event,
+                //                                     as: 'ReturnEvent',
+                //                                     attributes: ['id', 'eventDate'],
+                //                                     required: true
+                //                                 }
+                //                             },
+                //                         ]
+                //                     },
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ],
             order: [['eventDate', 'DESC']]
         });
@@ -460,7 +466,7 @@ class AccessoryController {
         } catch (error) {
             logger.error('Error fetching assets:', error)
             console.error('Error fetching assets:', error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     }
 
@@ -603,7 +609,8 @@ class AccessoryController {
         const accType = await AccType.create({ 
             id: generateSecureID(), 
             accessoryName: accessoryName, 
-            stock: count 
+            stock: count,
+            addEventId: addAccTypeEventId
         }, { transaction });
 
         return accType;
@@ -681,7 +688,7 @@ class AccessoryController {
                         model: AstLoan,
                         include: {
                             model: Ast,
-                            attributes: ['assetTag']
+                            attributes: ['alias']
                         },
                         required: false
                     }

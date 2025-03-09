@@ -2,6 +2,7 @@ import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useFormModal, actionTypes, FormType } from '../../context/ModalProvider';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 export default function UserActions() {
 
@@ -14,7 +15,6 @@ export default function UserActions() {
         <>
         {[
           FormType.LOAN, 
-          FormType.RETURN, 
           FormType.ADD_USER, 
           FormType.DEL_USER,
           FormType.TAG_USER,
@@ -28,6 +28,10 @@ export default function UserActions() {
             );
           })}
         </>
+        <ReturnButton
+          key={FormType.RETURN}
+          formType={FormType.RETURN}
+        />
       </Flex>
     )
   );

@@ -18,7 +18,6 @@ exports.FormType = {
     TAG_USER: 'TAG_USER',
     UNTAG_USER: 'UNTAG_USER',
     RESERVE: 'RESERVE',
-    CANCEL: 'CANCEL',
 }
 
 exports.createSelection = (arr, labelField, valueField) => {

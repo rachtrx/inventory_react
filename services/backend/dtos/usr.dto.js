@@ -1,7 +1,7 @@
 const EventDTO = require("./event.dto");
 const LoanDTO = require("./loan.dto");
 const UserTagMapDTO = require("./usrTagMap.dto");
-const { runInitialLoanCheck, assetIsOnLoan } = require("./utils");
+const { runInitialLoanCheck } = require("./utils");
 class UserDTO {
 
     constructor({
@@ -15,7 +15,6 @@ class UserDTO {
         Dept,
         Loans,
         UsrTagMaps=null,
-        isMatching=null,
         lastEventDate=null
     }) {
 
@@ -23,10 +22,8 @@ class UserDTO {
             this.lastEventDate = lastEventDate
         }
 
-        if (!isMatching === null) this.isMatching = isMatching;
-
         if (UsrTagMaps !== null) {
-            this.tags = UsrTagMaps.map(usrTagMap => new UserTagMapDTO(usrTagMap));
+            this.tags = UsrTagMaps.map(usrTagMap => new UserTagMapDTO(usrTagMap.dataValues));
         }
 
         // if (remarks !== null) this.remarks = remarks;
@@ -49,19 +46,44 @@ class UserDTO {
         this.reservations = [];
 
         if (Loans) {
-            Loans.forEach(loan => runInitialLoanCheck(loan));
-            
-            this.loans = Loans
-                .filter(({ AstLoan, AccLoans, loanEventId }) => loanEventId && 
-                    ((AstLoan && AstLoan.returnEventId === null) || 
-                    (AccLoans?.length && (AccLoans.some(accLoan => accLoan.AccReturns.some(accReturn => accReturn.returnEventId === null))))
-                ))
-                .map(loan => new LoanDTO(loan));
-
-            this.reservations = Loans
-                .filter(({ reserveEventId, cancelEventId, loanEventId }) => reserveEventId && !cancelEventId && !loanEventId)
-                .map(reservation => new LoanDTO(reservation));
+            this.userLoans = Loans.map(loan => new LoanDTO(loan));
         }
+    }
+
+    setOngoingLoans() {
+
+        if (!this.checked) {
+            if (!this.userLoans) throw new Error("Dev error: Include Loans in the query")
+            if (this.userLoans.length === 0) return this;
+            this.userLoans.forEach(userLoan => runInitialLoanCheck(userLoan));
+            this.checked = true;
+        }
+
+        this.loans = this.userLoans.filter(loan => {
+            return loan.loanEventId !== null && ( // loan occured
+                loan.astLoan?.returnEventId === null || // asset not returned
+                loan.accLoans.find(accLoan => 
+                    accLoan.accReturns.length === 0 || // no accessory returned at all
+                    accLoan.count > accLoan.accReturns.reduce((total, accReturn) => total + accReturn.count) // partial return of accessory
+                )
+            )}
+        ) || null;
+
+        return this;
+    }
+
+    setOngoingReservations() {
+        
+        if(!this.checked) {
+            if (!this.userLoans) throw new Error("Dev error: Include Loans in the query")
+            if (this.userLoans.length === 0) return this;
+            this.userLoans.forEach(userLoan => runInitialLoanCheck(userLoan));
+            this.checked = true;
+        }
+        
+        this.reservations = this.userLoans.filter(loan => loan.loanEventId === null);
+
+        return this;
     }
 }
 

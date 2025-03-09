@@ -7,8 +7,8 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from '../../constants/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
-import AssetTimeline from '../timeline/AssetTimeline';
-import AccTimeline from '../timeline/AccTimeline';
+import AssetTimeline from '../timeline/assets/AssetTimeline';
+import AccTimeline from '../timeline/accessories/AccTimeline';
 
 const Accessory = ({ accType }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
@@ -26,7 +26,7 @@ const Accessory = ({ accType }) => {
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
-        <Heading as="h1" size="lg" mb={4}>{accType.assetTag}</Heading>
+        <Heading as="h1" size="lg" mb={4}>{accType.accessoryName}</Heading>
 
         <Grid
 					templateColumns="auto 1fr auto" // First column takes up as much space as possible, second column takes up as little space as necessary

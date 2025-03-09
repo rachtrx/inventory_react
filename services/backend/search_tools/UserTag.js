@@ -60,8 +60,8 @@ class UserTagSearch {
 
         if (this.tagId) {
             orderByArr.push([
-                Sequelize.literal(`(
-                    SELECT COUNT(*) 
+                Sequelize.literal(`EXISTS (
+                    SELECT 1
                     FROM usr_tag_maps AS "UsrTagMaps" 
                     WHERE "UsrTagMaps"."user_id" = "Usr"."id" 
                     AND "UsrTagMaps"."del_event_id" IS NULL 
@@ -84,8 +84,10 @@ class UserTagSearch {
                 include: this.includeArray,
                 order: orderByArr
             })
-            return query.map(astRow => new UserDTO(astRow));
+            // query.forEach(usrRow => console.log(usrRow));
+            return query.map(usrRow => new UserDTO(usrRow.dataValues));
         } catch (e) {
+            
             throw e;
         }
     }

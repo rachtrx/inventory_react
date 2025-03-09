@@ -8,7 +8,7 @@ class UserTagMapDTO {
         UsrTag,
         isMatching
     }) {
-        if (id) this.assetTagId = id;
+        if (id) this.userTagId = id;
         
         if (userId) this.userId = userId;
         if (tagId) this.tagId = tagId;

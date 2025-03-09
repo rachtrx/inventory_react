@@ -24,7 +24,7 @@ class AssetController {
             return res.json(result);
         } catch (error) {
             console.error("Error fetching options:", error);
-            return res.status(500).json({ error: "An error occurred." });
+            return res.status(500).json({ error: error.message });
         }
     }
 
@@ -36,7 +36,7 @@ class AssetController {
         } catch (error) {
             logger.error(error)
             console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
+            res.status(500).json({ error: error.message });
         }
     }
     
@@ -61,7 +61,7 @@ class AssetController {
                 attributes: [
                     'id',
                     'serialNumber',
-                    'assetTag',
+                    'alias',
                     'location',
                     'bookmarked',
                     'value'
@@ -111,7 +111,6 @@ class AssetController {
                         attributes: ['id', 'returnEventId'],
                         include: {
                             model: Loan,
-                            where: { cancelEventId: null },
                             include: {
                                 model: Usr,
                                 attributes: ['id', 'userName', 'bookmarked'],
@@ -132,7 +131,7 @@ class AssetController {
             }
 
             let result = query.map(assetRow => {
-                const asset = new AssetDTO(assetRow);
+                const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation();
                 return asset;
             });
     
@@ -169,7 +168,7 @@ class AssetController {
         } catch (error) {
             logger.error(error)
             console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
+            res.status(500).json({ error: error.message });
         }
     }
     
@@ -181,7 +180,7 @@ class AssetController {
                 attributes: [
                     'id',
                     'serialNumber',
-                    'assetTag',
+                    'alias',
                     'location',
                     'value',
                     'bookmarked',
@@ -239,7 +238,7 @@ class AssetController {
             res.json(asset);
         } catch (error) {
             logger.error("Error fetching asset details:", error);
-            res.status(500).send({ error: "Internal server error" });
+            res.status(500).send({ error: error.message });
         }
     };
 
@@ -293,22 +292,28 @@ class AssetController {
                         },
                         {
                             model: AstLoan,
-                            attributes: ['id'],
                             include: [
                                 {
                                     model: Event,
                                     as: 'ReturnEvent',
                                     attributes: ['id', 'eventDate'],
                                     required: false,
-                                    include: {
-                                        model: Rmk,
-                                        attributes: ['id', 'text', 'remarkDate'],
-                                        include: {
+                                    include: [
+                                        {
+                                            model: Rmk,
+                                            attributes: ['id', 'text', 'remarkDate'],
+                                            include: {
+                                                model: Admin,
+                                                attributes: ['id', 'adminName'],
+                                                required: false
+                                            }
+                                        },
+                                        {
                                             model: Admin,
                                             attributes: ['id', 'adminName'],
                                             required: false
                                         }
-                                    }
+                                    ]
                                 },
                                 {
                                     model: Ast,
@@ -334,15 +339,22 @@ class AssetController {
                                         as: 'ReturnEvent',
                                         attributes: ['id', 'eventDate'],
                                         required: true,
-                                        include: {
-                                            model: Rmk,
-                                            attributes: ['id', 'text', 'remarkDate'],
-                                            include: {
+                                        include: [
+                                            {
+                                                model: Rmk,
+                                                attributes: ['id', 'text', 'remarkDate'],
+                                                include: {
+                                                    model: Admin,
+                                                    attributes: ['id', 'adminName'],
+                                                    required: false
+                                                }
+                                            },
+                                            {
                                                 model: Admin,
                                                 attributes: ['id', 'adminName'],
                                                 required: false
                                             }
-                                        }
+                                        ]
                                     }
                                 }
                             ]
@@ -358,21 +370,6 @@ class AssetController {
                         {
                             model: Usr,
                             attributes: ['id', 'userName', 'bookmarked']
-                        },
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false,
-                            include: {
-                                model: Rmk,
-                                attributes: ['id', 'text', 'remarkDate'],
-                                include: {
-                                    model: Admin,
-                                    attributes: ['id', 'adminName'],
-                                    required: false
-                                }
-                            },
                         },
                         {
                             model: AstLoan,
@@ -416,7 +413,7 @@ class AssetController {
                 res.status(404).json({ message: "Ast not found" });
             }
         } catch (error) {
-            res.status(500).send("An error occurred while updating the bookmark")
+            res.status(500).send({ error: error.message })
         }
     };
 }

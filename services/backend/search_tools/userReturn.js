@@ -49,15 +49,7 @@ class UserReturnSearch {
                     {
                         model: Usr,
                         where: this.userCondition,
-                        attributes: ['id', 'userName', [
-                            Sequelize.literal(`
-                                CASE
-                                    WHEN "Usr"."user_name" ILIKE '%${this.userName}%' THEN true
-                                    ELSE false
-                                END
-                            `),
-                            'isMatching'
-                        ]],
+                        attributes: ['id', 'userName'],
                         required: true,
                         include: {
                             model: Dept,
@@ -67,11 +59,9 @@ class UserReturnSearch {
                     },
                     {
                         model: AccLoan,
-                        attributes: ['id', 'count'],
                         include: [
                             {
                                 model: AccReturn,
-                                attributes: ['id', 'count']
                             },
                             {
                                 model: AccType,
@@ -83,10 +73,9 @@ class UserReturnSearch {
                     },
                     {
                         model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
                         include: {
                             model: Ast,
-                            attributes: ['id', 'serialNumber', 'assetTag'],
+                            attributes: ['id', 'serialNumber', 'alias'],
                             include: {
                                 model: AstSType,
                                 attributes: ['subTypeName'],
@@ -110,10 +99,7 @@ class UserReturnSearch {
                         )
                     `), // At least either unreturned asset of accessory
                     this.accExistCondition
-                ] },
-                order: this.accessoryName ? Sequelize.literal(`
-                    "AstLoan"."id" IS NULL DESC
-                `) : []
+                ] }
             });
             return query.map(loanRow => new LoanDTO(loanRow));
         } catch(e) {

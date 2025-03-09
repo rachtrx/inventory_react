@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import AddEvent from "./AddEvent";
-import DeleteEvent from "./DeleteEvent";
-import Timeline from "./Timeline";
-import AssetLoanEvent from "./AssetLoanEvent";
-import AssetReserveEvent from "./AssetReserveEvent";
+import { AddEventBox } from "../AddEvent";
+import { DeleteEventBox } from "../DeleteEvent";
+import Timeline from "../Timeline";
+import AssetReserveEvent from "../assets/AssetReserveEvent";
+import { TimelineProvider } from "../../../context/TimelineProvider";
 import { VStack } from "@chakra-ui/react";
-import { AddEventBox, AssetLoanEventBox, AssetReserveEventBox, DeleteEventBox } from "./utils/EventBox";
-import { TimelineProvider } from "../../context/TImelineProvider";
+import { AccLoanEventBox } from "./AccLoanEvent";
 
-const AssetTimeline = ({ events, assetId }) => {
+const AccTimeline = ({ events, accessoryTypeId }) => {
     return (
-        <TimelineProvider assetId={assetId}>
+        <TimelineProvider accessoryTypeId={accessoryTypeId}>
             <VStack spacing={2} align="stretch">
                 {events.map((ev, id, arr) => {
                     return (
@@ -19,9 +18,9 @@ const AssetTimeline = ({ events, assetId }) => {
                         ) : id === 0 && !ev.loan && !ev.reservation ? (
                             <DeleteEventBox event={ev} key={id} />
                         ) : ev.loan ? (
-                            <AssetLoanEventBox event={ev} key={id} />
+                            <AccLoanEventBox event={ev} key={id} />
                         ) : ev.reservation ? (
-                            <AssetReserveEventBox event={ev} key={id} />
+                            <AccLoanEventBox event={ev} key={id} /> // TODO change to reserve
                         ) : null
                     );
                 })}
@@ -30,4 +29,4 @@ const AssetTimeline = ({ events, assetId }) => {
     );
 };
 
-export default AssetTimeline;
+export default AccTimeline;

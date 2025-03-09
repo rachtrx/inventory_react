@@ -10,8 +10,9 @@ import {
     Icon,
     Heading,
 } from "@chakra-ui/react";
-import DateText from "./DateText";
+import DateText from "./utils/DateText";
 import { ResponsiveText } from "../utils/ResponsiveText";
+import { withEventBox } from "./utils/withEventBox";
 
 const AddEvent = ({ event }) => {
 
@@ -34,4 +35,4 @@ const AddEvent = ({ event }) => {
     );
 };
 
-export default AddEvent;
+export const AddEventBox = withEventBox(AddEvent)

@@ -1,6 +1,6 @@
 import { Box, Collapse, Divider, Text } from "@chakra-ui/react";
-import DateText from "../DateText";
-import { BadgeGroup } from "../BadgeGroup";
+import DateText from "./DateText";
+import { BadgeGroup } from "./BadgeGroup";
 import { useEffect, useState } from "react";
 import { useDrawer } from "../../../context/DrawerProvider";
 import accessoryService from "../../../services/AccessoryService";

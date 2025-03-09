@@ -28,7 +28,7 @@ class AssetLoan {
     async run() {
         try {
             const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'assetTag', 'delEventId'],
+                attributes: ['id', 'serialNumber', 'alias', 'delEventId'],
                 where: this.assetCondition,
                 include: [
                     {
@@ -46,62 +46,10 @@ class AssetLoan {
                                         attributes: ['id', 'deptName'],
                                         where: {},
                                     },
-                                    // where: Sequelize.literal(`
-                                    //     EXISTS (
-                                    //         SELECT 1
-                                    //         FROM "usr_loans" AS "UsrLoans"
-                                    //         INNER JOIN "usrs" AS "UsrLoans->Usr"
-                                    //         ON "UsrLoans"."user_id" = "UsrLoans->Usr"."id"
-                                    //         WHERE "UsrLoans"."loan_id" = "AstLoans->Loan"."id"
-                                    //     )
-                                    // `),
-                                    // required: true
                                 },
-                                {
-                                    model: AccLoan,
-                                    attributes: ['id', 'count'],
-                                    include: [
-                                        {
-                                            model: AccReturn,
-                                            attributes: ['id', 'count']
-                                        },
-                                        {
-                                            model: AccType,
-                                            attributes: ['id', 'accessoryName'],
-                                        }
-                                    ],
-                                    where: Sequelize.literal(`
-                                        EXISTS (
-                                            SELECT 1
-                                            FROM "acc_loans" AS "AccLoans"
-                                            INNER JOIN "acc_types" AS "AccLoans->AccType"
-                                            ON "AccLoans"."accessory_type_id" = "AccLoans->AccType"."id"
-                                            WHERE "AccLoans"."loan_id" = "AstLoans->Loan"."id"
-                                            AND "AccLoans"."count" > (
-                                                SELECT COALESCE(SUM("AccLoans->AccReturns"."count"), 0)
-                                                FROM "acc_returns" AS "AccLoans->AccReturns"
-                                                WHERE "AccLoans->AccReturns"."acc_loan_id" = "AccLoans"."id"
-                                            )
-                                        )
-                                    `),
-                                    required: false
-                                }
                             ]
                         },
                         required: false,
-                        where: { // get (asset on loan or asset reserved) and not returned so we can disable them later
-                            [Op.and]: [
-                                Sequelize.literal(`"AstLoans"."return_event_id" IS NULL`) ,
-                                Sequelize.literal(`
-                                    "AstLoans"."loan_id" IN (
-                                        SELECT "Loans"."id" 
-                                        FROM "loans" AS "Loans" 
-                                        WHERE "Loans"."loan_event_id" IS NOT NULL
-                                        OR "Loans"."reserve_event_id" IS NOT NULL
-                                    )
-                                `),
-                            ]
-                        }
                     },
                     {
                         model: AstSType,
@@ -123,7 +71,7 @@ class AssetLoan {
                     END ASC
                 `)
             })
-            return query.map(astRow => new AssetDTO(astRow));
+            return query.map(astRow => new AssetDTO(astRow).setOngoingLoan().setOngoingReservation());
         } catch (e) {
             throw e;
         }

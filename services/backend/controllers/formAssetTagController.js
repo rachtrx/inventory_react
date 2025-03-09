@@ -4,7 +4,7 @@ const { createSelection, getAllOptions, getDistinctOptions } = require('./utils.
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
-const { AssetTagSearch } = require('../search_tools/AssetTag.js');
+const { AssetTagSearch } = require('../search_tools/assetTag.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 class FormAssetTagController {
@@ -20,10 +20,11 @@ class FormAssetTagController {
                 asset.label = asset.serialNumber;
                 if (req.query.tagId) {
                     asset.tags.sort((a, b) => {
-                        return b.tagId === req.query.tagId - a.tagId === req.query.tagId;
+                        return b.isMatching - a.isMatching;;
                     });
                 }
-                asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.tagId === req.query.tagId)
+                // IMPT allow deleted assets to be tagged
+                asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.isMatching)
             })
             // console.log(assets);
             res.json(assets);
@@ -43,10 +44,10 @@ class FormAssetTagController {
                 asset.label = asset.serialNumber;
                 if (req.query.tagId) {
                     asset.tags.sort((a, b) => {
-                        return b.tagId === req.query.tagId - a.tagId === req.query.tagId;
+                        return b.isMatching - a.isMatching;;
                     });
                 }
-                asset.isDisabled = req.query.tagId && !asset.tags?.some(tag => tag.tagId === req.query.tagId)
+                asset.isDisabled = req.query.tagId && !asset.tags?.some(tag => tag.isMatching)
             })
 
             // console.log(assets);
@@ -136,7 +137,7 @@ class FormAssetTagController {
             return res.json({ message: 'All tags added successfully.' });
         } catch (error) {
             logger.error(error);
-            res.status(500).send(`An error occurred while creating the tags: ${error.message}`);
+            res.status(500).send({ error: error.message });
         }
     };
 
@@ -186,7 +187,7 @@ class FormAssetTagController {
             return res.json({ message: 'All tags deleted successfully.' });
         } catch (error) {
             logger.error(error);
-            res.status(500).send(`An error occurred while deleting the tags: ${error.message}`);
+            res.status(500).send({ error: error.message });
         }
     }
 }

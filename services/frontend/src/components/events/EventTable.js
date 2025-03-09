@@ -13,16 +13,16 @@ import Tags from '../tags/Tags';
 const EventTable = ({ items }) => {
 
   return (
-    <Table variant="simple" size="md">
+    <Table variant="compact" size="sm">
       <Thead>
         <Tr>
           <Th>Event Type</Th>
           <Th>Event Date</Th>
-          <Th>Admin</Th>
           <Th>Asset</Th>
           <Th>User</Th>
           <Th>Accessories</Th>
           <Th>Tag</Th>
+          <Th>Admin</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -30,7 +30,6 @@ const EventTable = ({ items }) => {
           <Tr key={index} bg={ACTION_COLORS[event.type]}>
             <Td>{event.type}</Td>
             <Td>{event.eventDate}</Td>
-            <Td>{event.adminName}</Td>
             <Td>{event.asset ? <AssetLink asset={event.asset}/> : ""}</Td>
             <Td>{event.user ? <UserLink user={event.user}/> : ""}</Td>
             <Td>
@@ -43,6 +42,7 @@ const EventTable = ({ items }) => {
               )}
             </Td>
             <Td>{event.tags && <Tags tags={event.tags}/>}</Td>
+            <Td>{event.adminName}</Td>
           </Tr>
         ))}
       </Tbody>

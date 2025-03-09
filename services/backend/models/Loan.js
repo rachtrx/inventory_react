@@ -23,22 +23,6 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			allowNull: true,
 		},
-		reserveEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-			allowNull: true,
-        },
-        cancelEventId: {
-            type: DataTypes.STRING,
-            references: {
-                model: 'events',
-                key: 'id'
-            },
-			allowNull: true,
-        },
         expectedLoanDate: {
 			type: DataTypes.DATE,
 			allowNull: true,
@@ -49,6 +33,14 @@ module.exports = (sequelize) => {
 			allowNull: false,
 			defaultValue: null
 		},
+		reserveEventId: {
+            type: DataTypes.STRING,
+            references: {
+                model: 'events',
+                key: 'id'
+            },
+			allowNull: true,
+        },
 		loanEventId: {
             type: DataTypes.STRING,
             references: {
@@ -62,8 +54,8 @@ module.exports = (sequelize) => {
 		modelName: 'Loan',
 		validate: {
 			atLeastOneEventId() {
-				if (!this.reserveEventId && !this.cancelEventId && !this.loanEventId) {
-					throw new Error('At least one of cancelEventId, loanEventId, or reserveEventId must not be null.');
+				if (!this.reserveEventId && !this.loanEventId) {
+					throw new Error('At least one of loanEventId, or reserveEventId must not be null.');
 				}
 			}
 		}

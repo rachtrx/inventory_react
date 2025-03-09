@@ -13,7 +13,6 @@ import { useLoan } from "./LoanProvider"
 import { v4 as uuidv4 } from 'uuid';
 import { useLoans } from "./LoansProvider"
 import { createNewAccessory } from "./LoanUser"
-import DateInputControl from "../../utils/DateInputControl"
 import { LoanAccSelectFormControl } from "./CustomSelect"
 
 const LoanAccessory = ({accessory, field, index, helpers, children}) => {

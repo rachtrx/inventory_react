@@ -78,10 +78,9 @@ const withSelect = (Component, isCreatable) => ({
       option = options.find((option) => option?.value === value.trim()) || null;
     }
     console.log(option);
-    console.log(meta.touched);
 
     // Handle the case where it's a creatable select and the option is not found
-    if (!option && isCreatable && value) { // TODO warning not appearing because technically shouldnt set ID
+    if (!option && isCreatable && value) { // TODO
       console.log(value);
       option = { value: value.trim(), label: value.trim() };
       setOptions((prevOptions) => [...prevOptions, option]); // Add the new creatable option
@@ -89,7 +88,7 @@ const withSelect = (Component, isCreatable) => ({
 
     setSelectedOption(option); // Set the selected option (whether found or newly created)
     
-  }, [value, options, isMulti, meta.touched]);
+  }, [value, options, isMulti]);
 
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>

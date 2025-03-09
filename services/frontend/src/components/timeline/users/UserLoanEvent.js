@@ -9,24 +9,24 @@ import {
     Divider,
     Icon,
     Collapse,
-    Button, Table, Thead, Tbody, Tr, Th, Td
+    Button,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import DateText from "./DateText";
-import { ResponsiveText } from "../utils/ResponsiveText";
-import { UserLink } from "../buttons/ItemLink";
-import CheckBadge from "../badges/CheckBadge";
-import WarningBadge from "../badges/WarningBadge";
-import { AccStatus, AssetStatus, ReturnEventTable } from "./utils/AccStatus";
+import DateText from "../utils/DateText";
+import { BadgeGroup } from "../utils/BadgeGroup";
+import { ResponsiveText } from "../../utils/ResponsiveText";
 
-const AssetLoanEvent = ({ event }) => {
-    // console.log(event);
+import { AccTypeLink, AssetLink, UserLink } from "../../buttons/ItemLink";
+import { AccStatus, ReturnEventTable } from "../utils/AccStatus";
+import { withEventBox } from "../utils/withEventBox";
+
+const UserLoanEvent = ({ event }) => {
+    console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { accLoans, user, returnEvents } = event.loan;
+    const { astLoan, accLoans, returnEvents } = event.loan;
 
-    const assetReturnEvent = returnEvents && Object.values(returnEvents).find(ev => ev.asset);
-    console.log(assetReturnEvent);
+    console.log(returnEvents);
 
     return (
         <VStack align="stretch" spacing={6}>
@@ -36,20 +36,36 @@ const AssetLoanEvent = ({ event }) => {
                     <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
                         Loaned
                     </ResponsiveText>
-                    <DateText colorScheme="blue" event={event}/>
+                    <DateText colorScheme="blue" event={event} />
                 </HStack>
 
-                {!isOpen && assetReturnEvent && (
+                {!isOpen && returnEvents?.length && (
                     <HStack>
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returned
                         </ResponsiveText>
-                        <DateText 
-                            colorScheme={"yellow"}
-                            event={assetReturnEvent}
-                        />
+                        {returnEvents.map((event) => (
+                            <DateText 
+                                colorScheme={event.asset ? "yellow" : "gray"}
+                                event={event}
+                            />
+                        ))}
                     </HStack>
                 )}
+
+                <Flex position="absolute"
+                    top={0}
+                    right={0}
+                    alignItems="flex-end" // Align content to the right
+                    overflow="hidden"
+                >   
+
+                    {astLoan && <AssetLink asset={astLoan.asset}/>}
+                    {accLoans && accLoans.length > 0 && (
+                            accLoans.map(accLoan => (<AccTypeLink accType={accLoan.accType}/>))
+                    )}
+                </Flex>
+
                 {!isOpen && accLoans && accLoans.length > 0 && (
                     <HStack>
                         {
@@ -59,18 +75,9 @@ const AssetLoanEvent = ({ event }) => {
                         }
                     </HStack>
                 )}
-                
-                <UserLink position="absolute"
-                    top={0}
-                    right={0}
-                    alignItems="flex-end" // Align content to the right
-                    key={user.userId} 
-                    user={user}
-                    overflow="hidden"
-                />
             </VStack>
 
-            {isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
+            {isOpen && returnEvents?.length && (
                 <Box>
                     <VStack spacing={4} align="stretch">
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
@@ -80,7 +87,7 @@ const AssetLoanEvent = ({ event }) => {
                             <HStack>
                                 {
                                     accLoans.map(accLoan => (
-                                        <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}/>
+                                        <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
                                     ))
                                 }
                             </HStack>
@@ -101,4 +108,4 @@ const AssetLoanEvent = ({ event }) => {
     );
 };
 
-export default AssetLoanEvent;
+export const UserLoanEventBox = withEventBox(UserLoanEvent)

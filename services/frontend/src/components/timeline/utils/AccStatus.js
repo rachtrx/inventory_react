@@ -3,9 +3,9 @@ import CheckBadge from "../../badges/CheckBadge"
 import WarningBadge from "../../badges/WarningBadge"
 
 import {Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
-import { BadgeGroup } from "../BadgeGroup";
-import DateText from "../DateText";
-import { useTimeline } from "../../../context/TImelineProvider";
+import { BadgeGroup } from "./BadgeGroup";
+import DateText from "./DateText";
+import { useTimeline } from "../../../context/TimelineProvider";
 
 const AccStatus = ({accLoan}) => {
 
@@ -52,7 +52,7 @@ const ReturnEventTable = ({returnEvents}) => {
                 </Tr>
             </Thead>
             <Tbody>
-                {Object.entries(returnEvents).map(([eventId, event]) => <EventTableRow key={eventId} event={event}/>)}
+                {returnEvents.map((event, idx) => <EventTableRow key={idx} event={event}/>)}
             </Tbody>
         </Table>
 

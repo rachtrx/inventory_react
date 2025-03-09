@@ -23,7 +23,7 @@ class AstLoanDTO {
             this.asset = new AssetDTO(Ast);
         }
         if (returnEventId !== undefined) this.returnEventId = returnEventId
-        if (ReturnEvent) this.returnEvent = new EventDTO(ReturnEvent);
+        if (ReturnEvent !== undefined) this.returnEvent = ReturnEvent && new EventDTO(ReturnEvent);
     }
 }
 

@@ -3,6 +3,8 @@ const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
+const logger = require('../logging.js');
+const { AssetDelete } = require('../search_tools/assetDelete.js');
 // const { DateTime } = require("luxon");
 
 // luxon: DateTime.now().setZone('Asia/Singapore').toJSDate()
@@ -44,6 +46,79 @@ class FormAssetController {
             return res.status(500).json({ error: error.message });
         }
     };
+
+    async createNewAssetType(req, res) { // TODO reload filters on frontend after created
+        const { typeName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+    
+            const existingAssetType = await AstType.findOne({
+                where: { typeName: { [Op.eq]: typeName } },
+                attributes: ['id', 'typeName'],
+                transaction,
+            });
+    
+            if (existingAssetType) {
+                throw new Error(`${typeName} already exists!`);
+            }
+    
+            const assetType = await AstType.create(
+                {
+                    id: generateSecureID(),
+                    typeName: typeName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+
+            return res.json(assetType.get({plain: true}));
+
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async createNewAssetSubType(req, res) {
+        const { typeId, subTypeName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+
+            const existingAssetSubType = await AstSType.findOne({
+                where: {
+                    subTypeName: { [Op.eq]: subTypeName },
+                },
+                include: {
+                    model: AstType,
+                    attributes: ['typeName'],
+                },
+                transaction,
+            });
+
+            if (existingAssetSubType) {
+                throw new Error(
+                    `${subTypeName} already exists under type ${existingAssetSubType.AstType.typeName}!`
+                );
+            }
+
+            const assetSubType = await AstSType.create(
+                {
+                    id: generateSecureID(),
+                    assetTypeId: typeId,
+                    subTypeName: subTypeName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+            return res.json(assetSubType.get({ plain: true}));
+            
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
     
     async add(req, res) {
         const { types } = req.body; // Assuming `types` is an array of asset types with their subtypes
@@ -164,7 +239,7 @@ class FormAssetController {
                                             {
                                                 id: generateSecureID(),
                                                 serialNumber: rest.serialNumber.toUpperCase(),
-                                                assetTag: rest.assetTag.toUpperCase(),
+                                                alias: rest.alias.toUpperCase(),
                                                 subTypeId: assetSubTypeId,
                                                 bookmarked: rest.bookmarked ? 1 : 0,
                                                 leased: rest.leased ? 1 : 0,
@@ -314,19 +389,19 @@ class FormAssetController {
                 }
             
                 const serialNums = new Set();
-                const assetTags = new Set();
+                const aliases = new Set();
                 for (const asset of assets) {
-                    const { serialNumber, assetTag, remarks } = asset;
-                    assetTag = assetTag.toUpperCase()
+                    const { serialNumber, alias, remarks } = asset;
+                    alias = alias.toUpperCase()
                     serialNumber = serialNumber.toUpperCase()
-                    if (await Ast.findOne({ where: { assetTag: assetTag }, transaction: t })) {
-                        throw new Error(`Ast AstTag ${assetTag} already exists!`);
+                    if (await Ast.findOne({ where: { alias: alias }, transaction: t })) {
+                        throw new Error(`Ast AstTag ${alias} already exists!`);
                     }
                     if (await Ast.findOne({ where: { serialNumber: serialNumber }, transaction: t })) {
                         throw new Error(`Serial Number ${serialNumber} already exists!`);
                     }
-                    if (assetTags.has(assetTag)) {
-                        throw new Error(`Duplicate Ast AstTag ${assetTag}!`);
+                    if (aliases.has(alias)) {
+                        throw new Error(`Duplicate Ast AstTag ${alias}!`);
                     }
                     if (serialNums.has(serialNumber)) {
                         throw new Error(`Duplicate Serial Number ${serialNumber}!`);
@@ -335,7 +410,7 @@ class FormAssetController {
                     await Ast.create({
                         id: assetId,
                         serialNumber: serialNumber.toUpperCase(),
-                        assetTag: assetTag.toUpperCase(),
+                        alias: alias.toUpperCase(),
                         subTypeId: subTypeId,
                         bookmarked: false,
                         status: 'AVAILABLE',
@@ -344,7 +419,7 @@ class FormAssetController {
                         vendorId: vendorId
                     }, { transaction: t });
                     await FormHelpers.insertAssetEvent(generateSecureID(), assetId, eventTypes.ADD_ASSET, remarks, t);
-                    assetTags.add(assetTag.toUpperCase());
+                    aliases.add(alias.toUpperCase());
                     serialNums.add(serialNumber.toUpperCase())
                 }
             }).catch(err => {
@@ -368,7 +443,7 @@ class FormAssetController {
                         ...asset,
                         value: asset.serialNumber,
                         label: asset.serialNumber,
-                        isDisabled: asset.delEventId || asset.ongoingLoan || asset.ongoingReservation
+                        isDisabled: asset.delEventId || asset.loan || asset.reservation
                 })
             )
             // console.log(assets);

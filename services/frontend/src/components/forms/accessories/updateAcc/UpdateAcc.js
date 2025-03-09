@@ -44,15 +44,17 @@ const UpdateAcc = () => {
   useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
 
   useEffect(() => {
-    if (!initialValues || initialValues.length === 0) return;
+    if (!initialValues.accNames?.length) return;
 
-    setAccessoryOptions(initialValues.map(accType => ({
+    console.log(initialValues);
+
+    setAccessoryOptions(initialValues.accNames.map(accType => ({
       label: accType.accessoryName,
       value: accType.accessoryName,
       accessoryTypeId: accType.accessoryTypeId
     })))
 
-    setFormData({accessories: initialValues.map(accType => addNewAccessory(accType))})
+    setFormData({accessories: initialValues.accNames.map(accType => addNewAccessory(accType))})
   }, [initialValues])
 
   const handleSubmit = async (values, actions) => {
@@ -160,7 +162,7 @@ const UpdateAcc = () => {
             </FieldArray>
             </ModalBody>
             <ModalFooter>
-              <Button Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
               <Button colorScheme="blue" type="submit" isDisabled={errors.accessories}>Submit</Button>
           </ModalFooter>
           </Form>

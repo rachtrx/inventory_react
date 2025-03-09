@@ -23,7 +23,7 @@ export const createNewAccessory = (accessory=null) => ({
 export const createNewAsset = (asset) => ({ // 1 loan only can have 1 asset
 	'key': uuidv4(),
 	'assetId': asset?.assetId || '',
-	'assetTag': asset?.assetTag || '',
+	'alias': asset?.alias || '',
 	'accessories': asset?.accessories?.map(accessory => createNewAccessory(accessory)) || [createNewAccessory()],
 	'serialNumber': asset?.serialNumber || '',
 	'onLoan': asset?.astLoans?.length > 0 ? true : false,

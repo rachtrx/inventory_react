@@ -12,6 +12,7 @@ import {
     Icon,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
+import { withEventBox } from "../utils/withEventBox";
 
 const AssetReserveEvent = ({ event }) => {
     const { accLoans } = event.reservation;
@@ -77,4 +78,4 @@ const AssetReserveEvent = ({ event }) => {
     );
 };
 
-export default AssetReserveEvent;
+export const AssetReserveEventBox = withEventBox(AssetReserveEvent)

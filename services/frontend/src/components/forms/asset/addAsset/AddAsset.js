@@ -27,9 +27,9 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 	return (
 		<Flex direction="column" gap={2}>	
 			<InputFormControl
-				label={`Asset Tag`}
-				name={`${field}.assetTag`} 
-				placeholder="Enter asset tag"
+				label={`Alias`}
+				name={`${field}.alias`} 
+				placeholder="Enter Alias"
 			/>
 			<InputFormControl
 				label={`Serial Number`} 

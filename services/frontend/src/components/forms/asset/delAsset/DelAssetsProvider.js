@@ -11,7 +11,6 @@ import { compareStrings, convertExcelDate } from "../../utils/validation";
 export const delNewAsset = (asset={}) => ({
   'key': uuidv4(),
   'assetId': asset.assetId || '',
-  // 'assetTag': asset.assetTag || '',
   'serialNumber': asset.serialNumber || '', // TODO if we move to serialNumber instead of tag
   'delDate': asset.delDate || new Date(),
   'lastEventDate': asset.lastEventDate || '',
@@ -24,7 +23,7 @@ const DelAssetsContext = createContext();
 // Create a provider component
 export const DelAssetsProvider = ({ children }) => {
   const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch } = useFormModal();
+  const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [assetOptions, setAssetOptions] = useState([]);
@@ -57,7 +56,6 @@ export const DelAssetsProvider = ({ children }) => {
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
     try {
-      // const assetTags = new Set();
       const serialNumbers = new Set();
 
       records.forEach((record) => {

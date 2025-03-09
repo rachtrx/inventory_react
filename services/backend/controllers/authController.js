@@ -33,7 +33,7 @@ class AuthController {
       }
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).send('Internal Server Error');
+      res.status(500).send({ error: error.message });
     }
   };
   
@@ -85,7 +85,7 @@ class AuthController {
       }
     } catch (error) {
       console.error('Check auth error:', error);
-      res.status(500).json({ message: "Internal Server Error", error: error.message });
+      res.status(500).json({ error: error.message, error: error.message });
     }
   };
   
@@ -109,9 +109,9 @@ class AuthController {
     } catch (error) {
       console.error('Registration error:', error);
       if (error.name === 'SequelizeUniqueConstraintError') {
-        res.status(409).send('Usr with this email already exists.');
+        res.status(409).send({error: 'Usr with this email already exists.'});
       } else {
-        res.status(500).send('Internal Server Error');
+        res.status(500).send({ error: error.message });
       }
     }
   };
@@ -127,7 +127,7 @@ class AuthController {
   
       const admin = await Admin.findOne({ where: { id: req.auth.id } });
       if (!admin) {
-        return res.status(404).json({ message: "Admin not found" });
+        return res.status(404).json({ error: "Admin not found" });
       }
   
       admin.pwd = hashedPassword;
@@ -141,7 +141,7 @@ class AuthController {
       res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
       console.error('Change password error:', error);
-      res.status(500).json({ message: "Internal Server Error", error: error.message });
+      res.status(500).json({ error: error.message });
     }
   };
   

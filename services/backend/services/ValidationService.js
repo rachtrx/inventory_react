@@ -16,7 +16,6 @@ class ValidationService {
     async getAccOnLoan(accLoanId, accName) {
         const accLoan = await AccLoan.findByPk(accLoanId, { 
             transaction: this.transaction,
-            attributes: ['returnEventId'],
             include: {
                 model: AccType,
                 attributes: ['accessoryName'],

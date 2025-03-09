@@ -2,6 +2,7 @@ import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useFormModal, actionTypes, FormType } from '../../context/ModalProvider';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 export default function AssetsActions() {
 
@@ -13,8 +14,7 @@ export default function AssetsActions() {
       <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
           {[
-            FormType.LOAN, 
-            FormType.RETURN, 
+            FormType.LOAN,
             FormType.ADD_ASSET, 
             FormType.DEL_ASSET, 
             FormType.TAG_ASSET,
@@ -28,6 +28,10 @@ export default function AssetsActions() {
             );
           })}
         </>
+        <ReturnButton
+          key={FormType.RETURN}
+          formType={FormType.RETURN}
+        />
       </Flex>
     )
   );

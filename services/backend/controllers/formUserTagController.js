@@ -2,7 +2,7 @@ const { Usr, sequelize, Event, Rmk, UsrTag, UsrTagMap } = require('../models/ind
 const { Op } = require('sequelize');
 const logger = require('../logging.js');
 const EventDTO = require('../dtos/event.dto.js');
-const { UserTagSearch } = require('../search_tools/UserTag.js');
+const { UserTagSearch } = require('../search_tools/userTag.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 class FormUserTagController {
@@ -10,7 +10,7 @@ class FormUserTagController {
     async loadAddUsers(req, res) {
         try {
             const search = new UserTagSearch(req.query)
-            console.log(req.query);
+            // console.log(req.query);
             const users = await search.run(true)
 
             users.forEach(user => {
@@ -18,10 +18,10 @@ class FormUserTagController {
                 user.label = user.userName;
                 if (req.query.tagId) {
                     user.tags.sort((a, b) => {
-                        return b.tagId === req.query.tagId - a.tagId === req.query.tagId;
+                        return b.isMatching - a.isMatching;
                     });
                 }
-                user.isDisabled = req.query.tagId && user.tags?.some(tag => tag.tagId === req.query.tagId)
+                user.isDisabled = req.query.tagId && user.tags?.some(tag => tag.isMatching)
             })
             // console.log(users);
             res.json(users);
@@ -41,10 +41,10 @@ class FormUserTagController {
                 user.label = user.userName;
                 if (req.query.tagId) {
                     user.tags.sort((a, b) => {
-                        return b.tagId === req.query.tagId - a.tagId === req.query.tagId;
+                        return b.isMatching - a.isMatching;
                     });
                 }
-                user.isDisabled = req.query.tagId && !user.tags?.some(tag => tag.tagId === req.query.tagId)
+                user.isDisabled = req.query.tagId && !user.tags?.some(tag => tag.isMatching)
             })
 
             // console.log(users);
@@ -138,7 +138,7 @@ class FormUserTagController {
             return res.json({ message: 'All tags added successfully.' });
         } catch (error) {
             logger.error(error);
-            res.status(500).send(`An error occurred while creating the tags: ${error.message}`);
+            res.status(500).send({ error: error.message });
         }
     };
 
@@ -189,7 +189,7 @@ class FormUserTagController {
         } catch (error) {
             logger.error(error);
             // console.log("succcessful transaction");
-            res.status(500).send(`An error occurred while deleting the tags: ${error.message}`);
+            res.status(500).send({ error: error.message });
         }
     }
 }

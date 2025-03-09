@@ -13,8 +13,8 @@ export const ItemsLine = ({ data, loanId, astLoan={}, accLoans }) => {
                 textSize="xs"
                 data={data}
             />
-            {astLoan.asset && <AssetLink textSize="xs" asset={astLoan.asset} />}
-            {!astLoan.asset && <AccTypeLink textSize="xs" accType={accLoans[0].accType} />}
+            {astLoan?.asset && <AssetLink textSize="xs" asset={astLoan.asset} />}
+            {!astLoan?.asset && <AccTypeLink textSize="xs" accType={accLoans[0].accType} />}
             <ReturnButton textSize="xs" loanId={loanId} />
         </Flex>
     )

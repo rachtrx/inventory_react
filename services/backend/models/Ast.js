@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
 			allowNull: false,
 			unique: true
 		},
-		assetTag: {
+		alias: {
 			type: DataTypes.STRING,
 			allowNull: true,
 			unique: true

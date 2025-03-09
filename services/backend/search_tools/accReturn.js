@@ -76,7 +76,7 @@ class AccReturnSearch {
                             model: AstLoan,
                             include: {
                                 model: Ast,
-                                attributes: ['id', 'serialNumber', 'assetTag'],
+                                attributes: ['id', 'serialNumber', 'alias'],
                                 include: {
                                     model: AstSType,
                                     attributes: ['subTypeName'],

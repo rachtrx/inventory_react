@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import InputFormControl from "../../../utils/InputFormControl"
 import { FieldArray, useFormikContext } from 'formik';
-import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl, SingleSelectFormControl } from "../../../utils/SelectFormControl";
+import { SearchSingleSelectFormControl, SingleSelectFormControl } from "../../../utils/SelectFormControl";
 import { Box, Divider, Flex } from "@chakra-ui/react";
 import DateInputControl from "../../../utils/DateInputControl";
 import { useFormModal } from "../../../../../context/ModalProvider";
@@ -56,7 +56,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
                             tag.users.map((user, userIndex, userArray) => (
                                 <Flex direction="column" gap={2} key={user.key}>
                                     <Flex key={user.key} alignItems="center"gap={2}>
-                                        <SingleSelectFormControl
+                                        <SearchSingleSelectFormControl
                                             name={`tags.${tagIndex}.users.${userIndex}.userName`}
                                             searchFn={value => userService.fetchUntagUser(value, tag.tagId)} // TODO handle shareds
                                             updateFields={(selected) => updateUserFields(userIndex, selected)}

@@ -17,7 +17,7 @@ class UserController {
         } catch (error) {
             logger.error(error)
             console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
+            res.status(500).json({ error: error.message });
         }
     }
     
@@ -78,7 +78,7 @@ class UserController {
                                     {
                                         model: Ast,
                                         required: true,
-                                        attributes: ['id', 'assetTag', 'serialNumber', 'bookmarked'],
+                                        attributes: ['id', 'alias', 'serialNumber', 'bookmarked'],
                                         include: {
                                             model: AstSType,
                                             required: true,
@@ -158,7 +158,7 @@ class UserController {
             // Mapping over the result to modify each user object
             const result = query.map(user => {
 
-                const initialUser = new UserDTO(user);
+                const initialUser = new UserDTO(user).setOngoingLoans().setOngoingReservations();
                 
                 initialUser.loans = initialUser.loans.filter(loan => {
                     if (loan.accLoans?.length) {
@@ -176,7 +176,7 @@ class UserController {
             res.json(result);
         } catch (error) {
             console.error('Error fetching user views:', error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     };
     
@@ -206,7 +206,7 @@ class UserController {
 
             if (!userDetails) return res.status(404).send({ error: "User not found" });
 
-            const user = new UserDTO(userDetails);
+            const user = new UserDTO(userDetails)
     
             user.history = await this.getAllEvents(user.userId);
 
@@ -226,7 +226,7 @@ class UserController {
             res.json(user);
         } catch (error) {
             logger.error("Error fetching user details:", error);
-            res.status(500).send({ error: "Internal server error" });
+            res.status(500).send({ error: error.message });
         }
     };
 
@@ -283,11 +283,27 @@ class UserController {
                                     model: Event,
                                     as: 'ReturnEvent',
                                     attributes: ['id', 'eventDate'],
-                                    required: false
+                                    required: false,
+                                    include: [
+                                        {
+                                            model: Rmk,
+                                            attributes: ['id', 'text', 'remarkDate'],
+                                            include: {
+                                                model: Admin,
+                                                attributes: ['id', 'adminName'],
+                                                required: false
+                                            }
+                                        },
+                                        {
+                                            model: Admin,
+                                            attributes: ['id', 'adminName'],
+                                            required: false
+                                        }
+                                    ]
                                 },
                                 {
                                     model: Ast,
-                                    attributes: ['id', 'serialNumber', 'assetTag', 'bookmarked'],
+                                    attributes: ['id', 'serialNumber', 'alias', 'bookmarked'],
                                     include: {
                                         model: AstSType,
                                         attributes: ['subTypeName'],
@@ -318,7 +334,23 @@ class UserController {
                                         model: Event,
                                         as: 'ReturnEvent',
                                         attributes: ['id', 'eventDate'],
-                                        required: true
+                                        required: true,
+                                        include: [
+                                            {
+                                                model: Rmk,
+                                                attributes: ['id', 'text', 'remarkDate'],
+                                                include: {
+                                                    model: Admin,
+                                                    attributes: ['id', 'adminName'],
+                                                    required: false
+                                                }
+                                            },
+                                            {
+                                                model: Admin,
+                                                attributes: ['id', 'adminName'],
+                                                required: false
+                                            }
+                                        ]
                                     }
                                 }
                             ]
@@ -334,12 +366,6 @@ class UserController {
                     required: false,
                     as: 'Reservation',
                     include: [
-                        {
-                            model: Event,
-                            as: 'CancelEvent',
-                            attributes: ['id', 'eventDate'],
-                            required: false
-                        },
                         {
                             model: AstLoan,
                             attributes: ['id'],
@@ -387,7 +413,7 @@ class UserController {
             }
         } catch (error) {
             console.error('Error updating user:', error);
-            res.status(500).send('Internal Server Error');
+            res.status(500).send({ error: error.message });
         }
     };
 }    

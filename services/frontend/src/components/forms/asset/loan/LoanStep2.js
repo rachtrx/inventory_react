@@ -53,18 +53,18 @@ export const LoanStep2 = () => {
 						>
 							<ResponsiveText size='lg'>{user.userName}</ResponsiveText>
 							<ResponsiveText>
-								{
-									user.loans.map((loan, index) => (
-									<Text key={index}>
-										{loan.asset && loan.asset.serialNumber && `${loan.asset.serialNumber}`}
-										{loan.asset && loan.asset.serialNumber && loan.accessories && loan.accessories.length > 0 &&
-										` | `}
-										{loan.accessories && loan.accessories.length > 0 &&
-										`${loan.accessories.map(accessory => `${accessory.accessoryName} x${accessory.count}`).join(", ")}`}
-										{loan.expectedReturnDate && ` | Due on: ${loan.expectedReturnDate}`}
-									</Text>
-									))
-								}
+							{user.loans.map((loan, index) => (
+								<Box key={index}>
+								<span>
+									{loan.asset && loan.asset.serialNumber && `${loan.asset.serialNumber}`}
+									{loan.asset && loan.asset.serialNumber && loan.accessories && loan.accessories.length > 0 &&
+									` | `}
+									{loan.accessories && loan.accessories.length > 0 &&
+									`${loan.accessories.map(accessory => `${accessory.accessoryName} x${accessory.count}`).join(", ")}`}
+									{loan.expectedReturnDate && ` | Due on: ${loan.expectedReturnDate}`}
+								</span>
+								</Box>
+							))}
 							</ResponsiveText>
 							<FormikSignatureField
 								name={`users.${userIndex}.signature`}
