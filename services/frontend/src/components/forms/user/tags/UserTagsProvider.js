@@ -12,6 +12,7 @@ import { AddUserTagsStep1 } from "./addTag/AddUserTagsStep1";
 import { DelUserTagsStep1 } from "./delTag/DelUserTagsStep1";
 import { DelUserTagsStep2 } from "./delTag/DelUserTagsStep2";
 import userService from "../../../../services/UserService";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const createNewTag = (tag=null, users=[]) => ({
 	'key': uuidv4(),
@@ -37,7 +38,8 @@ export const UserTagsFormProvider = ({
 	Step1,
 	Step2
 }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

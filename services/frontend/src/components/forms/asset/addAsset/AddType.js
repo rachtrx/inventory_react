@@ -16,7 +16,6 @@ export const AddType = ({type, typeIndex, children}) => {
 
     const { typeOptions, addNewType, subTypeOptionsDict, setSubTypeOptionsDict } = useAddAssets();
 	const { setFieldValue } = useFormikContext();
-    const { handleError, setLoading } = useUI();
 
     const handleTypeUpdate = async (option) => {
         // console.log(option?.typeId);
@@ -62,7 +61,10 @@ export const AddType = ({type, typeIndex, children}) => {
                             message={`Create ${type.typeName}?`}
                             items={typeOptions}
                             itemAttr="value"
-                            onCreate={() => addNewType(type.typeName)}
+                            onCreate={async () => {
+                                const newType = await addNewType(type.typeName);
+                                setFieldValue(`types.${typeIndex}.typeId`, newType.typeId);
+                            }}
                         />
                     }
                     <FieldArray name={`types.${typeIndex}.subTypes`}>

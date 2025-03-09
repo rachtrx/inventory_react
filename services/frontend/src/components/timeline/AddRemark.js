@@ -6,11 +6,13 @@ import { useTimeline } from "../../context/TimelineProvider";
 import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
 import eventService from "../../services/EventService";
+import { useLoading } from "../../context/LoadingProvider";
 
 const AddRemark = ({ eventId }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    const { setLoading, handleError, showToast } = useUI();
+    const { handleError, showToast } = useUI();
+    const { setLoading } = useLoading();
 
     return (
         <Box>

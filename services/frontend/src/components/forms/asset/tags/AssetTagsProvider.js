@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { DelAssetTagsStep1 } from "./delTag/DelAssetTagsStep1";
 import { DelAssetTagsStep2 } from "./delTag/DelAssetTagsStep2";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const createNewTag = (tag=null, assets=[]) => ({
 	'key': uuidv4(),
@@ -34,7 +35,8 @@ export const AssetTagsFormProvider = ({
 	Step1,
 	Step2
 }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

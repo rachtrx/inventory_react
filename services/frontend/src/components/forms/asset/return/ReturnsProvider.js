@@ -7,13 +7,15 @@ import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 // Create a context
 const ReturnsContext = createContext();
 
 // Create a provider component
 export const ReturnsProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);

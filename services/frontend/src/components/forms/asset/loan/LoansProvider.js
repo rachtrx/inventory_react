@@ -9,13 +9,15 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import accessoryService from "../../../../services/AccessoryService";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 // Create a context
 const LoansContext = createContext();
 
 // Create a provider component
 export const LoansProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType, initialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

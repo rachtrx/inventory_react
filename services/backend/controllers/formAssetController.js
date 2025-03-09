@@ -1,7 +1,7 @@
 const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
-const { eventTypes, getAssetFilters, getSubTypes } = require('./utils.js');
+const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');
@@ -72,10 +72,10 @@ class FormAssetController {
             );
             transaction.commit();
 
-            const newVendorOptions = await getAssetFilters('vendor');
-
-            return res.json(newVendorOptions);
-
+            return res.json({
+                message: `${vendor.vendorName} created successfully`,
+                newType: vendor.get({plain: true})
+            });
         } catch (error) {
             logger.info(error)
             return res.status(500).json({ error: error.message });
@@ -108,9 +108,10 @@ class FormAssetController {
             transaction.commit();
             console.log(assetType.get({plain: true}));
 
-            const newTypeOptions = await getAssetFilters('typeName');
-
-            return res.json(newTypeOptions);
+            return res.json({
+                message: `${assetType.typeName} created successfully`,
+                newType: assetType.get({plain: true})
+            });
 
         } catch (error) {
             logger.info(error)
@@ -150,9 +151,7 @@ class FormAssetController {
                 { transaction }
             );
             transaction.commit();
-
-            const newSubTypeDict = await getSubTypes([typeId]);
-            return res.json(newSubTypeDict);
+            return res.json(assetSubType.get({ plain: true}));
             
         } catch (error) {
             logger.info(error)

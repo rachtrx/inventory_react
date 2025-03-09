@@ -11,6 +11,7 @@ import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "../../utils/ItemButtons";
 import { v4 as uuidv4 } from 'uuid';
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const addNewAccessory = (accessory=null) => {
   return {
@@ -27,7 +28,8 @@ const UpdateAcc = () => {
   // console.log('update acc form rendered');
 
   const { setFormType, initialValues, handleAccessorySearch, reinitializeForm } = useFormModal()
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
     accessories: [addNewAccessory()]

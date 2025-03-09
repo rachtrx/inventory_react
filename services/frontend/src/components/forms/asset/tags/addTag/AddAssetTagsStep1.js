@@ -16,8 +16,6 @@ export const AddAssetTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAssetTags();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
 
     useEffect(() => {

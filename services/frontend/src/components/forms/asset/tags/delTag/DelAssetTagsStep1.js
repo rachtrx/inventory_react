@@ -15,8 +15,6 @@ export const DelAssetTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAssetTags();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
     // console.log('add asset form rendered');

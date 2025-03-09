@@ -6,6 +6,7 @@ import ItemDrawer from '../components/ItemDrawer';
 import accessoryService from '../services/AccessoryService';
 import { getDisplayValue } from '../config';
 import { useUI } from './UIProvider';
+import { useLoading } from './LoadingProvider';
 
 const DrawerContext = createContext();
 
@@ -27,7 +28,8 @@ const types = {
 export const DrawerProvider = ({ children }) => {
 	console.log("In drawer provider");
 
-	const { handleDevError, setLoading, handleError } = useUI();
+	const { handleDevError, handleError } = useUI();
+	const { setLoading } = useLoading();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
 	const [editedValue, setEditedValue] = useState(null);

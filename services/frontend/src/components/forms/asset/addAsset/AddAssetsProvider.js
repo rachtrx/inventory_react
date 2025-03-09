@@ -7,6 +7,7 @@ import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const createNewType = (type={}) => ({
   'key': uuidv4(),
@@ -38,7 +39,8 @@ const AddAssetsContext = createContext();
 
 // Create a provider component
 export const AddAssetsProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
@@ -68,24 +70,24 @@ export const AddAssetsProvider = ({ children }) => {
     fetchFilters();
   }, []);
 
-  const parseOptions = (options, idAttr) => {
-    return options.map(option => ({
-      [idAttr]: option.value,
-      value: option.label,
-      label: option.label
-  }));
-  } 
-
   const getTypeFilters = async () => {
       const response = await assetService.getFilters('typeName');
       const options = response.data;
-      return parseOptions(options, 'typeId');
+      return options.map(option => ({
+          typeId: option.value,
+          value: option.label,
+          label: option.label
+      }));
   };
 
   const getVendorFilters = async () => {
       const response = await assetService.getFilters('vendor');
       const options = response.data;
-      return parseOptions(options, 'vendorId');
+      return options.map(option => ({
+          vendorId: option.value,
+          value: option.label,
+          label: option.label
+      }));
   };
 
   const setValuesExcel = async (records) => {
@@ -210,10 +212,10 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewType(typeName);
-      const options = response.data;
-      console.log(options);
-      setTypeOptions(parseOptions(options, 'typeId'));
+      const { newType } = response.data;
+      setTypeOptions(oldArray => [...oldArray, { typeId: newType.id, value: newType.typeName, label: newType.typeName }]);
       setLoading(false);
+      return newType;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -224,9 +226,10 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewVendor(vendorName);
-      const options = response.data;
-      setVendorOptions(parseOptions(options, 'vendorId'));
+      const { newVendor } = response.data;
+      setTypeOptions(oldArray => [...oldArray, { vendorId: newVendor.id, value: newVendor.vendorName, label: newVendor.vendorName }]);
       setLoading(false);
+      return newVendor;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -291,7 +294,6 @@ export const AddAssetsProvider = ({ children }) => {
     typeOptions,
     vendorOptions,
     subTypeOptionsDict,
-    setSubTypeOptionsDict,
     addNewSubType,
     addNewType,
     addNewVendor,

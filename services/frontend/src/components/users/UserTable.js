@@ -12,10 +12,10 @@ import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { UserLink } from '../buttons/ItemLink';
 import Tags from '../tags/Tags';
+import { useLoading } from '../../context/LoadingProvider';
 
 const UserTable = ({ items }) => {
 
-  const { loading, setLoading, error, setError }  = useUI();
   const { handleUpdate } = useItems()
 
   return (

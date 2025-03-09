@@ -55,9 +55,9 @@ export const PrivateLayout = () => {
       <main>
         <ModalProvider>
           <DrawerProvider>
-              <Outlet />
-              <FormModal />
-              <ItemDrawer />
+            <Outlet />
+            <FormModal />
+            <ItemDrawer />
           </DrawerProvider>
         </ModalProvider>
       </main>

@@ -5,10 +5,11 @@ import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
+import { useLoading } from '../../context/LoadingProvider';
 
 const AccessoryTable = ({ items }) => {
 
-  const { loading, setLoading, error, setError }  = useUI();
+  const { loading, setLoading } = useLoading();
   const { handleUpdate } = useItems()
 
   return (

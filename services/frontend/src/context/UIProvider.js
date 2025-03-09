@@ -6,8 +6,6 @@ const UIContext = createContext(false);
 
 export const UIProvider = ({ children }) => {
   console.log("Rendering UI Provider");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   // TODO toaster
 
   const toast = useToast();
@@ -59,12 +57,10 @@ export const UIProvider = ({ children }) => {
       errorMessage = error.message;
     }
 
-    setError(errorMessage);
     showToast(errorMessage, 'error');
   }, [showToast])
 
   const handleDevError = useCallback(() => {
-    setError("This feature is under development");
     showToast("This feature is under development", 'error');
   }, [showToast])
 
@@ -81,7 +77,7 @@ export const UIProvider = ({ children }) => {
   };
 
   return (
-    <UIContext.Provider value={{ DismissableAlert, loading, setLoading, error, setError, showToast, handleError, handleDevError }}>
+    <UIContext.Provider value={{ DismissableAlert, showToast, handleError, handleDevError }}>
       {children}
     </UIContext.Provider>
   );

@@ -14,7 +14,6 @@ export const LoanStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useLoans();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
