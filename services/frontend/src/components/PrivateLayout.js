@@ -52,13 +52,13 @@ export const PrivateLayout = () => {
     (<div>
       <Nav/>
       <main>
-          <ModalProvider>
-            <DrawerProvider>
-              <Outlet />
-              <FormModal />
-              <ItemDrawer />
-            </DrawerProvider>
-          </ModalProvider>
+        <ModalProvider>
+          <DrawerProvider>
+            <Outlet />
+            <FormModal />
+            <ItemDrawer />
+          </DrawerProvider>
+        </ModalProvider>
       </main>
     </div>)
   );

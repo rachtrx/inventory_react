@@ -8,6 +8,7 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const createNewType = (type={}) => ({
   'key': uuidv4(),
@@ -39,6 +40,8 @@ const AddAssetsContext = createContext();
 
 // Create a provider component
 export const AddAssetsProvider = ({ children }) => {
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
   const { setFormType } = useFormModal();
@@ -78,11 +81,21 @@ export const AddAssetsProvider = ({ children }) => {
           value: option.label,
           label: option.label
       }));
+      return options.map(option => ({
+          typeId: option.value,
+          value: option.label,
+          label: option.label
+      }));
   };
 
   const getVendorFilters = async () => {
       const response = await assetService.getFilters('vendor');
       const options = response.data;
+      return options.map(option => ({
+          vendorId: option.value,
+          value: option.label,
+          label: option.label
+      }));
       return options.map(option => ({
           vendorId: option.value,
           value: option.label,
@@ -221,6 +234,7 @@ export const AddAssetsProvider = ({ children }) => {
         }
       ]);
       setLoading(false);
+      return newType;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -240,6 +254,7 @@ export const AddAssetsProvider = ({ children }) => {
         }
       ]);
       setLoading(false);
+      return newVendor;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -304,7 +319,6 @@ export const AddAssetsProvider = ({ children }) => {
     typeOptions,
     vendorOptions,
     subTypeOptionsDict,
-    setSubTypeOptionsDict,
     addNewSubType,
     addNewType,
     addNewVendor,
