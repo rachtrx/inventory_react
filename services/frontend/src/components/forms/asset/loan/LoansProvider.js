@@ -10,7 +10,6 @@ import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import accessoryService from "../../../../services/AccessoryService";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useLoading } from "../../../../context/LoadingProvider";
 
 // Create a context
 const LoansContext = createContext();
