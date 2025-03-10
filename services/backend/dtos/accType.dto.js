@@ -14,13 +14,12 @@ class AccTypeDTO {
         AccTxns,
         AccLoans
     }) {
-        if (isMatching !== null) this.isMatching = isMatching;
-
-        if (remarks !== null) this.remarks = remarks;
-
         if (id) this.accessoryTypeId = id;
-        
         if (accessoryName) this.accessoryName = accessoryName;
+
+        if (isMatching !== null) this.isMatching = isMatching;
+        if (remarks !== null) this.remarks = remarks;
+        
         if (Number.isFinite(stock)) this.stock = stock;
 
         if (AccTxns && AccTxns.every(accTxn => accTxn.count)) {

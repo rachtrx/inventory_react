@@ -13,13 +13,15 @@ import { useResponsive } from '../context/ResponsiveProvider';
 
 import { useItems } from '../context/ItemsProvider';
 import { useUI } from '../context/UIProvider';
+import { useLoading } from '../context/LoadingProvider';
 
 export default function RecordsLayout({ header, Filters, Actions, Cards, Table }) {
 
   const { headerSize, isIpad, isMobile } = useResponsive()
   const { handleDevError } = useUI();
 
-  const { items, loading, error } = useItems();
+  const { items } = useItems();
+  const { loading, setLoading } = useLoading();
 
   const [isGridView, setIsGridView] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,7 +41,6 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
   );
 
   if (loading) return <CardSkeleton />;
-  if (error) return <Box>Error: {error.message}</Box>;
 
   return (
       <>

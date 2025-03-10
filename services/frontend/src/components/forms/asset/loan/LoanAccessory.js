@@ -14,25 +14,30 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLoans } from "./LoansProvider"
 import { createNewAccessory } from "./LoanUser"
 import { LoanAccSelectFormControl } from "./CustomSelect"
+import WarningCard from "../../utils/Warnings"
 
 const LoanAccessory = ({accessory, field, index, helpers, children}) => {
 	
-	const { values, setFieldValue } = useFormikContext();
-	const { warnings } = useLoan();
-	const { accessoryOptions } = useLoans()
-	// console.log(warnings);
+	const { setFieldValue } = useFormikContext();
+	const { accessoryOptions, addNewAccessory } = useLoans()
 
     const updateAccessoryFields = (selected) => {
 		setFieldValue(`${field}.accessoryTypeId`, selected?.accessoryTypeId || '');
 	}
 
+    useEffect(() => {
+        console.log(accessoryOptions);
+        if (!accessory.accessoryName || accessory.accessoryTypeId) return;
+        const matchedOption = accessoryOptions.find(option => option.accessoryTypeId && option.value === accessory.accessoryName);
+        if(matchedOption) setFieldValue(`${field}.accessoryTypeId`, matchedOption.accessoryTypeId);
+    }, [accessoryOptions, setFieldValue, accessory, field]);
+
     return (
-        <Box key={accessory.key}>
+        <Flex direction="column" key={accessory.key}>
             <LoanAccSelectFormControl
                 name={`${field}.accessoryName`}
                 searchFn={accessoryService.fetchAccLoan}
                 updateFields={(selected) => updateAccessoryFields(selected)}
-                warning={warnings[accessory.key] || null}
                 initialOptions={accessoryOptions}
             >
                 <InputFormControl
@@ -45,7 +50,15 @@ const LoanAccessory = ({accessory, field, index, helpers, children}) => {
                     handleClick={() => helpers.remove(index)}
                 />
             </LoanAccSelectFormControl>
-        </Box>
+            {accessory.accessoryName && !accessory.accessoryTypeId && 
+                <WarningCard
+                    message={`Create ${accessory.accessoryName}?`}
+                    items={accessoryOptions}
+                    itemAttr="value"
+                    onCreate={async() => await addNewAccessory(accessory.accessoryName)}
+                />
+            }
+        </Flex>
     )
 }
 

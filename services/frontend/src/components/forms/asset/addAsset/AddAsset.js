@@ -5,11 +5,12 @@ import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useAddAssets } from "./AddAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
+import WarningCard from "../../utils/Warnings";
 
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
 	const { setFieldValue } = useFormikContext();
-	const { vendorOptions } = useAddAssets();
+	const { vendorOptions, addNewVendor } = useAddAssets();
 
 	// useEffect(() => { // perhaps this is not required TODO
 	// 	// update all if any cost changes
@@ -24,8 +25,15 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 		setCost(asset.cost);
 	}, [asset.cost, cost, setCost])
 
+	useEffect(() => {
+		console.log(vendorOptions);
+		if (!asset.vendorName || asset.vendorId) return;
+		const matchedOption = vendorOptions.find(option => option.vendorId && option.value === asset.vendorName);
+		if(matchedOption) setFieldValue(`${field}.vendorId`, matchedOption.vendorId);
+	}, [vendorOptions, setFieldValue, asset, field]);
+
 	return (
-		<Flex direction="column" gap={2}>	
+		<Flex direction="column" gap={2}>
 			<InputFormControl
 				label={`Alias`}
 				name={`${field}.alias`} 
@@ -43,6 +51,14 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				initialOptions={vendorOptions} 
 				placeholder="Enter vendor" 
 			/>
+			{asset.vendorName && !asset.vendorId && 
+				<WarningCard
+					message={`Create ${asset.vendorName}?`}
+					items={vendorOptions}
+					itemAttr="value"
+					onCreate={() => addNewVendor(asset.vendorName)}
+				/>
+			}
 			<InputFormControl
 				label={`Cost`} 
 				name={`${field}.cost`} 

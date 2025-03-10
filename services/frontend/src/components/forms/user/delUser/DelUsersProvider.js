@@ -7,6 +7,7 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const delNewUser = (user={}) => ({
   'key': uuidv4(),
@@ -22,7 +23,8 @@ const DelUsersContext = createContext();
 
 // Create a provider component
 export const DelUsersProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType, initialValues, handleUserSearch } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

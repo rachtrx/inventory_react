@@ -16,8 +16,6 @@ export const AddUserStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAddUsers();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
     console.log('add user form rendered');

@@ -582,38 +582,50 @@ class AccessoryController {
 
     // SECTION helpers
 
-    async createAccessoryType(accessoryName, count, authId, transaction, remarks="") {
-        // console.log("Creating Acc");
+    async createAccessoryEndpoint(req, res) {
+        const { accessoryName } = req.body;
 
-        const addAccTypeEventId = generateSecureID();
+        const authId = req.auth.id
 
-        const dateTimeNow = DateTime.now().setZone('Asia/Singapore').toJSDate();
+        const transaction = await sequelize.transaction();
 
-        const accRow = await AccType.findOne({
-            attributes: ["accessoryName"],
-            where: { accessoryName }
-        })
+        try {
+            const addAccTypeEventId = generateSecureID();
 
-        // console.log(accRow);
+            const dateTimeNow = DateTime.now().setZone('Asia/Singapore').toJSDate();
 
-        if (accRow) {
-            throw new Error(`Accessory with name ${accessoryName} already exists.`);
+            const accRow = await AccType.findOne({
+                attributes: ["accessoryName"],
+                where: { accessoryName }
+            })
+
+            if (accRow) {
+                throw new Error(`Accessory with name ${accessoryName} already exists.`);
+            }
+
+            await Event.create({
+                id: addAccTypeEventId,
+                eventDate: dateTimeNow, // TODO
+                adminId: authId, // req.auth.id
+            }, { transaction });
+
+            const accType = await AccType.create({ 
+                id: generateSecureID(), 
+                accessoryName: accessoryName, 
+                stock: 0,
+                addEventId: addAccTypeEventId
+            }, { transaction });
+
+            await transaction.commit();
+            res.status(201).json({ 
+                message: "Accessories added successfully",
+                newAccType: new AccTypeDTO(accType)
+            });
+        } catch (error) {
+            logger.error(error);
+            await transaction.rollback();
+            res.status(500).json({ error: error.message });
         }
-
-        await Event.create({
-            id: addAccTypeEventId,
-            eventDate: dateTimeNow, // TODO
-            adminId: authId, // req.auth.id
-        }, { transaction: this.transaction });
-
-        const accType = await AccType.create({ 
-            id: generateSecureID(), 
-            accessoryName: accessoryName, 
-            stock: count,
-            addEventId: addAccTypeEventId
-        }, { transaction });
-
-        return accType;
     }
 
     // Method to reduce accessory count
@@ -627,6 +639,9 @@ class AccessoryController {
 
                 let { accessoryTypeId, accessoryName, count, remarks } = accessory;
 
+                const type = await this.getType(accessoryTypeId, { transaction });
+                if (!type) throw new Error (`${accessoryName} not found`);
+
                 const eventId = generateSecureID();
                 const authId = req.auth.id
 
@@ -638,6 +653,16 @@ class AccessoryController {
                     adminId: authId,
                 }, { transaction: transaction });
 
+                type.stock += count;
+                await type.save({ transaction });
+                
+                await AccTxn.create({
+                    id: generateSecureID(),
+                    accessoryTypeId: accessoryTypeId,
+                    count: count,
+                    eventId: eventId
+                }, { transaction: transaction });
+
                 if (remarks && remarks !== '') {
                     await Rmk.create({
                         id: generateSecureID(),
@@ -645,25 +670,6 @@ class AccessoryController {
                         remarkDate: curDate,
                         remarks: remarks,
                         adminId: authId
-                    }, { transaction: transaction });
-                }
-
-                if (accessoryTypeId && accessoryTypeId !== "") {
-                    const type = await this.getType(accessoryTypeId, { transaction });
-                    type.stock += count;
-                    await type.save({ transaction });
-                } else {
-                    // Ensure you await the call to createAccessoryType and pass the transaction
-                    const accType = await this.createAccessoryType(accessoryName, count, req.auth.id, transaction);
-                    accessoryTypeId = accType.id
-                }
-                
-                if (count !== 0) {
-                    await AccTxn.create({
-                        id: generateSecureID(),
-                        accessoryTypeId: accessoryTypeId,
-                        count: count,
-                        eventId: eventId
                     }, { transaction: transaction });
                 }
             }

@@ -14,7 +14,6 @@ export const LoanStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useLoans();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
@@ -122,12 +121,14 @@ export const LoanStep1 = () => {
           loan.accessories.forEach((accessory, accessoryIndex) => {
             const accessoryError = validateAccessory(accessory, accessoryIDDuplicates);
             if (accessoryError) {
-              setFieldError(errors, ['loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
+              setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
             }
             // Track new accessories for warnings
-            if (accessory.id === '' && accessory.accessoryName) {
-              newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
-            }
+            // if (accessory.id === '' && accessory.accessoryName) {
+            //   newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
+            // }
+            console.log(accessory);
+            if (accessory['accessoryName'] && !accessory['accessoryTypeId']) setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], `Please create new accessory type ${accessory['accessoryName']}`);
           });
         })
       });
@@ -135,9 +136,9 @@ export const LoanStep1 = () => {
       console.log(errors);
     
       // Set warnings based on new accessories
-      const updatedWarnings = generateWarnings(values.users.flatMap(user => user.loans.flatMap(loan => loan.accessories)), newAccessories);
-      console.log(updatedWarnings);
-      setWarnings(updatedWarnings);
+      // const updatedWarnings = generateWarnings(values.users.flatMap(user => user.loans.flatMap(loan => loan.accessories)), newAccessories);
+      // console.log(updatedWarnings);
+      // setWarnings(updatedWarnings);
       return errors;
     };
   

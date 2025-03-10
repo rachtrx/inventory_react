@@ -1,5 +1,4 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
-import { useDrawer } from '../../context/DrawerProvider';
 import { useItems } from '../../context/ItemsProvider';
 import StarButton from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';

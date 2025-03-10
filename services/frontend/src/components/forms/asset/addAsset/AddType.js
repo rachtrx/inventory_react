@@ -9,42 +9,50 @@ import { AddSubType } from "./AddSubType"
 import assetService from "../../../../services/AssetService"
 import { AddAsset } from "./AddAsset"
 import InputFormControl from "../../utils/InputFormControl"
-import WarningCard from "./Warnings"
+import WarningCard from "../../utils/Warnings"
 import { useUI } from "../../../../context/UIProvider"
 
 export const AddType = ({type, typeIndex, children}) => {
 
     const { typeOptions, addNewType, subTypeOptionsDict, setSubTypeOptionsDict } = useAddAssets();
-	const { setFieldValue } = useFormikContext();
-    const { handleError, setLoading } = useUI();
+	const { values, setFieldValue } = useFormikContext();
 
-    const handleTypeUpdate = async (option) => {
-        // console.log(option?.typeId);
+    useEffect(() => console.log(values), [values]);
+
+    const handleTypeUpdate = async (selected) => {
+        // console.log(selected?.typeId);
         // console.log(type?.typeId);
 
-        console.log("TYPE UPDATED");
+        console.log(selected);
 
-        if (!option || option.typeId) { // IMPT dont update for new created types
+        if (!selected || selected.typeId) { // IMPT dont update for new created types
 
-            setFieldValue(`types.${typeIndex}.typeId`, option?.typeId || '');
+            setFieldValue(`types.${typeIndex}.typeId`, selected?.typeId || '');
 
-            if (option.typeName !== type.typeName) {
+            if (!selected || selected.value !== type.typeName) {
                 setFieldValue(`types.${typeIndex}.subTypes`, [createNewSubType()]);
             }
 
-            if (!option) return;
+            if (!selected) return;
 
             const getSubTypeFilters = async (typeId) => {
                 const response = await assetService.getSubTypeFilters([typeId]);
                 return response.data;
             }
-            const subTypeOptions = await getSubTypeFilters(option.typeId);
+            const subTypeOptions = await getSubTypeFilters(selected.typeId);
             setSubTypeOptionsDict(oldDict => ({
                 ...oldDict,
-                [option.typeId]: subTypeOptions[option.typeId]
+                [selected.typeId]: subTypeOptions[selected.typeId]
             }));
         }
     };
+
+    useEffect(() => {
+        console.log(typeOptions);
+        if (!type.typeName || type.typeId) return;
+        const matchedOption = typeOptions.find(option => option.typeId && option.value === type.typeName);
+        if(matchedOption) setFieldValue(`types.${typeIndex}.typeId`, matchedOption.typeId);
+    }, [typeOptions, setFieldValue, type, typeIndex]);
 
 	return (
         <>
@@ -62,7 +70,7 @@ export const AddType = ({type, typeIndex, children}) => {
                             message={`Create ${type.typeName}?`}
                             items={typeOptions}
                             itemAttr="value"
-                            onCreate={() => addNewType(type.typeName)}
+                            onCreate={async() => await addNewType(type.typeName)}
                         />
                     }
                     <FieldArray name={`types.${typeIndex}.subTypes`}>

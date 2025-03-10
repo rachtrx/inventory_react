@@ -9,7 +9,7 @@ export const AccTypeActionButton = ({
 
 	return (
 		<ActionButton
-			initialValues={{accNames: accTypeArray.map(accType => accType.accessoryName) ,grouped}}
+			initialValues={{accNames: accTypeArray.map(accType => accType.accessoryName), grouped}}
 			{...rest}
 		/>
 	)

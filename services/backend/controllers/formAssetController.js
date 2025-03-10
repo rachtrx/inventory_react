@@ -1,7 +1,7 @@
 const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
-const { eventTypes, getAssetFilters, getSubTypes } = require('./utils.js');
+const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');
@@ -72,10 +72,10 @@ class FormAssetController {
             );
             transaction.commit();
 
-            const newVendorOptions = await getAssetFilters('vendor');
-
-            return res.json(newVendorOptions);
-
+            return res.json({
+                message: `${vendor.vendorName} created successfully`,
+                newVendor: vendor.get({plain: true})
+            });
         } catch (error) {
             logger.info(error)
             return res.status(500).json({ error: error.message });
@@ -108,9 +108,10 @@ class FormAssetController {
             transaction.commit();
             console.log(assetType.get({plain: true}));
 
-            const newTypeOptions = await getAssetFilters('typeName');
-
-            return res.json(newTypeOptions);
+            return res.json({
+                message: `${assetType.typeName} created successfully`,
+                newType: assetType.get({plain: true})
+            });
 
         } catch (error) {
             logger.info(error)
@@ -150,9 +151,10 @@ class FormAssetController {
                 { transaction }
             );
             transaction.commit();
-
-            const newSubTypeDict = await getSubTypes([typeId]);
-            return res.json(newSubTypeDict);
+            return res.json({
+                message: `${assetSubType.subTypeName} created successfully`,
+                newSubType: assetSubType.get({plain: true})
+            });
             
         } catch (error) {
             logger.info(error)
@@ -173,82 +175,47 @@ class FormAssetController {
             await sequelize.transaction(async (t) => {
                 await Promise.all(
                     types.map(async ({ typeId, typeName, subTypes }) => {
-                        let assetTypeId = typeId;
-            
-                        if (!assetTypeId) {
-                            const existingAssetType = await AstType.findOne({
-                                where: { typeName: { [Op.eq]: typeName } },
-                                attributes: ['id', 'typeName'],
-                                transaction: t,
-                            });
-            
-                            if (existingAssetType) {
-                                throw new Error(`${typeName} already exists!`);
-                            }
-            
-                            const assetType = await AstType.create(
-                                {
-                                    id: generateSecureID(),
-                                    typeName: typeName,
-                                },
-                                { transaction: t }
-                            );
-            
-                            assetTypeId = assetType.id;
+
+                        console.log(typeId);
+                        
+                        const existingAssetType = await AstType.findOne({
+                            where: { id: typeId },
+                            attributes: ['id', 'typeName'],
+                            transaction: t,
+                        });
+                        
+                        if (!existingAssetType) {
+                            throw new Error(`${typeName} not found!`);
                         }
             
                         await Promise.all(
                             subTypes.map(async ({ subTypeId, subTypeName, assets }) => {
-                                let assetSubTypeId = subTypeId;
+                                const existingAssetSubType = await AstSType.findOne({
+                                    where: {
+                                        [Op.and]: [
+                                            { id: { [Op.eq]: subTypeId } },
+                                            { assetTypeId: { [Op.eq]: typeId } },
+                                        ]
+                                    },
+                                    transaction: t,
+                                });
             
-                                if (!assetSubTypeId) {
-                                    const existingAssetSubType = await AstSType.findOne({
-                                        where: {
-                                            subTypeName: { [Op.eq]: subTypeName },
-                                        },
-                                        include: {
-                                            model: AstType,
-                                            attributes: ['typeName'],
-                                        },
-                                        transaction: t,
-                                    });
-            
-                                    if (existingAssetSubType) {
-                                        throw new Error(
-                                            `${subTypeName} already exists under type ${existingAssetSubType.AstType.typeName}!`
-                                        );
-                                    }
-            
-                                    const assetSubType = await AstSType.create(
-                                        {
-                                            id: generateSecureID(),
-                                            assetTypeId: assetTypeId,
-                                            subTypeName: subTypeName,
-                                        },
-                                        { transaction: t }
+                                if (!existingAssetSubType) {
+                                    throw new Error(
+                                        `${subTypeName} not found!`
                                     );
-            
-                                    assetSubTypeId = assetSubType.id;
                                 }
             
                                 await Promise.all(
-                                    assets.map(async ({ vendorName, ...rest }) => {
-                                        let vendorData = await Vendor.findOne({
+                                    assets.map(async ({ vendorId, vendorName, ...rest }) => {
+                                        let existingVendor = await Vendor.findOne({
                                             attributes: ['id'],
-                                            where: { vendorName: { [Op.iLike]: vendorName } },
+                                            where: { id: { [Op.eq]: vendorId } },
                                             transaction: t,
                                         });
             
-                                        let vendorId = vendorData?.id || generateSecureID();
-            
-                                        if (!vendorData) {
-                                            await Vendor.create(
-                                                {
-                                                    id: vendorId,
-                                                    vendorName: vendorName,
-                                                },
-                                                { transaction: t }
-                                            );
+                                        if (!existingVendor) {
+                                            throw new Error(`${vendorName} not found!`);
                                         }
             
                                         const addEventId = generateSecureID();
@@ -280,9 +247,8 @@ class FormAssetController {
                                                 id: generateSecureID(),
                                                 serialNumber: rest.serialNumber.toUpperCase(),
                                                 alias: rest.alias.toUpperCase(),
-                                                subTypeId: assetSubTypeId,
-                                                bookmarked: rest.bookmarked ? 1 : 0,
-                                                leased: rest.leased ? 1 : 0,
+                                                subTypeId: subTypeId,
+                                                bookmarked: rest.bookmarked ? true : false,
                                                 location: rest.location,
                                                 vendorId: vendorId,
                                                 addEventId: addEventId,

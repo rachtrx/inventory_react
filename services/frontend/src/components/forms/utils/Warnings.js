@@ -1,7 +1,7 @@
 import { Box, Text, Button, VStack, SimpleGrid } from "@chakra-ui/react";
 import { WarningIcon } from "@chakra-ui/icons";
 import React from "react";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
+import { ResponsiveText } from "../../utils/ResponsiveText";
 
 const WarningCard = ({ message, items, itemAttr, onCreate }) => {
   return (

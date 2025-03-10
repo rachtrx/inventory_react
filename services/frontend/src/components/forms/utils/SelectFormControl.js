@@ -138,7 +138,7 @@ const withSearch = (Component) => ({
   const handleSearch = useCallback(
     async (inputValue) => {
       try {
-        if (inputValue === '') return;
+        // if (inputValue === '') return;
         console.log(`input value detected: ${inputValue}`);
         const response = await searchFn(inputValue);
         if (isMulti) setOptions([...value, ...response.data]);

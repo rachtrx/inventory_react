@@ -24,6 +24,7 @@ import { ResponsiveText } from './utils/ResponsiveText';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import { loginRequest } from '../authConfig';
+import { useLoading } from '../context/LoadingProvider';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required("Email is required"),
@@ -32,7 +33,8 @@ const validationSchema = Yup.object().shape({
 
 export default function Login() {
   const { admin, setAdmin } = useAuth();
-  const { loading, setLoading, handleError } = useUI()
+  const { handleError } = useUI()
+  const { loading, setLoading } = useLoading();
   const navigate = useNavigate()
 
   const { instance, accounts } = useMsal();

@@ -11,7 +11,7 @@ import DateInputControl from "../../utils/DateInputControl"
 import { createNewAsset, useAddAssets } from "./AddAssetsProvider"
 import { Outlet } from "react-router-dom"
 import assetService from "../../../../services/AssetService"
-import WarningCard from "./Warnings"
+import WarningCard from "../../utils/Warnings"
 
 export const AddSubType = ({
 	field,
@@ -25,7 +25,12 @@ export const AddSubType = ({
 	const { addNewSubType } = useAddAssets()
 	const [ cost, setCost ] = useState(0);
 
-	// console.log(field);
+	useEffect(() => {
+		console.log(subTypeOptions);
+		if (!subType.subTypeName || subType.subTypeId) return;
+		const matchedOption = subTypeOptions.find(option => option.subTypeId && option.value === subType.subTypeName);
+		if(matchedOption) setFieldValue(`${field}.subTypeId`, matchedOption.subTypeId);
+	}, [subTypeOptions, setFieldValue, subType, field]);
 
 	useEffect(() => {
 		if (subType.subTypeId === "" || cost !== 0) return;
@@ -61,7 +66,7 @@ export const AddSubType = ({
 					{typeId && subType.subTypeName && !subType.subTypeId && 
 						<WarningCard
 							message={`Create ${subType.subTypeName}?`}
-							// items={subType}
+							items={subTypeOptions}
 							itemAttr="value"
 							onCreate={() => addNewSubType(subType.subTypeName, typeId)}
 						/>

@@ -16,8 +16,6 @@ export const AddAssetStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAddAssets();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
 
     useEffect(() => {
@@ -53,6 +51,7 @@ export const AddAssetStep1 = () => {
         const typeError = validateFieldName(tNameDuplicates, type['typeName'], "Type");
 
         if (typeError) setFieldError(errors, ['types', typeIndex, 'typeName'], typeError);
+        
         if (type['typeName'] && !type['typeId']) setFieldError(errors, ['types', typeIndex, 'typeName'], `Please create new type ${type['typeName']}`);
 
         const stNameDuplicates = validateUniqueValues(type.subTypes, ['subTypeName']);

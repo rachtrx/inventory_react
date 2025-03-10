@@ -9,6 +9,7 @@ import { UIProvider } from './context/UIProvider';
 import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Global, css } from '@emotion/react';
+import { LoadingProvider } from './context/LoadingProvider';
 
 /*if (process.env.NODE_ENV !== "development") {
   console.log = () => {};
@@ -64,11 +65,12 @@ root.render(
     <GlobalStyles/>
     <ChakraProvider>
       <ResponsiveProvider>
-        <LoadingSpinner/>
-        <UIProvider>
-          <RouterProvider router={App}/>
-        {/* Insert footer here? */}
-        </UIProvider>
+        <LoadingProvider> 
+          <LoadingSpinner />
+          <UIProvider>
+            <RouterProvider router={App} />
+          </UIProvider>
+        </LoadingProvider>
       </ResponsiveProvider>
     </ChakraProvider>
   </>

@@ -9,14 +9,16 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import accessoryService from "../../../../services/AccessoryService";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 // Create a context
 const LoansContext = createContext();
 
 // Create a provider component
 export const LoansProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch } = useFormModal();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
+  const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [assetOptions, setAssetOptions] = useState([]);
@@ -186,6 +188,29 @@ export const LoansProvider = ({ children }) => {
     setStep(step - 1)
   };
 
+  const addNewAccessory = async (accessoryName) => {
+    try {
+      setLoading(true);
+      const response = await accessoryService.createAccessory(accessoryName);
+      setAccessoryOptions(oldArray => [
+        ...oldArray.filter(item => !(item.value === accessoryName && !item.accessoryTypeId)),
+        { 
+          accessoryTypeId: response.data.newAccType.accessoryTypeId,
+          accessoryName: response.data.newAccType.accessoryName,
+          stock: response.data.newAccType.stock,
+          value: response.data.newAccType.accessoryName,
+          label: response.data.newAccType.accessoryName
+        }
+      ]);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
+  useEffect(() => {console.log(accessoryOptions)}, [accessoryOptions]);
+
   const nextStep = (values, actions) => {
     console.log('Manual Form Values:', values);
     setFormData(values);
@@ -215,6 +240,7 @@ export const LoansProvider = ({ children }) => {
     userOptions,
     accessoryOptions,
     formData,
+    addNewAccessory,
     userLoans,
     step,
     setAssetOptions,

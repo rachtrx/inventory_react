@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { dateTimeObject } from '../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
+import { useLoading } from './LoadingProvider';
 
 // Create a context for assets
 const ItemsContext = createContext();
@@ -9,7 +10,8 @@ const ItemsContext = createContext();
 // Devices Provider component
 export const ItemsProvider = ({ children, service, idField }) => {
   const [items, setItems] = useState([]);
-  const { loading, setLoading, handleError } = useUI();
+  const { handleError } = useUI();
+  const { setLoading } = useLoading();
 
   const [filters, setFilters] = useState(service.defaultFilters);
 

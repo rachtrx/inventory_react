@@ -4,7 +4,6 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'; // Outlet f
 import Nav from './Nav';
 import { ModalProvider } from '../context/ModalProvider';
 import { DrawerProvider } from '../context/DrawerProvider';
-import { ItemsProvider } from '../context/ItemsProvider';
 import FormModal from './FormModal';
 import ItemDrawer from './ItemDrawer';
 import authService from '../services/AuthService';
@@ -53,13 +52,13 @@ export const PrivateLayout = () => {
     (<div>
       <Nav/>
       <main>
-        <ModalProvider>
-          <DrawerProvider>
+          <ModalProvider>
+            <DrawerProvider>
               <Outlet />
               <FormModal />
               <ItemDrawer />
-          </DrawerProvider>
-        </ModalProvider>
+            </DrawerProvider>
+          </ModalProvider>
       </main>
     </div>)
   );

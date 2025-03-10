@@ -32,18 +32,13 @@ module.exports = (sequelize) => {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false
 		},
-		leased: {
-			type: DataTypes.INTEGER,
-			defaultValue: 0
-		},
 		location: {
 			type: DataTypes.STRING
 		},
 		remarks: {
 			type: DataTypes.TEXT,
 		},
-		// TODO REMOVE addedDate
-		expiryDate: {
+		leaseEndDate: {
 			type: DataTypes.DATE,
 			allowNull: true,
 		},

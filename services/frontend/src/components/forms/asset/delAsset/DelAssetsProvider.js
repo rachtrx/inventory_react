@@ -7,6 +7,7 @@ import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const delNewAsset = (asset={}) => ({
   'key': uuidv4(),
@@ -22,7 +23,8 @@ const DelAssetsContext = createContext();
 
 // Create a provider component
 export const DelAssetsProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

@@ -11,7 +11,6 @@ import {
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import Cards from '../utils/Cards';
-import { useDrawer } from "../../context/DrawerProvider";
 import { AccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
@@ -56,12 +55,6 @@ function AccessoryCards({ items }) {
                   </Flex>
                   <Flex gap={1}>
                     <CircleText
-                      text={accessoryType.stock ? accessoryType.stock : 0}
-                    />
-                    <ResponsiveText>Available</ResponsiveText>
-                  </Flex>
-                  <Flex gap={1}>
-                    <CircleText
                       text={accessoryType.loanCount ? accessoryType.loanCount : 0}
                     />
                     <ResponsiveText>Loaned</ResponsiveText>
@@ -71,6 +64,12 @@ function AccessoryCards({ items }) {
                       text={accessoryType.reserveCount ? accessoryType.reserveCount : 0}
                     />
                     <ResponsiveText>Reserved</ResponsiveText>
+                  </Flex>
+                  <Flex gap={1}>
+                    <CircleText
+                      text={accessoryType.stock ? accessoryType.stock : 0}
+                    />
+                    <ResponsiveText>Available</ResponsiveText>
                   </Flex>
                 </Flex>
               </VStack>

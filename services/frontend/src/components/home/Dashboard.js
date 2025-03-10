@@ -10,6 +10,7 @@ import { Container, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './config';
 import { useUI } from '../../context/UIProvider';
 import { Reminders } from './Reminders';
+import { useLoading } from '../../context/LoadingProvider';
 
 // Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
 Chart.register(ChartjsPluginScrollBar);
@@ -18,7 +19,7 @@ export default function Dashboard() {
 
     const [doughnuts, setDoughnuts] = useState([])
     const [barCharts, setBarCharts] = useState([])
-    const { loading, setLoading } = useUI()
+    const { loading, setLoading } = useLoading();
 
     useEffect(() => {
 

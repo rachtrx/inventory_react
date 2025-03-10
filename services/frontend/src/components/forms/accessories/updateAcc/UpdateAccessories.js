@@ -11,8 +11,10 @@ import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
 import { RemoveButton } from "../../utils/ItemButtons";
 import { v4 as uuidv4 } from 'uuid';
+import { useLoading } from "../../../../context/LoadingProvider";
+import { UpdateAccessory } from "./UpdateAccessory";
 
-export const addNewAccessory = (accessory=null) => {
+export const createNewAccessory = (accessory=null) => {
   return {
     'key': uuidv4(),
 	  'accessoryTypeId': accessory?.accessoryTypeId || "",
@@ -22,31 +24,28 @@ export const addNewAccessory = (accessory=null) => {
   }
 }
 
-const UpdateAcc = () => {
+const UpdateAccessories = () => {
 
   // console.log('update acc form rendered');
 
-  const { setFormType, initialValues, handleAccessorySearch, reinitializeForm } = useFormModal()
-  const { setLoading, showToast, handleError } = useUI();
+  const { setFormType, initialValues, reinitializeForm } = useFormModal()
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
-    accessories: [addNewAccessory()]
+    accessories: [createNewAccessory()]
   });
 
   const [accessoryOptions, setAccessoryOptions] = useState([])
 
   useEffect(() => {
-    // console.log("Accessory Add Form");
-    // console.log(initialValues);
-    // console.log(formData);
   }, [formData, initialValues]);
 
   useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
 
   useEffect(() => {
-    if (!initialValues.accNames?.length) return;
-
     console.log(initialValues);
+    if (!initialValues.accNames?.length) return;
 
     setAccessoryOptions(initialValues.accNames.map(accType => ({
       label: accType.accessoryName,
@@ -54,7 +53,7 @@ const UpdateAcc = () => {
       accessoryTypeId: accType.accessoryTypeId
     })))
 
-    setFormData({accessories: initialValues.accNames.map(accType => addNewAccessory(accType))})
+    setFormData({accessories: initialValues.accNames.map(accType => createNewAccessory(accType))})
   }, [initialValues])
 
   const handleSubmit = async (values, actions) => {
@@ -99,6 +98,11 @@ const UpdateAcc = () => {
           if (!errors.accessories) errors.accessories = [];
           errors.accessories[index] = { ...errors.accessories[index], 'accessoryName': 'Accessories must be unique' };
         }
+
+        else if (accessory.accessoryName && !accessory.accessoryTypeId) {
+          if (!errors.accessories) errors.accessories = [];
+          errors.accessories[index] = { ...errors.accessories[index], 'accessoryName': `Please create new accessory type ${accessory['accessoryName']}` };
+        }
       });
     }
     // console.log(errors);
@@ -106,9 +110,26 @@ const UpdateAcc = () => {
     return errors;
   };
 
-  const updateAccessoryFields = (index, selected, setFieldValue) => {
-		setFieldValue(`accessories.${index}.accessoryTypeId`, selected?.accessoryTypeId || '');
-	}
+  const addNewAccessory = async (accessoryName) => {
+    try {
+      setLoading(true);
+      const response = await accessoryService.createAccessory(accessoryName);
+      setAccessoryOptions(oldArray => [
+        ...oldArray.filter(item => !(item.value === accessoryName && !item.accessoryTypeId)),
+        { 
+          accessoryTypeId: response.data.newAccType.accessoryTypeId,
+          accessoryName: response.data.newAccType.accessoryName,
+          stock: response.data.newAccType.stock,
+          value: response.data.newAccType.accessoryName,
+          label: response.data.newAccType.accessoryName
+        }
+      ]);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
   
   return (
     <Box>
@@ -126,38 +147,21 @@ const UpdateAcc = () => {
             <Divider borderColor="black" borderWidth="2px" my={2}/>
             <FieldArray name='accessories'>
               {accessoryHelpers => values.accessories.map((accessory, index, array) => (
-                <Box key={accessory.key}>
-                  <ResponsiveText size="lg">{`Accessory #${index+1}`}</ResponsiveText>
-                  <Flex direction="column" gap={2}>
-                    <Flex gap={4} alignItems="flex-start">
-                      <SearchCreatableSingleSelectFormControl
-                        name={`accessories.${index}.accessoryName`}
-                        searchFn={handleAccessorySearch}
-                        updateFields={(selected) => updateAccessoryFields(index, selected, setFieldValue)}
-                        initialOptions={accessoryOptions}
-                      >
-                        <InputFormControl
-                          name={`accessories.${index}.count`}
-                          type="number"
-                          placeholder="Enter count"
-                        />
-                        <RemoveButton
-                          ariaLabel="Remove Accessory"
-                          handleClick={() => accessoryHelpers.remove(index)}
-                          isDisabled={values.accessories.length === 1}
-                        />
-                      </SearchCreatableSingleSelectFormControl>
-                    </Flex>
-                    <InputFormControl name={`accessories.${index}.remarks`} label={`Update Remarks`}/>
-                  </Flex>
-                <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
-                  {index === array.length - 1 && (
+                <UpdateAccessory
+                  accessory={accessory}
+                  accessoryOptions={accessoryOptions}
+                  addNewAccessory={addNewAccessory}
+                  accessoryHelpers={accessoryHelpers}
+                  index={index}
+                >
+                  <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
+                    {index === array.length - 1 && (
                     <Button mt={4} type="button" onClick={() => accessoryHelpers.push(addNewAccessory())}>
                       <ResponsiveText>Add Accessory</ResponsiveText>
                     </Button>
-                  )}
-                </Flex>
-                </Box>
+                    )}
+                  </Flex>
+                </UpdateAccessory>
               ))}
             </FieldArray>
             </ModalBody>
@@ -172,4 +176,4 @@ const UpdateAcc = () => {
   );
 };
 
-export default UpdateAcc;
+export default UpdateAccessories;

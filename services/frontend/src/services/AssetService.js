@@ -48,7 +48,7 @@ class AssetService {
 
     async createNewSubType(subTypeName, typeId) {
         console.log(subTypeName);
-        return await this.axios.post(`${API_URL}/forms/add/aubType`, { subTypeName, typeId });
+        return await this.axios.post(`${API_URL}/forms/add/subType`, { subTypeName, typeId });
     }
 
     async createNewVendor(vendorName) {

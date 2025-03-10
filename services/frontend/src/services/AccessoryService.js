@@ -33,7 +33,11 @@ class AccessoryService {
     }
 
     async addAccessories(formValues) {
-        return await this.axios.post(`${this.URL}/add`, formValues);;
+        return await this.axios.post(`${this.URL}/addTxn`, formValues);;
+    }
+
+    async createAccessory(accessoryName) {
+        return await this.axios.post(`${this.URL}/add`, { accessoryName });;
     }
 
     async searchAccessories(value) {

@@ -8,6 +8,7 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import userService from "../../../../services/UserService";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { useLoading } from "../../../../context/LoadingProvider";
 
 export const createNewDept = (dept={}) => ({
   'key': uuidv4(),
@@ -28,7 +29,8 @@ const AddUsersContext = createContext();
 
 // Create a provider component
 export const AddUsersProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 

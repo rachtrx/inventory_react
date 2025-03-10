@@ -11,12 +11,14 @@ import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { AddButton } from "../../../utils/ItemButtons";
 import { useFormModal } from "../../../../../context/ModalProvider";
 import { createNewTag, useUserTags } from "../UserTagsProvider";
+import { useLoading } from "../../../../../context/LoadingProvider";
 
 export const AddUserTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useUserTags();
     const { setFormType, reinitializeForm } = useFormModal();
-    const { setLoading, showToast, handleError } = useUI();
+    const { showToast, handleError } = useUI();
+    const { setLoading } = useLoading();
     const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
 
