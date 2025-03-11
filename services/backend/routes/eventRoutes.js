@@ -4,6 +4,7 @@ const eventController = require('../controllers/eventController');
 const router = express.Router();
 
 router.get('/', eventController.getAllEvents);
+router.get('/filters/all', eventController.getFilters)
 router.post('/add/remark', eventController.addRemark)
 router.post('/filters', eventController.getFilters)
 router.post('/update', eventController.updateEvent)

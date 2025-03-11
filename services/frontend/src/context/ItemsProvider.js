@@ -63,6 +63,24 @@ export const ItemsProvider = ({ children, service, idField }) => {
     setPage(() => Math.min(pageNumber, maxPage));
   }, [maxPage]);
 
+  const fetchAllFilters = useCallback(async () => {
+    try {
+      const response = await service.getAllFilters();
+      const filterOptionsDict = response.data;
+      setFilters((prevFilters) => ({
+        ...prevFilters, // Keep existing filters
+        ...filterOptionsDict, // Merge new filter options
+      }));
+    
+    } catch (error) {
+      handleError(`Error fetching all filters: ${error.message}`);
+    }
+  }, [handleError, service]);
+
+  useEffect(() => {
+    fetchAllFilters()
+  }, [fetchAllFilters]);
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -122,11 +140,13 @@ export const ItemsProvider = ({ children, service, idField }) => {
 
   return (
     <ItemsContext.Provider value={{ 
+      defaultFilters: service.defaultFilters,
       filters, 
       setFilters,
       handleUpdate,
       handleSort,
       fetchFilters,
+      fetchAllFilters,
       setSearchFilters,
       data,
       totalCount,

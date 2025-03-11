@@ -8,11 +8,8 @@ class UserService {
     }
 
     defaultFilters = {
-        deptName: [],
         userName: '',
-        assetCount: [0, 100],
         bookmarked: false,
-        userTag: [],
     }
 
     async getItem(id) {
@@ -21,6 +18,10 @@ class UserService {
 
     async getFilters(field) {
         return await this.axios.post(`${API_URL}/users/filters`, {field});
+    }
+
+    async getAllFilters() {
+        return await this.axios.get(`${API_URL}/users/filters/all`);
     }
 
     async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {

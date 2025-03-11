@@ -13,9 +13,17 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { useItems } from '../../context/ItemsProvider';
+import { useFormikContext } from 'formik';
 
 const FilterSidebar = ({ children }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const { values, handleSubmit, resetForm } = useFormikContext();
+
+    useEffect(() => {
+        console.log(values)
+    }, [values])
     const btnRef = useRef();
 
     return (
@@ -63,10 +71,23 @@ const FilterSidebar = ({ children }) => {
 
                     <DrawerFooter>
                         <Flex w="full" gap={4}>
-                            <Button colorScheme="blue" type="submit" w="full">
+                            <Button 
+                                colorScheme="blue" 
+                                onClick={(values) => {
+                                    handleSubmit(values);
+                                    onClose();
+                                }} 
+                                w="full">
                                 Search
                             </Button>
-                            <Button colorScheme="gray" variant="outline" type="reset" w="full">
+                            <Button 
+                                colorScheme="gray" 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    resetForm();
+                                }} 
+                                variant="outline" 
+                                w="full">
                                 Reset
                             </Button>
                         </Flex>

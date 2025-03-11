@@ -1,19 +1,20 @@
-import React from "react";
-import { Field, ErrorMessage } from "formik";
+import React, { useState } from "react";
+import { Field, ErrorMessage, useFormikContext } from "formik";
 import { Box, FormControl, FormErrorMessage, FormLabel, Text } from "@chakra-ui/react";
 import { Range } from "react-range";
 
-export const RangeField = ({ label, range=[], name }) => {
+export const RangeField = ({ label, range = [], name }) => {
+    const min = range.length ? Math.min(...range) : null;
+    const max = range.length ? Math.max(...range) : null;
 
-    const min = Math.min(...range) || 0;
-    const max = Math.max(...range) || 100;
+    const { values } = useFormikContext();
 
-    return (
+    return Number.isFinite(min) && Number.isFinite(max) ? (
         <FormControl mb={4}>
-            {label && <FormLabel>Min & Max Count</FormLabel>}
+            {label && <FormLabel>{label}</FormLabel>}
 
             <Box textAlign="center" mb={2}>
-                <Text>Min: {min} | Max: {max}</Text>
+                <Text>Min: {values[name]?.[0] || min} | Max: {values[name]?.[1] || max}</Text>
             </Box>
 
             <Field name={name}>
@@ -22,7 +23,7 @@ export const RangeField = ({ label, range=[], name }) => {
                         step={1}
                         min={min}
                         max={max}
-                        values={field.value || [min, max]} // Ensure default values
+                        values={field.value || [min, max]} // Persist previous values
                         onChange={(newValues) => {
                             form.setFieldValue(field.name, newValues); // Update Formik field
                         }}
@@ -38,8 +39,9 @@ export const RangeField = ({ label, range=[], name }) => {
                                 {children}
                             </Box>
                         )}
-                        renderThumb={({ props }) => (
+                        renderThumb={({ key, props }) => (
                             <Box
+                                key={key}
                                 {...props}
                                 w="16px"
                                 h="16px"
@@ -52,10 +54,9 @@ export const RangeField = ({ label, range=[], name }) => {
                 )}
             </Field>
 
-            {/* Display Formik validation error if any */}
             <FormErrorMessage>
-                <ErrorMessage name="range" />
+                <ErrorMessage name={name} />
             </FormErrorMessage>
         </FormControl>
-    );
+    ) : null;
 };

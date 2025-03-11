@@ -2,12 +2,14 @@ const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const EventLogDTO = require("../dtos/eventLog.dto");
-const { getAllOptions, getUserFilters, getAssetFilters } = require("./utils.js");
+const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters } = require("./utils.js");
 
 class EventController {
 
     constructor() {
         this.fixedFields = ['adminId', 'eventDate', 'id']
+        this.userFields = ["deptName", "userTag"]
+        this.assetFields = ["typeName", "subTypeName", "assetTag"]
     }
 
     async addRemark(req, res) {
@@ -43,18 +45,37 @@ class EventController {
     async getFilters(req, res) {
         const { field } = req.body;
 
-        const userFields = ["deptName", "userTag"]
-        const assetFields = ["typeName", "subTypeName", "assetTag"]
-
         let options;
         try {
-            if (userFields.includes(field)) options = await getUserFilters(field);
-            else if (assetFields.includes(field)) options = await getAssetFilters(field);
+            if (this.userFields.includes(field)) options = await getUserFilters(field);
+            else if (this.assetFields.includes(field)) options = await getAssetFilters(field);
             else if (field === 'admin') {
                 const meta = [Admin, 'adminName', 'id'];
                 options = await getAllOptions(meta);
             } else throw new Error(`Unknown filtering field detected: ${field}`);
             return res.json(options || [])
+        } catch (error) {
+            logger.error(error)
+            console.error(error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    async getAllFilters(req, res) {
+        try {
+            const assetOptionsDict = Object.fromEntries(
+                await Promise.all(
+                    this.assetFields.map(async (field) => [field, await getAssetFilters(field)])
+                )
+            );
+            const userOptionsDict = Object.fromEntries(
+                await Promise.all(
+                    this.assetFields.map(async (field) => [field, await getAssetFilters(field)])
+                )
+            );
+            const meta = [Admin, 'adminName', 'id'];
+            options = await getAllOptions(meta);
+            return res.json({...assetOptionsDict, ...userOptionsDict, admin: options})
         } catch (error) {
             logger.error(error)
             console.error(error);

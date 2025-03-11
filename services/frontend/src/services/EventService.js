@@ -11,19 +11,23 @@ class EventService {
     defaultFilters = {
         "startDate": "",
         "endDate": "",
-        "eventType": [],
-        "typeName": [],
-        "subTypeName": [],
+        // "eventType": [],
+        // "typeName": [],
+        // "subTypeName": [],
         "serialNumber": "",
-        "deptName": [],
+        // "deptName": [],
         "userName": "",
-        "assetTag": [],
-        "userTag": [],
-        "admin": []
+        // "assetTag": [],
+        // "userTag": [],
+        // "admin": []
     }
 
     async getFilters(field) {
         return await this.axios.post(`${API_URL}/events/filters`, {field});
+    }
+
+    async getAllFilters() {
+        return await this.axios.get(`${API_URL}/events/filters/all`);
     }
 
     async loadItems(filters = this.defaultFilters) {

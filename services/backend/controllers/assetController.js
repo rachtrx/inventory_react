@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes, assetFilters } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
@@ -28,6 +28,21 @@ class AssetController {
         }
     }
 
+    async getAllFilters(req, res) {
+        try {
+            const optionsDict = Object.fromEntries(
+                await Promise.all(
+                    assetFilters.map(async (field) => [field, await getAssetFilters(field)])
+                )
+            );
+            return res.json(optionsDict)
+        } catch (error) {
+            logger.error(error)
+            console.error(error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
     async getFilters(req, res) {
         const { field } = req.body;
         try {
@@ -49,11 +64,11 @@ class AssetController {
                 ...(filters?.serialNumber ? [{ serialNumber: { [Op.iLike]: `%${filters.serialNumber}%` } }] : []),
                 ...(filters?.location && filters.location.length > 0 ? [{ location: filters.location }] : []),
                 ...(filters?.bookmarked === true ? [{ bookmarked: true }] : []),
-                ...(filters?.age?.length ? [
+                ...(filters?.age?.length === 2 ? [
                     Sequelize.literal(`
-                        FLOOR(DATE_PART('day', NOW() - "Ast->AddEvent"."eventDate") / 365.25) 
-                        IN (${filters.age.map(age => `'${age}'`).join(', ')})`
-                    )
+                        FLOOR(DATE_PART('day', NOW() - "AddEvent"."event_date") / 365.25) 
+                        BETWEEN ${filters.age[0]} AND ${filters.age[1]}
+                    `)
                 ] : []),
                 ...(!filters?.status?.includes('Condemned')
                     ? [Sequelize.literal(`NOT EXISTS (
@@ -103,7 +118,7 @@ class AssetController {
             // Use `findAndCountAll` for pagination
             const { count, rows } = await Ast.findAndCountAll({
                 distinct: true,
-                subQuery: false,
+                subQuery: true,
                 attributes: ['id', 'serialNumber', 'alias', 'location', 'bookmarked', 'value'],
                 include: [
                     {
@@ -119,20 +134,20 @@ class AssetController {
                     },
                     {
                         model: AstSType,
+                        required: true,
                         attributes: ['subTypeName'],
-                        ...(filters?.subTypeName?.length && { where: { id: { [Op.in]: filters.subTypeName } } }),
                         include: {
                             model: AstType,
+                            required: true,
                             attributes: ['typeName'],
                             ...(filters?.typeName?.length && { where: { id: { [Op.in]: filters.typeName } } }),
-                            required: true,
-                        },
-                        required: true,
-                    },
+                        }
+                    },                    
                     {
                         model: Event,
                         as: 'AddEvent',
-                        attributes: ['eventDate']
+                        attributes: ['eventDate'],
+                        required: true
                     },
                     {
                         model: Event,
@@ -170,7 +185,7 @@ class AssetController {
                 return asset;
             });
     
-            logger.info(result.slice(0, 10));
+            // logger.info(result.slice(0, 10));
     
             res.json({
                 data: result,

@@ -13,13 +13,15 @@ import { useResponsive } from '../context/ResponsiveProvider';
 import { useItems } from '../context/ItemsProvider';
 import { useUI } from '../context/UIProvider';
 import { useLoading } from '../context/LoadingProvider';
+import { Form, Formik } from 'formik';
+import FilterSidebar from './utils/FilterSidebar';
 
 export default function RecordsLayout({ header, Filters, Actions, Cards, Table }) {
 
-  const { headerSize, isIpad, isMobile } = useResponsive()
+  const { headerSize, isIpad } = useResponsive()
   const { handleDevError } = useUI();
 
-  const { data, totalCount, page, maxPage, next, prev } = useItems();
+  const { data, totalCount, page, maxPage, next, prev, defaultFilters, setSearchFilters } = useItems();
   const { loading } = useLoading();
 
   const [isGridView, setIsGridView] = useState(false);
@@ -45,7 +47,17 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
         </Box>
         
         <Box p={4}>
-          <Filters/>
+          <Formik
+              initialValues={defaultFilters}
+              onSubmit={(values) => setSearchFilters(values)}
+          >
+            <Form>
+                <FilterSidebar>
+                  <Filters />
+                </FilterSidebar>
+              </Form>
+          </Formik>
+          
         </Box>
         <Flex p={4} justifyContent="space-around">
           <InfoBar count={totalCount} />

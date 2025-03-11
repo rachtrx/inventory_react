@@ -89,6 +89,18 @@ db.AstTagMap.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' })
 db.AstTag.hasMany(db.AstTagMap, { foreignKey: 'tagId' })
 db.AstTagMap.belongsTo(db.AstTag, { foreignKey: 'tagId', targetKey: 'id' })
 
+db.Ast.belongsToMany(db.AstTag, {
+  through: db.AstTagMap,
+  foreignKey: 'assetId',  
+  otherKey: 'tagId',
+});
+
+db.AstTag.belongsToMany(db.Ast, {
+  through: db.AstTagMap,  
+  foreignKey: 'tagId',  
+  otherKey: 'assetId',
+});
+
 db.Usr.hasMany(db.UsrTagMap, { foreignKey: 'userId' })
 db.UsrTagMap.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' })
 
@@ -133,17 +145,17 @@ db.AccLoan.hasMany(db.AccReturn, { foreignKey: 'accLoanId' });
 db.AccReturn.belongsTo(db.AccLoan, { foreignKey: 'accLoanId', targetKey: 'id' }); // TODO remove?
 
 // RECOMMENDATIONS
-db.AstType.hasMany(db.AstTypeAcc, { foreignKey: 'assetTypeId' });
-db.AstTypeAcc.belongsTo(db.AstType, { foreignKey: 'assetTypeId', targetKey: 'id' });
+// db.AstType.hasMany(db.AstTypeAcc, { foreignKey: 'assetTypeId' });
+// db.AstTypeAcc.belongsTo(db.AstType, { foreignKey: 'assetTypeId', targetKey: 'id' });
 
-db.AstSType.hasMany(db.AstSTypeAcc, { foreignKey: 'subTypeId' });
-db.AstSTypeAcc.belongsTo(db.AstSType, { foreignKey: 'subTypeId', targetKey: 'id' });
+// db.AstSType.hasMany(db.AstSTypeAcc, { foreignKey: 'subTypeId' });
+// db.AstSTypeAcc.belongsTo(db.AstSType, { foreignKey: 'subTypeId', targetKey: 'id' });
 
-db.AccType.hasMany(db.AstTypeAcc, { foreignKey: 'accessoryTypeId' });
-db.AstTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
+// db.AccType.hasMany(db.AstTypeAcc, { foreignKey: 'accessoryTypeId' });
+// db.AstTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
-db.AccType.hasMany(db.AstSTypeAcc, { foreignKey: 'accessoryTypeId' });
-db.AstSTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
+// db.AccType.hasMany(db.AstSTypeAcc, { foreignKey: 'accessoryTypeId' });
+// db.AstSTypeAcc.belongsTo(db.AccType, { foreignKey: 'accessoryTypeId', targetKey: 'id' });
 
 // EVENTS
 db.Event.hasOne(db.Loan, { as: 'Reservation', foreignKey: 'reserveEventId' });

@@ -10,15 +10,9 @@ class AssetService {
     }
 
     defaultFilters = {
-        "typeName": [],
-        "subTypeName": [],
-        "vendor": [],
         "status": AssetStatus.getAllValues(),
-        "location": [],
-        "age": [],
         "serialNumber": '',
         "bookmarked": false,
-        "assetTag": [],
     }
 
     async getItem(id) {
@@ -27,6 +21,10 @@ class AssetService {
 
     async getFilters(field) {
         return await this.axios.post(`${API_URL}/assets/filters`, {field});
+    }
+
+    async getAllFilters() {
+        return await this.axios.get(`${API_URL}/assets/filters/all`);
     }
 
     async getSubTypeFilters(typeIds) {

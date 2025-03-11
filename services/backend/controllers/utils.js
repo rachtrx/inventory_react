@@ -20,6 +20,9 @@ exports.FormType = {
     RESERVE: 'RESERVE',
 }
 
+exports.assetFilters = ['typeName', 'subTypeName', 'vendor', 'assetTag', 'location', 'age']
+exports.userFilters = ['deptName', 'assetCount', 'userTag', 'assetCount']
+
 exports.createSelection = (arr, labelField, valueField) => {
     return arr
         .filter(obj => obj[labelField] && obj[valueField])
@@ -98,7 +101,7 @@ exports.getAssetFilters = async (field) => {
             options = this.createSelection(distinctAges, field, field);
             options = options.map(option => ({ 
                 ...option, 
-                value: String(option.value) 
+                value: String(option.value)
             }));
             
         } else throw new Error()

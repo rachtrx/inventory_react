@@ -1,11 +1,26 @@
 const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { createSelection, getAllOptions, getDistinctOptions, getUserFilters } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getUserFilters, userFilters } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
 class UserController {
+
+    async getAllFilters(req, res) {
+        try {
+            const optionsDict = Object.fromEntries(
+                await Promise.all(
+                    userFilters.map(async (field) => [field, await getUserFilters(field)])
+                )
+            );
+            return res.json(optionsDict)
+        } catch (error) {
+            logger.error(error)
+            console.error(error);
+            res.status(500).json({ error: error.message });
+        }
+    }
 
     async getFilters (req, res) {
         const { field } = req.body;
@@ -60,53 +75,35 @@ class UserController {
 
             const havingClause = {
                 [Op.and]: [
-                    ...(filters.minAssetCount || filters.maxAssetCount
+                    ...(filters.assetCount?.length === 2
                         ? [Sequelize.where(
                             Sequelize.literal(`
                                 SUM("Loans->AstLoan"."id")
-                                ${filters.minAssetCount && filters.maxAssetCount ? 
-                                    ` BETWEEN ${filters.minAssetCount} AND ${filters.maxAssetCount}` : filters.minAssetCount ? 
-                                    ` >= ${filters.minAssetCount}` : 
-                                    ` <= ${filters.maxAssetCount}`
-                                }
+                                BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
                             `)
                         )] : []
                     ),
-                    ...(filters.maxAssetCount
-                        ? [Sequelize.where(Sequelize.fn('SUM', Sequelize.col('"Loans->AstLoan".id')), '<=', filters.minAssetCount)] : []
-                    ),
-                    ...(filters.minAccessoryCount || filters.maxAccessoryCount
-                        ? [Sequelize.where(
-                            Sequelize.literal(`
-                                (
-                                    SELECT COALESCE(SUM("AccLoan"."count"), 0) 
-                                    FROM "acc_loans" AS "AccLoan"
-                                    JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
-                                    WHERE "UserLoans"."user_id" = "Loans"."user_id"
-                                )
-                                -
-                                (
-                                    SELECT COALESCE(SUM("AccReturns"."count"), 0) 
-                                    FROM "acc_returns" AS "AccReturns"
-                                    JOIN "acc_loans" AS "AccLoan" ON "AccReturns"."acc_loan_id" = "AccLoan"."id"
-                                    JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
-                                    WHERE "UserLoans"."user_id" = "Loans"."user_id"
-                                )
-                                ${filters.minAccessoryCount && filters.maxAccessoryCount ? 
-                                    ` BETWEEN ${filters.minAccessoryCount} AND ${filters.maxAccessoryCount}` : filters.minAccessoryCount ? 
-                                    ` >= ${filters.minAccessoryCount}` : 
-                                    ` <= ${filters.maxAccessoryCount}`
-                                }
-                            `)
-                        )] : []
-                    ),
-                    ...(filters.maxAccessoryCount
-                        ? [Sequelize.where(
-                            Sequelize.literal(`SUM("Loans->AccLoans".count) - COALESCE(SUM("AccReturns".count), 0)`),
-                            '<=',
-                            filters.maxAccessoryCount
-                        )] : []
-                    ),
+                    // ...(filters.accessoryCount?.length === 2 // TODO, add accessory count filter soon?
+                    //     ? [Sequelize.where(
+                    //         Sequelize.literal(`
+                    //             (
+                    //                 SELECT COALESCE(SUM("AccLoan"."count"), 0) 
+                    //                 FROM "acc_loans" AS "AccLoan"
+                    //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                    //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                    //             )
+                    //             -
+                    //             (
+                    //                 SELECT COALESCE(SUM("AccReturns"."count"), 0) 
+                    //                 FROM "acc_returns" AS "AccReturns"
+                    //                 JOIN "acc_loans" AS "AccLoan" ON "AccReturns"."acc_loan_id" = "AccLoan"."id"
+                    //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                    //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                    //             )
+                    //             BETWEEN ${filters.accessoryCount[0]} AND ${filters.accessoryCount[1]}
+                    //         `)
+                    //     )] : []
+                    // ),
                 ],
             };
             
@@ -192,6 +189,7 @@ class UserController {
                     },
                 ],
                 where: whereClause || {},
+                group: Sequelize.literal('"Usr"."id"'),
                 having: havingClause || {},
                 order: sort ? [[sort.field, sort.order]] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
                 limit: parseInt(limit, 10),
@@ -203,7 +201,7 @@ class UserController {
                 return new UserDTO(userRow).setOngoingLoans().setOngoingReservations();
             });
             
-            logger.info(result.slice(0, 10));
+            // logger.info(result.slice(0, 10));
             
             res.json({
                 data: result,
