@@ -35,6 +35,10 @@ export const ItemsProvider = ({ children, service, idField }) => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
+    console.log(filters);
+  }, [filters]);
+
+  useEffect(() => {
     console.log(searchFilters);
   }, [searchFilters]);
   

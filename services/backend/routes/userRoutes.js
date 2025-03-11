@@ -3,7 +3,7 @@ const userController = require('../controllers/userController.js');
 
 const router = express.Router();
 
-router.post('/', userController.getUsers);
+router.get('/', userController.getUsers);
 router.post('/filters', userController.getFilters)
 router.get("/:id", userController.getUser);
 router.patch('/update', userController.updateUser);

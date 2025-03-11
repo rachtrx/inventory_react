@@ -10,7 +10,7 @@ class UserService {
     defaultFilters = {
         deptName: [],
         userName: '',
-        assetCount: [],
+        assetCount: [0, 100],
         bookmarked: false,
         userTag: [],
     }
@@ -23,8 +23,16 @@ class UserService {
         return await this.axios.post(`${API_URL}/users/filters`, {field});
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        return await this.axios.post(`${API_URL}/users`, {filters});
+    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+        console.log(filters)
+        return await this.axios.get(`${API_URL}/users`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
     }
     
     async updateItem(id, field, newValue) {

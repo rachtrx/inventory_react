@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
-import BookmarkFilter from '../forms/utils/BookmarkFilter';
 import InputFormControl from '../forms/utils/InputFormControl';
-import SelectFormControl, { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
+import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import { Form, Formik } from 'formik';
-import FilterContainer from '../utils/FilterContainer';
 import { useItems } from '../../context/ItemsProvider';
 import eventService from '../../services/EventService';
 import DateInputControl from '../forms/utils/DateInputControl';
 import { FormType } from '../../context/ModalProvider';
 import ToggleButton from '../buttons/ToggleButton';
+import FilterSidebar from '../utils/FilterSidebar';
 
 
 const EventFilters = () => {
@@ -27,7 +26,7 @@ const EventFilters = () => {
     return (
         <Formik initialValues={eventService.defaultFilters} onSubmit={onSubmit}>
             <Form>
-                <FilterContainer>
+                <FilterSidebar>
 				    <DateInputControl
                         placeholder="Start Date" 
                         name={`startDate`} 
@@ -109,7 +108,7 @@ const EventFilters = () => {
                     />
 
                     <ToggleButton name="bookmarked" label="Bookmarked" />
-                </FilterContainer>
+                </FilterSidebar>
             </Form>
         </Formik>
     )

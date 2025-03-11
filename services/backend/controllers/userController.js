@@ -23,8 +23,8 @@ class UserController {
     
     async getUsers (req, res) {
         try {
-            const { filters } = req.body
-            logger.info(filters)
+            const { filters={}, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
+            console.log(req.query);
     
             const usersExist = await Usr.count();
             
@@ -33,27 +33,101 @@ class UserController {
             }
 
             // console.log(filters.userName);
-    
+            
+            // SELECT ALL rows that either/both pending astLoan or pending accLoans → Removes all other LOANs 
             const whereClause = {
-                ...(filters.userName && { userName: { [Op.iLike]: `%${filters.userName}%` } }),
-                ...(filters.bookmarked && { bookmarked: true }),
+                [Op.and]: [
+                    ...(filters.userName ? [{ userName: { [Op.iLike]: `%${filters.userName}%` } }] : []),
+                    ...(filters.bookmarked === true ? [{ bookmarked: true }] : []),
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1 FROM "ast_loans" AS "AstLoans"
+                            WHERE "AstLoans"."id" = "Loans->AstLoan"."id"
+                            AND "AstLoans"."return_event_id" IS NOT NULL
+                        )
+                    `),
+                    Sequelize.literal(`
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM "acc_returns" AS "AccReturns"
+                            WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                            GROUP BY "Loans->AccLoans"."id"
+                            HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
+                        )
+                    `)
+                ],
             };
+
+            const havingClause = {
+                [Op.and]: [
+                    ...(filters.minAssetCount || filters.maxAssetCount
+                        ? [Sequelize.where(
+                            Sequelize.literal(`
+                                SUM("Loans->AstLoan"."id")
+                                ${filters.minAssetCount && filters.maxAssetCount ? 
+                                    ` BETWEEN ${filters.minAssetCount} AND ${filters.maxAssetCount}` : filters.minAssetCount ? 
+                                    ` >= ${filters.minAssetCount}` : 
+                                    ` <= ${filters.maxAssetCount}`
+                                }
+                            `)
+                        )] : []
+                    ),
+                    ...(filters.maxAssetCount
+                        ? [Sequelize.where(Sequelize.fn('SUM', Sequelize.col('"Loans->AstLoan".id')), '<=', filters.minAssetCount)] : []
+                    ),
+                    ...(filters.minAccessoryCount || filters.maxAccessoryCount
+                        ? [Sequelize.where(
+                            Sequelize.literal(`
+                                (
+                                    SELECT COALESCE(SUM("AccLoan"."count"), 0) 
+                                    FROM "acc_loans" AS "AccLoan"
+                                    JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                                    WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                                )
+                                -
+                                (
+                                    SELECT COALESCE(SUM("AccReturns"."count"), 0) 
+                                    FROM "acc_returns" AS "AccReturns"
+                                    JOIN "acc_loans" AS "AccLoan" ON "AccReturns"."acc_loan_id" = "AccLoan"."id"
+                                    JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                                    WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                                )
+                                ${filters.minAccessoryCount && filters.maxAccessoryCount ? 
+                                    ` BETWEEN ${filters.minAccessoryCount} AND ${filters.maxAccessoryCount}` : filters.minAccessoryCount ? 
+                                    ` >= ${filters.minAccessoryCount}` : 
+                                    ` <= ${filters.maxAccessoryCount}`
+                                }
+                            `)
+                        )] : []
+                    ),
+                    ...(filters.maxAccessoryCount
+                        ? [Sequelize.where(
+                            Sequelize.literal(`SUM("Loans->AccLoans".count) - COALESCE(SUM("AccReturns".count), 0)`),
+                            '<=',
+                            filters.maxAccessoryCount
+                        )] : []
+                    ),
+                ],
+            };
+            
 
             // IMPT allow reservations
     
-            let query = await Usr.findAll({
+            const { count, rows } = await Usr.findAndCountAll({
+                distinct: true,
+                subQuery: false,
                 attributes: ['id', 'userName', 'bookmarked'],
                 include: [
                     {
                         model: UsrTagMap,
                         attributes: ['id'],
-                        where: { delEventId: { [Op.eq]: null }}, 
+                        where: { delEventId: { [Op.eq]: null } },
                         include: {
                             model: UsrTag,
                             attributes: ['id', 'tagName'],
-                            ...(filters.userTag.length > 0 && { where: { id: { [Op.in]: filters.userTag } } }),
+                            ...(filters?.userTag?.length && { where: { id: { [Op.in]: filters.userTag } } }),
                         },
-                        required: filters.userTag.length > 0 ? true : false
+                        required: filters?.userTag?.length ? true : false,
                     },
                     {
                         model: Event,
@@ -73,7 +147,6 @@ class UserController {
                             {
                                 model: AstLoan,
                                 required: false,
-                                attributes: ['id', 'returnEventId'],
                                 include: [
                                     {
                                         model: Ast,
@@ -86,16 +159,11 @@ class UserController {
                                             include: {
                                                 model: AstType,
                                                 required: true,
-                                                attributes: ['id', 'typeName']
-                                            }
-                                        }
+                                                attributes: ['id', 'typeName'],
+                                            },
+                                        },
                                     },
                                 ],
-                                where: {
-                                    returnEventId: {
-                                        [Op.is]: null
-                                    }
-                                },
                             },
                             {
                                 model: AccLoan,
@@ -108,10 +176,10 @@ class UserController {
                                         attributes: ['id', 'accessoryName'],
                                     },
                                     {
-                                        model: AccReturn, // need to calculate the remainder later
+                                        model: AccReturn, // Need to calculate remaining count later
                                         attributes: ['id', 'count'],
                                         required: false,
-                                    }
+                                    },
                                 ],
                             },
                         ],
@@ -120,60 +188,30 @@ class UserController {
                         model: Dept,
                         required: true,
                         attributes: ['deptName'],
-                        ...(filters.deptName.length > 0 && { where: { id: { [Op.in]: filters.deptName } } }),
-                    }
+                        ...(filters?.deptName?.length && { where: { id: { [Op.in]: filters.deptName } } }),
+                    },
                 ],
-                where: {[Op.and]: [
-                    whereClause,
-                    Sequelize.literal(`
-                        NOT EXISTS (
-                            SELECT 1
-                            FROM "acc_returns" AS "AccReturns"
-                            WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
-                            GROUP BY "Loans->AccLoans"."id"
-                            HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
-                        )
-                    `),
-                    Sequelize.literal(`
-                        NOT EXISTS (
-                            SELECT 1 FROM "ast_loans" AS "AstLoans"
-                            WHERE "AstLoans"."id" = "Loans->AstLoan"."id"
-                            AND "AstLoans"."return_event_id" IS NOT NULL
-                        )
-                    `)
-                ]},
-                order: [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']],
-                // order: [[Sequelize.literal('"AddEvent"."event_date"'), 'DESC']],
-            });
-
-            // logger.info(query.slice(1, 10).map(user => user.get({plain: true})));
-    
-            if (filters.assetCount.length > 0) {
-                filters.assetCount = filters.assetCount.map(count => parseInt(count, 10));
-                query = query.filter(user => {
-                    return filters.assetCount.includes(user.Loans.length)
-                });
-            };
-            
-            // Mapping over the result to modify each user object
-            const result = query.map(user => {
-
-                const initialUser = new UserDTO(user).setOngoingLoans().setOngoingReservations();
-                
-                initialUser.loans = initialUser.loans.filter(loan => {
-                    if (loan.accLoans?.length) {
-                        loan.accLoans = loan.accLoans.filter(accLoan => accLoan.unreturned > 0)
-                    }
-
-                    return loan.accLoans?.length || loan.astLoan; 
-                })
-
-                return initialUser;
+                where: whereClause || {},
+                having: havingClause || {},
+                order: sort ? [[sort.field, sort.order]] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
+                limit: parseInt(limit, 10),
+                offset: (parseInt(page, 10) - 1) * parseInt(limit, 10), // Proper pagination
             });
             
-    
-            // logger.info(result.slice(10, 20));
-            res.json(result);
+            // Map the results into DTO objects
+            let result = rows.map(userRow => {
+                return new UserDTO(userRow).setOngoingLoans().setOngoingReservations();
+            });
+            
+            logger.info(result.slice(0, 10));
+            
+            res.json({
+                data: result,
+                totalCount: count, // Total users count
+                totalPages: Math.ceil(count / limit), // Calculate total pages
+                currentPage: parseInt(page, 10),
+            });
+            
         } catch (error) {
             console.error('Error fetching user views:', error);
             res.status(500).send({ error: error.message });

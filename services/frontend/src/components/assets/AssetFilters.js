@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Formik } from 'formik';
 import { useItems } from '../../context/ItemsProvider';
-import FilterContainer from '../utils/FilterContainer';
 import InputFormControl from '../forms/utils/InputFormControl';
 import SelectFormControl from '../forms/utils/SelectFormControl';
 import ToggleButton from '../buttons/ToggleButton';
@@ -10,6 +9,7 @@ import { useUI } from '../../context/UIProvider';
 import assetService from '../../services/AssetService';
 import { AssetStatus } from './constants/AssetStatus';
 import { Button, Checkbox, CheckboxGroup, Flex, Stack } from '@chakra-ui/react';
+import FilterSidebar from '../utils/FilterSidebar';
 
 export default function AssetFilters() { // TODO can have external filters from Dashboard
 
@@ -25,22 +25,26 @@ export default function AssetFilters() { // TODO can have external filters from 
     }, [fetchFilters]);
 
   return (
-    <Formik initialValues={assetService.defaultFilters} onSubmit={(values) => setSearchFilters(values)}>
+    <Formik initialValues={assetService.defaultFilters} onSubmit={(values) => {
+            console.log(values);  
+            setSearchFilters(values)
+        }}>
         {({ setFieldValue, values }) => (
             <Form>
-                <CheckboxGroup
-                    value={values.status || []}
-                    onChange={(selected) => setFieldValue("status", selected)}
-                >
-                    <Stack spacing={2} mb={4}> {/* ✅ Adds spacing & aligns vertically */}
-                        {Object.values(AssetStatus).map((status) => (
-                            <Checkbox key={status} value={status}>
-                                {status}
-                            </Checkbox>
-                        ))}
-                    </Stack>
-                </CheckboxGroup>
-                <FilterContainer>
+                <FilterSidebar>
+                    <CheckboxGroup
+                        value={values.status || []}
+                        onChange={(selected) => setFieldValue("status", selected)}
+                    >
+                        <Stack spacing={2} mb={4}>
+                            {Object.values(AssetStatus).map((status) => (
+                                <Checkbox key={status} value={status}>
+                                    {status}
+                                </Checkbox>
+                            ))}
+                        </Stack>
+                    </CheckboxGroup>
+
                     <MultiSelectFormControl
                         name="typeName"
                         // label="Asset Type"
@@ -84,7 +88,7 @@ export default function AssetFilters() { // TODO can have external filters from 
                         initialOptions={filters.assetTag}
                     />
                     <ToggleButton name="bookmarked" label="Bookmarked" />
-                </FilterContainer>
+                </FilterSidebar>
             </Form>
         )}
     </Formik>

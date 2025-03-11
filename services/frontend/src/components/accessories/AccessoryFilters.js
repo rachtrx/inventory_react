@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
 import { Form, Formik } from 'formik';
 import { useContext } from 'react';
-import FilterContainer from '../utils/FilterContainer';
-import InputFormControl from '../forms/utils/InputFormControl';
-import SelectFormControl from '../forms/utils/SelectFormControl';
 import ToggleButton from '../buttons/ToggleButton';
 import { useItems } from '../../context/ItemsProvider';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import accessoryService from '../../services/AccessoryService';
+import FilterSidebar from '../utils/FilterSidebar';
 
 export default function AccessoryFilters() { // TODO can have external filters from Dashboard
 
@@ -22,7 +20,7 @@ export default function AccessoryFilters() { // TODO can have external filters f
   return (
     <Formik initialValues={accessoryService.defaultFilters} onSubmit={onSubmit}>
         <Form>
-            <FilterContainer>
+            <FilterSidebar>
                 <MultiSelectFormControl
                     name="accessoryName"
                     // label="name"
@@ -30,7 +28,7 @@ export default function AccessoryFilters() { // TODO can have external filters f
                     initialOptions={filters.accessoryName}
                 />
                 <ToggleButton name="bookmarked" label="Bookmarked" />
-            </FilterContainer>
+            </FilterSidebar>
         </Form>
     </Formik>
   );
