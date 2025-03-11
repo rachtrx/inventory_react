@@ -17,6 +17,8 @@ import { CardActions } from './CardActions';
 import Tags from '../tags/Tags';
 
 function AssetCards({items}) {
+
+    console.log(items);
     
     return (
         <Cards>

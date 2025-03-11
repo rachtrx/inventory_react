@@ -4,7 +4,6 @@ import { Box, Button, Collapse, Flex, Heading, useBreakpointValue } from '@chakr
 import InfoBar from './utils/InfoBar';
 import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
-import usePagination from '../hooks/usePagination';
 import PaginationControls from './Pagination';
 import CapsuleToggleButton from './buttons/CapsuleToggleButton';
 import { useSearchParams } from 'react-router-dom';
@@ -20,25 +19,10 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
   const { headerSize, isIpad, isMobile } = useResponsive()
   const { handleDevError } = useUI();
 
-  const { items } = useItems();
-  const { loading, setLoading } = useLoading();
+  const { data, totalCount, page, maxPage, next, prev } = useItems();
+  const { loading } = useLoading();
 
   const [isGridView, setIsGridView] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialPage = parseInt(searchParams.get('page'), 10) || 1;
-  const itemsPerPage = 30;
-
-  const updateUrl = useCallback((page) => {
-    searchParams.set('page', page);
-    setSearchParams(searchParams);
-  }, [searchParams, setSearchParams]);
-
-  const { currentData, next, prev, currentPage, maxPage } = usePagination(
-    items,
-    itemsPerPage,
-    initialPage,
-    updateUrl
-  );
 
   if (loading) return <CardSkeleton />;
 
@@ -64,11 +48,11 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           <Filters/>
         </Box>
         <Flex p={4} justifyContent="space-around">
-          <InfoBar count={items.length} />
+          <InfoBar count={totalCount} />
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />
         </Flex>
-        {!currentData || currentData.length === 0 ? <NoDataBox /> : isGridView ? <Cards items={currentData} /> : <Table items={currentData}/>}
-        <PaginationControls currentPage={currentPage} maxPage={maxPage} next={next} prev={prev}/>
+        {totalCount === 0 ? <NoDataBox /> : isGridView ? <Cards items={data} /> : <Table items={data}/>}
+        <PaginationControls currentPage={page} maxPage={maxPage} next={next} prev={prev}/>
         {/* <FormModal />
         <ItemDrawer /> */}
       </>

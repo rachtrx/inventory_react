@@ -8,10 +8,12 @@ import ToggleButton from '../buttons/ToggleButton';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import { useUI } from '../../context/UIProvider';
 import assetService from '../../services/AssetService';
+import { AssetStatus } from './constants/AssetStatus';
+import { Button, Checkbox, CheckboxGroup, Flex, Stack } from '@chakra-ui/react';
 
 export default function AssetFilters() { // TODO can have external filters from Dashboard
 
-	const { filters, fetchFilters, onSubmit } = useItems()
+	const { filters, fetchFilters, setSearchFilters } = useItems()
 
 	useEffect(() => {
         fetchFilters('typeName');
@@ -23,66 +25,68 @@ export default function AssetFilters() { // TODO can have external filters from 
     }, [fetchFilters]);
 
   return (
-    <Formik initialValues={assetService.defaultFilters} onSubmit={onSubmit}>
-        <Form>
-            <FilterContainer>
-                <MultiSelectFormControl
-                    name="typeName"
-                    // label="Asset Type"
-                    placeholder="Asset Type"
-                    initialOptions={filters.typeName}
-                />
-                <MultiSelectFormControl
-                    name="status"
-                    // label="Status"
-                    placeholder="Status"
-                    initialOptions={
-                        [
-                            {'label': 'Reserved', 'value': 'Reserved'},
-                            {'label': 'Available', 'value': 'Available'},
-                            {'label': 'Unavailable', 'value': 'Unavailable'},
-                            {'label': 'Condemned', 'value': 'Condemned'},
-                        ]
-                    }
-                />
-                <InputFormControl
-                    name="serialNumber"
-                    // label="Serial Number"
-                    placeholder="Serial Number"
-                />
-                <MultiSelectFormControl
-                    name="subTypeName"
-                    // label="Specific Model"
-                    placeholder="Specific Model"
-                    initialOptions={filters.subTypeName}
-                />
-                <MultiSelectFormControl
-                    name="vendor"
-                    // label="Vendor"
-                    placeholder="Vendor"
-                    initialOptions={filters.vendor}
-                />
-                <MultiSelectFormControl
-                    name="location"
-                    // label="Location"
-                    placeholder="Location"
-                    initialOptions={filters.location}
-                />
-                <MultiSelectFormControl
-                    name="age"
-                    // label="Asset Age"
-                    placeholder="Asset Age"
-                    initialOptions={filters.age}
-                />
-                <MultiSelectFormControl
-                    name="assetTag"
-                    // label="Asset Age"
-                    placeholder="Tag"
-                    initialOptions={filters.assetTag}
-                />
-                <ToggleButton name="bookmarked" label="Bookmarked" />
-            </FilterContainer>
-        </Form>
+    <Formik initialValues={assetService.defaultFilters} onSubmit={(values) => setSearchFilters(values)}>
+        {({ setFieldValue, values }) => (
+            <Form>
+                <CheckboxGroup
+                    value={values.status || []}
+                    onChange={(selected) => setFieldValue("status", selected)}
+                >
+                    <Stack spacing={2} mb={4}> {/* ✅ Adds spacing & aligns vertically */}
+                        {Object.values(AssetStatus).map((status) => (
+                            <Checkbox key={status} value={status}>
+                                {status}
+                            </Checkbox>
+                        ))}
+                    </Stack>
+                </CheckboxGroup>
+                <FilterContainer>
+                    <MultiSelectFormControl
+                        name="typeName"
+                        // label="Asset Type"
+                        placeholder="Asset Type"
+                        initialOptions={filters.typeName}
+                    />
+                    
+                    <InputFormControl
+                        name="serialNumber"
+                        // label="Serial Number"
+                        placeholder="Serial Number"
+                    />
+                    <MultiSelectFormControl
+                        name="subTypeName"
+                        // label="Specific Model"
+                        placeholder="Specific Model"
+                        initialOptions={filters.subTypeName}
+                    />
+                    <MultiSelectFormControl
+                        name="vendor"
+                        // label="Vendor"
+                        placeholder="Vendor"
+                        initialOptions={filters.vendor}
+                    />
+                    <MultiSelectFormControl
+                        name="location"
+                        // label="Location"
+                        placeholder="Location"
+                        initialOptions={filters.location}
+                    />
+                    <MultiSelectFormControl
+                        name="age"
+                        // label="Asset Age"
+                        placeholder="Asset Age"
+                        initialOptions={filters.age}
+                    />
+                    <MultiSelectFormControl
+                        name="assetTag"
+                        // label="Asset Age"
+                        placeholder="Tag"
+                        initialOptions={filters.assetTag}
+                    />
+                    <ToggleButton name="bookmarked" label="Bookmarked" />
+                </FilterContainer>
+            </Form>
+        )}
     </Formik>
   );
 };

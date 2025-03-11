@@ -3,7 +3,7 @@ const assetController = require('../controllers/assetController.js');
 
 const router = express.Router();
 
-router.post('/', assetController.getAssets);
+router.get('/', assetController.getAssets);
 router.post('/filters', assetController.getFilters);
 router.post('/filters/subTypes', assetController.getSubTypeFilters);
 router.get('/:id', assetController.getAsset);

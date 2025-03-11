@@ -3,55 +3,88 @@ import { dateTimeObject } from '../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
+import usePagination from '../hooks/usePagination';
+import { useSearchParams } from 'react-router-dom';
 
 // Create a context for assets
 const ItemsContext = createContext();
 
 // Devices Provider component
 export const ItemsProvider = ({ children, service, idField }) => {
-  const [items, setItems] = useState([]);
+  console.log("rendering items provider");
+  const [data, setData] = useState([]);
   const { handleError } = useUI();
   const { setLoading } = useLoading();
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = parseInt(searchParams.get('page'), 10) || 1;
+  const itemsPerPage = 30;
 
   const [filters, setFilters] = useState(service.defaultFilters);
+  const [searchFilters, setSearchFilters] = useState(service.defaultFilters);
+  const [page, setPage] = useState(initialPage || 1);
+  const [maxPage, setMaxPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  console.log("rendering items provider");
+  const [sortField, setSortField] = useState("typeName");
+  const [sortOrder, setSortOrder] = useState("asc");
 
-  useEffect(() => {
-    console.log(filters);
-    // console.log("service changed");
-  }, [filters]);
-
-  useEffect(() => {
-    console.log("setItems changed");
-  }, [setItems]);
-
-  useEffect(() => {
-    console.log("handleError changed");
-  }, [handleError]);
+  const updateUrl = useCallback((page) => {
+    searchParams.set('page', page);
+    setSearchParams(searchParams);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    console.log("setLoading changed");
-  }, [setLoading]);
+    console.log(searchFilters);
+  }, [searchFilters]);
+  
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
+
+  useEffect(() => {
+    updateUrl(page);
+  }, [page, updateUrl]);
+
+  const next = useCallback(() => {
+    setPage((page) => Math.min(page + 1, maxPage));
+  }, [maxPage]);
+
+  const prev = useCallback(() => {
+    setPage((page) => Math.max(page - 1, 1));
+  }, []);
+
+  const jump = useCallback((page) => {
+    const pageNumber = Math.max(1, page);
+    setPage(() => Math.min(pageNumber, maxPage));
+  }, [maxPage]);
 
   useEffect(() => {
     const fetchItems = async () => {
-      setLoading(true);
       try {
-        const response = await service.loadItems();
-        const items = response.data;
-        console.log(items.slice(0, 50));
-        setItems(items);
-      } catch (err) {
-        handleError(err);
-        console.error(err);
-      } finally {
-        setLoading(false);
+        const response = await service.loadItems({
+          filters: searchFilters,
+          ...(sortField && {sortField}),
+          ...(sortField && {sortOrder}),
+          page,
+          pageSize: itemsPerPage,
+        });
+        console.log(response.data.totalPages);
+        console.log(response.data.totalCount);
+        setData(response.data.data);
+        setMaxPage(response.data.totalPages);
+        setTotalCount(response.data.totalCount)
+      } catch (error) {
+        console.error("Failed to fetch assets", error);
       }
     };
-
     fetchItems();
-  }, [setItems, setLoading, handleError, service]); // Run this effect only once on mount
+  }, [searchFilters, page, service, sortOrder, sortField]);
+
+  const handleSort = (key) => {
+    setSortField(key);
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
 
   const handleUpdate = useCallback(async (id, field, newValue) => {
     const value = newValue;
@@ -59,7 +92,7 @@ export const ItemsProvider = ({ children, service, idField }) => {
     setLoading(true);
     try {
       await service.updateItem(id, field, newValue);
-      setItems(prevItems => 
+      setData(prevItems => 
         prevItems.map(item =>item[idField] === id ? { ...item, [field]: value } : item)
       );
     } catch (err) {
@@ -83,21 +116,22 @@ export const ItemsProvider = ({ children, service, idField }) => {
     }
   }, [handleError, service]);
 
-  const onSubmit = useCallback(async (values, actions) => {
-    try {
-        console.log(values);
-        const response = await service.loadItems(values);
-        console.log(response.data);	
-        setItems(response.data);
-    } catch (error) {
-        handleError('Error loading assets:', error);
-    } finally {
-        actions.setSubmitting(false);
-    }
-  }, [handleError, service])
-
   return (
-    <ItemsContext.Provider value={{ items, setItems, filters, setFilters, handleUpdate, fetchFilters, onSubmit }}>
+    <ItemsContext.Provider value={{ 
+      filters, 
+      setFilters,
+      handleUpdate,
+      handleSort,
+      fetchFilters,
+      setSearchFilters,
+      data,
+      totalCount,
+      maxPage,
+      page,
+      next,
+      prev,
+      jump,
+    }}>
       {children}
     </ItemsContext.Provider>
   );

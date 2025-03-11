@@ -2,7 +2,6 @@ const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = requi
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
-const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');

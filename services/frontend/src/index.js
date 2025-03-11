@@ -50,6 +50,10 @@ const GlobalStyles = () => (
         border-radius: 10px !important; /* Rounded corners for the thumb */
       }
 
+      .react-select__menu {
+        z-index: 9999 !important;
+      }
+
       .react-select__value-container::-webkit-scrollbar-thumb:hover {
         background: #555 !important; /* Color when hovering over the scrollbar thumb */
       }

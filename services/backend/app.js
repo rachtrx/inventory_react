@@ -18,9 +18,12 @@ const corsOptions = {
 const app = express();
 
 app.use((req, res, next) => {
-	// console.log(req.path);
+    console.log(`Full URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
+    console.log(`Query Params:`, req.query);
+    console.log(`Route Params:`, req.params); // Will only contain data if the route has params
     next();
 });
+
 
 // Cookie parser middleware
 app.use(cookieParser());

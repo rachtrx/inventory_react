@@ -2,6 +2,7 @@ import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
 import qs from 'qs';
+import { AssetStatus } from '../components/assets/constants/AssetStatus';
 
 class AssetService {
     constructor(axiosInstance) {
@@ -12,7 +13,7 @@ class AssetService {
         "typeName": [],
         "subTypeName": [],
         "vendor": [],
-        "status": [],
+        "status": AssetStatus.getAllValues(),
         "location": [],
         "age": [],
         "serialNumber": '',
@@ -32,9 +33,16 @@ class AssetService {
         return await this.axios.post(`${API_URL}/assets/filters/subTypes`, {typeIds});
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        console.log(API_URL)
-        return await this.axios.post(`${API_URL}/assets`, {filters});
+    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+        console.log(filters)
+        return await this.axios.get(`${API_URL}/assets`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
     }
 
     async updateItem(id, field, newValue) {

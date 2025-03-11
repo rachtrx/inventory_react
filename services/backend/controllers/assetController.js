@@ -40,32 +40,71 @@ class AssetController {
         }
     }
     
-    async getAssets(req, res) { // TODO Add filters
-    
-        const { filters } = req.body
-        logger.info(filters)
-    
-        const assetsExist = await Ast.count();
-        if (assetsExist === 0) {
-            return res.json([]);
-        }
+    async getAssets(req, res) {
+        const { filters, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
+        console.log(req.query);
     
         const whereClause = {
-            ...(filters.serialNumber && { serialNumber: { [Op.iLike]: `%${filters.serialNumber}%` } }),
-            ...(filters.location.length > 0 && { location: filters.location }),
-            ...(filters.bookmarked && { bookmarked: true }),
+            [Op.and]: [
+                ...(filters?.serialNumber ? [{ serialNumber: { [Op.iLike]: `%${filters.serialNumber}%` } }] : []),
+                ...(filters?.location && filters.location.length > 0 ? [{ location: filters.location }] : []),
+                ...(filters?.bookmarked === true ? [{ bookmarked: true }] : []),
+                ...(filters?.age?.length ? [
+                    Sequelize.literal(`
+                        FLOOR(DATE_PART('day', NOW() - "Ast->AddEvent"."eventDate") / 365.25) 
+                        IN (${filters.age.map(age => `'${age}'`).join(', ')})`
+                    )
+                ] : []),
+                ...(!filters?.status?.includes('Condemned')
+                    ? [Sequelize.literal(`NOT EXISTS (
+                            SELECT 1
+                            FROM "events"
+                            WHERE "events"."id" = "DeleteEvent"."id"
+                        )`)]
+                    : []
+                ),
+                ...(!filters?.status?.includes('Available')
+                    ? [Sequelize.literal(`NOT EXISTS (
+                            SELECT 1
+                            FROM "asts"
+                            LEFT JOIN "ast_loans" ON "asts"."id" = "ast_loans"."asset_id"
+                            WHERE "asts"."id" = "Ast"."id"
+                            AND "asts"."del_event_id" IS NULL
+                            AND (
+                                "ast_loans"."id" IS NULL -- asset with no asset loans
+                                OR "ast_loans"."return_event_id" IS NOT NULL -- asset with all returns
+                            )
+                        )`)]
+                    : []
+                ),
+                ...(!filters?.status?.includes('On Loan')
+                    ? [Sequelize.literal(`NOT EXISTS (
+                            SELECT 1
+                            FROM "ast_loans"
+                            WHERE "ast_loans"."id" = "AstLoans"."id"
+                            AND "ast_loans"."return_event_id" IS NULL
+                        )`)]
+                    : []
+                ),
+                ...(!filters?.status?.includes('Reserved')
+                    ? [Sequelize.literal(`NOT EXISTS (
+                            SELECT 1
+                            FROM "loans"
+                            WHERE "loans"."id" = "AstLoans->Loan"."id"
+                            AND "loans"."reserve_event_id" IS NOT NULL
+                            AND "loans"."loan_event_id" IS NULL
+                        )`)]
+                    : []
+                )
+            ]
         };
     
         try {
-            let query = await Ast.findAll({
-                attributes: [
-                    'id',
-                    'serialNumber',
-                    'alias',
-                    'location',
-                    'bookmarked',
-                    'value'
-                ],
+            // Use `findAndCountAll` for pagination
+            const { count, rows } = await Ast.findAndCountAll({
+                distinct: true,
+                subQuery: false,
+                attributes: ['id', 'serialNumber', 'alias', 'location', 'bookmarked', 'value'],
                 include: [
                     {
                         model: AstTagMap,
@@ -74,18 +113,18 @@ class AssetController {
                         include: {
                             model: AstTag,
                             attributes: ['id', 'tagName'],
-                            ...(filters.assetTag.length > 0 && { where: { id: { [Op.in]: filters.assetTag } } }),
+                            ...(filters?.assetTag?.length && { where: { id: { [Op.in]: filters.assetTag } } }),
                         },
-                        required: filters.assetTag.length > 0 ? true : false
+                        required: filters?.assetTag?.length ? true : false
                     },
                     {
                         model: AstSType,
                         attributes: ['subTypeName'],
-                        ...(filters.subTypeName.length > 0 && { where: { id: { [Op.in]: filters.subTypeName } } }),
+                        ...(filters?.subTypeName?.length && { where: { id: { [Op.in]: filters.subTypeName } } }),
                         include: {
                             model: AstType,
                             attributes: ['typeName'],
-                            ...(filters.typeName.length > 0 && { where: { id: { [Op.in]: filters.typeName } } }),
+                            ...(filters?.typeName?.length && { where: { id: { [Op.in]: filters.typeName } } }),
                             required: true,
                         },
                         required: true,
@@ -104,7 +143,7 @@ class AssetController {
                     {
                         model: Vendor,
                         attributes:['vendorName'],
-                        ...(filters.vendor.length > 0 && { where: { id: { [Op.in]: filters.vendor } } }),
+                        ...(filters?.vendor?.length && { where: { id: { [Op.in]: filters.vendor } } }),
                     },
                     {
                         model: AstLoan,
@@ -120,57 +159,40 @@ class AssetController {
                         required: false
                     }
                 ],
-                where: whereClause
-            })
+                where: whereClause || {},
+                order: sort ? [[sort.field, sort.order]] : [], // Handle sorting dynamically
+                limit: parseInt(limit, 10),
+                offset: (parseInt(page, 10) - 1) * parseInt(limit, 10) // Proper pagination
+            });
     
-            if (filters.age.length > 0) {
-                query = query.filter(asset => {
-                    const assetAge = Math.floor((new Date() - new Date(asset.AddEvent.eventDate)) / (365.25 * 24 * 60 * 60 * 1000));
-                    return filters.age.includes(String(assetAge));
-                });
-            }
-
-            let result = query.map(assetRow => {
+            let result = rows.map(assetRow => {
                 const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation();
                 return asset;
             });
     
-            if (filters.status.length > 0) {
-                result = result.filter(asset => {
-                    const hasLoan = asset.ongoingLoan ? true : false;
-
-                    // next line: dont need to filter out cancelled reservations (done in query already) 
-                    const isReserved = asset.ongoingReservation ? true : false;
-                    const isDeleted = asset.delEventId ? true : false;
-        
-                    if (filters.status.includes('Condemned') && isDeleted) {
-                        return true;
-                    }
-        
-                    if (filters.status.includes('Available') && (!hasLoan && !isDeleted)) {
-                        return true;
-                    }
-        
-                    if (filters.status.includes('Reserved') && isReserved) {
-                        return true;
-                    }
-                    
-                    if (filters.status.includes('Unavailable') && (isReserved || hasLoan)) {
-                        return true;
-                    }
-        
-                    return false;
-                });
-            }
+            logger.info(result.slice(0, 10));
     
-            logger.info(result.slice(100, 110));
-            res.json(result);
+            res.json({
+                data: result,
+                totalCount: count, // Total assets count
+                totalPages: Math.ceil(count / limit), // Calculate total pages
+                currentPage: parseInt(page, 10)
+            });
+    
         } catch (error) {
-            logger.error(error)
+            logger.error(error);
             console.error(error);
             res.status(500).json({ error: error.message });
         }
     }
+    
+
+    // if (filters.age.length > 0) {
+    //     query = query.filter(asset => {
+    //         const assetAge = Math.floor((new Date() - new Date(asset.AddEvent.eventDate)) / (365.25 * 24 * 60 * 60 * 1000));
+    //         return filters.age.includes(String(assetAge));
+    //     });
+    // }
     
     getAsset = async (req, res) => {
         const assetId = req.params.id;
