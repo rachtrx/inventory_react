@@ -2,7 +2,8 @@ const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const EventLogDTO = require("../dtos/eventLog.dto");
-const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters } = require("./utils.js");
+const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters, FormType, assetTagMapQuery, userTagMapQuery, getSortCondition } = require("./utils.js");
+const { Op } = require("sequelize");
 
 class EventController {
 
@@ -42,7 +43,7 @@ class EventController {
         }   
     }
 
-    async getFilters(req, res) {
+    getFilters = async(req, res) => {
         const { field } = req.body;
 
         let options;
@@ -61,7 +62,7 @@ class EventController {
         }
     }
 
-    async getAllFilters(req, res) {
+    getAllFilters = async (req, res) => {
         try {
             const assetOptionsDict = Object.fromEntries(
                 await Promise.all(
@@ -74,7 +75,7 @@ class EventController {
                 )
             );
             const meta = [Admin, 'adminName', 'id'];
-            options = await getAllOptions(meta);
+            const options = await getAllOptions(meta);
             return res.json({...assetOptionsDict, ...userOptionsDict, admin: options})
         } catch (error) {
             logger.error(error)
@@ -85,29 +86,173 @@ class EventController {
 
     async getAllEvents(req, res) {
 
-        const filters = req.params.filters;
+        const { filters, page = 1, limit = 30, sort } = req.query; // Default values
+        logger.info(filters);
+
+        const sortFieldLookup = {
+            
+        }
+
+        let sortCondition;
+        if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
+
+        const eventTypeConditions = [
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.ADD_ASSET)
+                    ? [{ '$AddedAsset.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.DEL_ASSET)
+                    ? [{ '$DeletedAsset.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.UPDATE_ACC)
+                    ? [{ '$AccTxn.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.UPDATE_ACC)
+                    ? [{ '$AccType.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.ADD_USER)
+                    ? [{ '$AddedUser.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.DEL_USER)
+                    ? [{ '$DeletedUser.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.LOAN)
+                    ? [{ '$Loan.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.RESERVE)
+                    ? [{ '$Reservation.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.RETURN)
+                    ? [{ '$AssetReturn.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.RETURN)
+                    ? [{ '$AccReturns.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.TAG_ASSET)
+                    ? [{ '$AddedAstTag.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.UNTAG_ASSET)
+                    ? [{ '$DeletedAstTag.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.TAG_USER)
+                    ? [{ '$AddedUsrTag.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+            ...(
+                filters?.eventType?.length && filters.eventType.includes(FormType.UNTAG_USER)
+                    ? [{ '$DeletedUsrTag.id$': { [Op.ne]: null } }] 
+                    : []
+            ),
+        ]
+
+        const assetTypeConditions = filters?.typeName ? [
+            { '$AddedAsset->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$DeletedAsset->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$Loan->AstLoan->Ast->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$Reservation->AstLoan->Ast->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$AssetReturn->Ast->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$AddedAstTag->Ast->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+            { '$DeletedAstTag->Ast->AstSType->AstType.id$': { [Op.in]: filters.typeName } },
+        ] : []
+
+        const assetSTypeConditions = filters?.subTypeName ? [
+            { '$AddedAsset->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$DeletedAsset->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$Loan->AstLoan->Ast->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$Reservation->AstLoan->Ast->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$AssetReturn->Ast->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$AddedAstTag->Ast->AstSType.id$': { [Op.in]: filters.typeName } },
+            { '$DeletedAstTag->Ast->AstSType.id$': { [Op.in]: filters.typeName } },
+        ] : []
+
+        const deptNameConditions = filters?.deptName ? [
+            { '$AddedUser->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$DeletedUser->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$Loan->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$Reservation->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$AssetReturn->Loan->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$AccReturns->AccLoan->Loan->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$AddedUsrTag->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+            { '$DeletedUsrTag->Usr->Dept.id$': { [Op.in]: filters.deptName } },
+        ] : []
+
+        const userTagConditions = filters?.userTag ? [
+            { '$AddedUsrTag->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$DeletedUsrTag->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$AddedUser->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$DeletedUser->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$Loan->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$Reservation->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$AssetReturn->Loan->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$AccReturns->AccLoan->Loan->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$AddedUsrTag->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            { '$DeletedUsrTag->Usr->UsrTagMaps->UsrTag.id$': { [Op.in]: filters.userTag } },
+            
+        ] : []
+
+        const assetTagConditions = filters?.assetTag ? [
+            { '$AddedAstTag->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$DeletedAstTag->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$AddedAsset->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$DeletedAsset->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$Loan->AstLoan->Ast->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$Reservation->AstLoan->Ast->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
+            { '$AssetReturn->Ast->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
+        ] : []
+
+        const adminConditions = filters?.admin ? [
+            { '$Admin.id$': { [Op.in]: filters.admin } },
+        ] : []
+
+        const whereClause = {};
+
+        const conditionGroups = [
+            ...(assetTypeConditions.length > 0 ? [{ [Op.or]: assetTypeConditions }] : []),
+            ...(assetSTypeConditions.length > 0 ? [{ [Op.or]: assetSTypeConditions }] : []),
+            ...(deptNameConditions.length > 0 ? [{ [Op.or]: deptNameConditions }] : []),
+            ...(userTagConditions.length > 0 ? [{ [Op.or]: userTagConditions }] : []),
+            ...(assetTagConditions.length > 0 ? [{ [Op.or]: assetTagConditions }] : []),
+            ...(adminConditions.length > 0 ? [{ [Op.or]: adminConditions }] : []),
+            ...(eventTypeConditions.length > 0 ? [{ [Op.or]: eventTypeConditions }] : [])
+        ];
+
+        if (conditionGroups.length > 0) {
+            whereClause[Op.and] = conditionGroups;
+        }
+
+        // console.log(filters.assetTag);
         
         try {    
-            const eventRows = await Event.findAll({
+            const { count, rows } = await Event.findAndCountAll({
+                distinct: true,
+                subQuery: false,
                 attributes: ['id', 'adminId', 'eventDate'],
-                // where: {
-                //     [Op.or]: [
-                //         { '$AddedAsset.id$': assetId },
-                //         { '$DeletedAsset.id$': assetId },
-                //         { '$Loan->AstLoan.asset_id$': assetId },
-                //         { '$Reservation->AstLoan.asset_id$': assetId },
-
-                //         { '$AccType.id$': accTypeId },
-                //         { '$AccTxn.accessory_type_id$': accTypeId },
-                //         { '$Loan->AccLoans.accessory_type_id$': accTypeId },
-                //         { '$Reservation->AccLoans.accessory_type_id$': accTypeId },
-
-                //         { '$AddedUser.id$': userId },
-                //         { '$DeletedUser.id$': userId },
-                //         { '$Loan->UsrLoans.user_id$': userId },
-                //         { '$Reservation->UsrLoans.user_id$': userId }
-                //     ]
-                // },
+                logger: console.log,
+                where: whereClause,
                 include: [
                     {
                         model: Rmk,
@@ -129,28 +274,34 @@ class EventController {
                         as: 'AddedAsset',
                         attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                         required: false,
-                        include: {
-                            model: AstSType,
-                            attributes: ['id','subTypeName'],
-                            include: {
-                                model: AstType,
-                                attributes: ['id', 'typeName']
+                        include: [
+                            {
+                                model: AstSType,
+                                attributes: ['id','subTypeName'],
+                                include: {
+                                    model: AstType,
+                                    attributes: ['id', 'typeName']
+                                },
                             },
-                        }
+                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                        ],
                     },
                     {
                         model: Ast,
                         as: 'DeletedAsset',
                         attributes: ['id', 'serialNumber'],
                         required: false,
-                        include: {
-                            model: AstSType,
-                            attributes: ['id','subTypeName'],
-                            include: {
-                                model: AstType,
-                                attributes: ['id', 'typeName']
+                        include: [
+                            {
+                                model: AstSType,
+                                attributes: ['id','subTypeName'],
+                                include: {
+                                    model: AstType,
+                                    attributes: ['id', 'typeName']
+                                },
                             },
-                        }
+                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                        ],
                     },
                     {
                         model: AccTxn,
@@ -159,32 +310,38 @@ class EventController {
                         include: {
                             model: AccType,
                             attributes: ['id', 'accessoryName'],
-                        }
+                        },
                     },
                     {
                         model: AccType,
                         attributes: ['id', 'accessoryName'], // add event
-                        required: false
+                        required: false,
                     },
                     {
                         model: Usr,
                         as: 'AddedUser',
                         attributes: ['id', 'userName'],
                         required: false,
-                        include: {
-                            model: Dept,
-                            attributes: ['id', 'deptName']
-                        },
+                        include: [
+                            {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
+                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                        ],
                     },
                     {
                         model: Usr,
                         as: 'DeletedUser',
                         attributes: ['id', 'userName'],
                         required: false,
-                        include: {
-                            model: Dept,
-                            attributes: ['id', 'deptName']
-                        },
+                        include: [
+                            {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
+                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                        ],
                     },
                     {
                         model: Loan,
@@ -195,10 +352,13 @@ class EventController {
                                 model: Usr,
                                 attributes: ['id', 'userName'],
                                 required: false,
-                                include: {
-                                    model: Dept,
-                                    attributes: ['id', 'deptName']
-                                },
+                                include: [
+                                    {
+                                        model: Dept,
+                                        attributes: ['id', 'deptName']
+                                    },
+                                    ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                                ],
                             },
                             {
                                 model: AstLoan,
@@ -208,14 +368,17 @@ class EventController {
                                         model: Ast,
                                         attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                                         required: false,
-                                        include: {
-                                            model: AstSType,
-                                            attributes: ['id','subTypeName'],
-                                            include: {
-                                                model: AstType,
-                                                attributes: ['id', 'typeName']
+                                        include: [
+                                            {
+                                                model: AstSType,
+                                                attributes: ['id','subTypeName'],
+                                                include: {
+                                                    model: AstType,
+                                                    attributes: ['id', 'typeName']
+                                                },
                                             },
-                                        }
+                                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                                        ]
                                     }
                                 ]
                             },
@@ -228,7 +391,7 @@ class EventController {
                                     attributes: ['id', 'accessoryName'],
                                 }
                             }
-                        ]
+                        ],
                     },
                     {
                         model: Loan,
@@ -240,10 +403,13 @@ class EventController {
                                 model: Usr,
                                 attributes: ['id', 'userName'],
                                 required: false,
-                                include: {
-                                    model: Dept,
-                                    attributes: ['id', 'deptName']
-                                },
+                                include: [
+                                    {
+                                        model: Dept,
+                                        attributes: ['id', 'deptName']
+                                    },
+                                    ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                                ],
                             },
                             {
                                 model: AstLoan,
@@ -252,14 +418,17 @@ class EventController {
                                     model: Ast,
                                     attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                                     required: false,
-                                    include: {
-                                        model: AstSType,
-                                        attributes: ['id','subTypeName'],
-                                        include: {
-                                            model: AstType,
-                                            attributes: ['id', 'typeName']
+                                    include: [
+                                            {
+                                            model: AstSType,
+                                            attributes: ['id','subTypeName'],
+                                            include: {
+                                                model: AstType,
+                                                attributes: ['id', 'typeName']
+                                            },
                                         },
-                                    }
+                                        ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                                    ]
                                 }
                             },
                             {
@@ -271,7 +440,7 @@ class EventController {
                                     attributes: ['id', 'accessoryName'],
                                 }
                             },
-                        ]
+                        ],
                     },
                     {
                         model: AstLoan,
@@ -281,14 +450,17 @@ class EventController {
                                 model: Ast,
                                 attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                                 required: false,
-                                include: {
-                                    model: AstSType,
-                                    attributes: ['id','subTypeName'],
-                                    include: {
-                                        model: AstType,
-                                        attributes: ['id', 'typeName']
+                                include: [
+                                    {
+                                        model: AstSType,
+                                        attributes: ['id','subTypeName'],
+                                        include: {
+                                            model: AstType,
+                                            attributes: ['id', 'typeName']
+                                        },
                                     },
-                                }
+                                    ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                                ]
                             },
                             {
                                 model: Loan,
@@ -297,13 +469,16 @@ class EventController {
                                     model: Usr,
                                     attributes: ['id', 'userName'],
                                     required: false,
-                                    include: {
-                                        model: Dept,
-                                        attributes: ['id', 'deptName']
-                                    },
+                                    include: [
+                                        {
+                                            model: Dept,
+                                            attributes: ['id', 'deptName']
+                                        },
+                                        ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                                    ],
                                 },
                             }
-                        ]
+                        ],
                     },
                     {
                         model: AccReturn,
@@ -324,14 +499,17 @@ class EventController {
                                         model: Usr,
                                         attributes: ['id', 'userName'],
                                         required: false,
-                                        include: {
-                                            model: Dept,
-                                            attributes: ['id', 'deptName']
-                                        },
+                                        include: [
+                                            {
+                                                model: Dept,
+                                                attributes: ['id', 'deptName']
+                                            },
+                                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                                        ],
                                     },
                                 }
                             ]
-                        }
+                        },
                     },
                     {
                         model: AstTagMap,
@@ -357,7 +535,7 @@ class EventController {
                                 required: true,
                                 attributes: ['id', 'tagName'],
                             }
-                        ]
+                        ],
                     },
                     {
                         model: AstTagMap,
@@ -383,7 +561,7 @@ class EventController {
                                 required: true,
                                 attributes: ['id', 'tagName'],
                             }
-                        ]
+                        ],
                     },
                     {
                         model: UsrTagMap,
@@ -405,7 +583,7 @@ class EventController {
                                 attributes: ['id', 'tagName'],
                                 required: true,
                             }
-                        ]
+                        ],
                     },
                     {
                         model: UsrTagMap,
@@ -427,17 +605,26 @@ class EventController {
                                 attributes: ['id', 'tagName'],
                                 required: true,
                             }
-                        ]
+                        ],
                     }
                 ],
-                order: [['eventDate', 'DESC']]
+                limit: limit,
+                offset: (page - 1) * limit,
+                order: sortCondition ? [sortCondition] : [['eventDate', 'DESC']]
             });
 
-            // logger.info(eventRows.map(row => row.get({ plain: true })));
-            const events = eventRows.map(row => new EventLogDTO(row)); // Converts Sequelize instances to plain objects
-            // logger.info(events);
-            return res.json(events);
+            // const count = query.length; // Total number of results
+
+            const result = rows.map(row => new EventLogDTO(row));
+
+            res.json({
+                data: result,
+                totalCount: count, // Total events count
+                totalPages: Math.ceil(count / limit), // Calculate total pages
+                currentPage: parseInt(page, 10),
+            });
         } catch (error) {
+            console.log(error);
             logger.error(error);
             res.status(500).send({ error: error.message });
         }

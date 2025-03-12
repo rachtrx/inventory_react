@@ -63,7 +63,7 @@ class FormUserTagController {
 
         const authId = req.auth.id;
 
-        const addDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+        const addDate = new Date();
 
         try {
             for (const { tagId, tagName, users } of newTags) {
@@ -148,7 +148,7 @@ class FormUserTagController {
 
         const authId = req.auth.id;
 
-        const delDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+        const delDate = new Date();
 
         try {
             for (const { users } of removeTags) {

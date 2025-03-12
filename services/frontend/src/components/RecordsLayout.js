@@ -63,7 +63,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           <InfoBar count={totalCount} />
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />
         </Flex>
-        {totalCount === 0 ? <NoDataBox /> : isGridView ? <Cards items={data} /> : <Table items={data}/>}
+        {!totalCount ? <NoDataBox /> : isGridView ? <Cards items={data} /> : <Table items={data}/>}
         <PaginationControls currentPage={page} maxPage={maxPage} next={next} prev={prev}/>
         {/* <FormModal />
         <ItemDrawer /> */}

@@ -1,7 +1,7 @@
 const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { createSelection, getAllOptions, getDistinctOptions, getUserFilters, userFilters } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getUserFilters, userFilters, getSortCondition } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
@@ -47,6 +47,14 @@ class UserController {
                 return res.json([]);
             }
 
+            const sortFieldLookup = {
+                "userName": '"Usr"."user_name"',
+                "deptName": '"Usr->Dept"."dept_name"',
+            }
+
+            let sortCondition;
+            if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
+
             // console.log(filters.userName);
             
             // SELECT ALL rows that either/both pending astLoan or pending accLoans → Removes all other LOANs 
@@ -69,19 +77,20 @@ class UserController {
                             GROUP BY "Loans->AccLoans"."id"
                             HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
                         )
-                    `)
-                ],
-            };
-
-            const havingClause = {
-                [Op.and]: [
+                    `),
                     ...(filters.assetCount?.length === 2
-                        ? [Sequelize.where(
-                            Sequelize.literal(`
-                                SUM("Loans->AstLoan"."id")
-                                BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
-                            `)
-                        )] : []
+                        ? [Sequelize.literal(`
+                            EXISTS (
+                                SELECT 1
+                                FROM "loans" AS "UserLoans"
+                                JOIN "ast_loans" AS "AstLoans" ON "AstLoans"."loan_id" = "UserLoans"."id"
+                                WHERE "UserLoans"."user_id" = "Usr"."id"
+                                AND "UserLoans"."loan_event_id" IS NOT NULL
+                                AND "AstLoans"."return_event_id" IS NULL
+                                GROUP BY "UserLoans"."user_id"
+                                HAVING COUNT("AstLoans"."id") BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
+                            )
+                        `)] : []
                     ),
                     // ...(filters.accessoryCount?.length === 2 // TODO, add accessory count filter soon?
                     //     ? [Sequelize.where(
@@ -110,9 +119,7 @@ class UserController {
 
             // IMPT allow reservations
     
-            const { count, rows } = await Usr.findAndCountAll({
-                distinct: true,
-                subQuery: false,
+            const query = await Usr.findAll({
                 attributes: ['id', 'userName', 'bookmarked'],
                 include: [
                     {
@@ -189,14 +196,12 @@ class UserController {
                     },
                 ],
                 where: whereClause || {},
-                group: Sequelize.literal('"Usr"."id"'),
-                having: havingClause || {},
-                order: sort ? [[sort.field, sort.order]] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
-                limit: parseInt(limit, 10),
-                offset: (parseInt(page, 10) - 1) * parseInt(limit, 10), // Proper pagination
+                order: sortCondition ? [sortCondition] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
             });
             
-            // Map the results into DTO objects
+            const count = query.length;
+            const rows = query.slice((page - 1) * limit, page * limit);
+            
             let result = rows.map(userRow => {
                 return new UserDTO(userRow).setOngoingLoans().setOngoingReservations();
             });

@@ -8,11 +8,19 @@ class AccessoryService {
     }
 
     defaultFilters = {
-        "accessoryName": []
+        "accessoryName": ""
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        return await this.axios.post(`${this.URL}`, {filters});
+    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+        console.log(filters)
+        return await this.axios.get(`${this.URL}`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
     }
 
     async getItem(id) {
@@ -21,6 +29,9 @@ class AccessoryService {
 
     async getFilters(field) {
         return await this.axios.post(`${this.URL}/filters`, {field});
+    }
+    async getAllFilters() {
+        return this;
     }
 
     async loanAccessory(id, userId) {

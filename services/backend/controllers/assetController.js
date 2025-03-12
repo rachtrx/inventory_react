@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes, assetFilters } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes, assetFilters, getSortCondition } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
@@ -58,6 +58,16 @@ class AssetController {
     async getAssets(req, res) {
         const { filters, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
         console.log(req.query);
+
+        const sortFieldLookup = {
+            typeName: '"Ast->AstSType->AstType"."type_name',
+            subTypeName: '"Ast->AstSType"."sub_type_name',
+            serialNumber: '"Ast"."serial_number"',
+        }
+        
+        let sortCondition;
+        if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
+        
     
         const whereClause = {
             [Op.and]: [
@@ -116,9 +126,7 @@ class AssetController {
     
         try {
             // Use `findAndCountAll` for pagination
-            const { count, rows } = await Ast.findAndCountAll({
-                distinct: true,
-                subQuery: true,
+            const query = await Ast.findAll({
                 attributes: ['id', 'serialNumber', 'alias', 'location', 'bookmarked', 'value'],
                 include: [
                     {
@@ -175,10 +183,11 @@ class AssetController {
                     }
                 ],
                 where: whereClause || {},
-                order: sort ? [[sort.field, sort.order]] : [], // Handle sorting dynamically
-                limit: parseInt(limit, 10),
-                offset: (parseInt(page, 10) - 1) * parseInt(limit, 10) // Proper pagination
+                order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
             });
+
+            const count = query.length;
+            const rows = query.slice((page - 1) * limit, page * limit);
     
             let result = rows.map(assetRow => {
                 const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation();

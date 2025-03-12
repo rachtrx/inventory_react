@@ -1,5 +1,6 @@
+const { Op } = require('sequelize');
 const logger = require('../logging');
-const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept } = require('../models');
+const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('../models');
 
 exports.FormType = {
     ADD_ASSET: 'ADD_ASSET',
@@ -183,4 +184,102 @@ exports.getUserFilters = async (field) => {
     } catch (error) {
         throw error;
     }
+}
+
+
+
+// exports.assetTagMapQuery = () => ({
+//     model: AstTagMap,
+//     required: false,
+//     include: {
+//         model: AstTag
+//     },
+//     where: {
+//         delEventId: {
+//             [Op.eq]: null
+//         }
+//     }
+// })
+
+// exports.userTagMapQuery = () => ({
+//     model: UsrTagMap,
+//     attributes: ['id'],
+//     required: false,
+//     include: {
+//         model: UsrTag,
+//         attributes: ['id', 'tagName']
+//     },
+//     where: {
+//         delEventId: {
+//             [Op.eq]: null
+//         }
+//     }
+// })
+
+// exports.assetTagMapQuery = (assetIdCol, tagIdArr) => ({
+//     where: Sequelize.literal(`EXISTS (
+//         SELECT 1
+//         FROM ast_tag_maps
+//         WHERE ast_tag_maps.asset_id = ${Sequelize.escape(assetIdCol)}
+//         AND ast_tag_maps.tag_id IN (${tagIdArr.map(id => Sequelize.escape(id)).join(',')})
+//         AND ast_tag_maps.del_event_id IS NULL
+//     )`)
+//   });
+
+//   exports.userTagMapQuery = (userIdCol, tagIdArr) => ({
+//     where: Sequelize.literal(`EXISTS (
+//         SELECT 1
+//         FROM usr_tag_maps
+//         WHERE usr_tag_maps.user_id = ${Sequelize.escape(userIdCol)}
+//         AND usr_tag_maps.tag_id IN (${tagIdArr.map(id => Sequelize.escape(id)).join(',')})
+//         AND usr_tag_maps.del_event_id IS NULL
+//     )`)
+//   });
+
+
+exports.assetTagMapQuery = (tagIdArr) => ({
+    model: AstTagMap,
+    required: false,
+    include: {
+        model: AstTag,
+        attributes: ['id', 'tagName'],
+        where: {
+            id: {
+                [Op.in]: tagIdArr
+            }
+        }
+    },
+    where: {
+        delEventId: {
+            [Op.eq]: null
+        }
+    }
+})
+
+exports.userTagMapQuery = (tagIdArr) => ({
+    model: UsrTagMap,
+    attributes: ['id'],
+    required: false,
+    include: {
+        model: UsrTag,
+        attributes: ['id', 'tagName'],
+        where: {
+            id: {
+                [Op.in]: tagIdArr
+            }
+        }
+    },
+    where: {
+        delEventId: {
+            [Op.eq]: null
+        }
+    }
+})
+
+exports.getSortCondition = (sortFieldLookup, sort) => {
+    let sortCondition;
+    const [sortField, sortOrder] = sortCondition;
+    const newSortField = sortFieldLookup[sortField];
+    if (newSortField) sortCondition = [newSortField, sortOrder === 'asc'? 'ASC' : 'DESC'];
+    return sortCondition;
 }

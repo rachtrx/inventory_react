@@ -30,9 +30,16 @@ class EventService {
         return await this.axios.get(`${API_URL}/events/filters/all`);
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        console.log(API_URL)
-        return await this.axios.get(`${API_URL}/events`, {params: { filters }});
+    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+        console.log(filters)
+        return await this.axios.get(`${API_URL}/events`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
     }
 
     async updateItem(id, field, newValue) {

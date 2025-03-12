@@ -84,10 +84,10 @@ export const ItemsProvider = ({ children, service, idField }) => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setLoading(true);
         const response = await service.loadItems({
           filters: searchFilters,
-          ...(sortField && {sortField}),
-          ...(sortField && {sortOrder}),
+          sort: sortField ? [[sortField, sortOrder]] : undefined,
           page,
           pageSize: itemsPerPage,
         });
@@ -95,13 +95,15 @@ export const ItemsProvider = ({ children, service, idField }) => {
         console.log(response.data.totalCount);
         setData(response.data.data);
         setMaxPage(response.data.totalPages);
-        setTotalCount(response.data.totalCount)
+        setTotalCount(response.data.totalCount);
+        setLoading(false);
       } catch (error) {
-        console.error("Failed to fetch assets", error);
+        setLoading(false);
+        handleError(error);
       }
     };
     fetchItems();
-  }, [searchFilters, page, service, sortOrder, sortField]);
+  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading]);
 
   const handleSort = (key) => {
     setSortField(key);

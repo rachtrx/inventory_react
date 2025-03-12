@@ -1,6 +1,6 @@
 const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk, Sequelize } = require('../models/index.js');
 const logger = require('../logging.js');
-const { getAllOptions } = require('./utils.js');
+const { getAllOptions, getSortCondition } = require('./utils.js');
 const AccTypeDTO = require('../dtos/accType.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
@@ -39,8 +39,15 @@ class AccessoryController {
 
     async getAccesories (req, res) {
 
-        const { filters } = req.body
-        logger.info(filters)
+        const { filters={}, sort, page = 1, limit = 10 } = req.query; // Default page 1, limit 10
+        logger.info(filters);
+
+        const sortFieldLookup = {
+            "accessoryName": '"AccType"."accessory_name"'
+        }
+
+        let sortCondition;
+        if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
 
         const accessoriesExist = await AccType.count();
         if (accessoriesExist === 0) {
@@ -50,68 +57,72 @@ class AccessoryController {
         try {
             let query = await AccType.findAll({
                 attributes: ['id', 'accessoryName', 'stock'],
-                ...(filters.accessoryName.length > 0 && { where: { id: { [Op.in]: filters.accessoryName } } }),
-                include: [{
-                    model: AccTxn,
-                    required: false,
-                    attributes: ['id', 'count'], // TODO change to count
-                },
-                {
-                    model: AccLoan,
-                    required: false,
-                    attributes: ['id', 'count'],
-                    include: [
-                        {
-                            model: AccReturn,
-                            attributes: ['id', 'count'],
-                            required: false
-                        },
-                        {
-                            model: Loan,
-                            required: true,
-                            include: [
-                                {
-                                    model: Usr,
-                                    attributes: ['id', 'userName', 'bookmarked'],
-                                },
-                                {
-                                    model: AstLoan,
-                                    required: false,
-                                    include: {
-                                        model: Ast,
-                                        attributes: ['id', 'alias', 'serialNumber'],
+                ...(filters.accessoryName?.length > 0 && { where: { accessoryName: { [Op.iLike]: `%${filters.accessoryName}%` } } }),
+                include: [
+                    {
+                        model: AccTxn,
+                        required: false,
+                        attributes: ['id', 'count'],
+                    },
+                    {
+                        model: AccLoan,
+                        required: false,
+                        attributes: ['id', 'count'],
+                        include: [
+                            {
+                                model: AccReturn,
+                                attributes: ['id', 'count'],
+                                required: false
+                            },
+                            {
+                                model: Loan,
+                                required: true,
+                                include: [
+                                    {
+                                        model: Usr,
+                                        attributes: ['id', 'userName', 'bookmarked'],
+                                    },
+                                    {
+                                        model: AstLoan,
+                                        required: false,
+                                        include: {
+                                            model: Ast,
+                                            attributes: ['id', 'alias', 'serialNumber'],
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ]
-                }],
-                // raw: true,
+                                ]
+                            }
+                        ]
+                    }
+                ],
                 group: [
-                    // AccType attributes
                     '"AccType"."id"',
-                    // Acc attributes
                     '"AccTxns"."id"',
-                    // AccLoan attributes
                     '"AccLoans"."id"',
                     '"AccLoans->AccReturns"."id"',
                     '"AccLoans->Loan"."id"',
                     '"AccLoans->Loan->Usr"."id"',
-
                     '"AccLoans->Loan->AstLoan"."id"',
                     '"AccLoans->Loan->AstLoan->Ast"."id"',
                 ],
+                order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
+                logging: console.log // Logs the full query for debugging
             });
 
-            const result = query.map(accTypeRow => {
-                return new AccTypeDTO(accTypeRow);
+            const count = query.length; // Total number of results
+            const paginatedResults = query.slice((page - 1) * limit, page * limit);
+
+            const result = paginatedResults.map(accTypeRow => new AccTypeDTO(accTypeRow));
+
+            res.json({
+                data: result,
+                totalCount: count, // Total assets count
+                totalPages: Math.ceil(count / limit), // Calculate total pages
+                currentPage: parseInt(page, 10)
             });
-    
-            logger.info(result);
-            res.json(result);
         } catch (error) {
-            logger.error(error)
-            return res.status(500).json({ error: error.message })
+            console.error("Error fetching accessories:", error);
+            res.status(500).json({ error: error.message });
         }
     }
 
@@ -645,7 +656,7 @@ class AccessoryController {
                 const eventId = generateSecureID();
                 const authId = req.auth.id
 
-                const curDate = new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+                const curDate = new Date();
 
                 await Event.create({
                     id: eventId,

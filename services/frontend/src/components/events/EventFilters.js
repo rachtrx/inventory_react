@@ -8,109 +8,100 @@ import DateInputControl from '../forms/utils/DateInputControl';
 import { FormType } from '../../context/ModalProvider';
 import ToggleButton from '../buttons/ToggleButton';
 import FilterSidebar from '../utils/FilterSidebar';
+import { CheckboxGroupField } from '../forms/utils/CheckboxGroupField';
+import CheckboxField from '../forms/utils/CheckboxField';
 
 
 const EventFilters = () => {
 
-    const { filters, fetchFilters, onSubmit } = useItems();
-
-    useEffect(() => {
-        fetchFilters('typeName');
-        fetchFilters('subTypeName');
-        fetchFilters('deptName');
-        fetchFilters('assetTag');
-        fetchFilters('userTag');
-        fetchFilters('admin');
-    }, [fetchFilters]);
+    const { filters } = useItems();
 
     return (
-        <Formik initialValues={eventService.defaultFilters} onSubmit={onSubmit}>
-            <Form>
-                <FilterSidebar>
-				    <DateInputControl
-                        placeholder="Start Date" 
-                        name={`startDate`} 
-                    />
+        <>
+            <CheckboxField
+                name="bookmarked"
+                label="Bookmarked"
+            />
 
-                    <DateInputControl 
-                        placeholder="End Date" 
-                        name={`endDate`} 
-                    />
+            <DateInputControl
+                placeholder="Start Date" 
+                name={`startDate`} 
+            />
 
-                    <MultiSelectFormControl
-                        name="eventType"
-                        initialOptions={
-                            [
-                                {'label': 'Loan', 'value': FormType.LOAN},
-                                {'label': 'Return', 'value': FormType.RETURN},
-                                {'label': 'Add Asset', 'value': FormType.ADD_ASSET},
-                                {'label': 'Del Asset', 'value': FormType.DEL_ASSET},
-                                {'label': 'Add User', 'value': FormType.ADD_USER},
-                                {'label': 'Del User', 'value': FormType.DEL_USER},
-                                {'label': 'Update Accessory', 'value': FormType.UPDATE_ACC},
-                                {'label': 'Tag Asset', 'value': FormType.TAG_ASSET},
-                                {'label': 'Untag Asset', 'value': FormType.UNTAG_ASSET},
-                                {'label': 'Tag User', 'value': FormType.TAG_USER},
-                                {'label': 'Untag User', 'value': FormType.UNTAG_USER},
-                            ]
-                        }
-                    />
+            <DateInputControl 
+                placeholder="End Date" 
+                name={`endDate`} 
+            />
 
-                    <MultiSelectFormControl
-                        name="typeName"
-                        // label="Asset Type"
-                        placeholder="Asset Type"
-                        initialOptions={filters.typeName}
-                    />
+            <CheckboxGroupField
+                name="eventType"
+                label="Event Type"
+                items={
+                    [
+                        {'label': 'Loan', 'value': FormType.LOAN},
+                        {'label': 'Return', 'value': FormType.RETURN},
+                        {'label': 'Reservation', 'value': FormType.RESERVE},
+                        {'label': 'Add Asset', 'value': FormType.ADD_ASSET},
+                        {'label': 'Del Asset', 'value': FormType.DEL_ASSET},
+                        {'label': 'Add User', 'value': FormType.ADD_USER},
+                        {'label': 'Del User', 'value': FormType.DEL_USER},
+                        {'label': 'Update Accessory', 'value': FormType.UPDATE_ACC},
+                        {'label': 'Tag Asset', 'value': FormType.TAG_ASSET},
+                        {'label': 'Untag Asset', 'value': FormType.UNTAG_ASSET},
+                        {'label': 'Tag User', 'value': FormType.TAG_USER},
+                        {'label': 'Untag User', 'value': FormType.UNTAG_USER},
+                    ]
+                }
+            />
 
-                    <MultiSelectFormControl
-                        name="subTypeName"
-                        // label="Specific Model"
-                        placeholder="Specific Model"
-                        initialOptions={filters.subTypeName}
-                    />
+            <CheckboxGroupField
+                items={filters.typeName}
+                label="Asset Type"
+                name="typeName"
+            />
 
-                    <InputFormControl
-                        name="serialNumber"
-                        // label="Serial Number"
-                        placeholder="Serial Number"
-                    />
+            <InputFormControl
+                name="serialNumber"
+                label="Serial Number"
+                placeholder="Serial Number"
+            />
+    
+            <CheckboxGroupField
+                items={filters.subTypeName}
+                label="Model"
+                name="subTypeName"
+            />
 
-                    <MultiSelectFormControl
-                        name="deptName"
-                        // label="Department"
-                        placeholder="Department"
-                        initialOptions={filters.deptName}
-                    />
+            <CheckboxGroupField
+                items={filters.deptName}
+                label="Department"
+                name="deptName"
+            />
 
-                    <MultiSelectFormControl
-                        name="userName"
-                        // label="Username"
-                        placeholder="Username"
-                    />
+            <InputFormControl
+                name="userName"
+                label="User Name"
+                placeholder="User Name"
+            />
 
-                    <MultiSelectFormControl
-                        name="userTag"
-                        placeholder="User Tag"
-                        initialOptions={filters.userTag}
-                    />
+            <CheckboxGroupField
+                items={filters.userTag}
+                label="User Tag"
+                name="userTag"
+            />
 
-                    <MultiSelectFormControl
-                        name="assetTag"
-                        placeholder="Asset Tag"
-                        initialOptions={filters.assetTag}
-                    />
+            <CheckboxGroupField
+                items={filters.assetTag}
+                label="Asset Tag"
+                name="assetTag"
+            />
 
-                    <MultiSelectFormControl
-                        name="admin"
-                        placeholder="Admin"
-                        initialOptions={filters.admin}
-                    />
-
-                    <ToggleButton name="bookmarked" label="Bookmarked" />
-                </FilterSidebar>
-            </Form>
-        </Formik>
+            <CheckboxGroupField
+                items={filters.admin}
+                label="Admin"
+                name="admin"
+            />
+        </>
     )
 };
 
