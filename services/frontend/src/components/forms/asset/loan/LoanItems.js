@@ -18,6 +18,7 @@ import { ReturnAstSelectFormControl } from "../return/CustomSelect"
 import { LoanAstSelectFormControl } from "./CustomSelect"
 import assetService from "../../../../services/AssetService"
 import LoanAccessory from "./LoanAccessory"
+import loanService from "../../../../services/LoanService"
 
 export const LoanItems = function({ field, loan, children }) {
 	
@@ -82,7 +83,7 @@ export const LoanItems = function({ field, loan, children }) {
 				{!loan.excludeAsset && 
 				<LoanAstSelectFormControl
 					name={`${field}.asset.serialNumber`}
-					searchFn={value => assetService.fetchAstLoan(value)}
+					searchFn={value => loanService.fetchAstLoan(value)}
 					updateFields={updateAssetFields}
 					label={`Serial Number`}
 					placeholder="Serial Number"

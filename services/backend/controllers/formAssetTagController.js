@@ -9,6 +9,43 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 class FormAssetTagController {
 
+    async createNewTag(req, res) {
+        const { tagName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+    
+            const existingTag = await AstTag.findOne({
+                where: { tagName: { [Op.eq]: tagName } },
+                attributes: ['id', 'tagName'],
+                transaction,
+            });
+    
+            if (existingTag) {
+                throw new Error(`${tagName} already exists!`);
+            }
+    
+            const assetTag = await AstTag.create(
+                {
+                    id: generateSecureID(),
+                    tagName: tagName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+            console.log(assetTag.get({plain: true}));
+
+            return res.json({
+                message: `${assetTag.tagName} created successfully`,
+                newTag: assetTag.get({plain: true})
+            });
+
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async loadAddAssets(req, res) {
         try {
             // console.log(req.query.tagId);
@@ -72,27 +109,15 @@ class FormAssetTagController {
             for (const { tagId, tagName, assets } of newTags) {
 
                 let tag;
-                if (tagId && tagId !== '') {
+
+                try {
                     tag = await AstTag.findByPk(tagId, { transaction }); // Ensure it's inside transaction
-                } else {
-                    tag = await AstTag.create({
-                        id: generateSecureID(),
-                        tagName: tagName
-                    }, { transaction });
+                    if (!tag) throw new Error()
+                } catch (error) {
+                    res.status(500).send(`No Matching Asset Type for ${tagName} Found!`);
                 }
                 
                 for (const { assetId, remarks, serialNumber } of assets) {
-
-                    const tagExists = await AstTagMap.findOne({
-                        where: {
-                            tagId: tag.id,
-                            assetId: assetId,
-                            delEventId: { [Op.eq]: null }
-                        },
-                        transaction
-                    })
-
-                    if (tagExists) throw new Error(`Tag ${tagName} already exists for ${serialNumber}`)
 
                     const asset = await Ast.findOne({
                         where: {

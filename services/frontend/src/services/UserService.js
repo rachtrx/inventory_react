@@ -5,6 +5,7 @@ import { axiosInstance } from '../config';
 class UserService {
     constructor(axiosInstance) {
         this.axios = axiosInstance;
+        this.URL = `${API_URL}/users`
     }
 
     defaultFilters = {
@@ -13,20 +14,20 @@ class UserService {
     }
 
     async getItem(id) {
-        return await this.axios.get(`${API_URL}/users/${id}`);
+        return await this.axios.get(`${this.URL}/${id}`);
     }
 
     async getFilters(field) {
-        return await this.axios.post(`${API_URL}/users/filters`, {field});
+        return await this.axios.post(`${this.URL}/filters`, {field});
     }
 
     async getAllFilters() {
-        return await this.axios.get(`${API_URL}/users/filters/all`);
+        return await this.axios.get(`${this.URL}/filters/all`);
     }
 
     async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
         console.log(filters)
-        return await this.axios.get(`${API_URL}/users`, {
+        return await this.axios.get(`${this.URL}`, {
             params: {
                 filters,
                 sort,
@@ -37,7 +38,7 @@ class UserService {
     }
     
     async updateItem(id, field, newValue) {
-        return await this.axios.patch(`${API_URL}/users/update`, {id, field, newValue});
+        return await this.axios.patch(`${this.URL}/update`, {id, field, newValue});
     }
 
     async searchUsers(value, formType) {
@@ -45,30 +46,24 @@ class UserService {
         const params = { value }
 
         if (formType === FormType.LOAN) {
-            return await this.axios.get(`${API_URL}/users/search/loan`, {params});
+            return await this.axios.get(`${this.URL}/search/loan`, {params});
         } else if (formType === FormType.DEL_USER) {
-            return await this.axios.get(`${API_URL}/users/search/delete`, {params});
+            return await this.axios.get(`${this.URL}/search/delete`, {params});
         } else throw new Error("Form Type not found")
     }
 
     async addUser(data) {
         // downloadFormData(data);
-        return await this.axios.post(`${API_URL}/forms/add/user`, data);
+        return await this.axios.post(`${this.URL}/add/user`, data);
     }
 
-    async removeUser(data) {
+    async delUser(data) {
         // downloadFormData(data);
-        return await this.axios.post(`${API_URL}/forms/del/user`, data);
+        return await this.axios.post(`${this.URL}/del/user`, data);
     }
 
     // Only fetched through single search
-    fetchUserReturn = async (userName) => {
-        return await this.axios.get(`${API_URL}/forms/return/user`, {
-            params: {
-                userName
-            }
-        });
-    }
+    
 
     fetchUserDel = async (userNames) => {
         return await this.axios.get(`${API_URL}/forms/del/user`, {
@@ -78,16 +73,10 @@ class UserService {
         });
     }
 
-    fetchUserLoan = async (userNames) => {
-        return await this.axios.get(`${API_URL}/forms/loan/user`, {
-            params: {
-                userNames
-            }
-        });
-    }
+    
 
     fetchTagUser = async(userNames, tagId=null) => {
-        const options = await this.axios.get(`${API_URL}/forms/tag/user`, {
+        const options = await this.axios.get(`${this.URL}/tag/user`, {
             params: {
                 userNames,
                 tagId,
@@ -97,7 +86,7 @@ class UserService {
     }
 
     fetchUntagUser = async (userNames, tagId=null) => {
-        return await this.axios.get(`${API_URL}/forms/untag/user`, {
+        return await this.axios.get(`${this.URL}/untag/user`, {
             params: {
                 userNames,
                 tagId,
@@ -108,12 +97,22 @@ class UserService {
     async tagUser(formData) {
         // downloadFormData(formData);
         console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/tag/user`, formData);
+        return await this.axios.post(`${this.URL}/tag/user`, formData);
     }
 
     async untagUser(formData) {
         console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/untag/user`, formData);
+        return await this.axios.post(`${this.URL}/untag/user`, formData);
+    }
+
+    async createNewTag(tagName) {
+        console.log(tagName);
+        return await this.axios.post(`${this.URL}/add/tag`, { tagName });
+    }
+
+    async createNewDept(deptName) {
+        console.log(deptName);
+        return await this.axios.post(`${this.URL}/add/dept`, { deptName });
     }
 }
 

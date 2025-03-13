@@ -1,17 +1,19 @@
-import { ActionButton } from "./ActionButton"
+import { ActionButton, CircleActionButton } from "./ActionButton"
 
-export const UserActionButton = ({
-    user=null,
-    grouped=false,
-    ...rest
+const withUserAction = (ButtonComponent) => ({
+	user=null,
+    grouped=false, // TODO might not be needed unlike asset / accessory.
+	...rest
 }) => {
 
-    const userArray = !user ? [] : Array.isArray(user) ? user : [user]
+	const userArray = !user ? [] : Array.isArray(user) ? user : [user]
 
     return (
-        <ActionButton
+        <ButtonComponent
             initialValues={{userNames: userArray.map(usr => usr.userName), grouped}}
             {...rest}
         />
     )
 }
+export const UserActionButton = withUserAction(ActionButton);
+export const CircleUserActionButton = withUserAction(CircleActionButton);

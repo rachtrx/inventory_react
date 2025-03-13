@@ -13,18 +13,23 @@ import { useItems } from '../../context/ItemsProvider';
 import { UserLink } from '../buttons/ItemLink';
 import Tags from '../tags/Tags';
 import { useLoading } from '../../context/LoadingProvider';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 const UserTable = ({ items }) => {
 
-  const { handleUpdate } = useItems()
+  const { handleUpdate, handleSort, sortField, sortOrder } = useItems()
 
   return (
     <Table size='sm' variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
         <Tr>
           <Th></Th>
-          <Th>User Name</Th>
-          <Th>Department</Th>
+          <Th onClick={() => handleSort("userName")} cursor="pointer">
+            User Name {sortField === "userName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+          </Th>
+          <Th onClick={() => handleSort("deptName")} cursor="pointer">
+            Department {sortField === "deptName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+          </Th>
           <Th>Assets</Th>
           <Th>Tags</Th>
         </Tr>

@@ -26,7 +26,7 @@ function EventCards({items}) {
                 <Card 
                     h="100%"
                     w="100%" 
-                    bg={ACTION_COLORS[event.type]}
+                    bg={`${ACTION_COLORS[event.type]}.100`}
                     _hover={{ bg:  'gray.100' }}
                     overflow="hidden"
                 >

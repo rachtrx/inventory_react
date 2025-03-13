@@ -134,6 +134,25 @@ export const AddUsersProvider = ({ children }) => {
     setStep(step + 1);
   };
 
+  const addNewDept = async (deptName) => {
+    try {
+      setLoading(true);
+      const response = await userService.createNewDept(deptName);
+      setDeptOptions(oldArray => [
+        ...oldArray.filter(item => !(item.value === deptName && !item.deptId)),
+        { 
+          deptId: response.data.newDept.id, 
+          value: response.data.newDept.deptName, 
+          label: response.data.newDept.deptName 
+        }
+      ]);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
   const handleSubmit = async (values, actions) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
@@ -154,6 +173,7 @@ export const AddUsersProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     deptOptions,
+    addNewDept,
     formData,
     step,
     setFormData,

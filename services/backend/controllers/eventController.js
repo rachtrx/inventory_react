@@ -90,7 +90,8 @@ class EventController {
         logger.info(filters);
 
         const sortFieldLookup = {
-            
+            "eventDate": '"event_date"',
+            "admin": '"Admin"."admin_name"'
         }
 
         let sortCondition;

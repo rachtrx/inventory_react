@@ -36,7 +36,7 @@ export const AddSubType = ({
 		if (subType.subTypeId === "" || cost !== 0) return;
 
 		// TODO
-		// const getCostForSubType = async () => {
+		// const getDefaultCostForSubType = async () => {
 		// 	const response = await assetService.getLatestSubTypeCost(subType.subTypeId);
 		// 	return response.data;
 		// }

@@ -3,7 +3,6 @@ import { dateTimeObject } from '../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
-import usePagination from '../hooks/usePagination';
 import { useSearchParams } from 'react-router-dom';
 
 // Create a context for assets
@@ -87,7 +86,7 @@ export const ItemsProvider = ({ children, service, idField }) => {
         setLoading(true);
         const response = await service.loadItems({
           filters: searchFilters,
-          sort: sortField ? [[sortField, sortOrder]] : undefined,
+          sort: sortField ? [sortField, sortOrder] : undefined,
           page,
           pageSize: itemsPerPage,
         });
@@ -106,7 +105,11 @@ export const ItemsProvider = ({ children, service, idField }) => {
   }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading]);
 
   const handleSort = (key) => {
-    setSortField(key);
+    const isSameKey = key === sortField;
+    if (!isSameKey) {
+      setSortField(key);
+      setSortOrder("desc")
+    }
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
@@ -147,6 +150,8 @@ export const ItemsProvider = ({ children, service, idField }) => {
       setFilters,
       handleUpdate,
       handleSort,
+      sortField,
+      sortOrder,
       fetchFilters,
       fetchAllFilters,
       setSearchFilters,
@@ -154,6 +159,7 @@ export const ItemsProvider = ({ children, service, idField }) => {
       totalCount,
       maxPage,
       page,
+      setPage,
       next,
       prev,
       jump,

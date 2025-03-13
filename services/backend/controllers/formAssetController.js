@@ -1,4 +1,4 @@
-const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = require('../models');
+const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize, AstTag } = require('../models');
 const { Op } = require('sequelize');
 const FormHelpers = require('./formHelperController.js');
 const { eventTypes } = require('./utils.js');
@@ -108,10 +108,6 @@ class FormAssetController {
             transaction.commit();
             console.log(assetType.get({plain: true}));
 
-            return res.json({
-                message: `${assetType.typeName} created successfully`,
-                newType: assetType.get({plain: true})
-            });
             return res.json({
                 message: `${assetType.typeName} created successfully`,
                 newType: assetType.get({plain: true})

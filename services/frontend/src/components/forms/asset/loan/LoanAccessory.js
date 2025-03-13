@@ -3,20 +3,16 @@ import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl }
 import { useFormModal } from "../../../../context/ModalProvider"
 import { useUI } from "../../../../context/UIProvider"
 import accessoryService from "../../../../services/AccessoryService"
-import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton } from "@chakra-ui/react";
-import { FieldArray } from "formik"
+import { Flex } from "@chakra-ui/react";
 import InputFormControl from "../../utils/InputFormControl"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { AddButton, RemoveButton } from "../../utils/ItemButtons"
-import { useLoan } from "./LoanProvider"
-import { v4 as uuidv4 } from 'uuid';
+import { RemoveButton } from "../../utils/ItemButtons"
 import { useLoans } from "./LoansProvider"
-import { createNewAccessory } from "./LoanUser"
 import { LoanAccSelectFormControl } from "./CustomSelect"
 import WarningCard from "../../utils/Warnings"
+import loanService from "../../../../services/LoanService"
 
-const LoanAccessory = ({accessory, field, index, helpers, children}) => {
+const LoanAccessory = ({ accessory, field, index, helpers }) => {
 	
 	const { setFieldValue } = useFormikContext();
 	const { accessoryOptions, addNewAccessory } = useLoans()
@@ -36,7 +32,7 @@ const LoanAccessory = ({accessory, field, index, helpers, children}) => {
         <Flex direction="column" key={accessory.key}>
             <LoanAccSelectFormControl
                 name={`${field}.accessoryName`}
-                searchFn={accessoryService.fetchAccLoan}
+                searchFn={loanService.fetchAccLoan}
                 updateFields={(selected) => updateAccessoryFields(selected)}
                 initialOptions={accessoryOptions}
             >
@@ -55,7 +51,7 @@ const LoanAccessory = ({accessory, field, index, helpers, children}) => {
                     message={`Create ${accessory.accessoryName}?`}
                     items={accessoryOptions}
                     itemAttr="value"
-                    onCreate={async() => await addNewAccessory(accessory.accessoryName)}
+                    onCreate={async () => await addNewAccessory(accessory.accessoryName)}
                 />
             }
         </Flex>

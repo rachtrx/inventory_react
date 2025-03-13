@@ -8,11 +8,19 @@ import { createNewAsset, useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
 import { LoanAstSelectFormControl } from "../../loan/CustomSelect"
 import InputFormControl from "../../../utils/InputFormControl"
+import WarningCard from "../../../utils/Warnings"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 
-    const { tagOptions, assetOptions } = useAssetTags();
+    const { tagOptions, assetOptions, addNewTag } = useAssetTags();
 	const { setFieldValue } = useFormikContext();
+
+    useEffect(() => {
+        console.log(tagOptions);
+        if (!tag.tagName || tag.tagId) return;
+        const matchedOption = tagOptions.find(option => option.tagId && option.value === tag.tagName);
+        if(matchedOption) setFieldValue(`tags.${tagIndex}.tagId`, matchedOption.tagId);
+    }, [tagOptions, setFieldValue, tag, tagIndex]);
 
     const updateAssetFields = (assetIndex, selected) => {
 
@@ -51,6 +59,14 @@ export const AddTag = ({tag, tagIndex, children}) => {
                         updateFields={(selected) => updateTagFields(selected, tagIndex)}
                         initialOptions={tagOptions}
                     />
+                    {tag.tagName && !tag.tagId && 
+                        <WarningCard
+                            message={`Create ${tag.tagName}?`}
+                            items={tagOptions}
+                            itemAttr="value"
+                            onCreate={() => addNewTag(tag.tagName)}
+                        />
+                    }
                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                     <FieldArray name={`tags.${tagIndex}.assets`}>
                         {assetHelpers => (

@@ -1,11 +1,13 @@
 const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { createSelection, getAllOptions, getDistinctOptions, getUserFilters, userFilters, getSortCondition } = require('./utils.js');
+const { getUserFilters, userFilters, getSortCondition } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
 class UserController {
+
+    
 
     async getAllFilters(req, res) {
         try {
@@ -16,7 +18,7 @@ class UserController {
             );
             return res.json(optionsDict)
         } catch (error) {
-            logger.error(error)
+            logger.error(error);
             console.error(error);
             res.status(500).json({ error: error.message });
         }
@@ -44,12 +46,17 @@ class UserController {
             const usersExist = await Usr.count();
             
             if (usersExist === 0) {
-                return res.json([]);
+                return res.json({
+                    data: [],
+                    totalCount: 0,
+                    totalPages: 1,
+                    currentPage: 1
+                });
             }
 
             const sortFieldLookup = {
-                "userName": '"Usr"."user_name"',
-                "deptName": '"Usr->Dept"."dept_name"',
+                "userName": '"user_name"',
+                "deptName": '"Dept"."dept_name"',
             }
 
             let sortCondition;

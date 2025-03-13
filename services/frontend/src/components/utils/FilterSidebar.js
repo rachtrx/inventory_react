@@ -11,14 +11,15 @@ import {
     Grid,
     Flex,
     useDisclosure,
+    IconButton,
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useItems } from '../../context/ItemsProvider';
 import { useFormikContext } from 'formik';
+import { FaSearch } from 'react-icons/fa';
 
-const FilterSidebar = ({ children }) => {
-    const { isOpen, onOpen, onClose } = useDisclosure();
-
+const FilterSidebar = ({ isOpen, onClose, children }) => {
+    const { setPage } = useItems()
     const { values, handleSubmit, resetForm } = useFormikContext();
 
     useEffect(() => {
@@ -28,21 +29,6 @@ const FilterSidebar = ({ children }) => {
 
     return (
         <>
-            {/* Button to open sidebar */}
-            <Button
-                ref={btnRef}
-                onClick={onOpen}
-                colorScheme="blue"
-                position="fixed"
-                left="10px"
-                top="50%"
-                transform="translateY(-50%)"
-                zIndex="1000"
-            >
-                <ChevronRightIcon mr={2} /> Filters
-            </Button>
-
-            {/* Sidebar Drawer */}
             <Drawer
                 isOpen={isOpen}
                 placement="left"
@@ -74,6 +60,7 @@ const FilterSidebar = ({ children }) => {
                             <Button 
                                 colorScheme="blue" 
                                 onClick={(values) => {
+                                    setPage(1);
                                     handleSubmit(values);
                                     onClose();
                                 }} 

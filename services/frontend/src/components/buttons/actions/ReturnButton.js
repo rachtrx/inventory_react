@@ -1,16 +1,22 @@
 import { FormType } from "../../../context/ModalProvider"
-import { ActionButton } from "./ActionButton"
+import { ActionButton, CircleActionButton } from "./ActionButton"
 
-export const ReturnButton = ({loanId, ...rest}) => {
+export const withReturnAction = (ButtonComponent) => ({
+	loanId,
+	...rest
+}) => {
 
-    const loanIds = !loanId ? [] : Array.isArray(loanId) ? loanId : [loanId]
+	const loanIds = !loanId ? [] : Array.isArray(loanId) ? loanId : [loanId]
 
-    return (
-        <ActionButton
+	return (
+		<ButtonComponent
             initialValues={loanIds}
             formType={FormType.RETURN}
             isMulti={Array.isArray(loanId)}
             {...rest}
-        />
-    )
+		/>
+	)
 }
+
+export const ReturnButton = withReturnAction(ActionButton);
+export const CircleReturnButton = withReturnAction(CircleActionButton);

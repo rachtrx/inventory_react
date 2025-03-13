@@ -54,6 +54,7 @@ export const AddUserTagsStep1 = () => {
         if (tagError) {
           setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
         }
+        if (tag['tagName'] && !tag['tagId']) setFieldError(errors, ['tags', tagIndex, 'tagName'], `Please create new tag ${tag['tagName']}`);
 
         const snDuplicates = validateUniqueValues(values.tags, ['users', 'userName']);
   

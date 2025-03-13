@@ -10,6 +10,7 @@ import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import accessoryService from "../../../../services/AccessoryService";
 import { useLoading } from "../../../../context/LoadingProvider";
+import loanService from "../../../../services/LoanService";
 
 // Create a context
 const LoansContext = createContext();
@@ -36,7 +37,7 @@ export const LoansProvider = ({ children }) => {
     if (!initialValues?.serialNumbers?.length || !initialValues?.userNames?.length) return;
 
     const fetchAstLoans = async () => {
-      const assetResponse = await assetService.fetchAstLoan(initialValues.serialNumbers);
+      const assetResponse = await loanService.fetchAstLoan(initialValues.serialNumbers);
       setAssetOptions(assetResponse.data);
 
       const assetObjs = initialValues.serialNumbers.map(serialNumber => {
@@ -56,7 +57,7 @@ export const LoansProvider = ({ children }) => {
     }
 
     const fetchUserLoans = async () => {
-      const userResponse = await userService.fetchUserLoan(initialValues.userNames);
+      const userResponse = await loanService.fetchUserLoan(initialValues.userNames);
       setUserOptions(userResponse.data);
       
       const userObjs = initialValues.userNames.map(userName => {
@@ -124,15 +125,15 @@ export const LoansProvider = ({ children }) => {
         else userToRowMap[record.userName].push(idx);
       });
 
-      const assetResponse = await assetService.fetchAstLoan([...serialNumbers]);
+      const assetResponse = await loanService.fetchAstLoan([...serialNumbers]);
       console.log(assetResponse.data);
-      const userResponse = await userService.fetchUserLoan([...userNames]);
+      const userResponse = await loanService.fetchUserLoan([...userNames]);
       const newAssetOptions = assetResponse.data;
       const newUserOptions = userResponse.data;
 
       let newAccessoryoptions = [];
       if (accessoryNames.size !== 0) {
-        const accessoryResponse = await accessoryService.fetchAccLoan([...accessoryNames]);
+        const accessoryResponse = await loanService.fetchAccLoan([...accessoryNames]);
         newAccessoryoptions = accessoryResponse.data;
       }
 
@@ -221,7 +222,7 @@ export const LoansProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await assetService.loanAsset(values);
+      await loanService.loanItems(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);

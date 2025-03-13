@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, useBreakpointValue } from '@chakra-ui/react';
 import { useFormModal, FormType } from '../../context/ModalProvider';
-import { AccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
+import { AccTypeActionButton, CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
 
 export default function AccessoryActions() {
 
@@ -14,7 +14,7 @@ export default function AccessoryActions() {
         <>
           {[FormType.UPDATE_ACC].map((formType) => {
             return (
-              <AccTypeActionButton
+              <CircleAccTypeActionButton
                 key={formType}
                 formType={formType}
               />

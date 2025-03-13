@@ -6,6 +6,7 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 const { Op } = require('sequelize');
 const { UserDelete } = require('../search_tools/userDelete.js');
+const logger = require('../logging.js');
 
 
 class FormUserController {
@@ -22,6 +23,43 @@ class FormUserController {
             res.status(500).json({ error: error.message });
         }
     };
+
+    async createNewDept(req, res) {
+        const { deptName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+    
+            const existingTag = await Dept.findOne({
+                where: { deptName: { [Op.eq]: deptName } },
+                attributes: ['id', 'deptName'],
+                transaction,
+            });
+    
+            if (existingTag) {
+                throw new Error(`${deptName} already exists!`);
+            }
+    
+            const dept = await Dept.create(
+                {
+                    id: generateSecureID(),
+                    deptName: deptName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+            console.log(dept.get({plain: true}));
+
+            return res.json({
+                message: `${dept.deptName} created successfully`,
+                newDept: dept.get({plain: true})
+            });
+
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
     
     async add (req, res) {
         const adminId = req.auth.id;

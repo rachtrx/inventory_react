@@ -1,16 +1,20 @@
-import { ActionButton } from "./ActionButton"
+import { ActionButton, CircleActionButton } from "./ActionButton"
 
-export const AccTypeActionButton = ({
+const withAccTypeAction = (ButtonComponent) => ({
 	accType=null,
 	grouped=false,
 	...rest
 }) => {
+
 	const accTypeArray = !accType ? [] : Array.isArray(accType) ? accType : [accType]
 
 	return (
-		<ActionButton
-			initialValues={{accNames: accTypeArray.map(accType => accType.accessoryName), grouped}}
+		<ButtonComponent
+			initialValues={{serialNumbers: accTypeArray.map(ast => ast.serialNumber), grouped}}
 			{...rest}
 		/>
 	)
 }
+
+export const AccTypeActionButton = withAccTypeAction(ActionButton);
+export const CircleAccTypeActionButton = withAccTypeAction(CircleActionButton);

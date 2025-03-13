@@ -141,34 +141,34 @@ const UpdateAccessories = () => {
           validateOnBlur={true}
           innerRef={formRef}
         >
-          {({ values, errors, setFieldValue }) => (
+          {({ values, errors }) => (
           <Form>
             <ModalBody w='100%'>
-            <Divider borderColor="black" borderWidth="2px" my={2}/>
-            <FieldArray name='accessories'>
-              {accessoryHelpers => values.accessories.map((accessory, index, array) => (
-                <UpdateAccessory
-                  accessory={accessory}
-                  accessoryOptions={accessoryOptions}
-                  addNewAccessory={addNewAccessory}
-                  accessoryHelpers={accessoryHelpers}
-                  index={index}
-                >
-                  <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
-                    {index === array.length - 1 && (
-                    <Button mt={4} type="button" onClick={() => accessoryHelpers.push(addNewAccessory())}>
-                      <ResponsiveText>Add Accessory</ResponsiveText>
-                    </Button>
-                    )}
-                  </Flex>
-                </UpdateAccessory>
-              ))}
-            </FieldArray>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-              <Button colorScheme="blue" type="submit" isDisabled={errors.accessories}>Submit</Button>
-          </ModalFooter>
+              <Divider borderColor="black" borderWidth="2px" my={2}/>
+              <FieldArray name='accessories'>
+                {accessoryHelpers => values.accessories.map((accessory, index, array) => (
+                  <UpdateAccessory
+                    accessory={accessory}
+                    accessoryOptions={accessoryOptions}
+                    addNewAccessory={addNewAccessory}
+                    accessoryHelpers={accessoryHelpers}
+                    index={index}
+                  >
+                    <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
+                      {index === array.length - 1 && (
+                      <Button mt={4} type="button" onClick={() => accessoryHelpers.push(addNewAccessory())}>
+                        <ResponsiveText>Add Accessory</ResponsiveText>
+                      </Button>
+                      )}
+                    </Flex>
+                  </UpdateAccessory>
+                ))}
+              </FieldArray>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
+                <Button colorScheme="blue" type="submit" isDisabled={errors.accessories}>Submit</Button>
+            </ModalFooter>
           </Form>
         )}
         </Formik>

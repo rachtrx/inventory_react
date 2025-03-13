@@ -9,6 +9,7 @@ import accessoryService from "../../../../services/AccessoryService";
 import { RemoveButton } from "../../utils/ItemButtons";
 import WarningCard from "../../utils/Warnings";
 import { useEffect } from "react";
+import loanService from "../../../../services/LoanService";
 
 export const UpdateAccessory = ({
     accessory, 
@@ -39,7 +40,7 @@ export const UpdateAccessory = ({
                 <Flex gap={4} alignItems="flex-start">
                     <SearchCreatableSingleSelectFormControl
                         name={`accessories.${index}.accessoryName`}
-                        searchFn={accessoryService.fetchAccLoan} // TODO create a shared name?
+                        searchFn={loanService.fetchAccLoan} // TODO create a shared name?
                         updateFields={(selected) => updateAccessoryFields(selected)}
                         initialOptions={accessoryOptions}
                     >

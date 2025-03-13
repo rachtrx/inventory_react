@@ -7,11 +7,19 @@ import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { createNewUser, useAddUsers } from "./AddUsersProvider"
 import InputFormControl from "../../utils/InputFormControl"
 import DateInputControl from "../../utils/DateInputControl"
+import WarningCard from "../../utils/Warnings"
 
 export const AddDeptUsers = ({dept, deptIndex, children}) => {
 
-    const { deptOptions } = useAddUsers();
+    const { deptOptions, addNewDept } = useAddUsers();
 	const { setFieldValue } = useFormikContext();
+
+    useEffect(() => {
+        console.log(deptOptions);
+        if (!dept.deptName || dept.deptId) return;
+        const matchedOption = deptOptions.find(option => option.deptId && option.value === dept.deptName);
+        if(matchedOption) setFieldValue(`depts.${deptIndex}.deptId`, matchedOption.deptId);
+    }, [deptOptions, setFieldValue, dept, deptIndex]);
 
     const handleDeptUpdate = (selected) => {
         if (!selected || selected.typeId) { // IMPT dont update for new created types
@@ -31,6 +39,14 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                         updateFields={handleDeptUpdate}
                         initialOptions={deptOptions}
                     />
+                    {dept.deptName && !dept.deptId && 
+                        <WarningCard
+                            message={`Create ${dept.deptName}?`}
+                            items={deptOptions}
+                            itemAttr="value"
+                            onCreate={() => addNewDept(dept.deptName)}
+                        />
+                    }
                     <FieldArray name={`depts.${deptIndex}.users`}>
                         {userHelpers => (
                             dept.users.map((user, userIndex, userArray) => (

@@ -48,31 +48,6 @@ router.get('/loan/accessory', formLoanReturnController.loadAccLoan); //
 router.get('/return', formLoanReturnController.loadReturn);
 router.post('/return', formLoanReturnController.return);
 
-router.post('/add/asset', formAssetController.add);
-router.post('/add/type', formAssetController.createNewAssetType);
-router.post('/add/subType', formAssetController.createNewAssetSubType);
-router.post('/add/vendor', formAssetController.createNewVendor);
-
-router.get('/del/asset', formAssetController.loadAstDel);
-router.post('/del/asset', formAssetController.del);
-
-router.post('/add/user', formUserController.add);
-
-router.get('/del/user', formUserController.loadUsrDel)
-router.post('/del/user', formUserController.del)
-
-router.get('/tag/asset', formAssetTagController.loadAddAssets)
-router.get('/untag/asset', formAssetTagController.loadDelAssets)
-
-router.post('/tag/asset', formAssetTagController.addAssetTag)
-router.post('/untag/asset', formAssetTagController.delAssetTag)
-
-router.get('/tag/user', formUserTagController.loadAddUsers)
-router.get('/untag/user', formUserTagController.loadDelUsers)
-
-router.post('/tag/user', formUserTagController.addUserTag)
-router.post('/untag/user', formUserTagController.delUserTag)
-
 router.post('/download', formLoanReturnController.downloadEvent);
 
 module.exports = router;

@@ -25,6 +25,8 @@ export const UIProvider = ({ children }) => {
     console.log(error);  
     let errorMessage = 'An unexpected error occurred. Please try again later.';
 
+    if (typeof error === "string") errorMessage = error;
+
     if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
     } else if (error.response) {

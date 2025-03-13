@@ -278,8 +278,8 @@ exports.userTagMapQuery = (tagIdArr) => ({
 
 exports.getSortCondition = (sortFieldLookup, sort) => {
     let sortCondition;
-    const [sortField, sortOrder] = sortCondition;
+    const [sortField, sortOrder] = sort;
     const newSortField = sortFieldLookup[sortField];
-    if (newSortField) sortCondition = [newSortField, sortOrder === 'asc'? 'ASC' : 'DESC'];
+    if (newSortField) sortCondition = [sequelize.col(newSortField), sortOrder === 'asc'? 'ASC' : 'DESC'];
     return sortCondition;
 }

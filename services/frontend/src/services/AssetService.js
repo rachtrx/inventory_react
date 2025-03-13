@@ -7,6 +7,7 @@ import { AssetStatus } from '../components/assets/constants/AssetStatus';
 class AssetService {
     constructor(axiosInstance) {
         this.axios = axiosInstance;
+        this.URL = `${API_URL}/assets`
     }
 
     defaultFilters = {
@@ -16,24 +17,24 @@ class AssetService {
     }
 
     async getItem(id) {
-        return await this.axios.get(`${API_URL}/assets/${id}`);
+        return await this.axios.get(`${this.URL}/${id}`);
     }
 
     async getFilters(field) {
-        return await this.axios.post(`${API_URL}/assets/filters`, {field});
+        return await this.axios.post(`${this.URL}/filters`, {field});
     }
 
     async getAllFilters() {
-        return await this.axios.get(`${API_URL}/assets/filters/all`);
+        return await this.axios.get(`${this.URL}/filters/all`);
     }
 
     async getSubTypeFilters(typeIds) {
-        return await this.axios.post(`${API_URL}/assets/filters/subTypes`, {typeIds});
+        return await this.axios.post(`${this.URL}/filters/subTypes`, {typeIds});
     }
 
     async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
         console.log(filters)
-        return await this.axios.get(`${API_URL}/assets`, {
+        return await this.axios.get(`${this.URL}`, {
             params: {
                 filters,
                 sort,
@@ -44,94 +45,64 @@ class AssetService {
     }
 
     async updateItem(id, field, newValue) {
-        return await this.axios.patch(`${API_URL}/assets/update`, {id, field, newValue});
+        return await this.axios.patch(`${this.URL}/update`, {id, field, newValue});
     }
 
     async createNewType(typeName) {
         console.log(typeName);
-        return await this.axios.post(`${API_URL}/forms/add/type`, { typeName });
+        return await this.axios.post(`${this.URL}/add/type`, { typeName });
     }
 
     async createNewSubType(subTypeName, typeId) {
-        console.log(subTypeName);
-        return await this.axios.post(`${API_URL}/forms/add/subType`, { subTypeName, typeId });
+        return await this.axios.post(`${this.URL}/add/subType`, { subTypeName, typeId });
     }
 
     async createNewVendor(vendorName) {
-        console.log(vendorName);
-        return await this.axios.post(`${API_URL}/forms/add/vendor`, { vendorName });
+        return await this.axios.post(`${this.URL}/add/vendor`, { vendorName });
     }
 
-    async loanAsset(formData) {
-        console.log('loaning asset');
-        console.log(formData);
-        // downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/forms/loan`, formData);
-    }
-
-    async fetchAstReturn(serialNumbers) {
-        console.log(serialNumbers);
-        return await this.axios.get(`${API_URL}/forms/return/asset`, {
-            params: {
-                serialNumbers,
-            }
-        });
-    }
-
-    async fetchReturns(loanIds) {
-        console.log(loanIds);
-        return await this.axios.get(`${API_URL}/forms/return`, {
-            params: {
-                loanIds,
-            }
-        });
-    }
-
-    async fetchAstLoan(serialNumbers) {
-        console.log(serialNumbers);
-        return await this.axios.get(`${API_URL}/forms/loan/asset`, {
-            params: {
-                serialNumbers,
-            }
-        });
-    }
-
-    async fetchAstDel(serialNumbers) {
-        console.log(serialNumbers);
-        return await this.axios.get(`${API_URL}/forms/del/asset`, {
-            params: {
-                serialNumbers,
-            }
-        });
-    }
-    
-    async returnAsset(formData) {
-        console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/return`, formData);
+    async createNewTag(tagName) {
+        console.log(tagName);
+        return await this.axios.post(`${this.URL}/add/tag`, { tagName });
     }
 
     async addAsset(formData) {
         // downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/forms/add/asset`, formData);;
+        return await this.axios.post(`${this.URL}/add/asset`, formData);;
+    }
+
+    async fetchAstDel(serialNumbers) {
+        console.log(serialNumbers);
+        return await this.axios.get(`${this.URL}/del/asset`, {
+            params: {
+                serialNumbers,
+            }
+        });
     }
 
     async delAsset(formData) {
         // downloadFormData(formData);
         console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/del/asset`, formData);
+        return await this.axios.post(`${this.URL}/del/asset`, formData);
     }
 
     fetchTagAsset = async(serialNumbers, tagId=null) => {
-        return await this.axios.get(`${API_URL}/forms/tag/asset`, {
+        return await this.axios.get(`${this.URL}/tag/asset`, {
             params: {
                 serialNumbers,
                 tagId,
             }
         });
+    }
+    
+    tagAsset = async (formData) => {
+        // downloadFormData(formData);
+        console.log(formData);
+        return await this.axios.post(`${this.URL}/tag/asset`, formData);
     }
 
     fetchUntagAsset = async (serialNumbers, tagId=null) => {
-        return await this.axios.get(`${API_URL}/forms/untag/asset`, {
+        return await this.axios.get(`${this.URL}/untag/asset`, {
             params: {
                 serialNumbers,
                 tagId,
@@ -139,18 +110,10 @@ class AssetService {
         });
     }
 
-    async tagAsset(formData) {
-        // downloadFormData(formData);
+    untagAsset = async (formData) => {
         console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/tag/asset`, formData);
+        return await this.axios.post(`${this.URL}/untag/asset`, formData);
     }
-
-    async untagAsset(formData) {
-        console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/untag/asset`, formData);
-    }
-
-    
 }
 
 const downloadFormData = (formData) => {

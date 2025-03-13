@@ -10,6 +10,7 @@ import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Global, css } from '@emotion/react';
 import { LoadingProvider } from './context/LoadingProvider';
+import theme from './theme';
 
 /*if (process.env.NODE_ENV !== "development") {
   console.log = () => {};
@@ -67,7 +68,7 @@ const GlobalStyles = () => (
 root.render(
   <>
     <GlobalStyles/>
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <ResponsiveProvider>
         <LoadingProvider> 
           <LoadingSpinner />

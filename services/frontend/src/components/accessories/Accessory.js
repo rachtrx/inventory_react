@@ -9,6 +9,7 @@ import { AssetStatus } from '../assets/constants/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import AccTimeline from '../timeline/accessories/AccTimeline';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 const Accessory = ({ accType }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
@@ -55,11 +56,9 @@ const Accessory = ({ accType }) => {
             {currentUsers?.map(user => (
               <Box key={user.userId}>
                 <UserLink user={user} isCopy={false} />
-                <AssetActionButton
-                  key={FormType.RETURN} 
-                  formType={FormType.RETURN} 
-                  accType={accType} 
-                />
+                {/* <ReturnButton
+                  
+                /> */}
               </Box>
             ))}
             </Box>

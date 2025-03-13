@@ -59,15 +59,25 @@ class AssetController {
         const { filters, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
         console.log(req.query);
 
+        const assetsExist = await Ast.count();
+        if (assetsExist === 0) {
+            return res.json({
+                data: [],
+                totalCount: 0,
+                totalPages: 1,
+                currentPage: 1
+            });
+        }
+
         const sortFieldLookup = {
-            typeName: '"Ast->AstSType->AstType"."type_name',
-            subTypeName: '"Ast->AstSType"."sub_type_name',
-            serialNumber: '"Ast"."serial_number"',
+            typeName: '"AstSType->AstType"."type_name"',
+            subTypeName: '"AstSType"."sub_type_name"',
+            serialNumber: '"serial_number"',
         }
         
         let sortCondition;
         if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
-        
+        console.log(sortCondition);
     
         const whereClause = {
             [Op.and]: [

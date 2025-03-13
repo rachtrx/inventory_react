@@ -1,39 +1,57 @@
+import { FaArrowLeft, FaArrowRight, FaCalendarCheck, FaMinus, FaMouse, FaPlus, FaTag, FaTrash, FaUserMinus, FaUserPlus } from "react-icons/fa";
 import { FormType } from "../../context/ModalProvider";
+import { BiLink, BiUnlink } from "react-icons/bi"; // Represents "untagging" well
+import { FaPlusMinus } from "react-icons/fa6";  
+import { MdAddToQueue, MdRemoveFromQueue } from "react-icons/md";
 
 export const ACTION_TEXT = {
   [FormType.LOAN]: 'Loan',
   [FormType.RETURN]: 'Return',
   [FormType.ADD_ASSET]: 'Add',
   [FormType.DEL_ASSET]: 'Condemn',
-  [FormType.ADD_USER]: 'Add',
-  [FormType.DEL_USER]: 'Remove',
-  [FormType.UPDATE_ACC]: 'Update',
-  [FormType.LOAN_ACC]: 'Loan',
-  [FormType.RETURN_ACC]: 'Return',
-  [FormType.RESTORE_ASSET]: 'Restore',
-  [FormType.RESTORE_USER]: 'Restore',
   [FormType.TAG_ASSET]: 'Tag',
   [FormType.UNTAG_ASSET]: 'Untag',
+  [FormType.ADD_USER]: 'Add',
+  [FormType.DEL_USER]: 'Remove',
   [FormType.TAG_USER]: 'Tag',
   [FormType.UNTAG_USER]: 'Untag',
+  [FormType.UPDATE_ACC]: 'Update',
   [FormType.RESERVE]: 'Reserve',
+  // [FormType.RESTORE_ASSET]: 'Restore',
+  // [FormType.RESTORE_USER]: 'Restore',
 }
 
 export const ACTION_COLORS = {
-  [FormType.LOAN]: 'blue.100',
-  [FormType.RETURN]: 'orange.100',
-  [FormType.ADD_ASSET]: 'green.100',
-  [FormType.DEL_ASSET]: 'red.100',
-  [FormType.ADD_USER]: 'green.100',
-  [FormType.DEL_USER]: 'red.100',
-  [FormType.UPDATE_ACC]: 'green.100',
-  [FormType.LOAN_ACC]: 'purple.100',
-  [FormType.RETURN_ACC]: 'pink.100',
-  [FormType.RESTORE_ASSET]: 'red.100',
-  [FormType.RESTORE_USER]: 'red.100',
-  [FormType.TAG_ASSET]: 'purple.100',
-  [FormType.UNTAG_ASSET]: 'purple.100',
-  [FormType.TAG_USER]: 'purple.100',
-  [FormType.UNTAG_USER]: 'purple.100',
-  [FormType.RESERVE]: 'yellow.100',
-}
+  [FormType.LOAN]: 'blue',         
+  [FormType.RETURN]: 'orange',     
+  [FormType.ADD_ASSET]: 'green',   
+  [FormType.DEL_ASSET]: 'red',     
+  [FormType.TAG_ASSET]: 'purple',  
+  [FormType.UNTAG_ASSET]: 'pink',
+  [FormType.ADD_USER]: 'green',     
+  [FormType.DEL_USER]: 'red',     
+  [FormType.TAG_USER]: 'purple',  
+  [FormType.UNTAG_USER]: 'pink',   
+  [FormType.UPDATE_ACC]: 'cyan',   
+  [FormType.RESERVE]: 'yellow',    
+  // [FormType.RESTORE_ASSET]: 'amber'
+  // [FormType.RESTORE_USER]: 'lime'
+};
+
+
+export const ICON_MAP = {
+  [FormType.LOAN]: <FaArrowRight />,       
+  [FormType.RETURN]: <FaArrowLeft />,      
+  [FormType.ADD_ASSET]: <MdAddToQueue />,        
+  [FormType.DEL_ASSET]: <MdRemoveFromQueue />,       
+  [FormType.TAG_ASSET]: <BiLink />,        
+  [FormType.UNTAG_ASSET]: <BiUnlink />,    
+  [FormType.ADD_USER]: <FaUserPlus />,     
+  [FormType.DEL_USER]: <FaUserMinus />,    
+  [FormType.TAG_USER]: <BiLink />,         
+  [FormType.UNTAG_USER]: <BiUnlink />,     
+  [FormType.UPDATE_ACC]: <FaPlusMinus />,      
+  [FormType.RESERVE]: <FaCalendarCheck />, 
+  // [FormType.RESTORE_ASSET]: <FaUndo />, 
+  // [FormType.RESTORE_USER]: <FaUndo />,  
+};

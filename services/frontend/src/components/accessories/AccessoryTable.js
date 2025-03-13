@@ -6,18 +6,20 @@ import { useItems } from '../../context/ItemsProvider';
 import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
 import { useLoading } from '../../context/LoadingProvider';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 const AccessoryTable = ({ items }) => {
 
-  const { loading, setLoading } = useLoading();
-  const { handleUpdate } = useItems()
+  const { handleUpdate, handleSort, sortField, sortOrder } = useItems()
 
   return (
     <Table size='sm' variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
         <Tr>
           <Th></Th>
-          <Th>Name</Th>
+          <Th onClick={() => handleSort("accessoryName")} cursor="pointer">
+            Accessory Name {sortField === "accessoryName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+          </Th>
           <Th>Assets</Th>
           <Th>Users</Th>
         </Tr>

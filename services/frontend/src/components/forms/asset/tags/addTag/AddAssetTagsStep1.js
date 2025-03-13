@@ -25,7 +25,7 @@ export const AddAssetTagsStep1 = () => {
 
     useEffect(() => {
       reinitializeForm(formRef, formData);
-    }, [formData, reinitializeForm]);
+    }, [formData, reinitializeForm]);   
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -50,6 +50,8 @@ export const AddAssetTagsStep1 = () => {
         if (tagError) {
           setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
         }
+
+        if (tag['tagName'] && !tag['tagId']) setFieldError(errors, ['tags', tagIndex, 'tagName'], `Please create new tag ${tag['tagName']}`);
 
         const snDuplicates = validateUniqueValues(values.tags, ['assets', 'serialNumber']);
   

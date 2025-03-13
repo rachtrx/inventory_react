@@ -144,6 +144,25 @@ export const AssetTagsFormProvider = ({
     }
   };
 
+  const addNewTag = async (tagName) => {
+    try {
+      setLoading(true);
+      const response = await assetService.createNewTag(tagName);
+      setTagOptions(oldArray => [
+        ...oldArray.filter(item => !(item.value === tagName && !item.tagId)),
+        { 
+          tagId: response.data.newTag.id,
+          value: response.data.newTag.tagName,
+          label: response.data.newTag.tagName
+        }
+      ]);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  }
+
   const prevStep = () => {
     setStep(step - 1)
   };
@@ -193,6 +212,7 @@ export const AssetTagsFormProvider = ({
   // The context value includes all the states and functions to be shared
   const value = {
     tagOptions,
+    addNewTag,
     formData,
     assetOptions, 
     setAssetOptions,

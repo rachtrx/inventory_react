@@ -39,17 +39,21 @@ export const RangeField = ({ label, range = [], name }) => {
                                 {children}
                             </Box>
                         )}
-                        renderThumb={({ key, props }) => (
-                            <Box
-                                key={key}
-                                {...props}
-                                w="16px"
-                                h="16px"
-                                bg="blue.500"
-                                borderRadius="full"
-                                cursor="pointer"
-                            />
-                        )}
+                        renderThumb={({ props }) => {
+                            const { key, ...restProps } = props;
+                            return (
+                                <Box
+                                    key={key}
+                                    {...restProps}
+                                    w="16px"
+                                    h="16px"
+                                    bg="blue.500"
+                                    borderRadius="full"
+                                    cursor="pointer"
+                                />
+                            );
+                        }}
+                        
                     />
                 )}
             </Field>

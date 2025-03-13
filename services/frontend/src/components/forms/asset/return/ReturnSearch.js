@@ -10,6 +10,7 @@ import userService from "../../../../services/UserService"
 import accessoryService from "../../../../services/AccessoryService"
 import { Select } from "@chakra-ui/react";
 import { useFormikContext } from "formik";
+import loanService from "../../../../services/LoanService";
 
 export const createNewAccessory = (accLoan) => ({
 	key: uuidv4(),
@@ -103,7 +104,7 @@ export const ReturnSearch = () => {
 			  <ReturnAstSelectFormControl
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
-				searchFn={(value) => assetService.fetchAstReturn(value)}
+				searchFn={(value) => loanService.fetchAstReturn(value)}
 				placeholder="Serial Number"
 				isDisabled={currentLoan}
 				initialOptions={returnOptions}
@@ -114,7 +115,7 @@ export const ReturnSearch = () => {
 			  <ReturnUsrSelectFormControl
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
-				searchFn={(value) => userService.fetchUserReturn(value)}
+				searchFn={(value) => loanService.fetchUserReturn(value)}
 				placeholder="User(s)"
 				isDisabled={currentLoan}
 				initialOptions={returnOptions}
@@ -125,7 +126,7 @@ export const ReturnSearch = () => {
 			  <ReturnAccSelectFormControl
 				name={`returns.${returnIndex}.search`}
 				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
-				searchFn={(value) => accessoryService.fetchAccReturn(value)}
+				searchFn={(value) => loanService.fetchAccReturn(value)}
 				placeholder="Accessory"
 				isDisabled={currentLoan}
 				initialOptions={returnOptions}

@@ -129,7 +129,7 @@ export const DelUsersProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await userService.removeUser(values);
+      await userService.delUser(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Users successfully deleted', 'success', 500);

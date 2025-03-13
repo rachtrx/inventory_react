@@ -5,29 +5,38 @@ import {
   Tbody,
   Tr,
   Th,
-  Td
+  Td,
+  useColorModeValue
 } from '@chakra-ui/react';
 import { ACTION_COLORS } from '../buttons/constants';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import Tags from '../tags/Tags';
+import { useItems } from '../../context/ItemsProvider';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 const EventTable = ({ items }) => {
 
+  const { handleSort, sortField, sortOrder } = useItems();
+
   return (
-    <Table variant="compact" size="sm">
-      <Thead>
+    <Table variant="simple" size="sm">
+      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
         <Tr>
           <Th>Event Type</Th>
-          <Th>Event Date</Th>
+          <Th onClick={() => handleSort("eventDate")} cursor="pointer">
+            Event Date {sortField === "eventDate" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+          </Th>
           <Th>Asset</Th>
           <Th>User</Th>
           <Th>Accessories</Th>
           <Th>Tag</Th>
-          <Th>Admin</Th>
+          <Th onClick={() => handleSort("admin")} cursor="pointer">
+            Admin {sortField === "admin" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+          </Th>
         </Tr>
       </Thead>
       <Tbody>
         {items.map((event, index) => (
-          <Tr key={index} bg={ACTION_COLORS[event.type]}>
+          <Tr key={index} bg={`${ACTION_COLORS[event.type]}.100`}>
             <Td>{event.type}</Td>
             <Td>{event.eventDate}</Td>
             <Td>{event.asset ? <AssetLink asset={event.asset}/> : ""}</Td>

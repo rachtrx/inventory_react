@@ -7,6 +7,43 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 class FormUserTagController {
 
+    async createNewTag(req, res) {
+        const { tagName } = req.body;
+
+        try {
+            const transaction = await sequelize.transaction();
+    
+            const existingTag = await UsrTag.findOne({
+                where: { tagName: { [Op.eq]: tagName } },
+                attributes: ['id', 'tagName'],
+                transaction,
+            });
+    
+            if (existingTag) {
+                throw new Error(`${tagName} already exists!`);
+            }
+    
+            const userTag = await UsrTag.create(
+                {
+                    id: generateSecureID(),
+                    tagName: tagName,
+                },
+                { transaction }
+            );
+            transaction.commit();
+            console.log(userTag.get({plain: true}));
+
+            return res.json({
+                message: `${userTag.tagName} created successfully`,
+                newTag: userTag.get({plain: true})
+            });
+
+        } catch (error) {
+            logger.info(error)
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async loadAddUsers(req, res) {
         try {
             const search = new UserTagSearch(req.query)
@@ -68,18 +105,12 @@ class FormUserTagController {
         try {
             for (const { tagId, tagName, users } of newTags) {
 
-                let tag;
-                if (tagId && tagId !== '') {
+                try {
                     tag = await UsrTag.findByPk(tagId, { transaction }); // Ensure it's inside transaction
-                    if (!tag?.id) throw new Error(`Tag ${tagName} has ID but was not found`)
-                } else {
-                    tag = await UsrTag.create({
-                        id: generateSecureID(),
-                        tagName: tagName
-                    }, { transaction });
+                    if (!tag) throw new Error()
+                } catch (error) {
+                    res.status(500).send(`No Matching User Type for ${tagName} Found!`);
                 }
-
-                // console.log(tag);
                 
                 for (const { userId, remarks, userName } of users) {
 

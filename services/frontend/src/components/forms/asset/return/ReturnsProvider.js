@@ -8,6 +8,7 @@ import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
+import loanService from "../../../../services/LoanService";
 
 // Create a context
 const ReturnsContext = createContext();
@@ -36,7 +37,7 @@ export const ReturnsProvider = ({ children }) => {
       try {
         console.log(initialValues);
         
-        const response = await assetService.fetchReturns(initialValues);
+        const response = await loanService.fetchReturns(initialValues);
         console.log(response.data);
 
         const loans = response.data;
@@ -63,7 +64,7 @@ export const ReturnsProvider = ({ children }) => {
         });
       } catch (err) {
         console.error(err);
-        handleError('Error Loading Details')
+        handleError(err)
       }
     };
     loadPresetValues()
@@ -90,7 +91,7 @@ export const ReturnsProvider = ({ children }) => {
         else serialNumbers.add(record.serialNumber);
       });
 
-      const assetResponse = await assetService.fetchAstReturn([...serialNumbers])
+      const assetResponse = await loanService.fetchAstReturn([...serialNumbers])
       console.log(assetResponse);
 
       const assetOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
@@ -151,7 +152,7 @@ export const ReturnsProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await assetService.returnAsset(values);
+      await assetService.returnItems(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully returned', 'success', 500);
