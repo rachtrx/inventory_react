@@ -90,7 +90,7 @@ class AssetTagSearch {
                 include: this.includeArray,
                 order: orderByArr
             })
-            return query.map(astRow => new AssetDTO(astRow.dataValues));
+            return query.map(astRow => new AssetDTO(astRow));
         } catch (e) {
             throw e;
         }

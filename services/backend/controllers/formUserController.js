@@ -1,7 +1,7 @@
 // TODO IMPT ALLOW DUPLICATE NAMES BUT UNIQUE ID! IMPT TODO
 
 const { model } = require('mongoose');
-const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event, Loan, AstLoan, AccLoan, AccReturn, Rmk } = require('../models');
+const { sequelize, Vendor, Dept, Usr, AstType, AstSType, Ast, Event, Loan, AstLoan, AccLoan, AccReturn, Rmk, Sequelize } = require('../models');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const FormHelpers = require('./formHelperController.js');
 const { Op } = require('sequelize');
@@ -158,6 +158,12 @@ class FormUserController {
         }        
     };
     
+    // When Does Sequelize Use include.where in ON Instead of WHERE?
+    // Sequelize places include.where inside ON only if:
+
+    // 1. The required option is false (i.e., LEFT JOIN).
+    // 2. The condition applies only to the joined table and doesn’t reference the main table.
+    // 3. The condition isn’t wrapped inside Op.or, Op.and, or another conditional structure.
     async del (req, res) {
         const users = req.body.users;
         const adminId = req.auth.id;
@@ -171,28 +177,40 @@ class FormUserController {
                     }
                     const user = await Usr.findByPk(userId, { 
                         attributes: ['id', 'delEventId'],
+                        // logging: console.log,
                         include: {
                             model: Loan,
                             required: false,
                             include: [
                                 {
                                     model: AstLoan,
-                                    where: { returnEventId: { [Op.ne]: null } },
+                                    where: { returnEventId: { [Op.eq]: null } },
                                     required: false
                                 },
                                 {
                                     model: AccLoan,
-                                    include: {
-                                        model: AccReturn,
-                                        where: { returnEventId: { [Op.ne]: null } },
-                                        required: true
-                                    },
+                                    where: Sequelize.literal(`
+                                        NOT EXISTS (
+                                            SELECT 1
+                                            FROM "acc_returns" AS "AccReturns"
+                                            WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                                            GROUP BY "Loans->AccLoans"."id"
+                                            HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count" -- Not exists all returned yet
+                                        )
+                                    `),
+                                    // include: {
+                                    //     model: AccReturn,
+                                    //     where: { returnEventId: { [Op.ne]: null } },
+                                    //     required: true
+                                    // },
                                     required: false
                                 },
                             ]
                         },
                         transaction: t
                     });
+
+                    logger.info(user.get({plain: true}));
         
                     if (!user) {
                       throw new Error(`Usr Name ${userName} doesn't exist!`);
@@ -200,7 +218,7 @@ class FormUserController {
                     if (user.delEventId) {
                         throw new Error("Usr has already been removed!");
                     }
-                    if (user.Loans && user.Loans.length > 0) throw new Error(`User ${userName} still has items on loan!`);
+                    if (user.Loans?.some(loan => loan.AstLoan || loan.AccLoans?.length)) throw new Error(`User ${userName} still has items on loan!`);
 
                     userIds.add(userId);
 
@@ -254,8 +272,8 @@ class FormUserController {
             const users = query.map(
                 user => ({
                         ...user,
-                        value: user.serialNumber,
-                        label: user.serialNumber,
+                        value: user.userName,
+                        label: user.userName,
                         isDisabled: user.delEventId || user.loans.length > 1 || user.reservations.length > 1
                 })
             )

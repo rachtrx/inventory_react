@@ -276,8 +276,8 @@ class AssetController {
 
             if (asset.history && asset.history.length > 0) {
 
-                asset.currentUser = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
-                    .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.loan.user
+                asset.loanEventId = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
+                    .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.eventId
 
                 asset.pastUsers = Array.from(
                     new Map(
@@ -287,8 +287,8 @@ class AssetController {
                     ).values()
                 );
 
-                asset.reservedUser = asset.history
-                    .find(event => event.reservation)?.loan.user
+                asset.reserveEventId = asset.history
+                    .find(event => event.reservation)?.eventId
             }
 
             res.json(asset);

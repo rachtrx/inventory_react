@@ -34,7 +34,7 @@ export const LoansProvider = ({ children }) => {
 
   useEffect(() => {
     console.log(initialValues);
-    if (!initialValues?.serialNumbers?.length || !initialValues?.userNames?.length) return;
+    if (!initialValues?.serialNumbers?.length && !initialValues?.userNames?.length) return;
 
     const fetchAstLoans = async () => {
       const assetResponse = await loanService.fetchAstLoan(initialValues.serialNumbers);
@@ -136,10 +136,6 @@ export const LoansProvider = ({ children }) => {
         const accessoryResponse = await loanService.fetchAccLoan([...accessoryNames]);
         newAccessoryoptions = accessoryResponse.data;
       }
-
-      setAssetOptions(newAssetOptions);
-      setUserOptions(newUserOptions);
-      setAccessoryOptions(newAccessoryoptions);
   
       // Convert grouped records into loans
       const users = Object.entries(userToRowMap).map(([userName, rowIdxs]) => {
@@ -147,7 +143,9 @@ export const LoansProvider = ({ children }) => {
         // Find the user IDs based on userNames (assuming userNames is an array of names)
         const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
         console.log(matchedUserOption);
-        const userObj = matchedUserOption || {userName};
+        let userObj;
+        if (!matchedUserOption || matchedUserOption.isDisabled) userObj = {userName}
+        else userObj = matchedUserOption;
 
         userObj.loans = []
         
@@ -156,7 +154,10 @@ export const LoansProvider = ({ children }) => {
 
           const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
           console.log(matchedAssetOption);
-          const assetObj = matchedAssetOption || {serialNumber: serialNumber}; // Pass serialNumber regardless of whether id is found
+          
+          let assetObj;
+          if (!matchedAssetOption || matchedAssetOption.isDisabled) assetObj = {serialNumber: serialNumber}
+          else assetObj = matchedAssetOption; // Pass serialNumber regardless of whether id is found
 
           const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
             const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
@@ -176,6 +177,10 @@ export const LoansProvider = ({ children }) => {
         }
         return userObj;
       })
+
+      setAssetOptions(newAssetOptions.filter(option => !option.isDisabled));
+      setUserOptions(newUserOptions.filter(option => !option.isDisabled));
+      setAccessoryOptions(newAccessoryoptions);
     
       setFormData({
         users: users.map(user => createNewUser(user))

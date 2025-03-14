@@ -35,7 +35,7 @@ export default function UserFilters() { // TODO can have external filters from D
             />
             <RangeField 
                 label="Asset Count"
-                range={filters.assetCount?.map(option => option.value)} 
+                range={[0,...filters.assetCount?.map(option => option.value)]} 
                 name="assetCount"
             />
             <CheckboxGroupField

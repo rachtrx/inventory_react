@@ -91,35 +91,6 @@ class LoanService extends ValidationService {
         });
     }
 
-    async handleNewAccessories() {
-        const newAccessories = {}; // tracks <newAccTypeName>: <newAccTypeId>
-        for (const { loans } of this.users) {
-            for (const loan of loans) {
-                if (loan.accessories) {
-                    for (const accessory of loan.accessories) {
-                        let accType;
-    
-                        // id === name means new. Check if added to newAccessories already
-                        if (!accessory.accessoryTypeId && accessory.accessoryName && !newAccessories[accessory.accessoryName]) {
-                            accType = await accessoryController.createAccessoryType(
-                                accessory.accessoryName,
-                                0,
-                                this.authId,
-                                this.transaction
-                            );
-                            console.log(`New accessory ${accType.accessoryName} created`);
-                            newAccessories[accessory.accessoryName] = accType.id;
-                            accessory.accessoryTypeId = accType.id;
-                        } else if (newAccessories[accessory.accessoryName]) {
-                            // if new but added to newAccessories already, just need to update the id
-                            accessory.accessoryTypeId = newAccessories[accessory.accessoryName];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     async createLoans() {
         const signatures = {}
         for (const user of this.users) {

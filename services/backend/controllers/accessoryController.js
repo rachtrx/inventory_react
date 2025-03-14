@@ -166,8 +166,8 @@ class AccessoryController {
                 accType.currentUsers = Array.from(
                     new Map( // IMPT ensuring no duplicate keys by creating a map before extracting users through values
                         accType.history
-                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
-                                event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned !== 0)
+                            .filter(event => event.loan?.accLoans?.length && (
+                                event.loan.accLoans.some(accLoan => accLoan.isMatching && accLoan.unreturned !== 0)
                             ))
                             .map(event => { 
                                 [event.loan.user.userId, event.loan.user]
@@ -179,7 +179,7 @@ class AccessoryController {
                     new Map(
                         accType.history
                             .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
-                                event.loan.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId && accLoan.unreturned === 0)
+                                event.loan.accLoans.some(accLoan => accLoan.isMatching && accLoan.unreturned === 0)
                             ))
                             .map(event => { 
                                 [event.loan.user.userId, event.loan.user]
@@ -191,7 +191,7 @@ class AccessoryController {
                     new Map(
                         accType.history
                             .filter(event => event.reservation?.accLoans && event.reservation.accLoans.length > 0 && !event.reservation.cancelEvent && (
-                                event.reservation.accLoans.some(accLoan => accLoan.accessoryTypeId === accTypeId)
+                                event.reservation.accLoans.some(accLoan => accLoan.isMatching)
                             ))
                             .map(event => { 
                                 [event.loan.user.userId, event.loan.user]
@@ -212,6 +212,7 @@ class AccessoryController {
         try {
             const eventRows = await Event.findAll({
                 attributes: ['id', 'adminId', 'eventDate'],
+                // logging: console.log,
                 where: {
                     [Op.or]: [
                         { '$AccType.id$': accTypeId },
@@ -243,7 +244,7 @@ class AccessoryController {
                     },
                     {
                         model: AccType,
-                        attributes: [], // add event
+                        attributes: ['id'], // add event
                         required: false
                     },
                     {
@@ -290,14 +291,20 @@ class AccessoryController {
                                         JOIN acc_loans ON loans.id = acc_loans.loan_id
                                         WHERE loans.loan_event_id IS NOT NULL
                                         AND loans.id = "Loan->AccLoans"."loan_id"
-                                        AND acc_loans.acc_type_id = ${accTypeId}
+                                        AND acc_loans.accessory_type_id = '${accTypeId}'
                                     )
                                 `),
-                                required: false,
+                                required: true,
                                 include: [
                                     {
                                         model: AccType,
-                                        attributes: ['id', 'accessoryName']
+                                        attributes: ['id', 'accessoryName', [Sequelize.literal(`
+                                            CASE
+                                                WHEN "Loan->AccLoans->AccType"."id" = '${accTypeId}' THEN true
+                                                ELSE false
+                                            END
+                                        `),
+                                        'isMatching']]
                                     },
                                     {
                                         model: AccReturn,
@@ -318,50 +325,23 @@ class AccessoryController {
                                             }
                                         }
                                     },
-                                    {
-                                        model: Loan,
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AccLoan,
-                                                required: false,
-                                                include: [
-                                                    {
-                                                        model: AccType,
-                                                        attributes: ['id', 'accessoryName'],
-                                                        where: { id: { [Op.ne]: accTypeId } }
-                                                    },
-                                                    {
-                                                        model: AccReturn,
-                                                        required: false,
-                                                        include: {
-                                                            model: Event,
-                                                            as: 'ReturnEvent',
-                                                            attributes: ['id', 'eventDate'],
-                                                            required: true
-                                                        }
-                                                    }
-                                                ]
-                                            },
-                                            {
-                                                model: Event,
-                                                as: "ReserveEvent",
-                                                attributes: ['id', 'eventDate'],
-                                                required: false,
-                                                include: {
-                                                    model: Rmk,
-                                                    attributes: ['id', 'text', 'remarkDate'],
-                                                    include: {
-                                                        model: Admin,
-                                                        attributes: ['id', 'adminName'],
-                                                        required: false
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
                                 ]
                             },
+                            {
+                                model: Event,
+                                as: "ReserveEvent",
+                                attributes: ['id', 'eventDate'],
+                                required: false,
+                                include: {
+                                    model: Rmk,
+                                    attributes: ['id', 'text', 'remarkDate'],
+                                    include: {
+                                        model: Admin,
+                                        attributes: ['id', 'adminName'],
+                                        required: false
+                                    }
+                                }
+                            }
                         ]
                     },
                     {
@@ -390,40 +370,28 @@ class AccessoryController {
                             {
                                 model: AccLoan,
                                 attributes: ['id', 'count'],
-                                required: false,
-                                include: [
-                                    {
-                                        model: AccType,
-                                        attributes: ['id', 'accessoryName']
-                                    },
-                                    {
-                                        model: Loan, // TODO include reserve event for this...
-                                        required: false,
-                                        include: {
-                                            model: AccLoan,
-                                            attributes: ['id', 'count'],
-                                            required: false,
-                                            include: [
-                                                {
-                                                    model: AccType,
-                                                    attributes: ['id', 'accessoryName'],
-                                                    where: { id: { [Op.ne]: accTypeId } }
-                                                },
-                                                {
-                                                    model: AccReturn,
-                                                    attributes: ['id', 'count'],
-                                                    required: false,
-                                                    include: {
-                                                        model: Event,
-                                                        as: 'ReturnEvent',
-                                                        attributes: ['id', 'eventDate'],
-                                                        required: true
-                                                    }
-                                                },
-                                            ]
-                                        },
-                                    }
-                                ]
+                                required: true,
+                                where: Sequelize.literal(`
+                                    EXISTS (
+                                        SELECT 1
+                                        FROM loans 
+                                        JOIN acc_loans ON loans.id = acc_loans.loan_id
+                                        WHERE loans.loan_event_id IS NULL
+                                        AND loans.id = "Reservation->AccLoans"."loan_id"
+                                        AND acc_loans.accessory_type_id = '${accTypeId}'
+                                    )
+                                `),
+                                // required: true,
+                                include: {
+                                    model: AccType,
+                                    attributes: ['id', 'accessoryName', [Sequelize.literal(`
+                                        CASE
+                                            WHEN "Reservation->AccLoans->AccType"."id" = '${accTypeId}' THEN true
+                                            ELSE false
+                                        END
+                                    `),
+                                    'isMatching']]
+                                },
                             }
                         ]
                     }
@@ -433,22 +401,10 @@ class AccessoryController {
             // logger.info(eventRows.map(row => row.get({plain: true})))
 
             const events = eventRows.map(event => {
-                if (event.Loan && event.Loan.AccLoans) {
-                    if (event.Loan.AccLoans.Loan && event.Loan.AccLoans.Loan.AccLoans) {
-                        event.Loan.AccLoans = event.Loan.AccLoans.concat(event.Loan.AccLoans.Loan.AccLoans);
-                    }
-                    event.Loan.AccLoans.forEach(accLoan => {
-                        accLoan.Loan = null;
-                    });
-                } else if (event.Reservation && event.Reservation.AccLoans) {
-                    if (event.Reservation.AccLoans.Loan && event.Reservation.AccLoans.Loan.AccLoans) {
-                        event.Reservation.AccLoans = event.Reservation.AccLoans.concat(event.Reservation.AccLoans.Loan.AccLoans);
-                    }
-                    event.Reservation.AccLoans.forEach(accLoan => {
-                        accLoan.Loan = null;
-                    });
-                }
-                return new EventDTO(event);
+                const parsedEvent = new EventDTO(event)
+                if (!parsedEvent.loan) return parsedEvent;
+                parsedEvent.loan = parsedEvent.loan.setReturnEvents();
+                return parsedEvent;
             });
             
             logger.info(events);
@@ -458,47 +414,6 @@ class AccessoryController {
             console.error(error);
             logger.error(`Error retrieving events: ${error}`);
             throw error;
-        }
-    }
-
-    async searchAccessories (req, res) {
-        const { value } = req.body;
-
-        const isBulkSearch = Array.isArray(value) ? true : false;
-        const searchTerm = isBulkSearch ? value : `%${value}%`;
-        
-        const sql = `
-            SELECT 
-                acc_types.id, 
-                acc_types.accessory_name AS "accessoryName", 
-                acc_types.stock AS "stock" 
-            FROM acc_types
-            WHERE acc_types.accessory_name ${isBulkSearch ? 'IN (:searchTerm)' : 'ILIKE :searchTerm'}
-        `;
-
-        try {
-            const accessories = await sequelize.query(sql, {
-                replacements: { isBulkSearch, searchTerm },
-                type: sequelize.QueryTypes.SELECT
-            });
-    
-            const response = accessories.map((accessory) => {
-    
-                const { id, accessoryName, stock } = accessory;
-    
-                return {
-                    accessoryTypeId: id,
-                    label: accessoryName,
-                    value: accessoryName,
-                    stock: stock,
-                };
-            })
-    
-            res.json(response);
-        } catch (error) {
-            logger.error('Error fetching assets:', error)
-            console.error('Error fetching assets:', error);
-            res.status(500).send({ error: error.message });
         }
     }
 

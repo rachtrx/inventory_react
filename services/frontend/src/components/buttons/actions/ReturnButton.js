@@ -5,7 +5,7 @@ export const withReturnAction = (ButtonComponent) => ({
 	loanId,
 	...rest
 }) => {
-
+	
 	const loanIds = !loanId ? [] : Array.isArray(loanId) ? loanId : [loanId]
 
 	return (

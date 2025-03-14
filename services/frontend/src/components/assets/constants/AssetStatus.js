@@ -1,10 +1,14 @@
 export class AssetStatus {
   static AVAILABLE = 'Available';
-  static ON_LOAN = 'On Loan';
+  static LOANED = 'On Loan';
   static RESERVED = 'Reserved';
-  static CONDEMNED = 'Condemned';
+  static DELETED = 'Condemned';
 
   static getAllValues() {
       return Object.values(this);
+  }
+
+  static toString(status) {
+    return this[status] || 'Unknown Status';
   }
 }

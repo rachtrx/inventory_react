@@ -25,7 +25,7 @@ const DelUsersContext = createContext();
 export const DelUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, handleUserSearch } = useFormModal();
+  const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [userOptions, setUserOptions] = useState([]);

@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import DateInputControl from "../../utils/DateInputControl"
 import { useLoans } from "./LoansProvider"
 import userService from "../../../../services/UserService"
+import loanService from "../../../../services/LoanService"
 
 export const createNewAccessory = (accessory=null) => ({
 	'key': uuidv4(),
@@ -77,7 +78,7 @@ export const LoanUser = () => {
 					</ResponsiveText>
 					<SearchSingleSelectFormControl
 						name={`users.${userIndex}.userName`}
-						searchFn={userService.fetchUserLoan}
+						searchFn={loanService.fetchUserLoan}
 						placeholder="Select user"
 						updateFields={(selected) => updateUserFields(userIndex, selected)}
 						initialOptions={userOptions}

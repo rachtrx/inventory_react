@@ -105,7 +105,8 @@ export const ReturnsProvider = ({ children }) => {
       )
 
       const returns = records.map(({serialNumber, remarks}) => {
-        const matchedAssetOption = assetOptions.find(option => compareStrings(option.label, serialNumber));
+        const matchedAssetOption = assetOptions.find(option => compareStrings(option.label, serialNumber)); 
+        // unlike other forms, dont need to check for isDisabled since this only fills the "search" input
         console.log(matchedAssetOption);
 
         return {

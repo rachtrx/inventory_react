@@ -66,13 +66,12 @@ class UserService {
     
 
     fetchUserDel = async (userNames) => {
-        return await this.axios.get(`${API_URL}/forms/del/user`, {
+        return await this.axios.get(`${this.URL}/del/user`, {
             params: {
                 userNames
             }
         });
     }
-
     
 
     fetchTagUser = async(userNames, tagId=null) => {

@@ -7,8 +7,6 @@ const EventDTO = require('../dtos/event.dto.js');
 
 class UserController {
 
-    
-
     async getAllFilters(req, res) {
         try {
             const optionsDict = Object.fromEntries(
@@ -69,33 +67,18 @@ class UserController {
                 [Op.and]: [
                     ...(filters.userName ? [{ userName: { [Op.iLike]: `%${filters.userName}%` } }] : []),
                     ...(filters.bookmarked === true ? [{ bookmarked: true }] : []),
-                    Sequelize.literal(`
-                        NOT EXISTS (
-                            SELECT 1 FROM "ast_loans" AS "AstLoans"
-                            WHERE "AstLoans"."id" = "Loans->AstLoan"."id"
-                            AND "AstLoans"."return_event_id" IS NOT NULL
-                        )
-                    `),
-                    Sequelize.literal(`
-                        NOT EXISTS (
-                            SELECT 1
-                            FROM "acc_returns" AS "AccReturns"
-                            WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
-                            GROUP BY "Loans->AccLoans"."id"
-                            HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
-                        )
-                    `),
                     ...(filters.assetCount?.length === 2
                         ? [Sequelize.literal(`
                             EXISTS (
                                 SELECT 1
-                                FROM "loans" AS "UserLoans"
-                                JOIN "ast_loans" AS "AstLoans" ON "AstLoans"."loan_id" = "UserLoans"."id"
-                                WHERE "UserLoans"."user_id" = "Usr"."id"
-                                AND "UserLoans"."loan_event_id" IS NOT NULL
+                                FROM "usrs"
+                                LEFT JOIN "loans" AS "UserLoans" ON "usrs"."id" = "UserLoans"."user_id"
+                                AND "UserLoans"."loan_event_id" IS NOT NULL -- unreturned loans
+                                LEFT JOIN "ast_loans" AS "AstLoans" ON "AstLoans"."loan_id" = "UserLoans"."id"
                                 AND "AstLoans"."return_event_id" IS NULL
-                                GROUP BY "UserLoans"."user_id"
-                                HAVING COUNT("AstLoans"."id") BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
+                                WHERE "usrs"."id" = "Usr"."id"
+                                GROUP BY "usrs"."id"
+                                HAVING COALESCE(COUNT(DISTINCT "AstLoans"."id"), 0) BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
                             )
                         `)] : []
                     ),
@@ -128,6 +111,7 @@ class UserController {
     
             const query = await Usr.findAll({
                 attributes: ['id', 'userName', 'bookmarked'],
+                logging: console.log,
                 include: [
                     {
                         model: UsrTagMap,
@@ -158,6 +142,11 @@ class UserController {
                             {
                                 model: AstLoan,
                                 required: false,
+                                where: {
+                                    returnEventId: {
+                                        [Op.eq]: null,
+                                    }
+                                },
                                 include: [
                                     {
                                         model: Ast,
@@ -180,6 +169,15 @@ class UserController {
                                 model: AccLoan,
                                 required: false,
                                 attributes: ['id', 'count'],
+                                where: Sequelize.literal(`
+                                    NOT EXISTS (
+                                        SELECT 1
+                                        FROM "acc_returns" AS "AccReturns"
+                                        WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                                        GROUP BY "Loans->AccLoans"."id"
+                                        HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
+                                    )
+                                `),
                                 include: [
                                     {
                                         model: AccType,

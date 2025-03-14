@@ -43,8 +43,6 @@ class FormLoanReturnController {
             const { assetIdToSNMap, userIdToNameMap } = loanService.aggregateItems();
             await loanService.validateAssets(assetIdToSNMap);
             await loanService.validateUsers(userIdToNameMap);
-            // CREATE any new accessories
-            await loanService.handleNewAccessories();
             // INSERTION + Updating the Signatures
             await loanService.createLoans();
             await transaction.commit();
@@ -69,7 +67,7 @@ class FormLoanReturnController {
 
             res.json(loans);
         } catch (error) {
-            logger.error('Error fetching Loan:', error)
+            logger.error('Error fetching returns:', error)
             return res.status(500).json({ error: error.message });
         }
     }
@@ -120,7 +118,7 @@ class FormLoanReturnController {
                     const assetCopy = JSON.parse(JSON.stringify(asset));
                     delete assetCopy.astLoans;
 
-                    if (!asset.astLoans || asset.astLoans.length === 0) { // simulate a loan structure
+                    if (!asset.astLoans?.length) { // simulate a loan structure
                         return [{
                             astLoan: {
                                 asset: assetCopy
@@ -183,10 +181,10 @@ class FormLoanReturnController {
 
             const users = query.map(
                 user => ({
-                        ...user,
-                        value: user.userName,
-                        label: user.userName,
-                        isDisabled: user.delEventId ? true : false
+                    ...user,
+                    value: user.userName,
+                    label: user.userName,
+                    isDisabled: user.delEventId ? true : false
                 })
             )
             

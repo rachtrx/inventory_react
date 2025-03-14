@@ -58,6 +58,10 @@ export const OverlappingCircles = React.forwardRef(
         display="flex"
         alignItems="center"
         width={circleSize}
+        style={{
+          zIndex: isHovered ? 100 : 1,
+          transition: "z-index 0.3s ease-in-out"
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

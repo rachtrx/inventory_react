@@ -34,13 +34,11 @@ export const DelUserStep1 = () => {
 			// console.log(formRef.current?.values);
       const errors = {};
   
-      const atDuplicates = validateUniqueValues(values.users, ['userName']);
+      const unDuplicates = validateUniqueValues(values.users, ['userName']);
 
       values.users.forEach((user, userIndex) => {
 
-        if (!user.userId && user.userName) setFieldError(errors, ['users', userIndex, 'userName'], "User name not found / cannot be deleted");
-
-        const unError = validateFieldWithId(atDuplicates, user['userName'], user['userId'], "User Name");
+        const unError = validateFieldWithId(unDuplicates, user['userName'], user['userId'], "User Name");
         if (unError) {
           setFieldError(errors, ['users', userIndex, 'userName'], unError);
         }

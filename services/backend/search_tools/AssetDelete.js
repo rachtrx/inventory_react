@@ -101,7 +101,7 @@ class AssetDelete {
                 order: Sequelize.literal(`"AddEvent"."event_date" DESC`),
             })
             console.log(query.map(astRow => astRow.lastEventDate));
-            return query.map(astRow => new AssetDTO(astRow.dataValues).setOngoingLoan().setOngoingReservation());
+            return query.map(astRow => new AssetDTO(astRow).setOngoingLoan().setOngoingReservation());
         } catch (e) {
             throw e;
         }

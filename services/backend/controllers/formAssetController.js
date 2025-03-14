@@ -455,7 +455,7 @@ class FormAssetController {
             // console.log(assets);
             res.json(assets);
         } catch (error) {
-            logger.error('Error fetching Loan:', error)
+            logger.error('Error fetching Ast Del:', error)
             return res.status(500).json({ error: error.message });
         }
     }

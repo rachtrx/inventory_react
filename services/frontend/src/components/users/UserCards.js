@@ -44,11 +44,13 @@ function UserCards({ items }) {
                 </Text>
                 {user.loans?.length > 0 && <ItemsList user={user}/>}
                 <Flex>
-                  <UserActionButton 
-                    formType={user.deleteEvent ? FormType.RESTORE_USER : FormType.LOAN} 
-                    user={user} 
-                    style={{ marginLeft: 'auto' }} 
-                  />
+                  {!user.deleteEvent && 
+                    <UserActionButton 
+                      formType={FormType.LOAN} // TODO FormType.RESTORE_USER
+                      user={user} 
+                      style={{ marginLeft: 'auto' }} 
+                    />
+                  }
                 </Flex>
                 <Tags tags={user.tags}/>
               </VStack>
@@ -59,8 +61,6 @@ function UserCards({ items }) {
               />
             </Flex>
           </CardBody>
-          
-          
         </Card>
       </Box>
       ))}

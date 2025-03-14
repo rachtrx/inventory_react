@@ -1,29 +1,51 @@
-import { Box, Collapse, Divider, Text, VStack } from "@chakra-ui/react"
-import BadgeGroup from "./BadgeGroup"
-import { useDrawer } from "../../../context/DrawerProvider"
-import { useEffect, useState } from "react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
-import DateText from "./DateText";
-import accessoryService from "../../../services/AccessoryService";
-import ReturnBadge from "./ReturnBadge";
+import { HStack } from "@chakra-ui/react"
+import CheckBadge from "../../badges/CheckBadge"
+import WarningBadge from "../../badges/WarningBadge"
 
-const ReturnEvents = ({
-    display, 
-    returnEvents
-}) => {
+import {Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
+import { BadgeGroup } from "./BadgeGroup";
+import DateText from "./DateText";
+import { useTimeline } from "../../../context/TimelineProvider";
+
+const ReturnEventTable = ({returnEvents}) => {
 
     return (
-        <Box>
-            <VStack spacing={4} align="stretch">
-                <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
-                    Returned
-                </ResponsiveText>
-                {Object.entries(returnEvents).map(([eventId, event]) => (
-                    <ReturnBadge eventId={eventId} event={event}/>
-                ))}
-            </VStack>
-        </Box>
+        <Table variant="simple" size="sm" width="100%">
+            {/* Table Headers */}
+            <Thead>
+                <Tr>
+                    <Th fontSize="xs" color="gray.600">Date</Th>
+                    <Th fontSize="xs" color="gray.600">Returned Items</Th>
+                </Tr>
+            </Thead>
+            <Tbody>
+                {returnEvents.map((event, idx) => <EventTableRow key={idx} event={event}/>)}
+            </Tbody>
+        </Table>
+
     )
 }
 
-export default ReturnEvents;
+const EventTableRow = ({event}) => {
+
+    return (
+        <Tr key={event.eventId}>
+            {/* DateText (Keeping it as required) */}
+            <Td fontSize="xs">
+                <DateText
+                    colorScheme={event.asset ? "yellow" : "gray"} 
+                    event={event}
+                />
+            </Td>
+
+            <Td fontSize="xs">
+                <BadgeGroup 
+                    asset={event.asset || undefined}
+                    accessories={event.accessories}
+                />
+            </Td>
+        </Tr>
+    )
+}
+
+export default ReturnEventTable;

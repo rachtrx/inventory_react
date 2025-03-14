@@ -1,6 +1,6 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { UserActionButton } from '../buttons/actions/UserActionButton';
+import { CircleUserActionButton, UserActionButton } from '../buttons/actions/UserActionButton';
 import { useDrawer } from '../../context/DrawerProvider';
 import { FormType, useFormModal } from '../../context/ModalProvider';
 import { ItemsList } from './popovers/ItemsList';
@@ -32,6 +32,7 @@ const UserTable = ({ items }) => {
           </Th>
           <Th>Assets</Th>
           <Th>Tags</Th>
+          <Th>Loan</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -48,6 +49,14 @@ const UserTable = ({ items }) => {
               {user.loans?.length > 0 && <ItemsList user={user}/>}
             </Td>
             <Td><Tags tags={user.tags}/></Td>
+            <Td>
+              {!user.deleteEvent && 
+                <CircleUserActionButton 
+                  formType={FormType.LOAN} // TODO FormType.RESTORE_USER
+                  user={user}
+                />
+              }
+            </Td>
           </Tr>
         ))}
       </Tbody>

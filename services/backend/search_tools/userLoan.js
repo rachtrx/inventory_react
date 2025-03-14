@@ -30,10 +30,7 @@ class UserLoan {
         try {
             const query = await Usr.findAll({
                 attributes: ['id', 'userName', 'delEventId'],
-                where: { [Op.and] : [
-                    this.userCondition,
-                    { delEventId: null}
-                ]},
+                where: this.userCondition,
                 include: {
                     model: Dept,
                     attributes: ['id', 'deptName'],

@@ -13,9 +13,10 @@ import DateText from "../utils/DateText";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 import { AssetLink, UserLink } from "../../buttons/ItemLink";
 import { useDrawer } from "../../../context/DrawerProvider";
-import { AccStatus, AstStatus, ReturnEventTable } from "../utils/AccStatus";
+import { AccStatus, AstStatus } from "../utils/AccStatus";
 import { useTimeline } from "../../../context/TimelineProvider";
 import { withEventBox } from "../utils/withEventBox";
+import ReturnEventTable from "../utils/ReturnEvents";
 
 const AccLoanEvent = ({ event }) => {
     console.log(event);
@@ -58,7 +59,7 @@ const AccLoanEvent = ({ event }) => {
                     </HStack>
                 )}
 
-                {!isOpen && accLoans && accLoans.length > 0 && ( // TODO, remove since accLoans should not be length < 0
+                {!isOpen && accLoans?.length && (
                     <HStack>
                         {astLoan && <AstStatus astLoan={astLoan}/>}
                         {

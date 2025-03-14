@@ -90,12 +90,12 @@ class UserReturnSearch {
                         required: false
                     },
                 ],
-                where: { [Op.and]: [
+                where: { [Op.and]: [ // delete any user rows that doesnt meet the condition
                     Sequelize.literal(`
                         NOT EXISTS (
                             SELECT 1 FROM "ast_loans" AS "AstLoans"
                             WHERE "AstLoans"."id" = "AstLoan"."id"
-                            AND "AstLoans"."return_event_id" IS NOT NULL
+                            AND "AstLoans"."return_event_id" IS NOT NULL -- asset returned
                         )
                     `), // At least either unreturned asset of accessory
                     this.accExistCondition

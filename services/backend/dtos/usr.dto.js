@@ -36,17 +36,17 @@ class UserDTO {
         if (addEventId) this.addEventId = addEventId;
         if (addEventId || delEventId) this.delEventId = delEventId;
         
-        if (AddEvent) this.addEvent = new EventDTO(AddEvent);
-        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);
+        if (AddEvent) this.addEvent = new EventDTO(AddEvent.dataValues);
+        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent.dataValues);
         
         if (Dept?.id) this.deptId = Dept.id;
         if (Dept?.deptName) this.deptName = Dept.deptName;
 
-        this.loans = [];
-        this.reservations = [];
+        // this.loans = [];
+        // this.reservations = [];
 
         if (Loans) {
-            this.userLoans = Loans.map(loan => new LoanDTO(loan));
+            this.userLoans = Loans.map(loan => new LoanDTO(loan.dataValues));
         }
     }
 
@@ -67,7 +67,7 @@ class UserDTO {
                     accLoan.count > accLoan.accReturns.reduce((total, accReturn) => total + accReturn.count) // partial return of accessory
                 )
             )}
-        ) || null;
+        ) || [];
 
         return this;
     }
@@ -81,7 +81,7 @@ class UserDTO {
             this.checked = true;
         }
         
-        this.reservations = this.userLoans.filter(loan => loan.loanEventId === null);
+        this.reservations = this.userLoans.filter(loan => loan.loanEventId === null) || [];
 
         return this;
     }

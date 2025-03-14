@@ -48,21 +48,6 @@ export const ModalProvider = ({ children }) => {
 
   console.log("Modal rendered");
 
-  const handleAssetSearch = useCallback(async (value) => {
-    console.log(`Asset Search Called: ${value}`);
-    return await assetService.searchAssets(value, formType);
-  }, [formType]);
-  
-  const handleUserSearch = useCallback(async (value) => {
-    console.log(`User Search Called: ${value}`);
-    return await userService.searchUsers(value, formType);
-  }, [formType]);
-  
-  const handleAccessorySearch = useCallback(async (value) => {
-    console.log(`Accessory Search Called: ${value}`);
-    return await accessoryService.searchAccessories(value);
-  }, []);
-
   const createTouchedStructure = useCallback((values) => {
     if (Array.isArray(values)) {
       return values.map((item) => createTouchedStructure(item));
@@ -98,9 +83,6 @@ export const ModalProvider = ({ children }) => {
       setFormType, 
       initialValues, 
       setInitialValues, 
-      handleAssetSearch, 
-      handleUserSearch, 
-      handleAccessorySearch, 
       isModalOpen, 
       onModalOpen, 
       onModalClose, 

@@ -22,24 +22,24 @@ class LoanDTO {
         this.expectedLoanDate = expectedLoanDate;
 
         const EventDTO = require("./event.dto");
-        this.reserveEvent = ReserveEvent && new EventDTO(ReserveEvent);
-        this.loanEvent = LoanEvent && new EventDTO(LoanEvent);
+        this.reserveEvent = ReserveEvent && new EventDTO(ReserveEvent.dataValues);
+        this.loanEvent = LoanEvent && new EventDTO(LoanEvent.dataValues);
         
         if (AstLoan !== undefined) {
             const AstLoanDTO = require("./astLoan.dto");
-            this.astLoan = AstLoan && new AstLoanDTO(AstLoan);
+            this.astLoan = AstLoan && new AstLoanDTO(AstLoan.dataValues);
         }
 
         if (AccLoans) {
             const AccLoanDTO = require("./accLoan.dto");
-            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
+            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
         }
 
         this.filepath = filepath;
 
         if (Usr) {
             const UserDTO = require("./usr.dto");
-            this.user = new UserDTO(Usr);
+            this.user = new UserDTO(Usr.dataValues);
         }
     }
 
@@ -74,13 +74,14 @@ class LoanDTO {
                 if (accLoan.accType === undefined) {
                     throw new Error("Dev Error: Include AccType model in AccLoan");
                 }
-    
+                
                 accLoan.accReturns.forEach(accReturn => {
                     const eventId = accReturn.returnEvent.eventId;
                     const accessoryDetails = {
                         ...accReturn,
                         accessoryTypeId: accLoan.accType.accessoryTypeId,
-                        accessoryName: accLoan.accType.accessoryName
+                        accessoryName: accLoan.accType.accessoryName,
+                        isMatching: accLoan.accType.isMatching ? true : false
                     };
     
                     if (!events[eventId]) {

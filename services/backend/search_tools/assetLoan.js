@@ -50,6 +50,11 @@ class AssetLoan {
                             ]
                         },
                         required: false,
+                        where: {
+                            returnEventId: {
+                                [Op.eq]: null
+                            }
+                        }
                     },
                     {
                         model: AstSType,
@@ -64,11 +69,11 @@ class AssetLoan {
                 ],
                 order: Sequelize.literal(`
                     CASE 
-                        WHEN "AstLoans->Loan"."loan_event_id" IS NULL AND "AstLoans->Loan"."reserve_event_id" IS NULL THEN 1
-                        WHEN "AstLoans->Loan"."loan_event_id" IS NULL THEN 2
-                        WHEN "Ast"."del_event_id" IS NOT NULL THEN 4
-                        ELSE 3
-                    END ASC
+                        WHEN "Ast"."del_event_id" IS NOT NULL THEN 1 -- deleted
+                        WHEN "AstLoans"."return_event_id" IS NULL AND "AstLoans->Loan"."loan_event_id" IS NOT NULL THEN 2 -- on loan
+                        WHEN "AstLoans->Loan"."loan_event_id" IS NULL AND "AstLoans->Loan"."id" IS NOT NULL THEN 3 -- reserved
+                        ELSE 4
+                    END DESC
                 `)
             })
             return query.map(astRow => new AssetDTO(astRow).setOngoingLoan().setOngoingReservation());

@@ -54,13 +54,13 @@ class AssetDTO {
         }
         this.location = location;
 
-        if (AstLoans) this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan));
+        if (AstLoans) this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan.dataValues));
 
         if (addEventId) this.addEventId = addEventId;
         if (delEventId !== undefined) this.delEventId = delEventId;
         
-        if (AddEvent) this.addEvent = new EventDTO(AddEvent);
-        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);
+        if (AddEvent) this.addEvent = new EventDTO(AddEvent.dataValues);
+        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent.dataValues);
     }
 
     setOngoingLoan(includesLoan=true) {

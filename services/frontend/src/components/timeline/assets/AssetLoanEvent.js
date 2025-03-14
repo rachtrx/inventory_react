@@ -17,8 +17,9 @@ import { ResponsiveText } from "../../utils/ResponsiveText";
 import { UserLink } from "../../buttons/ItemLink";
 import CheckBadge from "../../badges/CheckBadge";
 import WarningBadge from "../../badges/WarningBadge";
-import { AccStatus, AssetStatus, ReturnEventTable } from "../utils/AccStatus";
+import { AccStatus, AssetStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
+import ReturnEventTable from "../utils/ReturnEvents";
 
 const AssetLoanEvent = ({ event }) => {
     // console.log(event);
@@ -91,13 +92,13 @@ const AssetLoanEvent = ({ event }) => {
                 </Box>
             )}
 
-            <Button
+            {returnEvents?.length && (<Button
                 size="sm"
                 variant="link"
                 onClick={() => setIsOpen(!isOpen)} // Toggle collapse
             >
                 {isOpen ? "Hide Details" : "Show Details"}
-            </Button>
+            </Button>)}
         </VStack>
     );
 };

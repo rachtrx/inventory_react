@@ -18,7 +18,7 @@ class AssetTagMapDTO {
         if (isMatching !== undefined) this.isMatching = isMatching;
 
         const AssetDTO = require("./ast.dto");
-        if (Ast) this.asset = new AssetDTO(Ast);
+        if (Ast) this.asset = new AssetDTO(Ast.dataValues);
 
         if (AstTag) {
             this.tagId = AstTag?.id;

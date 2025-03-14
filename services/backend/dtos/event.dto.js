@@ -31,10 +31,10 @@ class EventDTO {
         if (adminId) this.adminId = adminId;
 
         if (Admin) this.adminName = Admin.adminName;
-        if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark));
+        if (Rmks) this.remarks = Rmks.map(remark => new RemarkDTO(remark.dataValues));
 
-        if (Loan) {this.loan = new LoanDTO(Loan).setReturnEvents()} // contains return details AssetReturn and AccReturns
-        if (Reservation) this.reservation = new LoanDTO(Reservation);
+        if (Loan) {this.loan = new LoanDTO(Loan.dataValues).setReturnEvents()} // contains return details AssetReturn and AccReturns
+        if (Reservation) this.reservation = new LoanDTO(Reservation.dataValues);
 
         if (AccType) this.addedAccType = AccType;
         if (AccTxn) this.accTxn = AccTxn;

@@ -69,7 +69,6 @@ export default function AssetsActions() {
           <CircleAssetActionButton
             key={formType}
             formType={formType}
-            buttonStyle={{ width: '100%', borderRadius: '12px' }}
           />
         )
       )}

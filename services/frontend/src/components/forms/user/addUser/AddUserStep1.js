@@ -49,7 +49,7 @@ export const AddUserStep1 = () => {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'userName'], userNameError);
           }
           
-          if (compareDates(user['addDate'])) {
+          if (user['addDate'] && compareDates(user['addDate'])) {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'addDate'], "Date cannot be after today");
           }
         })

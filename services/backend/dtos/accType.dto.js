@@ -9,15 +9,15 @@ class AccTypeDTO {
         id,
         accessoryName,
         stock,
-        isMatching=null,
+        isMatching=undefined,
         remarks,
         AccTxns,
         AccLoans
     }) {
-        if (id) this.accessoryTypeId = id;
-        if (accessoryName) this.accessoryName = accessoryName;
+        this.accessoryTypeId = id;
+        this.accessoryName = accessoryName;
 
-        if (isMatching !== null) this.isMatching = isMatching;
+        this.isMatching = isMatching;
         if (remarks !== null) this.remarks = remarks;
         
         if (Number.isFinite(stock)) this.stock = stock;
@@ -32,7 +32,7 @@ class AccTypeDTO {
         }
 
         if (AccLoans && AccLoans.length > 0) {
-            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
+            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
 
             if (Number.isFinite(this.stock) && Number.isFinite(this.registeredCount) && 
                 this.accLoans.every(accLoan => Number.isFinite(accLoan.count) && accLoan.loan)) {

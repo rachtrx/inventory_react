@@ -6,7 +6,6 @@ const router = express.Router();
 router.get('/', accessoryController.getAccesories);
 router.get('/:id', accessoryController.getAccType);
 router.post('/filters', accessoryController.getFilters);
-router.post('/search', accessoryController.searchAccessories);
 router.post('/getSuggested', accessoryController.getSuggestedAccessories);
 
 // router.post('/updateAssetTypeSuggestion', accessoryController.updateAssetTypeSuggestion);

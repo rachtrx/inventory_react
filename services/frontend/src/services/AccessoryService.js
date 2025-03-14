@@ -51,10 +51,6 @@ class AccessoryService {
         return await this.axios.post(`${this.URL}/add`, { accessoryName });;
     }
 
-    async searchAccessories(value) {
-        return await this.axios.post(`${this.URL}/search`, { value });
-    }
-
     async getSuggestedAccessories(id) {
         return await this.axios.post(`${this.URL}/getSuggested`, { assetId: id });
     }

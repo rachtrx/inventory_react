@@ -14,16 +14,16 @@ class AstLoanDTO {
 
         if (Loan) {
             const LoanDTO = require("./loan.dto");
-            this.loan = new LoanDTO(Loan);
+            this.loan = new LoanDTO(Loan.dataValues);
         }
         else if (loanId) this.loanId = loanId;
 
         if (Ast) {
             const AssetDTO = require("./ast.dto");
-            this.asset = new AssetDTO(Ast);
+            this.asset = new AssetDTO(Ast.dataValues);
         }
         if (returnEventId !== undefined) this.returnEventId = returnEventId
-        if (ReturnEvent !== undefined) this.returnEvent = ReturnEvent && new EventDTO(ReturnEvent);
+        if (ReturnEvent !== undefined) this.returnEvent = ReturnEvent && new EventDTO(ReturnEvent.dataValues);
     }
 }
 

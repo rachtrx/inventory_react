@@ -17,8 +17,9 @@ import { BadgeGroup } from "../utils/BadgeGroup";
 import { ResponsiveText } from "../../utils/ResponsiveText";
 
 import { AccTypeLink, AssetLink, UserLink } from "../../buttons/ItemLink";
-import { AccStatus, ReturnEventTable } from "../utils/AccStatus";
+import { AccStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
+import ReturnEventTable from "../utils/ReturnEvents";
 
 const UserLoanEvent = ({ event }) => {
     console.log(event);

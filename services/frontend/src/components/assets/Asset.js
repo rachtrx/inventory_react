@@ -9,6 +9,7 @@ import { AssetStatus } from './constants/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import Tags from '../tags/Tags';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
@@ -16,16 +17,21 @@ const Asset = ({ asset }) => {
 
   const pastUsers = asset.pastUsers;
 
-  const status = asset.delEventId ? AssetStatus.DELETED : 
-    asset.currentUser ? AssetStatus.LOANED : 
-    asset.reservedUser ? AssetStatus.RESERVED : 
-    AssetStatus.AVAILABLE;
+  const status = asset?.delEventId !== undefined ? AssetStatus.DELETED :
+  asset?.loanEventId !== undefined ? AssetStatus.LOANED :
+  asset?.reserveEventId !== undefined ? AssetStatus.RESERVED :
+  AssetStatus.AVAILABLE;
+
+  // console.log(status);
+
+  const loan = asset.loanEventId ? asset.history.find(event => event.eventId === asset.loanEventId)?.loan : null
+  const reservation = asset.reserveEventId ? asset.history.find(event => event.eventId === asset.reserveEventId)?.reservation : null
 
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
         <Heading as="h1" size="lg" mb={4}>{asset.serialNumber}</Heading>
-				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
+				<Heading as="h2" size="md" mb="2">Status: {status}</Heading>	
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
@@ -81,13 +87,11 @@ const Asset = ({ asset }) => {
         >
             <Heading as="h2" size="sm" mb="2">Current User</Heading>
             <Box>
-            {asset.currentUser && (
+            {loan && (
               <>
-                <UserLink key={asset.currentUser.userId} user={asset.currentUser} isCopy={false} />
-                <AssetActionButton
-                  key={FormType.RETURN} 
-                  formType={FormType.RETURN} 
-                  asset={asset} 
+                <UserLink key={loan.user.userId} user={loan.user} isCopy={false} />
+                <ReturnButton
+                  loanId={loan.loanId}
                 />
               </>
             )}
@@ -102,8 +106,8 @@ const Asset = ({ asset }) => {
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
-              {asset.reservedUser && (
-                <UserLink key={asset.reservedUser.userId} isCopy={false} user={asset.reservedUser} />
+              {reservation && (
+                <UserLink key={reservation.user.userId} isCopy={false} user={reservation.user} />
               )}
             </Box>
 

@@ -15,7 +15,7 @@ class UserTagMapDTO {
         if (isMatching) this.isMatching = isMatching;
 
         const UserDTO = require("./usr.dto");
-        if (Usr) this.user = new UserDTO(Usr);
+        if (Usr) this.user = new UserDTO(Usr.dataValues);
 
         if (UsrTag) {
             this.tagId = UsrTag?.id;

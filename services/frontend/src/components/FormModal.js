@@ -74,7 +74,20 @@ export default function FormModal() {
             size="xl" 
         >
             <ModalOverlay />
-            <ModalContent>
+            {/* https://github.com/chakra-ui/chakra-ui/issues/7588 */}
+            <ModalContent 
+                onWheel={(e) => {
+                    e.stopPropagation();
+                }}
+                onTouchMove={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+                onScroll={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+            >
                 <ModalCloseButton/>
                 <ModalHeader display="flex" alignItems="center" gap={4}>
                     <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>

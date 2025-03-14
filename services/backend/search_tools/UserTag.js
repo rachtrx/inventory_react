@@ -85,7 +85,7 @@ class UserTagSearch {
                 order: orderByArr
             })
             // query.forEach(usrRow => console.log(usrRow));
-            return query.map(usrRow => new UserDTO(usrRow.dataValues));
+            return query.map(usrRow => new UserDTO(usrRow));
         } catch (e) {
             
             throw e;

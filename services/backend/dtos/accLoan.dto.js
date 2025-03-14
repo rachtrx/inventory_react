@@ -17,7 +17,7 @@ class AccLoanDTO {
 
         if (Loan) { // aggregation
             const LoanDTO = require("./loan.dto");
-            this.loan = new LoanDTO(Loan);
+            this.loan = new LoanDTO(Loan.dataValues);
         }
 
         if (loanId) this.loanId = loanId;
@@ -25,7 +25,7 @@ class AccLoanDTO {
         if (AccType) {
             logger.info(AccType.get({ plain: true }))
             const AccTypeDTO = require("./accType.dto");
-            this.accType = new AccTypeDTO(AccType.get({ plain: true }));
+            this.accType = new AccTypeDTO(AccType.dataValues);
         }
         
         if (accessoryTypeId) this.accessoryTypeId = accessoryTypeId;
@@ -33,7 +33,7 @@ class AccLoanDTO {
         if (count) this.count = count;
 
         if (AccReturns) { // IMPT empty array is true
-            this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn));
+            this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn.dataValues));
 
             if (count && AccReturns.every(accReturn => Number.isFinite(accReturn.count))) {
                 this.returned = AccReturns.reduce((total, accReturn) => total += accReturn.count, 0)

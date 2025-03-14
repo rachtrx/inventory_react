@@ -66,7 +66,7 @@ class FormAssetTagController {
             // console.log(assets);
             res.json(assets);
         } catch (error) {
-            logger.error('Error fetching Loan:', error)
+            logger.error('Error fetching Assets to tag:', error)
             return res.status(500).json({ error: error.message });
         }
     };
@@ -90,7 +90,7 @@ class FormAssetTagController {
             // console.log(assets);
             res.json(assets);
         } catch (error) {
-            logger.error('Error fetching Loan:', error)
+            logger.error('Error fetching Assets to del tag:', error)
             return res.status(500).json({ error: error.message });
         }
     };
