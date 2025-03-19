@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   createBrowserRouter,
   Route,
+  Navigate,
   createRoutesFromElements,
 } from "react-router-dom";
 
@@ -20,17 +21,23 @@ import { EventsPage } from "./components/events/Events";
 
 export const App = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<AuthProvider/>}>
-      <Route path="/login" element={<Login />}/>
-      <Route path="/register" element={<Register />}/>
-      <Route element={<PrivateLayout/>}>
-        <Route path="/dashboard" element={<Dashboard/>}/>
-        <Route path="/history" element={<EventsPage />}/>
-        <Route path="/assets" element={<AssetsPage />}/>
-        <Route path="/users" element={<UsersPage />}/>
-        <Route path="/accessories" element={<AccessoriesPage />}/>
-        <Route path="/profile" element={<Profile />}/>
+    <>
+      {/* Redirect from `/` to `/login` */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/* Authentication Routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      {/* Protected Routes */}
+      <Route element={<PrivateLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/history" element={<EventsPage />} />
+        <Route path="/assets" element={<AssetsPage />} />
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/accessories" element={<AccessoriesPage />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
-    </Route>
+    </>
   )
 );

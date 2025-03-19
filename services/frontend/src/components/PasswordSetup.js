@@ -16,22 +16,38 @@ const PasswordSetup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { handleError, showToast } = useUI()
 
+  /*
+    ^(?=.*[a-z])       # At least one lowercase letter
+    (?=.*[A-Z])        # At least one uppercase letter
+    (?=.*\d)           # At least one number
+    (?=.*[@$!%*?&])    # At least one special character
+    [A-Za-z\d@$!%*?&]  # Allow only letters, numbers, and special characters
+    {8,}               # Minimum length of 8 characters
+    $                  # End of the string
+  */
+  const validatePassword = (password, confirmPassword) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      throw new Error("Passwords do not match");
+    }
+    // Check if password meets requirements
+    if (!passwordRegex.test(password)) {
+      throw new Error("Failed to setup password: Must be at least 8 characters, include 1 uppercase, 1 lowercase, 1 number, and 1 special character.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      handleError("Passwords do not match")
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      // Assume this function posts the data to the server
+      validatePassword(password, confirmPassword);
       await authService.submitPassword(password);
-      showToast("Password has been successfully set up!")
+      showToast("Password has been successfully set up!", "success", 500)
       setPassword('');
       setConfirmPassword('');
     } catch (error) {
-      handleError("Failed to setup password.")
+      handleError(error)
     }
     setIsSubmitting(false);
   };
