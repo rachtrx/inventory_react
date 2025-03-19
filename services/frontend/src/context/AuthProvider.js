@@ -21,6 +21,7 @@ export const AuthProvider = () => {
         console.log("Checking auth...");
         const response = await authService.checkAuth();
         const validatedAdmin = response.data;
+        console.log(validatedAdmin.pwd);
         if (isLoading && validatedAdmin) {
           console.log("Validated admin:", validatedAdmin);
           setAdmin(validatedAdmin);

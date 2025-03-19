@@ -6,19 +6,19 @@ class AuthService {
   }
 
   async login(email, password) {
-    return await this.axios.post(`${API_URL}/auth//login`, { email, password })
+    return await this.axios.post(`${API_URL}/auth/login`, { email, password })
   }
 
   async logout() {
-    return await this.axios.post(`${API_URL}/auth//logout`)
+    return await this.axios.post(`${API_URL}/auth/logout`)
   }
 
   async checkAuth() {
-    return await this.axios.get(`${API_URL}/auth//checkAuth`) //, { headers: { 'Skip-Interceptor': true } }
+    return await this.axios.get(`${API_URL}/auth/checkAuth`) //, { headers: { 'Skip-Interceptor': true } }
   }
 
   async submitPassword(password) {
-    return await this.axios.post(`${API_URL}/auth//chgpw`, { password })
+    return await this.axios.post(`${API_URL}/auth/chgpw`, { password })
   }
 
   // const register = useCallback(async (adminName, email, password) => {
