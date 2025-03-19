@@ -17,12 +17,12 @@ const corsOptions = {
 
 const app = express();
 
-app.use((req, res, next) => {
-    console.log(`Full URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
-    console.log(`Query Params:`, req.query);
-    console.log(`Route Params:`, req.params); // Will only contain data if the route has params
-    next();
-});
+// app.use((req, res, next) => {
+//     console.log(`Full URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
+//     console.log(`Query Params:`, req.query);
+//     console.log(`Route Params:`, req.params); // Will only contain data if the route has params
+//     next();
+// });
 
 // Cookie parser middleware
 app.use(cookieParser());
@@ -31,7 +31,8 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (!req.path.startsWith('api/auth') || req.path === 'api/auth/checkAuth' || req.path === 'api/auth/chgpw') {
+    console.log(req.path);
+    if (!req.path.startsWith('/api/auth') || req.path === '/api/auth/checkAuth' || req.path === '/api/auth/chgpw') {
         jwt({
             secret: process.env.JWT_SECRET,
             algorithms: ['HS256'],

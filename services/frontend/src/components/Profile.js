@@ -16,7 +16,7 @@ import { useUI } from '../context/UIProvider';
 
 const Profile = () => {
 
-	const { admin, setAdmin } = useAuth();
+	const { admin, logout } = useAuth();
 
   return (
     <Container maxW="container.md" centerContent p={4}>
@@ -28,7 +28,7 @@ const Profile = () => {
           <Text mt={2}><b>Email:</b> {admin.email}</Text>
           <Text mt={2}><b>Authentication Types:</b> {admin.authType.map(type => <Tag key={type} ml={1}>{type}</Tag>)}</Text>
 					{admin.authType.every(authType => authType === "SSO") && <PasswordSetup/>}
-					<Button onClick={() => setAdmin(null)} leftIcon={<MdLogout />}>
+					<Button onClick={() => logout()} leftIcon={<MdLogout />}>
 						<ResponsiveText>Logout</ResponsiveText>
 					</Button>
         </Box>

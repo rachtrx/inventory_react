@@ -33,7 +33,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSSOLogin = () => {
-    window.location.href = "http://localhost:3001/auth/microsoft"; // Backend route
+    window.location.href = `${process.env.REACT_APP_API_BASE_URL}/auth/microsoft`; // Backend route
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
