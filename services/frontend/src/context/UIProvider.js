@@ -1,5 +1,5 @@
-import { useToast } from '@chakra-ui/react';
-import React, { createContext, useCallback, useContext, useState, Alert, AlertIcon, CloseButton } from 'react';
+import { Alert, AlertIcon, CloseButton, useToast } from '@chakra-ui/react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { ResponsiveText } from '../components/utils/ResponsiveText';
 
 const UIContext = createContext(false);
