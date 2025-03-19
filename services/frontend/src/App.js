@@ -25,11 +25,11 @@ export const App = createBrowserRouter(
       <Route path="/register" element={<Register />}/>
       <Route element={<PrivateLayout/>}>
         <Route path="/dashboard" element={<Dashboard/>}/>
+        <Route path="/history" element={<EventsPage />}/>
         <Route path="/assets" element={<AssetsPage />}/>
         <Route path="/users" element={<UsersPage />}/>
-        <Route path="/profile" element={<Profile />}/>
         <Route path="/accessories" element={<AccessoriesPage />}/>
-        <Route path="/history" element={<EventsPage />}/>
+        <Route path="/profile" element={<Profile />}/>
       </Route>
         
       </Route>

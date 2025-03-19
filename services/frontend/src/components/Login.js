@@ -1,7 +1,6 @@
 // https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from "yup";
@@ -19,12 +18,9 @@ import {
   useColorModeValue,
   VStack
 } from '@chakra-ui/react';
-import { useUI } from '../context/UIProvider';
 import { ResponsiveText } from './utils/ResponsiveText';
-import { useMsal } from '@azure/msal-react';
-import { EventType } from '@azure/msal-browser';
-import { loginRequest } from '../authConfig';
 import { useLoading } from '../context/LoadingProvider';
+import { useNavigate } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required("Email is required"),
@@ -32,95 +28,21 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Login() {
-  const { admin, setAdmin } = useAuth();
-  const { handleError } = useUI()
-  const { loading, setLoading } = useLoading();
-  const navigate = useNavigate()
+  const { setAdmin } = useAuth();
+  const { setLoading } = useLoading();
+  const navigate = useNavigate();
 
-  const { instance, accounts } = useMsal();
-
-  useEffect(() => {
-    console.log(process.env.REACT_APP_SSO_REDIRECT_URI);
-  })
-
-  useEffect(() => {
-    const callbackId = instance.addEventCallback(async (message) => {
-        if (message.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
-            // console.log('Token acquired successfully', message.payload);
-            const tokenResponse = message.payload;
-            try {
-                // console.log("Calling MS Graph with access token", tokenResponse.accessToken);
-                const profile = await authService.callMsGraph(tokenResponse.accessToken);
-                console.log("MS Graph profile", profile);
-                const response = await authService.loginSSO(profile);
-                console.log("User Data", response.data);
-                setAdmin(response.data);
-            } catch (error) {
-                console.error("Error during token acquisition or profile fetching:", error);
-                handleError("Error during token acquisition or profile fetching");
-            }
-        } else if (message.eventType === EventType.ACQUIRE_TOKEN_FAILURE) {
-            console.error("Failed to acquire token", message.error);
-            handleError("Failed to acquire token");
-        }
-    });
-
-    if (accounts && accounts.length > 0) {
-      instance.setActiveAccount(accounts[0]); // FOR 2FA
-    }
-
-    // Cleanup the callback when the component unmounts
-    return () => {
-        if (callbackId) {
-            instance.removeEventCallback(callbackId);
-        }
-    };
-  }, [navigate]);
-
-  const handleSSOLogin = async () => {
-    try {
-        await instance.loginPopup(loginRequest);
-    } catch (error) {
-        console.error('Failed to login:', error);
-        handleError("SSO login error");
-    }
-  };
-
-  useEffect(() => {
-    console.log("Admin changed: ", admin);
-    if (admin && admin.canSetupPassword) {
-      navigate('/profile', { replace: true });
-    } else if (admin) {
-      navigate('/assets', { replace: true });
-    }
-  }, [admin]);
-
-  useEffect(() => {
-    const performCheck = async () => {
-      if (!admin) {
-        try {
-          const response = await authService.checkAuth();
-          setAdmin(response.data);
-        } catch (error) {
-          console.error('Failed to check authentication:', error);
-        }
-      }
-    };
-  
-    performCheck();
-  }, [admin]);
-
-  const initialValues = {
-    email: "", // Changed from username to email
-    password: "",
+  const handleSSOLogin = () => {
+    window.location.href = "http://localhost:3001/auth/microsoft"; // Backend route
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       setLoading(true); // Assuming setLoading is defined elsewhere in your component
-      // console.log('Attempting to login with:', values.email);
       const response = await authService.login(values.email, values.password);
-      setAdmin(response.data);
+      const validatedAdmin = response.data;
+      setAdmin(validatedAdmin);
+      navigate('/dashboard', {replace: true});
     } catch (err) {
       console.error('Login failed:', err.response ? err.response.data : err);
     } finally {
@@ -150,7 +72,10 @@ export default function Login() {
             />
           </Box>
           <Formik
-            initialValues={initialValues}
+            initialValues={{
+              email: "", // Changed from username to email
+              password: "",
+            }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
@@ -181,7 +106,7 @@ export default function Login() {
             )}
           </Formik>
           <Button colorScheme="blue" onClick={handleSSOLogin}>
-            <ResponsiveText>Login with Azure</ResponsiveText>
+            <ResponsiveText>Login with Microsoft</ResponsiveText>
           </Button>
           </Box>
       </Center>

@@ -1,16 +1,8 @@
-const { sequelize, AstType, AstSType, Ast, AstLoan, Usr, AccType, Event, Rmk, AccLoan, Dept, Loan, AccReturn  } = require('../models/index.js');
-const FormHelpers = require('./formHelperController.js');
+const { sequelize, Event } = require('../models/index.js');
 const logger = require('../logging.js');
-const { generateSecureID } = require('../utils/nanoidValidation.js');
-const accessoryController = require('./accessoryController.js');
 const path = require('path');
-const { createMap } = require('../utils/utils.js');
-const LoanValidation = require('../services/LoanService.js');
 const LoanService = require('../services/LoanService.js');
 const ReturnService = require('../services/ReturnService.js');
-const AssetDTO = require('../dtos/ast.dto.js');
-const { model } = require('mongoose');
-const LoanDTO = require('../dtos/loan.dto.js');
 const { ReturnSearch } = require('../search_tools/allReturn.js');
 const { UserReturnSearch } = require('../search_tools/userReturn.js');
 const { AssetLoan } = require('../search_tools/assetLoan.js');
@@ -30,8 +22,6 @@ class FormLoanReturnController {
     async loan (req, res) {
         // logger.info(req.body);
         const { users } = req.body;
-
-        let filePath = null;
 
         // Start a transaction
         const transaction = await sequelize.transaction();

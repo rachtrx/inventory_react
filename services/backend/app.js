@@ -5,7 +5,7 @@ const { expressjwt: jwt } = require('express-jwt');
 const cookieParser = require('cookie-parser');
 
 const corsOptions = {
-    origin: process.env.CORS_OPTIONS.split(","),  // Allow multiple origins, or use a function to dynamically allow origins
+    origin: process.env.FRONTEND_URL, // Allow multiple origins, or use a function to dynamically allow origins
     optionsSuccessStatus: 200,  // Some legacy browsers (IE11, various SmartTVs) choke on 204
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],  // Specify HTTP methods allowed
     allowedHeaders: ['Content-Type', 'Authorization', 'Skip-Interceptor'],  // Specify headers that can be sent with the request
@@ -23,7 +23,6 @@ app.use((req, res, next) => {
     console.log(`Route Params:`, req.params); // Will only contain data if the route has params
     next();
 });
-
 
 // Cookie parser middleware
 app.use(cookieParser());
@@ -53,7 +52,6 @@ const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes.js');
-const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
@@ -61,7 +59,6 @@ const formRoutes = require('./routes/formRoutes');
 app.use('/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/accessories', accessoryRoutes);

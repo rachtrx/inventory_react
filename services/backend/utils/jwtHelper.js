@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require("crypto");
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -8,4 +9,10 @@ const generateToken = (user) => {
   );
 };
 
-module.exports = { generateToken }
+const generatePKCE = () => {
+    const codeVerifier = crypto.randomBytes(64).toString("hex");
+    const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
+    return { codeVerifier, codeChallenge };
+};
+
+module.exports = { generateToken, generatePKCE }

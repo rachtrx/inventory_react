@@ -7,12 +7,24 @@ import { UserActionButton } from '../buttons/actions/UserActionButton';
 import Timeline from '../timeline/Timeline';
 import EditableField from '../utils/EditableField';
 import { useEffect } from 'react';
-import { AssetLink } from '../buttons/ItemLink';
+import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
 import UserTimeline from '../timeline/users/UserTimeline';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 const User = ({ user }) => {
 	const { editKey, editedValue, handleSave, handleEdit, handleChange } = useDrawer()
   	const { setFormType } = useFormModal()
+
+	const loans = user.loans.map(loan => ({
+		loanId: loan.loanId,
+		asset: loan.astLoan?.asset,
+		accessories: loan.accLoans?.filter(accLoan => accLoan.unreturned > 0).map(accLoan => ({
+            ...accLoan.accType, // ignores accLoan.accReturns
+            unreturned: accLoan.unreturned,
+		}))
+	})).filter(loan => loan.asset || loan.accessories?.length)
+
+	console.log(loans);
 
 	useEffect(() => {
 		console.log(user);
@@ -54,12 +66,16 @@ const User = ({ user }) => {
 		
 			<Box mb={4}>
 				<Heading as="h2" size="md" mb="2">CURRENT ASSETS</Heading>
-				{user.currentAssets?.map((asset) => (
+				{loans?.map((loan) => (
 					<Flex alignItems="center" mb="2">
-						<AssetLink asset={asset}/>
-						<AssetActionButton 
-							formType={FormType.RETURN}
-							asset={asset}
+						{loan.asset && <AssetLink asset={loan.asset}/>}
+						{loan.accessories?.length > 0 && (
+							loan.accessories.map((accessory) => (
+								<AccTypeLink key={accessory.accessoryTypeId} accType={accessory} />
+							))
+						)}
+						<ReturnButton 
+							loanId={loan.loanId}
 						/>
 					</Flex>
 				))}

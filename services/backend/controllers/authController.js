@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
 const logger = require('../logging.js');
-const { sequelize, Usr, Admin } = require('../models');
-const { generateToken } = require('../utils/jwtHelper.js');
+const { Admin } = require('../models');
+const { generateToken, generatePKCE } = require('../utils/jwtHelper.js');
+const axios = require('axios');
 
 const createAdminObject = (admin) => ({
     adminName: admin.adminName,
@@ -10,8 +11,88 @@ const createAdminObject = (admin) => ({
     authType: admin.authType,
     canSetupPassword: !admin.authType.includes('local')
 })
-
 class AuthController {
+
+  /*
+  * https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
+  * Redirects the user to the Microsoft to /authorize to authenticate
+  */
+  async redirectMsftAuth(req, res) {
+    const { codeVerifier, codeChallenge } = generatePKCE();
+  
+    // Store codeVerifier securely in a HttpOnly cookie
+    res.cookie("code_verifier", codeVerifier, {
+      httpOnly: true, secure: true, sameSite: "Lax"
+    });
+  
+    const authUrl = `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/authorize?client_id=${process.env.AZURE_CLIENT_ID}&response_type=code&redirect_uri=${process.env.AZURE_CALLBACK_URL}&response_mode=query&scope=openid email profile&state=12345&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+  
+    res.redirect(authUrl);
+  }
+
+  /*
+  * https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
+  * Authenticates the user at /token and creates a JWT token
+  */
+  async loginMsft(req, res) {
+    
+    const code = req.query.code;
+    const codeVerifier = req.cookies?.code_verifier;
+
+    if (!code || !codeVerifier) {
+        return res.status(400).send("Authorization code or code verifier missing");
+    }
+
+    try {
+        // Exchange code for access token with PKCE
+        const tokenResponse = await axios.post(
+        `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/token`,
+            new URLSearchParams({
+                client_id: process.env.AZURE_CLIENT_ID,
+                scope: "openid email profile",
+                code,
+                redirect_uri: process.env.AZURE_CALLBACK_URL,
+                grant_type: "authorization_code",
+                code_verifier: codeVerifier, // PKCE proof
+                client_secret: process.env.AZURE_CLIENT_SECRET
+            })
+        );
+
+        const { access_token } = tokenResponse.data;
+        console.log(access_token);
+
+        // Fetch user profile from Microsoft Graph
+        const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
+        headers: { Authorization: `Bearer ${access_token}` },
+        });
+
+        const profile = profileResponse.data;
+
+        // Authenticate user in database
+        let admin = await Admin.findOne({ where: { id: profile.id } });
+
+        if (!admin) {
+        admin = await Admin.create({
+            id: profile.id,
+            email: profile.mail,
+            adminName: profile.displayName,
+            authType: ["SSO"],
+        });
+        }
+
+        const jwtToken = generateToken(admin); // Generate JWT for frontend
+
+        res.cookie("INVENTORY", jwtToken, {
+            httpOnly: true, secure: true, sameSite: 'strict'
+        });
+
+        if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Redirect user to frontend
+        return res.redirect(`${process.env.FRONTEND_URL}/profile`);
+      } catch (error) {
+      logger.error("OAuth Login Error:", error);
+      return res.status(500).send("Authentication failed");
+    }
+  }
 
   async login (req, res) {
     const { email, password } = req.body;
@@ -25,7 +106,7 @@ class AuthController {
       if (admin.authType.includes('local') && bcrypt.compareSync(password, admin.pwd)) {
         const token = generateToken(admin);
         res.cookie('INVENTORY', token, { httpOnly: true, secure: true, sameSite: 'strict' });
-        return res.json(createAdminObject(admin));
+        return res.json(createAdminObject(admin)); // Redirect user to frontend
       } else if (admin.authType.includes('SSO')) {
         return res.status(401).json({ error: "SSO login required" });
       } else {
@@ -37,45 +118,8 @@ class AuthController {
     }
   };
   
-  async loginSSO (req, res, done) {
-    try {
-      const profile = req.body.profile;
-  
-      // Search for an existing admin using the OID from the profile
-      let admin = await Admin.findOne({ where: { id: profile.id } });
-
-      logger.info(admin);
-  
-      if (!admin) {
-        // If admin does not exist, create a new record
-        admin = await Admin.create({
-          id: profile.id,
-          email: profile.mail,
-          adminName: profile.displayName,
-          authType: ['SSO']
-        });
-      } else if (!admin.authType.includes('SSO')) {
-        admin.authType.push('SSO');  // Add 'SSO' to authType array
-        await admin.save();  // Save the updated admin instance to the database
-      }
-  
-      const token = generateToken(admin);
-  
-      res.cookie('INVENTORY', token, {
-        httpOnly: true,
-        // secure: true, // Recommended to use secure in production.
-        sameSite: 'strict' // This setting can help protect against CSRF attacks
-      });
-  
-      return res.json(createAdminObject(admin));
-  
-    } catch (error) {
-      console.error('SSO login error:', error);
-      return done(error);  // Properly pass the error through the callback
-    }
-  };
-  
   async checkAuth(req, res) {
+    
     try {
       const admin = await Admin.findOne({ where: { id: req.auth.id } });
       if (admin) {
@@ -146,7 +190,7 @@ class AuthController {
   };
   
   
-  logout (req, res) {
+  async logout (req, res) {
     res.clearCookie('INVENTORY');
     res.json({ msg: 'Logout successful' });
   }

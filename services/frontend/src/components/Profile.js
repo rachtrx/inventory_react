@@ -9,30 +9,14 @@ import {
 } from '@chakra-ui/react';
 import { ResponsiveText } from './utils/ResponsiveText';
 import { useAuth } from '../context/AuthProvider';
-import { useCallback } from 'react';
-import authService from '../services/AuthService';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect } from 'react';
 import { MdLogout } from 'react-icons/md'; // react-icons
 import PasswordSetup from './PasswordSetup';
+import { useUI } from '../context/UIProvider';
 
 const Profile = () => {
 
 	const { admin, setAdmin } = useAuth();
-	const navigate = useNavigate();
-
-  const logout = useCallback(async () => {
-    // console.log(`Logging out ${admin}!`);
-
-    try {
-      await authService.logout();
-      if (admin) setAdmin(null);
-      navigate('/login', { replace: true });
-    } catch (error) {
-      console.error("Failed to log out:", error);
-    }
-  }, [navigate, admin, setAdmin]);
-
-  // console.log(admin);
 
   return (
     <Container maxW="container.md" centerContent p={4}>
@@ -44,7 +28,7 @@ const Profile = () => {
           <Text mt={2}><b>Email:</b> {admin.email}</Text>
           <Text mt={2}><b>Authentication Types:</b> {admin.authType.map(type => <Tag key={type} ml={1}>{type}</Tag>)}</Text>
 					{admin.authType.every(authType => authType === "SSO") && <PasswordSetup/>}
-					<Button onClick={logout} leftIcon={<MdLogout />}>
+					<Button onClick={() => setAdmin(null)} leftIcon={<MdLogout />}>
 						<ResponsiveText>Logout</ResponsiveText>
 					</Button>
         </Box>

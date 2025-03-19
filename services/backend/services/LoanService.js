@@ -81,10 +81,6 @@ class LoanService extends ValidationService {
         );
 
         users.forEach((userData) => {
-            if (!typeof userData === 'object') {
-                throw new MissingIdError(userData);
-            }
-
             if (userData.delEventId) {
                 throw new Error(`Usr with ID ${userData.userId} is deleted.`);
             }

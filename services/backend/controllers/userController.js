@@ -262,9 +262,10 @@ class UserController {
                     .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent)
                     .map(event => event.loan.astLoan.asset)
 
-                user.currentAssets = user.history
-                    .filter(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)
-                    .map(event => event.loan.astLoan.asset)
+                user.loans = user.history
+                    .filter(event => (event.loan?.astLoan && !event.loan.astLoan.returnEvent) || 
+                        (event.loan?.accLoans?.some(accLoan => accLoan.unreturned > 0))
+                    ).map(event => event.loan);
             }
     
             logger.info('Details for Usr:', user);

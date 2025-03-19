@@ -15,7 +15,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - CORS_ORIGIN=${CORS_ORIGIN}
       - DATABASE_HOST=db
     volumes:
       # - ./services/backend/node_modules:/usr/src/app/node_modules # TODO map
@@ -23,21 +22,9 @@ services:
       - ./services/backend/uploads:/usr/src/app/uploads
     restart: always
     networks:
-      - inventory_app
-  db:
-    build: 
-      context: ./services/db
-      dockerfile: Dockerfile
-    container_name: inventory-db
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
-    networks:
-      - inventory_app
+      - inventory_network
+      - nginx_network
+      - db_network
   frontend:
     container_name: inventory-frontend
     build:
@@ -56,21 +43,8 @@ services:
     #   - ./services/frontend:/workspace
     restart: always
     networks:
-      - inventory_app
-  nginx-inventory:
-    build: 
-      context: ./services/nginx
-      dockerfile: Dockerfile.prod
-    container_name: inventory-nginx
-    ports:
-      - "443:443"
-    depends_on:
-      - backend
-      - frontend
-    volumes:
-      - ./certs:/etc/nginx/certs:ro
-    networks:
-      - inventory_app
+      - nginx_network
+      - inventory_network
 
 volumes:
   postgres_data_prod:
@@ -78,6 +52,9 @@ volumes:
   # uploads_volume:
 
 networks:
-  inventory_app:
-    name: inventory_app
+  inventory_network:
     driver: bridge
+  db_netowrk:
+    external: true
+  nginx_netowrk:
+    external: true

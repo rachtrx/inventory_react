@@ -1,55 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../config';
 import { useUI } from './UIProvider';
-
-import { PublicClientApplication } from '@azure/msal-browser';
-import { MsalProvider } from '@azure/msal-react';
-import { msalConfig } from '../authConfig';
-const msalInstance = new PublicClientApplication(msalConfig);
+import authService from '../services/AuthService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = () => {
-
   console.log("Rendering Auth Provider");
 
   const [admin, setAdmin] = useState(null);
-  const { handleError } = useUI()
+  const [isLoading, setIsLoading] = useState(true); // Prevents logout before auth check completes
+  const { handleError } = useUI();
+  const navigate = useNavigate();
 
+  // Check authentication on mount and periodically
+  useEffect(() => {
+    const performAuthCheck = async () => {
+      try {
+        console.log("Checking auth...");
+        const response = await authService.checkAuth();
+        const validatedAdmin = response.data;
+        if (isLoading && validatedAdmin) {
+          console.log("Validated admin:", validatedAdmin);
+          setAdmin(validatedAdmin);
+          setIsLoading(false);
+          if (validatedAdmin.pwd) navigate('/dashboard', {replace: true});
+          navigate('/profile', {replace: true});
+        }
+        // if loading and not validatedAdmin, error thrown (no cookie, user must login)
+        // if loaded and not validatedAdmin, error thrown (session timed out)
+        // if loaded and validatedAdmin, nothing wrong
+      } catch (error) {
+        if (admin) {
+          handleError("Your session has timed out, please login again");
+          setAdmin(null);
+        }
+      } finally {
+        setIsLoading(false); // Prevents premature logout
+      }
+    };
+
+    performAuthCheck();
+    const interval = setInterval(performAuthCheck, 300000);
+
+    return () => clearInterval(interval);
+  }, [navigate, admin, setAdmin, handleError, isLoading]);
+
+  // Only logout when auth check is complete AND admin is null
+  useEffect(() => {
+    if (isLoading) return; // Don't log out before auth check finishes
+    if (admin) return;
+
+    const logout = async () => {
+      try {
+        console.log("No admin, logging out...");
+        await authService.logout();
+        navigate('/login', { replace: true });
+      } catch (error) {
+        handleError("Failed to log out:", error);
+      }
+    };
+
+    logout();
+  }, [navigate, handleError, admin, isLoading]);
+
+  // Attach Axios interceptor to handle 401 responses globally
   useEffect(() => {
     const interceptorId = axiosInstance.interceptors.response.use(
       response => response,
       error => {
-        if (error.config.headers['Skip-Interceptor']) {
-          console.log("From interceptor");
-          return Promise.reject(error); // Bypass interceptor processing
-        }
-
-        console.log(`User in authprovider axios: ${admin}`);
-        if (error.response && error.response.status === 401 && admin) {
+        if (error.response?.status === 401 && admin) {
           handleError("Your session has timed out, please login again");
           setAdmin(null);
         }
-
         return Promise.reject(error);
       }
     );
 
-    return () => {
-      axiosInstance.interceptors.response.eject(interceptorId);
-    };
+      return () => axiosInstance.interceptors.response.eject(interceptorId);
   }, [admin, handleError]);
-  
+
   return (
-    <MsalProvider instance={msalInstance}>
-      <AuthContext.Provider value={{ admin, setAdmin }}>
-        <Outlet />
-      </AuthContext.Provider>
-    </MsalProvider>
+    <AuthContext.Provider value={{ admin, setAdmin }}>
+      <Outlet /> {/* Renders child components inside AuthProvider */}
+    </AuthContext.Provider>
   );
 };
-
-
 
 export const useAuth = () => useContext(AuthContext);

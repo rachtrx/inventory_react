@@ -1,7 +1,5 @@
 const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize, AstTag } = require('../models');
 const { Op } = require('sequelize');
-const FormHelpers = require('./formHelperController.js');
-const { eventTypes } = require('./utils.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');
@@ -355,89 +353,6 @@ class FormAssetController {
             return res.status(400).json({ error: error.message });
         }
     };
-    
-    async register (req, res) {
-        const data = req.body;
-        const subTypeId = data.subTypeId; // TODO CONVERT TO DICT
-        const vendorName = data.vendorName; // TODO CONVERT TO DICT
-        const value = parseFloat(data.value).toFixed(2); // TODO CONVERT TO DICT
-        const assets = data.assets; // TODO CONVERT TO DICT
-        const isNewVendor = data.isNewVendor;
-    
-        try {
-            await sequelize.transaction(async (t) => {
-                const curModelId = await AstSType.findByPk(subTypeId);
-                if (!curModelId) {
-                    return res.status(400).json({ error: "Model Name does not exist!" });
-                }
-    
-                let vendorId;
-                if (isNewVendor) {
-                    let cur_vendor = await Vendor.findOne({
-                        where: { vendorName: { [Op.iLike]: vendorName } },
-                        transaction: t
-                    });
-                    if (cur_vendor) {
-                        throw new Error(`Vendor ${trimmedVendorName} already exists!`);
-                    }
-                    vendorId = generateSecureID();
-                    await Vendor.create({ id: vendorId, vendorName: trimmedVendorName }, { transaction: t });
-                } else {
-                    cur_vendor = await Vendor.findOne({
-                        where: { vendorName: { [Op.iLike]: vendorName } },
-                        attributes: ['id'],
-                        transaction: t
-                    });
-                    if (!cur_vendor) {
-                        throw new Error(`Vendor ${vendorName} not found!`);
-                    }
-                    vendorId = cur_vendor.id;
-                }
-            
-                const serialNums = new Set();
-                const aliases = new Set();
-                for (const asset of assets) {
-                    const { serialNumber, alias, remarks } = asset;
-                    alias = alias.toUpperCase()
-                    serialNumber = serialNumber.toUpperCase()
-                    if (await Ast.findOne({ where: { alias: alias }, transaction: t })) {
-                        throw new Error(`Ast AstTag ${alias} already exists!`);
-                    }
-                    if (await Ast.findOne({ where: { serialNumber: serialNumber }, transaction: t })) {
-                        throw new Error(`Serial Number ${serialNumber} already exists!`);
-                    }
-                    if (aliases.has(alias)) {
-                        throw new Error(`Duplicate Ast AstTag ${alias}!`);
-                    }
-                    if (serialNums.has(serialNumber)) {
-                        throw new Error(`Duplicate Serial Number ${serialNumber}!`);
-                    }
-                    const assetId = generateSecureID();
-                    await Ast.create({
-                        id: assetId,
-                        serialNumber: serialNumber.toUpperCase(),
-                        alias: alias.toUpperCase(),
-                        subTypeId: subTypeId,
-                        bookmarked: false,
-                        status: 'AVAILABLE',
-                        location: 'unknown',
-                        value: value,
-                        vendorId: vendorId
-                    }, { transaction: t });
-                    await FormHelpers.insertAssetEvent(generateSecureID(), assetId, eventTypes.ADD_ASSET, remarks, t);
-                    aliases.add(alias.toUpperCase());
-                    serialNums.add(serialNumber.toUpperCase())
-                }
-            }).catch(err => {
-                return res.status(400).json({ error: err.message });
-            });
-    
-            console.log("Finish registering");
-            return res.sendStatus(200);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
-    }
 
     async loadAstDel (req, res) {
         try {
