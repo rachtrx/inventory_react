@@ -54,7 +54,7 @@ volumes:
 networks:
   inventory_network:
     driver: bridge
-  db_netowrk:
+  db_network:
     external: true
-  nginx_netowrk:
+  nginx_network:
     external: true
