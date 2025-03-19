@@ -31,7 +31,6 @@ export const App = createBrowserRouter(
         <Route path="/accessories" element={<AccessoriesPage />}/>
         <Route path="/profile" element={<Profile />}/>
       </Route>
-        
-      </Route>
+    </Route>
   )
 );
