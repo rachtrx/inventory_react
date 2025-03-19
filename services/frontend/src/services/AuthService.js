@@ -1,7 +1,4 @@
-import { axiosInstance } from '../config';
-import { AUTH_URL } from "../config";
-import { graphConfig } from '../authConfig';
-import axios from 'axios';
+import { API_URL, axiosInstance } from '../config';
 
 class AuthService {
   constructor(axiosInstance) {
@@ -9,19 +6,19 @@ class AuthService {
   }
 
   async login(email, password) {
-    return await this.axios.post(AUTH_URL + "/login", { email, password })
+    return await this.axios.post(`${API_URL}/auth//login`, { email, password })
   }
 
   async logout() {
-    return await this.axios.post(AUTH_URL + "/logout")
+    return await this.axios.post(`${API_URL}/auth//logout`)
   }
 
   async checkAuth() {
-    return await this.axios.get(AUTH_URL + '/checkAuth') //, { headers: { 'Skip-Interceptor': true } }
+    return await this.axios.get(`${API_URL}/auth//checkAuth`) //, { headers: { 'Skip-Interceptor': true } }
   }
 
   async submitPassword(password) {
-    return await this.axios.post(AUTH_URL + '/chgpw', { password })
+    return await this.axios.post(`${API_URL}/auth//chgpw`, { password })
   }
 
   // const register = useCallback(async (adminName, email, password) => {

@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (!req.path.startsWith('/auth') || req.path === '/auth/checkAuth' || req.path === '/auth/chgpw') {
+    if (!req.path.startsWith('api/auth') || req.path === 'api/auth/checkAuth' || req.path === 'api/auth/chgpw') {
         jwt({
             secret: process.env.JWT_SECRET,
             algorithms: ['HS256'],
@@ -56,7 +56,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
 
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);

@@ -4,7 +4,6 @@ import axios from 'axios';
 export const TIMEOUT_SEC = 300;
 export const PREVIEW_TIMEOUT_BLUR = 100;
 export const RES_PER_PAGE = 30;
-export const AUTH_URL = `${process.env.REACT_APP_API_BASE_URL}/auth`;
 export const API_URL = `${process.env.REACT_APP_API_BASE_URL}/api`;
 
 export const axiosInstance = axios.create({
