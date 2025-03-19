@@ -71,7 +71,7 @@ export const AuthProvider = () => {
     );
 
       return () => axiosInstance.interceptors.response.eject(interceptorId);
-  }, [admin, handleError]);
+  }, [admin, logout, handleError]);
 
   return (
     <AuthContext.Provider value={{ admin, setAdmin, logout }}>

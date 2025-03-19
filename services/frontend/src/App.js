@@ -21,8 +21,8 @@ import { EventsPage } from "./components/events/Events";
 
 export const App = createBrowserRouter(
   createRoutesFromElements(
-    <>
-      {/* Redirect from `/` to `/login` */}
+    <Route element={<AuthProvider />}>
+      {/* Redirect "/" to "/login" */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Authentication Routes */}
@@ -38,6 +38,6 @@ export const App = createBrowserRouter(
         <Route path="/accessories" element={<AccessoriesPage />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
-    </>
+    </Route>
   )
 );
