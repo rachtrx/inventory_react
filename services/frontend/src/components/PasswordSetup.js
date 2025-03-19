@@ -20,13 +20,13 @@ const PasswordSetup = () => {
     ^(?=.*[a-z])       # At least one lowercase letter
     (?=.*[A-Z])        # At least one uppercase letter
     (?=.*\d)           # At least one number
-    (?=.*[@$!%*?&])    # At least one special character
-    [A-Za-z\d@$!%*?&]  # Allow only letters, numbers, and special characters
+    (?=.*[\W_])        # At least one special character
+    [A-Za-z\d\W_]      # Allow only letters, numbers, and special characters
     {8,}               # Minimum length of 8 characters
     $                  # End of the string
   */
   const validatePassword = (password, confirmPassword) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
     // Check if passwords match
     if (password !== confirmPassword) {
       throw new Error("Passwords do not match");
