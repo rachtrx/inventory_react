@@ -32,7 +32,7 @@ app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
     console.log(req.path);
-    if (!req.path.startsWith('/api/auth') || req.path === '/api/auth/checkAuth' || req.path === '/api/auth/chgpw') {
+    if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
         jwt({
             secret: process.env.JWT_SECRET,
             algorithms: ['HS256'],
@@ -57,13 +57,13 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
 
-app.use('/api/auth', authRoutes);
-app.use('/api/assets', assetRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/accessories', accessoryRoutes);
-app.use('/api/forms', formRoutes);
+app.use('/inventory/auth', authRoutes);
+app.use('/inventory/assets', assetRoutes);
+app.use('/inventory/users', userRoutes);
+app.use('/inventory/dashboard', dashboardRoutes);
+app.use('/inventory/events', eventRoutes);
+app.use('/inventory/accessories', accessoryRoutes);
+app.use('/inventory/forms', formRoutes);
 
 // Setup global error handling middleware to catch authentication errors
 
