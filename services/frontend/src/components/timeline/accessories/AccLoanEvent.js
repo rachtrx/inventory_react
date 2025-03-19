@@ -14,21 +14,17 @@ import { ResponsiveText } from "../../utils/ResponsiveText";
 import { AssetLink, UserLink } from "../../buttons/ItemLink";
 import { useDrawer } from "../../../context/DrawerProvider";
 import { AccStatus, AstStatus } from "../utils/AccStatus";
-import { useTimeline } from "../../../context/TimelineProvider";
 import { withEventBox } from "../utils/withEventBox";
 import ReturnEventTable from "../utils/ReturnEvents";
 
 const AccLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
-
-    const { accessoryTypeId } = useTimeline();
-
     const { accLoans, user, returnEvents, astLoan } = event.loan;
 
     console.log(accLoans);
 
-    const accReturnEvents = returnEvents.filter(event => event.accessories.find(accessory => accessory.accessoryTypeId === accessoryTypeId))
+    const accReturnEvents = returnEvents.filter(event => event.accessories.find(accessory => accessory.isMatching))
 
     console.log(accReturnEvents);
 

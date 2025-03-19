@@ -102,7 +102,6 @@ const Accessory = ({ accType }) => {
 			{accType.history && accType.history.length > 0 &&
 				<AccTimeline
 					events={accType.history}
-          accessoryTypeId={accType.accessoryTypeId}
 				/>
 			}
 		</VStack>

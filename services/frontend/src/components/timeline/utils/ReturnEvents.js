@@ -5,7 +5,6 @@ import WarningBadge from "../../badges/WarningBadge"
 import {Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 import { BadgeGroup } from "./BadgeGroup";
 import DateText from "./DateText";
-import { useTimeline } from "../../../context/TimelineProvider";
 
 const ReturnEventTable = ({returnEvents}) => {
 

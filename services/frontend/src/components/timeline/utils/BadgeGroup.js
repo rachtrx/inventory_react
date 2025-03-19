@@ -1,41 +1,37 @@
 import { Badge, HStack } from "@chakra-ui/react"
-import { useTimeline } from "../../../context/TimelineProvider";
 
 const BadgeGroup = ({ asset, accessories }) => {
 
     return (
         <HStack spacing={2}>
             {asset && <AssetBadge asset={asset} />}
-            {accessories.map((accReturn, idx) => (
-                <AccessoryBadge key={idx} accReturn={accReturn}/>
+            {accessories.map((accessory, idx) => (
+                <AccessoryBadge key={idx} accessory={accessory}/>
             ))}
         </HStack>
     );
 };
 
-const AccessoryBadge = ({ accReturn }) => {
-    const { accessoryTypeId } = useTimeline();
+const AccessoryBadge = ({ accessory }) => {
 
     return (
         <Badge
-            colorScheme={accReturn.accessoryTypeId !== accessoryTypeId ? "purple" : "pink"}
+            colorScheme={accessory.isMatching ? "purple" : "pink"}
             borderRadius="md"
             px={2}
             py={1}
             fontSize="0.8em"
         >
-            {`${accReturn.accessoryName}, X${accReturn.count}`}
+            {`${accessory.accessoryName}, X${accessory.count}`}
         </Badge>
     )
 }
 
 const AssetBadge = ({ asset }) => {
 
-    const { assetId } = useTimeline();
-
     return (
         <Badge
-            colorScheme={asset.assetId !== assetId ? "purple" : "pink"}
+            colorScheme={"pink"}
             borderRadius="md"
             px={2}
             py={1}

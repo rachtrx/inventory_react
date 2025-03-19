@@ -138,7 +138,6 @@ const Asset = ({ asset }) => {
 			{asset.history && asset.history.length > 0 &&
 				<AssetTimeline 
 					events={asset.history}
-          assetId={asset.assetId}
 				/>
 			}
 		</VStack>

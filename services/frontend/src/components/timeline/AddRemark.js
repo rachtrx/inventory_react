@@ -2,8 +2,6 @@ import { Box, Text, List, ListItem, Flex, Divider, HStack, Icon, IconButton, Col
 import { ChatIcon, CalendarIcon, InfoOutlineIcon, AddIcon } from "@chakra-ui/icons";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
-import { useTimeline } from "../../context/TimelineProvider";
-import assetService from "../../services/AssetService";
 import { useUI } from "../../context/UIProvider";
 import eventService from "../../services/EventService";
 import { useLoading } from "../../context/LoadingProvider";
