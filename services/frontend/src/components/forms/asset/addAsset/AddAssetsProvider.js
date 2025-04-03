@@ -304,6 +304,7 @@ export const AddAssetsProvider = ({ children }) => {
     typeOptions,
     vendorOptions,
     subTypeOptionsDict,
+    setSubTypeOptionsDict,
     addNewSubType,
     addNewType,
     addNewVendor,

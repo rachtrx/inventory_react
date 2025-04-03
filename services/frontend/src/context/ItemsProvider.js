@@ -28,22 +28,22 @@ export const ItemsProvider = ({ children, service, idField }) => {
   const [sortField, setSortField] = useState("typeName");
   const [sortOrder, setSortOrder] = useState("asc");
 
+  // useEffect(() => {
+  //   console.log(filters);
+  // }, [filters]);
+
+  // useEffect(() => {
+  //   console.log(searchFilters);
+  // }, [searchFilters]);
+  
+  // useEffect(() => {
+  //   console.log(data);
+  // }, [data]);
+
   const updateUrl = useCallback((page) => {
     searchParams.set('page', page);
     setSearchParams(searchParams);
   }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    console.log(filters);
-  }, [filters]);
-
-  useEffect(() => {
-    console.log(searchFilters);
-  }, [searchFilters]);
-  
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   useEffect(() => {
     updateUrl(page);

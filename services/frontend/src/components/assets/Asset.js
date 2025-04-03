@@ -10,6 +10,7 @@ import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import Tags from '../tags/Tags';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
+// import StarButton from '../buttons/StarButton';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
@@ -117,20 +118,20 @@ const Asset = ({ asset }) => {
       </Flex>
 
       <Box>
-        <IconButton
-          icon={<InfoOutlineIcon />}
-          isRound
-          aria-label="Bookmark"
-          mb={4}
-        />
+      {/* <StarButton
+          id={asset.assetId}
+          isBookmarked={asset.bookmarked}
+        /> */}
         {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
           <Flex gridGap="2">
-            <Button onClick={() => setFormType(FormType.DEL_ASSET)} colorScheme="red">
-              CONDEMN
-            </Button>
-            <Button onClick={() => setFormType(FormType.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
-              LOAN
-            </Button>
+            <AssetActionButton
+              FormType={FormType.DEL_ASSET}
+              asset={asset}
+            />
+            <AssetActionButton
+              FormType={FormType.LOAN}
+              asset={asset}
+            />
           </Flex>
         )}
       </Box>

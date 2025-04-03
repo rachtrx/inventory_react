@@ -30,4 +30,6 @@ router.get('/untag/asset', formAssetTagController.loadDelAssets)
 router.post('/tag/asset', formAssetTagController.addAssetTag)
 router.post('/untag/asset', formAssetTagController.delAssetTag)
 
+// router.post('/force-del', formAssetTagController.forceDel)
+
 module.exports = router;
