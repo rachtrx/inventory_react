@@ -1,6 +1,6 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
 import { useItems } from '../../context/ItemsProvider';
-import StarButton from '../buttons/StarButton';
+import { ItemStarButton } from '../buttons/StarButton';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
@@ -38,7 +38,7 @@ const AssetTable = ({ items }) => {
             _hover={{ bg: 'gray.100' }}
           >
             <Td>
-              <StarButton
+              <ItemStarButton
                 id={asset.assetId}
                 isBookmarked={asset.bookmarked}
                 onToggle={handleUpdate}

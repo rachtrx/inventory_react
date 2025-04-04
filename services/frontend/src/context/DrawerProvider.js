@@ -32,7 +32,6 @@ export const DrawerProvider = ({ children }) => {
 	const { setLoading } = useLoading();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
-	const [editedValue, setEditedValue] = useState(null);
 
   const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 
@@ -46,18 +45,22 @@ export const DrawerProvider = ({ children }) => {
 	};
 
 	const handleAssetClick = async(asset) => {
+		setEditKey(null);
 		handleItemClick(asset, "assetId", assetService)
 	}
 
 	const handleUserClick = async(user) => {
+		setEditKey(null);
 		handleItemClick(user, "userId", userService)
 	}
 
 	const handleAccTypeClick = async(accType) => {
+		setEditKey(null);
 		handleItemClick(accType, "accessoryTypeId", accessoryService)
 	}
 
 	const handleBreadcrumbClick = async(item) => {
+		setEditKey(null);
 		handleItemClick(item);
 	}
 
@@ -137,9 +140,8 @@ export const DrawerProvider = ({ children }) => {
 				loading: false
 		}));
 
-		console.log(`Saving remarks for key ${editKey}: ${editedValue}`);
+		console.log(`Saving remarks for key ${editKey}`);
 		setEditKey(null);
-		setEditedValue(null); // Clear edited remarks
 	}
 
 	const handleAddRemark = (id, remark, dateTime) => {
@@ -167,26 +169,15 @@ export const DrawerProvider = ({ children }) => {
 		updateState(updatedCurrentItem);
 	}
 
-	const handleSave = () => {
+	const handleSave = async (key, value) => {
 		handleDevError();
-		// Update the currentItem's events
-		// const updatedCurrentItem = { ...state.currentItem, [editKey]: editedValue };
+		// const updatedCurrentItem = { ...state.currentItem, [key]: value };
+		// console.log(updatedCurrentItem);
 		// updateState(updatedCurrentItem)
 	};
 
-	const handleEdit = (key, value) => {
-		console.log(`setting key as ${key} and value as ${value}`);
-		handleDevError();
-    	// setEditKey(key);  // Set current edit mode to the field name
-		// setEditedValue(value);
-  	};
-
-	const handleChange = (e) => {
-		handleDevError();
-		// setEditedValue(e.target.value);
-	};
-
 	const handleClose = () => {
+		setEditKey(null);
 		onDrawerClose();
 		resetBreadcrumbs();
 	};
@@ -196,15 +187,13 @@ export const DrawerProvider = ({ children }) => {
 		...state, 
 		setState, 
 		editKey, 
-		editedValue,
+		setEditKey,
 		handleBreadcrumbClick,
 		handleAssetClick,
 		handleUserClick,
 		handleAccTypeClick, 
 		handleSave, 
 		handleAddRemark, 
-		handleEdit, 
-		handleChange, 
 		handleClose, 
 		isDrawerOpen 
 	}}>

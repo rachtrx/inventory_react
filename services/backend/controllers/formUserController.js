@@ -51,7 +51,7 @@ class FormUserController {
 
             return res.json({
                 message: `${dept.deptName} created successfully`,
-                newDept: dept.get({plain: true})
+                data: dept.get({plain: true})
             });
 
         } catch (error) {

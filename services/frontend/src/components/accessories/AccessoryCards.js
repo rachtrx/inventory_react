@@ -14,7 +14,7 @@ import Cards from '../utils/Cards';
 import { AccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
-import StarButton from "../buttons/StarButton";
+import { ItemStarButton } from "../buttons/StarButton";
 import { useItems } from "../../context/ItemsProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText } from "../utils/CircleText";
@@ -76,7 +76,7 @@ function AccessoryCards({ items }) {
             </Flex>
           </CardBody>
           
-          <StarButton
+          <ItemStarButton
             position="absolute" top={2} right={2}
             id={accessoryType.accessoryTypeId}
             isBookmarked={accessoryType.bookmarked}

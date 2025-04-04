@@ -130,7 +130,7 @@ export const DelAssetsProvider = ({ children }) => {
       await assetService.delAsset(values);
       actions.setSubmitting(false);
       setLoading(false);
-      showToast('Assets successfully loaned', 'success', 500);
+      showToast('Assets successfully deleted', 'success', 500);
       setFormType(null);
     } catch (err) {
       console.error(err);

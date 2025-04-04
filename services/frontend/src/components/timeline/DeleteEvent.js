@@ -12,10 +12,10 @@ const DeleteEvent = ({ event }) => {
             {/* Timeline Point */}
             <Flex align="center" position="relative">
                 <HStack>
-                    <DateText colorScheme="green" event={event}/>
-                    <ResponsiveText fontWeight="bold" size="lg" color="green.600">
-                        Condemned
+                    <ResponsiveText fontWeight="bold" size="lg" color="red.600">
+                        Deleted
                     </ResponsiveText>
+                    <DateText colorScheme="red" event={event}/>
                 </HStack>
             </Flex>
         </VStack>

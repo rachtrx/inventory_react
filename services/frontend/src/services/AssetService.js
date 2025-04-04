@@ -2,7 +2,7 @@ import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
 import qs from 'qs';
-import { AssetStatus } from '../components/assets/constants/AssetStatus';
+import { AssetStatus } from '../components/assets/utils/AssetStatus';
 
 class AssetService {
     constructor(axiosInstance) {
@@ -20,7 +20,7 @@ class AssetService {
         return await this.axios.get(`${this.URL}/${id}`);
     }
 
-    async getFilters(field) {
+    getFilters = async (field) => {
         return await this.axios.post(`${this.URL}/filters`, {field});
     }
 
@@ -48,8 +48,7 @@ class AssetService {
         return await this.axios.patch(`${this.URL}/update`, {id, field, newValue});
     }
 
-    async createNewType(typeName) {
-        console.log(typeName);
+    createNewType = async (typeName) => {
         return await this.axios.post(`${this.URL}/add/type`, { typeName });
     }
 

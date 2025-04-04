@@ -215,9 +215,9 @@ export const AddAssetsProvider = ({ children }) => {
       setTypeOptions(oldArray => [
         ...oldArray.filter(item => !(item.value === typeName && !item.typeId)),
         { 
-          typeId: response.data.newType.id, 
-          value: response.data.newType.typeName, 
-          label: response.data.newType.typeName 
+          typeId: response.data.data.id, 
+          value: response.data.data.typeName, 
+          label: response.data.data.typeName 
         }
       ]);
       setLoading(false);
@@ -234,9 +234,9 @@ export const AddAssetsProvider = ({ children }) => {
       setVendorOptions(oldArray => [
         ...oldArray.filter(item => !(item.value === vendorName && !item.vendorId)),
         { 
-          vendorId: response.data.newVendor.id, 
-          value: response.data.newVendor.vendorName, 
-          label: response.data.newVendor.vendorName 
+          vendorId: response.data.data.id, 
+          value: response.data.data.vendorName, 
+          label: response.data.data.vendorName 
         }
       ]);
       setLoading(false);
@@ -250,7 +250,7 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewSubType(subTypeName, typeId);
-      const { newSubType } = response.data;
+      const { data: newSubType } = response.data;
 
       setSubTypeOptionsDict((oldDict) => ({
         ...oldDict,

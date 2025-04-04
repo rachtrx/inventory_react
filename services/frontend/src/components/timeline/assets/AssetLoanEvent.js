@@ -20,12 +20,13 @@ import WarningBadge from "../../badges/WarningBadge";
 import { AccStatus, AssetStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
 import ReturnEventTable from "../utils/ReturnEvents";
+import SignatureViewer from "../utils/SignatureViewer";
 
 const AssetLoanEvent = ({ event }) => {
     // console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { accLoans, user, returnEvents } = event.loan;
+    const { accLoans, user, returnEvents, filepath } = event.loan;
 
     const assetReturnEvent = returnEvents && returnEvents.find(ev => ev.asset);
     console.log(assetReturnEvent);
@@ -70,6 +71,7 @@ const AssetLoanEvent = ({ event }) => {
                     user={user}
                     overflow="hidden"
                 />
+                {filepath && <SignatureViewer filepath={filepath}/>}
             </VStack>
 
             {isOpen && returnEvents?.length && (

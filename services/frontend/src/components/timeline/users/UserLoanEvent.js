@@ -20,12 +20,13 @@ import { AccTypeLink, AssetLink, UserLink } from "../../buttons/ItemLink";
 import { AccStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
 import ReturnEventTable from "../utils/ReturnEvents";
+import SignatureViewer from "../utils/SignatureViewer";
 
 const UserLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
 
-    const { astLoan, accLoans, returnEvents } = event.loan;
+    const { astLoan, accLoans, returnEvents, filepath } = event.loan;
 
     console.log(returnEvents);
 
@@ -76,6 +77,7 @@ const UserLoanEvent = ({ event }) => {
                         }
                     </HStack>
                 )}
+                {filepath && <SignatureViewer filepath={filepath}/>}
             </VStack>
 
             {isOpen && returnEvents?.length && (

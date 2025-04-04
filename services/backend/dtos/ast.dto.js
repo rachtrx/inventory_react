@@ -47,7 +47,7 @@ class AssetDTO {
             }
         }
 
-        this.value = value && String(parseFloat(this.value));
+        this.value = value;
         if (Vendor) {
             if (Vendor.vendorName) this.vendorName = Vendor.vendorName;
             if (Vendor.id) this.vendorId = Vendor.id;

@@ -151,9 +151,9 @@ export const AssetTagsFormProvider = ({
       setTagOptions(oldArray => [
         ...oldArray.filter(item => !(item.value === tagName && !item.tagId)),
         { 
-          tagId: response.data.newTag.id,
-          value: response.data.newTag.tagName,
-          label: response.data.newTag.tagName
+          tagId: response.data.data.id,
+          value: response.data.data.tagName,
+          label: response.data.data.tagName
         }
       ]);
       setLoading(false);

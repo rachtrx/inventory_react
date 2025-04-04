@@ -2,17 +2,17 @@ import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack,
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
-import EditableField from '../utils/EditableField';
+import TextEditableField from '../utils/TextEditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
-import { AssetStatus } from '../assets/constants/AssetStatus';
+import { AssetStatus } from '../assets/utils/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import AccTimeline from '../timeline/accessories/AccTimeline';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 const Accessory = ({ accType }) => {
-  const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
+  const { editKey, editedValue, handleEdit } = useDrawer()
   const { setFormType } = useFormModal()
 
   const currentUsers = accType.currentUsers;
@@ -36,9 +36,9 @@ const Accessory = ({ accType }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-					<EditableField 
+					<TextEditableField 
 						label="Current Stock"
-            fieldKey="stock"
+            name="stock"
             value={accType.stock}
 					/>
         </Grid>

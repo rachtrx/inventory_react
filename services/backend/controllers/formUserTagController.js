@@ -35,7 +35,7 @@ class FormUserTagController {
 
             return res.json({
                 message: `${userTag.tagName} created successfully`,
-                newTag: userTag.get({plain: true})
+                data: userTag.get({plain: true})
             });
 
         } catch (error) {

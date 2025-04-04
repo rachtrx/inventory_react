@@ -4,6 +4,9 @@ const { generateSecureID } = require('../utils/nanoidValidation.js');
 const EventLogDTO = require("../dtos/eventLog.dto");
 const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters, FormType, assetTagMapQuery, userTagMapQuery, getSortCondition } = require("./utils.js");
 const { Op } = require("sequelize");
+const ExcelJS = require('exceljs');
+const path = require('path');
+const fs = require('fs');
 
 class EventController {
 
@@ -84,9 +87,65 @@ class EventController {
         }
     }
 
-    async getAllEvents(req, res) {
+    getAllEventsEndpoint = async (req, res, next) => {
+        try {
+            const { filters, page = 1, limit = 30, sort } = req.query;
+            const query = await this.getAllEvents(filters, sort);
 
-        const { filters, page = 1, limit = 30, sort } = req.query; // Default values
+            const count = query.length;
+            const rows = query.slice((page - 1) * limit, page * limit);
+            
+            const result = rows.map(row => new EventLogDTO(row));
+
+            res.json({
+                data: result,
+                totalCount: count, // Total events count
+                totalPages: Math.ceil(count / limit), // Calculate total pages
+                currentPage: parseInt(page, 10),
+            });
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getAllEventsExcelEndpoint = async (req, res, next) => {
+        try {
+            const { filters, sort } = req.query;
+
+            const query = await this.getAllEvents(filters, sort);
+            const result = query.map(row => new EventLogDTO(row));
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Event Logs');
+
+            // Add headers
+            worksheet.columns = Object.keys(result[0]).map(key => ({
+                header: key,
+                key,
+                width: 20
+            }));
+
+            // Add rows
+            result.forEach(item => {
+                worksheet.addRow(item);
+            });
+
+            // Prepare response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
+
+            // Write workbook to response
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getAllEvents = async (filters, sort) => {
+
         logger.info(filters);
 
         const sortFieldLookup = {
@@ -246,181 +305,127 @@ class EventController {
         }
 
         // console.log(filters.assetTag);
-        
-        try {    
-            const { count, rows } = await Event.findAndCountAll({
-                distinct: true,
-                subQuery: false,
-                attributes: ['id', 'adminId', 'eventDate'],
-                logger: console.log,
-                where: whereClause,
-                include: [
-                    {
-                        model: Rmk,
-                        attributes: ['id', 'text'],
-                        include: {
-                            model: Admin,
-                            attributes: ['id', 'adminName'],
-                            required: false
-                        },
-                        required: false
-                    },
-                    {
+        const query = await Event.findAll({
+            attributes: ['id', 'adminId', 'eventDate'],
+            logger: console.log,
+            where: whereClause,
+            include: [
+                {
+                    model: Rmk,
+                    attributes: ['id', 'text'],
+                    include: {
                         model: Admin,
                         attributes: ['id', 'adminName'],
                         required: false
                     },
-                    {
-                        model: Ast,
-                        as: 'AddedAsset',
-                        attributes: ['id', 'serialNumber'], // todo add details so timeline can display
-                        required: false,
-                        include: [
-                            {
-                                model: AstSType,
-                                attributes: ['id','subTypeName'],
-                                include: {
-                                    model: AstType,
-                                    attributes: ['id', 'typeName']
-                                },
+                    required: false
+                },
+                {
+                    model: Admin,
+                    attributes: ['id', 'adminName'],
+                    required: false
+                },
+                {
+                    model: Ast,
+                    as: 'AddedAsset',
+                    attributes: ['id', 'serialNumber'], // todo add details so timeline can display
+                    required: false,
+                    include: [
+                        {
+                            model: AstSType,
+                            attributes: ['id','subTypeName'],
+                            include: {
+                                model: AstType,
+                                attributes: ['id', 'typeName']
                             },
-                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
-                        ],
-                    },
-                    {
-                        model: Ast,
-                        as: 'DeletedAsset',
-                        attributes: ['id', 'serialNumber'],
-                        required: false,
-                        include: [
-                            {
-                                model: AstSType,
-                                attributes: ['id','subTypeName'],
-                                include: {
-                                    model: AstType,
-                                    attributes: ['id', 'typeName']
-                                },
-                            },
-                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
-                        ],
-                    },
-                    {
-                        model: AccTxn,
-                        attributes: ['id', 'count'],
-                        required: false,
-                        include: {
-                            model: AccType,
-                            attributes: ['id', 'accessoryName'],
                         },
-                    },
-                    {
+                        ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                    ],
+                },
+                {
+                    model: Ast,
+                    as: 'DeletedAsset',
+                    attributes: ['id', 'serialNumber'],
+                    required: false,
+                    include: [
+                        {
+                            model: AstSType,
+                            attributes: ['id','subTypeName'],
+                            include: {
+                                model: AstType,
+                                attributes: ['id', 'typeName']
+                            },
+                        },
+                        ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                    ],
+                },
+                {
+                    model: AccTxn,
+                    attributes: ['id', 'count'],
+                    required: false,
+                    include: {
                         model: AccType,
-                        attributes: ['id', 'accessoryName'], // add event
-                        required: false,
+                        attributes: ['id', 'accessoryName'],
                     },
-                    {
-                        model: Usr,
-                        as: 'AddedUser',
-                        attributes: ['id', 'userName'],
-                        required: false,
-                        include: [
-                            {
-                                model: Dept,
-                                attributes: ['id', 'deptName']
-                            },
-                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                        ],
-                    },
-                    {
-                        model: Usr,
-                        as: 'DeletedUser',
-                        attributes: ['id', 'userName'],
-                        required: false,
-                        include: [
-                            {
-                                model: Dept,
-                                attributes: ['id', 'deptName']
-                            },
-                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                        ],
-                    },
-                    {
-                        model: Loan,
-                        as: 'Loan',
-                        required: false,
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['id', 'userName'],
-                                required: false,
-                                include: [
-                                    {
-                                        model: Dept,
-                                        attributes: ['id', 'deptName']
-                                    },
-                                    ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                                ],
-                            },
-                            {
-                                model: AstLoan,
-                                attributes: ['id'],
-                                include: [
-                                    {
-                                        model: Ast,
-                                        attributes: ['id', 'serialNumber'], // todo add details so timeline can display
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: AstSType,
-                                                attributes: ['id','subTypeName'],
-                                                include: {
-                                                    model: AstType,
-                                                    attributes: ['id', 'typeName']
-                                                },
-                                            },
-                                            ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                model: AccLoan,
-                                attributes: ['id', 'count'],
-                                required: false,
-                                include: {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName'],
-                                }
-                            }
-                        ],
-                    },
-                    {
-                        model: Loan,
-                        as: 'Reservation',
-                        required: false,
-                        attributes: ['id'],
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['id', 'userName'],
-                                required: false,
-                                include: [
-                                    {
-                                        model: Dept,
-                                        attributes: ['id', 'deptName']
-                                    },
-                                    ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                                ],
-                            },
-                            {
-                                model: AstLoan,
-                                attributes: ['id'],
-                                include: {
+                },
+                {
+                    model: AccType,
+                    attributes: ['id', 'accessoryName'], // add event
+                    required: false,
+                },
+                {
+                    model: Usr,
+                    as: 'AddedUser',
+                    attributes: ['id', 'userName'],
+                    required: false,
+                    include: [
+                        {
+                            model: Dept,
+                            attributes: ['id', 'deptName']
+                        },
+                        ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                    ],
+                },
+                {
+                    model: Usr,
+                    as: 'DeletedUser',
+                    attributes: ['id', 'userName'],
+                    required: false,
+                    include: [
+                        {
+                            model: Dept,
+                            attributes: ['id', 'deptName']
+                        },
+                        ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                    ],
+                },
+                {
+                    model: Loan,
+                    as: 'Loan',
+                    required: false,
+                    include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: false,
+                            include: [
+                                {
+                                    model: Dept,
+                                    attributes: ['id', 'deptName']
+                                },
+                                ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                            ],
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            include: [
+                                {
                                     model: Ast,
                                     attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                                     required: false,
                                     include: [
-                                            {
+                                        {
                                             model: AstSType,
                                             attributes: ['id','subTypeName'],
                                             include: {
@@ -431,28 +436,46 @@ class EventController {
                                         ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
                                     ]
                                 }
-                            },
-                            {
-                                model: AccLoan,
-                                attributes: ['id', 'count'],
-                                required: false,
-                                include: {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName'],
-                                }
-                            },
-                        ],
-                    },
-                    {
-                        model: AstLoan,
-                        as: "AssetReturn",
-                        include: [
-                            {
+                            ]
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            }
+                        }
+                    ],
+                },
+                {
+                    model: Loan,
+                    as: 'Reservation',
+                    required: false,
+                    attributes: ['id'],
+                    include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: false,
+                            include: [
+                                {
+                                    model: Dept,
+                                    attributes: ['id', 'deptName']
+                                },
+                                ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                            ],
+                        },
+                        {
+                            model: AstLoan,
+                            attributes: ['id'],
+                            include: {
                                 model: Ast,
                                 attributes: ['id', 'serialNumber'], // todo add details so timeline can display
                                 required: false,
                                 include: [
-                                    {
+                                        {
                                         model: AstSType,
                                         attributes: ['id','subTypeName'],
                                         include: {
@@ -462,6 +485,68 @@ class EventController {
                                     },
                                     ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
                                 ]
+                            }
+                        },
+                        {
+                            model: AccLoan,
+                            attributes: ['id', 'count'],
+                            required: false,
+                            include: {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
+                            }
+                        },
+                    ],
+                },
+                {
+                    model: AstLoan,
+                    as: "AssetReturn",
+                    include: [
+                        {
+                            model: Ast,
+                            attributes: ['id', 'serialNumber'], // todo add details so timeline can display
+                            required: false,
+                            include: [
+                                {
+                                    model: AstSType,
+                                    attributes: ['id','subTypeName'],
+                                    include: {
+                                        model: AstType,
+                                        attributes: ['id', 'typeName']
+                                    },
+                                },
+                                ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
+                            ]
+                        },
+                        {
+                            model: Loan,
+                            attributes: ['id'],
+                            include: {
+                                model: Usr,
+                                attributes: ['id', 'userName'],
+                                required: false,
+                                include: [
+                                    {
+                                        model: Dept,
+                                        attributes: ['id', 'deptName']
+                                    },
+                                    ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
+                                ],
+                            },
+                        }
+                    ],
+                },
+                {
+                    model: AccReturn,
+                    as: "AccReturns",
+                    attributes: ['id', 'count'],
+                    required: false,
+                    include: {
+                        model: AccLoan,
+                        include: [
+                            {
+                                model: AccType,
+                                attributes: ['id', 'accessoryName'],
                             },
                             {
                                 model: Loan,
@@ -479,158 +564,110 @@ class EventController {
                                     ],
                                 },
                             }
-                        ],
+                        ]
                     },
-                    {
-                        model: AccReturn,
-                        as: "AccReturns",
-                        attributes: ['id', 'count'],
-                        required: false,
-                        include: {
-                            model: AccLoan,
-                            include: [
-                                {
-                                    model: AccType,
-                                    attributes: ['id', 'accessoryName'],
+                },
+                {
+                    model: AstTagMap,
+                    as: "AddedAstTag",
+                    attributes: ['id'],
+                    required: false,
+                    include: [
+                        {
+                            model: Ast,
+                            required: true,
+                            attributes: ['id', 'serialNumber'],
+                            include: {
+                                model: AstSType,
+                                attributes: ['id','subTypeName'],
+                                include: {
+                                    model: AstType,
+                                    attributes: ['id', 'typeName']
                                 },
-                                {
-                                    model: Loan,
-                                    attributes: ['id'],
-                                    include: {
-                                        model: Usr,
-                                        attributes: ['id', 'userName'],
-                                        required: false,
-                                        include: [
-                                            {
-                                                model: Dept,
-                                                attributes: ['id', 'deptName']
-                                            },
-                                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                                        ],
-                                    },
-                                }
-                            ]
+                            }
                         },
-                    },
-                    {
-                        model: AstTagMap,
-                        as: "AddedAstTag",
-                        attributes: ['id'],
-                        required: false,
-                        include: [
-                            {
-                                model: Ast,
-                                required: true,
-                                attributes: ['id', 'serialNumber'],
+                        {
+                            model: AstTag,
+                            required: true,
+                            attributes: ['id', 'tagName'],
+                        }
+                    ],
+                },
+                {
+                    model: AstTagMap,
+                    as: "DeletedAstTag",
+                    attributes: ['id'],
+                    required: false,
+                    include: [
+                        {
+                            model: Ast,
+                            attributes: ['id', 'serialNumber'],
+                            required: true,
+                            include: {
+                                model: AstSType,
+                                attributes: ['id','subTypeName'],
                                 include: {
-                                    model: AstSType,
-                                    attributes: ['id','subTypeName'],
-                                    include: {
-                                        model: AstType,
-                                        attributes: ['id', 'typeName']
-                                    },
-                                }
-                            },
-                            {
-                                model: AstTag,
-                                required: true,
-                                attributes: ['id', 'tagName'],
-                            }
-                        ],
-                    },
-                    {
-                        model: AstTagMap,
-                        as: "DeletedAstTag",
-                        attributes: ['id'],
-                        required: false,
-                        include: [
-                            {
-                                model: Ast,
-                                attributes: ['id', 'serialNumber'],
-                                required: true,
-                                include: {
-                                    model: AstSType,
-                                    attributes: ['id','subTypeName'],
-                                    include: {
-                                        model: AstType,
-                                        attributes: ['id', 'typeName']
-                                    },
-                                }
-                            },
-                            {
-                                model: AstTag,
-                                required: true,
-                                attributes: ['id', 'tagName'],
-                            }
-                        ],
-                    },
-                    {
-                        model: UsrTagMap,
-                        as: "AddedUsrTag",
-                        attributes: ['id'],
-                        required: false,
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['id', 'userName'],
-                                required: true,
-                                include: {
-                                    model: Dept,
-                                    attributes: ['id', 'deptName']
+                                    model: AstType,
+                                    attributes: ['id', 'typeName']
                                 },
-                            },
-                            {
-                                model: UsrTag,
-                                attributes: ['id', 'tagName'],
-                                required: true,
                             }
-                        ],
-                    },
-                    {
-                        model: UsrTagMap,
-                        as: "DeletedUsrTag",
-                        attributes: ['id'],
-                        required: false,
-                        include: [
-                            {
-                                model: Usr,
-                                attributes: ['id', 'userName'],
-                                required: true,
-                                include: {
-                                    model: Dept,
-                                    attributes: ['id', 'deptName']
-                                },
+                        },
+                        {
+                            model: AstTag,
+                            required: true,
+                            attributes: ['id', 'tagName'],
+                        }
+                    ],
+                },
+                {
+                    model: UsrTagMap,
+                    as: "AddedUsrTag",
+                    attributes: ['id'],
+                    required: false,
+                    include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: true,
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
                             },
-                            {
-                                model: UsrTag,
-                                attributes: ['id', 'tagName'],
-                                required: true,
-                            }
-                        ],
-                    }
-                ],
-                limit: limit,
-                offset: (page - 1) * limit,
-                order: sortCondition ? [sortCondition] : [['eventDate', 'DESC']]
-            });
+                        },
+                        {
+                            model: UsrTag,
+                            attributes: ['id', 'tagName'],
+                            required: true,
+                        }
+                    ],
+                },
+                {
+                    model: UsrTagMap,
+                    as: "DeletedUsrTag",
+                    attributes: ['id'],
+                    required: false,
+                    include: [
+                        {
+                            model: Usr,
+                            attributes: ['id', 'userName'],
+                            required: true,
+                            include: {
+                                model: Dept,
+                                attributes: ['id', 'deptName']
+                            },
+                        },
+                        {
+                            model: UsrTag,
+                            attributes: ['id', 'tagName'],
+                            required: true,
+                        }
+                    ],
+                }
+            ],
+            order: sortCondition ? [sortCondition] : [['eventDate', 'DESC']]
+        });
 
-            // const count = query.length; // Total number of results
-
-            const result = rows.map(row => new EventLogDTO(row));
-
-            res.json({
-                data: result,
-                totalCount: count, // Total events count
-                totalPages: Math.ceil(count / limit), // Calculate total pages
-                currentPage: parseInt(page, 10),
-            });
-        } catch (error) {
-            console.log(error);
-            logger.error(error);
-            res.status(500).send({ error: error.message });
-        }
-
-        
+        return query;
     }
 
     async updateEvent(req, res) {
@@ -655,6 +692,28 @@ class EventController {
             res.status(500).send({ error: error.message })
         }
     };
+
+    async getSignature(req, res) {
+        try {
+            const { filepath } = req.params;
+
+            if (!/^[\w\-]+\.png$/.test(filepath)) {
+                return res.status(400).send('Invalid filename');
+            }
+
+            const fullPath = `${process.env.SIGNATURES_DIR}${filepath}`
+
+            if (!fs.existsSync(fullPath)) {
+                return res.status(404).send('Signature file not found');
+            }
+        
+            res.set('Content-Type', 'image/png');
+            res.sendFile(path.resolve(fullPath)); // resolves absolute path just in case
+        } catch (err) {
+            console.error('Error getting signature:', err);
+            res.status(500).send('Internal server error');
+        }
+    }
 }
 
 const eventController = new EventController();

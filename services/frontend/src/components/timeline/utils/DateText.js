@@ -22,7 +22,7 @@ const DateText = ({ colorScheme, event }) => {
                 <VStack align="stretch" spacing={3} mb={4}>
                     {remarks.length > 0 ? (
                         remarks.map((remark, idx) => (
-                            <Text
+                            <ResponsiveText
                                 key={idx}
                                 fontSize="sm"
                                 color="gray.700"
@@ -31,12 +31,12 @@ const DateText = ({ colorScheme, event }) => {
                                 pl={2}
                             >
                                 {remark.text || "No remark"}
-                            </Text>
+                            </ResponsiveText>
                         ))
                     ) : (
-                        <Text fontSize="sm" color="gray.500">
+                        <ResponsiveText fontSize="sm" color="gray.500">
                             No remarks yet.
-                        </Text>
+                        </ResponsiveText>
                     )}
                 </VStack>
                 <AddRemark eventId={eventId}/>

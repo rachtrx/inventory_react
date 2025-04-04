@@ -16,7 +16,7 @@ import { UserActionButton } from "../buttons/actions/UserActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
 import { ItemsList } from "./popovers/ItemsList";
-import StarButton from "../buttons/StarButton";
+import { ItemStarButton } from "../buttons/StarButton";
 import { useItems } from "../../context/ItemsProvider";
 import { UserLink } from "../buttons/ItemLink";
 import Tags from "../tags/Tags";
@@ -32,7 +32,7 @@ function UserCards({ items }) {
           w="100%" 
           bg="transparent" 
           _hover={{bg: 'gray.100'}}
-          overflow="visible"
+          overflow="hidden"
           role="group"
         >
           <CardBody>
@@ -43,24 +43,23 @@ function UserCards({ items }) {
                   {user.deptName}
                 </Text>
                 {user.loans?.length > 0 && <ItemsList user={user}/>}
-                <Flex>
-                  {!user.deleteEvent && 
-                    <UserActionButton 
-                      formType={FormType.LOAN} // TODO FormType.RESTORE_USER
-                      user={user} 
-                      style={{ marginLeft: 'auto' }} 
-                    />
-                  }
-                </Flex>
                 <Tags tags={user.tags}/>
               </VStack>
 
-              <StarButton
+              <ItemStarButton
                 id={user.userId}
                 isBookmarked={user.bookmarked}
               />
             </Flex>
           </CardBody>
+          {!user.deleteEvent && 
+            <UserActionButton 
+              formType={FormType.LOAN}
+              user={user} 
+              flex='1' 
+              borderRadius='0'
+            />
+          }
         </Card>
       </Box>
       ))}

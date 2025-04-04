@@ -141,9 +141,9 @@ export const AddUsersProvider = ({ children }) => {
       setDeptOptions(oldArray => [
         ...oldArray.filter(item => !(item.value === deptName && !item.deptId)),
         { 
-          deptId: response.data.newDept.id, 
-          value: response.data.newDept.deptName, 
-          label: response.data.newDept.deptName 
+          deptId: response.data.data.id, 
+          value: response.data.data.deptName, 
+          label: response.data.data.deptName 
         }
       ]);
       setLoading(false);

@@ -40,7 +40,7 @@ class AssetDelete {
                                 COALESCE("AstLoans->ReturnEvent"."event_date", '1970-01-01')
                             )
                         `),
-                        "lastEventDate" // TODO is this causing error with raw = true?
+                        "lastEventDate"
                     ]
                 ],
                 where: { [Op.and] : [
@@ -100,8 +100,7 @@ class AssetDelete {
                 ],
                 order: Sequelize.literal(`"AddEvent"."event_date" DESC`),
             })
-            console.log(query.map(astRow => astRow.lastEventDate));
-            return query.map(astRow => new AssetDTO(astRow).setOngoingLoan().setOngoingReservation());
+            return query.map(astRow => new AssetDTO(astRow.dataValues).setOngoingLoan().setOngoingReservation());
         } catch (e) {
             throw e;
         }

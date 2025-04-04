@@ -5,14 +5,14 @@ import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
 import Timeline from '../timeline/Timeline';
-import EditableField from '../utils/EditableField';
+import TextEditableField from '../utils/TextEditableField';
 import { useEffect } from 'react';
 import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
 import UserTimeline from '../timeline/users/UserTimeline';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
 
 const User = ({ user }) => {
-	const { editKey, editedValue, handleSave, handleEdit, handleChange } = useDrawer()
+	const { editKey, editedValue, handleSave, handleEdit } = useDrawer()
   	const { setFormType } = useFormModal()
 
 	const loans = user.loans.map(loan => ({
@@ -40,15 +40,15 @@ const User = ({ user }) => {
 					p={4}
 					alignItems='center'
 				>
-					<EditableField
+					<TextEditableField
 						label="Name"
-						fieldKey="name"
+						name="name"
 						value={user.userName}
 						handleSave={handleSave}
 					/>
-					<EditableField 
+					<TextEditableField 
 						label="Department"
-						fieldKey="department"
+						name="department"
 						value={user.deptName}
 						handleSave={handleSave}
 					/>

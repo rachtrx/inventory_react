@@ -30,6 +30,7 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 					<ReturnButton 
 						key={action} 
 						loanId={asset.loan.loanId}
+						{...buttonProps}
 					/>
 				) : (
 					<AssetActionButton 

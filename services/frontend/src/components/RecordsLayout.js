@@ -25,7 +25,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
   const { handleDevError } = useUI();
   const { loading } = useLoading();
 
-  const { data, totalCount, page, maxPage, next, prev, defaultFilters, setSearchFilters } = useItems();
+  const { data, totalCount, page, maxPage, next, prev, defaultFilters, setSearchFilters, downloadExcel } = useItems();
 
   const [isGridView, setIsGridView] = useState(false);
 
@@ -70,11 +70,11 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
             </Flex>
             <Heading as="h1" size={headerSize}>{header}</Heading>
             { isIpad ? (
-              <Button colorScheme="blue" iconSpacing={0} onClick={handleDevError}>
+              <Button colorScheme="blue" iconSpacing={0} onClick={downloadExcel}>
                 <FaDownload/>
               </Button>
             ) : (
-              <Button colorScheme="blue" onClick={handleDevError}>Export to Excel</Button>
+              <Button colorScheme="blue" onClick={downloadExcel}>Export to Excel</Button>
             )}
           </Flex>
         </Box>

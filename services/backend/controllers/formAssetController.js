@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const logger = require('../logging.js');
 const { AssetDelete } = require('../search_tools/assetDelete.js');
+const { cleanString, cleanCost, cleanField } = require('./utils.js');
 // const { DateTime } = require("luxon");
 
 // luxon: DateTime.now().setZone('Asia/Singapore').toJSDate()
@@ -72,7 +73,7 @@ class FormAssetController {
 
             return res.json({
                 message: `${vendor.vendorName} created successfully`,
-                newVendor: vendor.get({plain: true})
+                data: vendor.get({plain: true})
             });
         } catch (error) {
             logger.info(error)
@@ -108,7 +109,7 @@ class FormAssetController {
 
             return res.json({
                 message: `${assetType.typeName} created successfully`,
-                newType: assetType.get({plain: true})
+                data: assetType.get({plain: true})
             });
 
         } catch (error) {
@@ -151,7 +152,7 @@ class FormAssetController {
             transaction.commit();
             return res.json({
                 message: `${assetSubType.subTypeName} created successfully`,
-                newSubType: assetSubType.get({plain: true})
+                data: assetSubType.get({plain: true})
             });
             
         } catch (error) {
@@ -244,13 +245,13 @@ class FormAssetController {
                                             {
                                                 id: generateSecureID(),
                                                 serialNumber: rest.serialNumber.toUpperCase(),
-                                                alias: rest.alias.toUpperCase(),
+                                                alias: cleanString(rest.alias),
                                                 subTypeId: subTypeId,
                                                 bookmarked: rest.bookmarked ? true : false,
-                                                location: rest.location,
+                                                location: cleanField(rest.location),
                                                 vendorId: vendorId,
                                                 addEventId: addEventId,
-                                                value: parseFloat(rest.cost || 0).toFixed(2),
+                                                value: cleanCost(rest.cost),
                                             },
                                             { transaction: t }
                                         );

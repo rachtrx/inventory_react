@@ -1,6 +1,6 @@
 import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
 import { ResponsiveText } from '../utils/ResponsiveText';
-import StarButton from '../buttons/StarButton';
+import { ItemStarButton } from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { AccTypeLink } from '../buttons/ItemLink';
@@ -30,7 +30,7 @@ const AccessoryTable = ({ items }) => {
             key={accessoryType.accessoryTypeId} 
             _hover={{ bg: 'gray.100' }}
            >
-            <Td><StarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td>
+            <Td><ItemStarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/></Td>
             
             <Td>

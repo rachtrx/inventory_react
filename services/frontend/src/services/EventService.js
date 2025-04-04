@@ -42,6 +42,19 @@ class EventService {
         });
     }
 
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${API_URL}/events/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
+    }
+
+    async getSignature(loanId) {
+        return await this.axios.get(`${API_URL}/events/signature/${loanId}`, {
+          responseType: 'blob', // required to treat it as a binary image
+        });
+    }
+
     async updateItem(id, field, newValue) {
         return await this.axios.patch(`${API_URL}/events/update`, {id, field, newValue});
     }

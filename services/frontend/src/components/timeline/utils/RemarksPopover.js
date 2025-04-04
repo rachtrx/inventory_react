@@ -30,7 +30,7 @@ const RemarksPopover = ({ children }) => {
                     _hover={{}} // Add hover effect
                 />
             </PopoverTrigger>
-            <PopoverContent borderRadius="md" boxShadow="md">
+            <PopoverContent borderRadius="md" boxShadow="md" textTransform="none">
                 <PopoverArrow />
                 <PopoverCloseButton />
                 <PopoverHeader fontWeight="bold" borderBottom="1px solid" borderColor="gray.200">

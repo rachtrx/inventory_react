@@ -10,7 +10,7 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import Cards from '../utils/Cards';
-import StarButton from '../buttons/StarButton';
+import { ItemStarButton } from '../buttons/StarButton';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 // import { CardActions } from './CardActions';
@@ -47,7 +47,7 @@ function EventCards({items}) {
                                 {event.tags && <Tags tags={event.tags}/>}
                             </VStack>
                             
-                            <StarButton
+                            <ItemStarButton
                                 id={event.eventId}
                                 isBookmarked={event.bookmarked}
                             />

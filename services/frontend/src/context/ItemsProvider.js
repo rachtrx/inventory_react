@@ -80,6 +80,33 @@ export const ItemsProvider = ({ children, service, idField }) => {
     fetchAllFilters()
   }, [fetchAllFilters]);
 
+  const downloadExcel = async () => {
+    try {
+      setLoading(true);
+      const response = await service.downloadExcel({
+        filters: searchFilters,
+        sort: sortField ? [sortField, sortOrder] : undefined,
+      });
+  
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+  
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'logs.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+  
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      handleError(error);
+    }
+  };
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -155,6 +182,7 @@ export const ItemsProvider = ({ children, service, idField }) => {
       fetchFilters,
       fetchAllFilters,
       setSearchFilters,
+      downloadExcel,
       data,
       totalCount,
       maxPage,

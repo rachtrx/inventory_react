@@ -16,11 +16,12 @@ import { useDrawer } from "../../../context/DrawerProvider";
 import { AccStatus, AstStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
 import ReturnEventTable from "../utils/ReturnEvents";
+import SignatureViewer from "../utils/SignatureViewer";
 
 const AccLoanEvent = ({ event }) => {
     console.log(event);
     const [isOpen, setIsOpen] = useState(false); // State to control collapse
-    const { accLoans, user, returnEvents, astLoan } = event.loan;
+    const { accLoans, user, returnEvents, astLoan, filepath } = event.loan;
 
     console.log(accLoans);
 
@@ -75,6 +76,8 @@ const AccLoanEvent = ({ event }) => {
                     <UserLink user={user}/>
                     {astLoan && <AssetLink asset={astLoan.asset}/>}
                 </Flex>
+
+                {filepath && <SignatureViewer filepath={filepath}/>}
             </VStack>
 
             {isOpen && returnEvents?.length && (

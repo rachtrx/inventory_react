@@ -117,17 +117,17 @@ class EventLogDTO {
             throw new Error("Unexpected event type found.")
         }
 
-        if (asset) this.asset = new AssetDTO(asset);
-        if (user) this.user = new UserDTO(user);
-        if (accessories) this.accessories = accessories.map(({accessoryType, count}) => ({
+        this.asset = asset ? new AssetDTO(asset) : null;
+        this.user = user ? new UserDTO(user) : null;
+        this.accessories = accessories ? accessories.map(({accessoryType, count}) => ({
             accessoryType: new AccTypeDTO(accessoryType),
             count
-        }))
+        })) : null
         if (tag) {
             if (tag.AstTag) this.tags = [new AssetTagMapDTO(tag)];
             else if (tag.UsrTag) this.tags = [new UserTagMapDTO(tag)];
             else throw new Error(`Unexpected tag found: ${tag}`);
-        }
+        } else this.tags = null
     }
 }
 

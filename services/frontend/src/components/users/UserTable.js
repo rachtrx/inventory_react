@@ -7,12 +7,11 @@ import { ItemsList } from './popovers/ItemsList';
 import { useResponsive } from '../../context/ResponsiveProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
-import StarButton from '../buttons/StarButton';
+import { ItemStarButton } from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { UserLink } from '../buttons/ItemLink';
 import Tags from '../tags/Tags';
-import { useLoading } from '../../context/LoadingProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 const UserTable = ({ items }) => {
@@ -41,7 +40,7 @@ const UserTable = ({ items }) => {
             key={user.userId} 
             _hover={{ bg: 'gray.100' }}
           >
-            <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
+            <Td><ItemStarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><UserLink user={user} size={'lg'} fontWeight="bold"/></Td>
             <Td><ResponsiveText>{user.deptName}</ResponsiveText></Td>
             

@@ -2,7 +2,7 @@ import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
 import { axiosInstance } from '../config';
 import qs from 'qs';
-import { AssetStatus } from '../components/assets/constants/AssetStatus';
+import { AssetStatus } from '../components/assets/utils/AssetStatus';
 
 class LoanService {
     constructor(axiosInstance) {

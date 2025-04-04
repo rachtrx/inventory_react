@@ -7,7 +7,7 @@ import ToggleButton from '../buttons/ToggleButton';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import { useUI } from '../../context/UIProvider';
 import assetService from '../../services/AssetService';
-import { AssetStatus } from './constants/AssetStatus';
+import { AssetStatus } from './utils/AssetStatus';
 import { Button, Checkbox, CheckboxGroup, Flex, Stack } from '@chakra-ui/react';
 import FilterSidebar from '../utils/FilterSidebar';
 import { CheckboxGroupField } from '../forms/utils/CheckboxGroupField';

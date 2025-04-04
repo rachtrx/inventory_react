@@ -37,7 +37,7 @@ class FormAssetTagController {
 
             return res.json({
                 message: `${assetTag.tagName} created successfully`,
-                newTag: assetTag.get({plain: true})
+                data: assetTag.get({plain: true})
             });
 
         } catch (error) {

@@ -186,6 +186,18 @@ exports.getUserFilters = async (field) => {
     }
 }
 
+exports.cleanField = (val) => {
+    return val === "" ? null : val;
+  };
+  
+exports.cleanString = (val) => {
+    return val === "" ? null : val.toUpperCase();
+  };
+exports.cleanCost = (val) => {
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? null : parsed.toFixed(2);
+  };
+
 
 
 // exports.assetTagMapQuery = () => ({

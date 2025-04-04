@@ -2,19 +2,26 @@ import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack,
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
-import EditableField from '../utils/EditableField';
+import TextEditableField from '../utils/TextEditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
-import { AssetStatus } from './constants/AssetStatus';
+import { AssetStatus } from './utils/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import Tags from '../tags/Tags';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
-// import StarButton from '../buttons/StarButton';
+import { ItemStarButton, StarButton } from '../buttons/StarButton';
+import SelectEditableField from '../utils/SelectEditableField';
+import assetService from '../../services/AssetService';
 
 const Asset = ({ asset }) => {
-  const { editKey, editedValue, handleEdit, handleChange } = useDrawer()
+  const { editKey, editedValue, handleEdit, handleSave } = useDrawer()
   const { setFormType } = useFormModal()
+
+  const handleBookmarkUpdate = (isBookmarked) => {
+    console.log(isBookmarked)
+    handleSave('bookmarked', !isBookmarked);
+  }
 
   const pastUsers = asset.pastUsers;
 
@@ -41,39 +48,41 @@ const Asset = ({ asset }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-          <EditableField 
+          <TextEditableField 
 						label="Serial Number"
-            fieldKey="serialNumber"
+            name="serialNumber"
             value={asset.serialNumber}
 					/>
-          <EditableField 
+          <TextEditableField 
 						label="Alias"
-            fieldKey="alias"
+            name="alias"
             value={asset.alias}
 					/>
-					<EditableField 
+					<TextEditableField 
 						label="Model"
-            fieldKey="subTypeName"
+            name="subTypeName"
             value={asset.subTypeName}
 					/>
-					<EditableField 
+					<SelectEditableField 
 						label="Asset Type"
-            fieldKey="typeName"
+            name="typeName"
             value={asset.typeName}
+            optionsFn={assetService.getFilters}
+            createFn={async (value) => await assetService.createNewType(value)}
 					/>
-					<EditableField 
+					<TextEditableField 
 						label="Vendor"
-            fieldKey="vendor"
+            name="vendor"
             value={asset.vendorName}
 					/>
-          <EditableField
+          <TextEditableField
             label="Value"
-            fieldKey="value"
+            name="value"
             value={asset.value}
           />
-          <EditableField
+          <TextEditableField
             label="Location"
-            fieldKey="location"
+            name="location"
             value={asset.location}
           />
         </Grid>
@@ -118,18 +127,19 @@ const Asset = ({ asset }) => {
       </Flex>
 
       <Box>
-      {/* <StarButton
+        <StarButton
           id={asset.assetId}
           isBookmarked={asset.bookmarked}
-        /> */}
+          handleUpdate={() => handleBookmarkUpdate(asset.bookmarked)}
+        />
         {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
           <Flex gridGap="2">
             <AssetActionButton
-              FormType={FormType.DEL_ASSET}
+              formType={FormType.DEL_ASSET}
               asset={asset}
             />
             <AssetActionButton
-              FormType={FormType.LOAN}
+              formType={FormType.LOAN}
               asset={asset}
             />
           </Flex>
