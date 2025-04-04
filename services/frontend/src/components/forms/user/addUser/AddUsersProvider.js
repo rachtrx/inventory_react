@@ -20,8 +20,9 @@ export const createNewDept = (dept={}) => ({
 export const createNewUser = (user={}) => ({
   'key': uuidv4(),
   'userName': user.userName || '',
-  'remarks': user.remarks || '',
+  'email': user.email || '',
   'addDate': user.addDate || new Date(),
+  'remarks': user.remarks || '',
 })
 
 // Create a context

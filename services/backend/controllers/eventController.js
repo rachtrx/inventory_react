@@ -2,7 +2,7 @@ const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const EventLogDTO = require("../dtos/eventLog.dto");
-const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters, FormType, assetTagMapQuery, userTagMapQuery, getSortCondition } = require("./utils.js");
+const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters, FormType, assetTagMapQuery, userTagMapQuery, getSortCondition, generateExcel } = require("./utils.js");
 const { Op } = require("sequelize");
 const ExcelJS = require('exceljs');
 const path = require('path');
@@ -116,26 +116,11 @@ class EventController {
             const query = await this.getAllEvents(filters, sort);
             const result = query.map(row => new EventLogDTO(row));
 
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Event Logs');
-
-            // Add headers
-            worksheet.columns = Object.keys(result[0]).map(key => ({
-                header: key,
-                key,
-                width: 20
-            }));
-
-            // Add rows
-            result.forEach(item => {
-                worksheet.addRow(item);
-            });
+            const workbook = generateExcel(result, 'Event Logs')
 
             // Prepare response headers
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
-
-            // Write workbook to response
             await workbook.xlsx.write(res);
             res.end();
         } catch (err) {

@@ -7,6 +7,7 @@ class UserDTO {
     constructor({
         id,
         userName,
+        email,
         bookmarked,
         addEventId, 
         delEventId,
@@ -30,6 +31,7 @@ class UserDTO {
 
         this.userId = id;
         this.userName = userName;
+        this.email = email;
 
         this.bookmarked = bookmarked === null ? null : bookmarked ? true : false;
 

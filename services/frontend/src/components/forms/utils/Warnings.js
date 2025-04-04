@@ -13,6 +13,7 @@ const WarningCard = ({ message, items, itemAttr, onCreate }) => {
       p={4}
       width="100%"
       boxShadow="md"
+      zIndex={1}
     >
       <VStack spacing={3} align="center">
         <WarningIcon boxSize={6} color="red.500" />

@@ -13,22 +13,43 @@ import { ReturnButton } from '../buttons/actions/ReturnButton';
 import { ItemStarButton, StarButton } from '../buttons/StarButton';
 import SelectEditableField from '../utils/SelectEditableField';
 import assetService from '../../services/AssetService';
+import { useEffect, useState } from 'react';
+import { useUI } from '../../context/UIProvider';
 
 const Asset = ({ asset }) => {
   const { editKey, editedValue, handleEdit, handleSave } = useDrawer()
-  const { setFormType } = useFormModal()
+  const [ subTypeOptions, setSubTypeOptions ] = useState([]);
+  const { handleError } = useUI()
+
+  useEffect(() => {
+    const fetchSubTypeOptions = async () => {
+      try {
+        const response = await assetService.getSubTypeFilters([asset.typeId])
+
+        setSubTypeOptions(response?.data?.[asset.typeId]?.map(option => ({
+          ...option,
+          id: option.subTypeId
+        })) || [])
+      } catch(err) {
+        handleError(err)
+      }
+    }
+    fetchSubTypeOptions()
+  }, [])
 
   const handleBookmarkUpdate = (isBookmarked) => {
     console.log(isBookmarked)
     handleSave('bookmarked', !isBookmarked);
   }
 
+  console.log(asset)
+
   const pastUsers = asset.pastUsers;
 
   const status = asset?.delEventId !== undefined ? AssetStatus.DELETED :
-  asset?.loanEventId !== undefined ? AssetStatus.LOANED :
-  asset?.reserveEventId !== undefined ? AssetStatus.RESERVED :
-  AssetStatus.AVAILABLE;
+    asset?.loanEventId !== undefined ? AssetStatus.LOANED :
+    asset?.reserveEventId !== undefined ? AssetStatus.RESERVED :
+    AssetStatus.AVAILABLE;
 
   // console.log(status);
 
@@ -58,27 +79,37 @@ const Asset = ({ asset }) => {
             name="alias"
             value={asset.alias}
 					/>
-					<TextEditableField 
+					<SelectEditableField 
 						label="Model"
             name="subTypeName"
+            id={asset.subTypeId}
             value={asset.subTypeName}
+            createFn={async (value) => await assetService.createNewSubType(value, asset.typeId)}
+            customOptions={subTypeOptions}
 					/>
 					<SelectEditableField 
 						label="Asset Type"
             name="typeName"
+            id={asset.typeId}
             value={asset.typeName}
-            optionsFn={assetService.getFilters}
             createFn={async (value) => await assetService.createNewType(value)}
+            updateOptions={[
+              { value: "update-delete", label: `Update All and Discard ${asset.typeName}` },
+              { value: "update-keep", label: `Update All ${asset.subTypeName}` },
+            ]}
 					/>
-					<TextEditableField 
+					<SelectEditableField 
 						label="Vendor"
             name="vendor"
+            id={asset.vendorId}
             value={asset.vendorName}
+            createFn={async (value) => await assetService.createNewVendor(value)}
 					/>
           <TextEditableField
             label="Value"
             name="value"
             value={asset.value}
+            isFloat={true}
           />
           <TextEditableField
             label="Location"

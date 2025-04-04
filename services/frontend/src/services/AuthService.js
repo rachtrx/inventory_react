@@ -1,8 +1,8 @@
-import { API_URL, axiosInstance } from '../config';
+import { API_URL, api } from '../config';
 
 class AuthService {
-  constructor(axiosInstance) {
-    this.axios = axiosInstance;
+  constructor(api) {
+    this.axios = api;
   }
 
   async login(email, password) {
@@ -23,7 +23,7 @@ class AuthService {
 
   // const register = useCallback(async (adminName, email, password) => {
   //   try {
-  //     await axiosInstance.post('/auth/register', { adminName, email, password });
+  //     await api.post('/auth/register', { adminName, email, password });
   //   } catch (error) {
   //     console.error('Registration failed:', error.response ? error.response.data : error);
   //     throw error;
@@ -31,5 +31,5 @@ class AuthService {
   // }, []);
 }
 
-const authService = new AuthService(axiosInstance);
+const authService = new AuthService(api);
 export default authService;

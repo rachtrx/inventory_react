@@ -2,6 +2,9 @@ const { Op } = require('sequelize');
 const logger = require('../logging');
 const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('../models');
 
+exports.MIN_15 = 15 * 60 * 1000
+exports.DAYS_30 = 30 * 24 * 60 * 60 * 1000
+
 exports.FormType = {
     ADD_ASSET: 'ADD_ASSET',
     DEL_ASSET: 'DEL_ASSET',
@@ -196,7 +199,7 @@ exports.cleanString = (val) => {
 exports.cleanCost = (val) => {
     const parsed = parseFloat(val);
     return isNaN(parsed) ? null : parsed.toFixed(2);
-  };
+};
 
 
 
@@ -294,4 +297,23 @@ exports.getSortCondition = (sortFieldLookup, sort) => {
     const newSortField = sortFieldLookup[sortField];
     if (newSortField) sortCondition = [sequelize.col(newSortField), sortOrder === 'asc'? 'ASC' : 'DESC'];
     return sortCondition;
+}
+
+exports.generateExcel = (dataArr, worksheetName) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(worksheetName);
+
+    // Add headers
+    worksheet.columns = Object.keys(dataArr[0]).map(key => ({
+        header: key,
+        key,
+        width: 20
+    }));
+
+    // Add rows
+    result.forEach(item => {
+        worksheet.addRow(item);
+    });
+
+    return workbook;
 }

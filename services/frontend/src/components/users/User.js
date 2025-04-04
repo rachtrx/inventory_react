@@ -10,6 +10,8 @@ import { useEffect } from 'react';
 import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
 import UserTimeline from '../timeline/users/UserTimeline';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
+import SelectEditableField from '../utils/SelectEditableField';
+import userService from '../../services/UserService';
 
 const User = ({ user }) => {
 	const { editKey, editedValue, handleSave, handleEdit } = useDrawer()
@@ -42,15 +44,20 @@ const User = ({ user }) => {
 				>
 					<TextEditableField
 						label="Name"
-						name="name"
+						name="userName"
 						value={user.userName}
-						handleSave={handleSave}
 					/>
-					<TextEditableField 
+					<TextEditableField
+						label="Email"
+						name="email"
+						value={user.email}
+					/>
+					<SelectEditableField 
 						label="Department"
-						name="department"
+						name="deptName"
 						value={user.deptName}
-						handleSave={handleSave}
+						id={user.deptId}
+						createFn={async (value) => await userService.createNewDept(value)}
 					/>
 				</Grid>
 			</Box>

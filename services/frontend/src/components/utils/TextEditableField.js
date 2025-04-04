@@ -3,14 +3,28 @@ import { Box, Button, Flex, Input, Text, Textarea } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
 import { useState } from "react";
 import EditCancelButton from "../forms/utils/EditCancelButton";
+import { useUI } from "../../context/UIProvider";
+import { useLoading } from "../../context/LoadingProvider";
 
-function TextEditableField({ label, name, value }) {
+function TextEditableField({ isFloat, label, name, value }) {
 
 	const [newValue, setNewValue] = useState(value);
-	const { editKey, setEditKey, handleSave } = useDrawer()
+	const { editKey, updateState, currentItem } = useDrawer()
+	const { handleError, showToast } = useUI();
+	const { setLoading } = useLoading();
 
-	const handleUpdate = () => {
-		handleSave(name, newValue);
+	const handleUpdate = async () => {
+		setLoading(true);
+		try {
+			const response = await currentItem.service.updateItem({name, newValue, itemId: currentItem.breadcrumbId});
+			await updateState();
+			showToast(response.data.message, 'success', 500);
+		} catch (err) {
+			console.error(err);
+			handleError(err)
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (
@@ -28,6 +42,7 @@ function TextEditableField({ label, name, value }) {
 							<Input
 								value={newValue}
 								onChange={e => setNewValue(e.target.value)}
+								type={isFloat ? "number": undefined}
 								autoFocus
 							/>
 						)}

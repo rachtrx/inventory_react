@@ -13,16 +13,8 @@ const DrawerContext = createContext();
 const initialState = {
   currentItem: null,
   itemsHistory: [],
-  loading: false,
   error: null,
 };
-
-const types = {
-	ASSET: "ASSET",
-	USER: "USER",
-	ACCESSORY: "ACCESSORY",
-	NONE: "NONE"
-}
 
 // Provider component
 export const DrawerProvider = ({ children }) => {
@@ -39,7 +31,6 @@ export const DrawerProvider = ({ children }) => {
 		setState(prev => ({ 
 			...prev, 
 			currentItem: null, 
-			currentItemType: types.NONE,
 			itemsHistory: [] 
 		}));
 	};
@@ -115,7 +106,6 @@ export const DrawerProvider = ({ children }) => {
 					...prev,
 					currentItem: newItem,
 					itemsHistory: [...prev.itemsHistory, newItem], // Ensure fetched data is pushed into history
-					loading: false
 				}));
 				setLoading(false);
 			} catch (error) {
@@ -126,47 +116,24 @@ export const DrawerProvider = ({ children }) => {
 		}
 	};
 
-	const updateState = (updatedCurrentItem) => {
+	const updateState = async () => {
 		// Update the item in the history
-		const updatedHistory = state.itemsHistory.map(item =>
-			item.id === state.currentItem.id ? updatedCurrentItem : item
+		const updatedHistory = await Promise.all(
+			state.itemsHistory.map(async item => {
+				const itemData = await item.service.getItem(item.breadcrumbId);
+				return { ...item, ...itemData.data };
+			})
 		);
 
 		// Update the state with new currentItem and itemsHistory
 		setState(prev => ({
-				...prev,
-				currentItem: updatedCurrentItem,
-				itemsHistory: updatedHistory,
-				loading: false
+			...prev,
+			currentItem: updatedHistory[updatedHistory.length-1],
+			itemsHistory: updatedHistory,
+			loading: false
 		}));
 
-		console.log(`Saving remarks for key ${editKey}`);
 		setEditKey(null);
-	}
-
-	const handleAddRemark = (id, remark, dateTime) => {
-		const eventIndex = state.currentItem.events.findIndex(event => event.id === id);
-		if (eventIndex === -1) {
-			console.error('Event not found');
-			return; // Optionally handle error more gracefully
-		}
-		
-		const updatedEvent = { ...state.currentItem.events[eventIndex] };
-
-		// Append the new remark to the remarks array of the cloned event
-		updatedEvent.remarks = [...updatedEvent.remarks, {
-			text: remark,
-			authorisedUserId: 'Admin', // TODO
-			remarkedAt: dateTime
-		}];
-
-		// Clone the events array and replace the updated event
-		const updatedEvents = [...state.currentItem.events];
-		updatedEvents[eventIndex] = updatedEvent;
-
-		// Set the updated events array back to the state
-		const updatedCurrentItem = { ...state.currentItem, events: updatedEvents };
-		updateState(updatedCurrentItem);
 	}
 
 	const handleSave = async (key, value) => {
@@ -188,12 +155,12 @@ export const DrawerProvider = ({ children }) => {
 		setState, 
 		editKey, 
 		setEditKey,
+		updateState,
 		handleBreadcrumbClick,
 		handleAssetClick,
 		handleUserClick,
 		handleAccTypeClick, 
 		handleSave, 
-		handleAddRemark, 
 		handleClose, 
 		isDrawerOpen 
 	}}>

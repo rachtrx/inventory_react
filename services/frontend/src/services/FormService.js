@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 
 class FormService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
     }
 
     static loadAssetsLoanable(id) {
@@ -40,5 +40,5 @@ class FormService {
     }
 }
 
-const formService = new FormService(axiosInstance);
+const formService = new FormService(api);
 export default formService;

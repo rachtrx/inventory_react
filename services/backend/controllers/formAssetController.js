@@ -69,7 +69,7 @@ class FormAssetController {
                 },
                 { transaction }
             );
-            transaction.commit();
+            await transaction.commit();
 
             return res.json({
                 message: `${vendor.vendorName} created successfully`,
@@ -104,7 +104,7 @@ class FormAssetController {
                 },
                 { transaction }
             );
-            transaction.commit();
+            await transaction.commit();
             console.log(assetType.get({plain: true}));
 
             return res.json({
@@ -149,7 +149,7 @@ class FormAssetController {
                 },
                 { transaction }
             );
-            transaction.commit();
+            await transaction.commit();
             return res.json({
                 message: `${assetSubType.subTypeName} created successfully`,
                 data: assetSubType.get({plain: true})

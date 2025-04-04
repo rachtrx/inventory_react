@@ -1,9 +1,9 @@
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 
 class AccessoryService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
         this.URL = `${API_URL}/accessories`
     }
 
@@ -64,5 +64,5 @@ class AccessoryService {
     }
 }
 
-const accessoryService = new AccessoryService(axiosInstance);
+const accessoryService = new AccessoryService(api);
 export default accessoryService;

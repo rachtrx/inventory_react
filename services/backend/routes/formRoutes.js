@@ -43,7 +43,7 @@ router.get('/return/accessory', formLoanReturnController.loadAccReturn);
 
 router.get('/loan/asset', formLoanReturnController.loadAstLoan);
 router.get('/loan/user', formLoanReturnController.loadUsrLoan);
-router.get('/loan/accessory', formLoanReturnController.loadAccLoan); //
+router.get('/loan/accessory', formLoanReturnController.loadAccLoan);
 
 router.get('/return', formLoanReturnController.loadReturn);
 router.post('/return', formLoanReturnController.return);

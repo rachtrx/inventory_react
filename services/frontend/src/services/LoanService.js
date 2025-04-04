@@ -1,13 +1,13 @@
 import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 import qs from 'qs';
 import { AssetStatus } from '../components/assets/utils/AssetStatus';
 
 class LoanService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
-        this.URL = `${API_URL}/assets`
+    constructor(api) {
+        this.axios = api;
+        this.URL = `${API_URL}/forms`
     }
 
     defaultFilters = {
@@ -18,7 +18,7 @@ class LoanService {
 
     fetchAstLoan = async (serialNumbers) => {
         console.log(serialNumbers);
-        return await this.axios.get(`${API_URL}/forms/loan/asset`, {
+        return await this.axios.get(`${this.URL}/loan/asset`, {
             params: {
                 serialNumbers,
             }
@@ -26,7 +26,7 @@ class LoanService {
     }
 
     fetchUserLoan = async (userNames) => {
-        return await this.axios.get(`${API_URL}/forms/loan/user`, {
+        return await this.axios.get(`${this.URL}/loan/user`, {
             params: {
                 userNames
             }
@@ -34,7 +34,7 @@ class LoanService {
     }
 
     fetchAccLoan = async (accessoryNames) => {
-        return await this.axios.get(`${API_URL}/forms/loan/accessory`, {
+        return await this.axios.get(`${this.URL}/loan/accessory`, {
             params: {
                 accessoryNames
             }
@@ -45,12 +45,12 @@ class LoanService {
         console.log('loaning asset');
         console.log(formData);
         // downloadFormData(formData);
-        return await this.axios.post(`${API_URL}/forms/loan`, formData);
+        return await this.axios.post(`${this.URL}/loan`, formData);
     }
 
     async fetchAstReturn(serialNumbers) {
         console.log(serialNumbers);
-        return await this.axios.get(`${API_URL}/forms/return/asset`, {
+        return await this.axios.get(`${this.URL}/return/asset`, {
             params: {
                 serialNumbers,
             }
@@ -58,7 +58,7 @@ class LoanService {
     }
 
     fetchUserReturn = async (userName) => {
-        return await this.axios.get(`${API_URL}/forms/return/user`, {
+        return await this.axios.get(`${this.URL}/return/user`, {
             params: {
                 userName
             }
@@ -66,7 +66,7 @@ class LoanService {
     }
 
     fetchAccReturn = async (accessoryName) => {
-        return await this.axios.get(`${API_URL}/forms/return/accessory`, {
+        return await this.axios.get(`${this.URL}/return/accessory`, {
             params: {
                 accessoryName
             }
@@ -75,7 +75,7 @@ class LoanService {
 
     fetchReturns = async (loanIds) => {
         console.log(loanIds);
-        return await this.axios.get(`${API_URL}/forms/return`, {
+        return await this.axios.get(`${this.URL}/return`, {
             params: {
                 loanIds,
             }
@@ -84,7 +84,7 @@ class LoanService {
 
     async returnItems(formData) {
         console.log(formData);
-        return await this.axios.post(`${API_URL}/forms/return`, formData);
+        return await this.axios.post(`${this.URL}/return`, formData);
     }
 }
 
@@ -100,5 +100,5 @@ const downloadFormData = (formData) => {
 };
   
 
-const loanService = new LoanService(axiosInstance);
+const loanService = new LoanService(api);
 export default loanService;

@@ -231,7 +231,7 @@ class UserController {
     
         try {
             const userDetails = await Usr.findByPk(userId, {
-                attributes: ['id', 'userName', 'bookmarked'],
+                attributes: ['id', 'userName', 'email', 'bookmarked'],
                 include: [
                     {
                         model: UsrTagMap,
@@ -445,24 +445,104 @@ class UserController {
         return events;
     }
 
-    async updateUser(req, res) {
-        const { id, field, newValue } = req.body;
+    updateUser = async (req, res, next) => {
+        const { name, itemId, newValue } = req.body;
     
         try {
-            const user = await Usr.findByPk(id);
-    
-            if (user) {
-                user[field] = newValue;
-                await user.save();
-                res.json({ message: "Bookmark updated successfully" });
+            if (name === 'deptName') {
+                if (req.body.updateType === 'update-delete') {
+                    await this.replaceUserDept(req.body)
+                } else {
+                    await this.updateUserDept(req.body)
+                }
+                res.json({ message: "User updated successfully" });
             } else {
-                res.status(404).json({ message: "Usr not found" });
+                const user = await Usr.findByPk(itemId);
+        
+                if (user) {
+                    user[name] = newValue;
+                    await user.save();
+                    res.json({ message: "User updated successfully" });
+                } else {
+                    res.status(404).json({ message: "Usr not found" });
+                }
             }
         } catch (error) {
-            console.error('Error updating user:', error);
-            res.status(500).send({ error: error.message });
+            logger.error(error);
+            next(error);
         }
     };
+
+    updateUserDept = async(metadata) => {
+        let {itemId, name, newId, newValue, updateType } = metadata;
+        const t = await sequelize.transaction();
+        try {
+            let existingDept = await Dept.findByPk(newId);
+
+            if (!existingDept) throw new Error(`${newValue} must be created first!`)
+            
+            let currentUser = await Usr.findByPk(itemId);
+            if (updateType === "update-one") {
+                await currentUser.update({ deptId : existingDept.id })
+            } else {
+                await Usr.update(
+                    { deptId: existingDept.id },
+                    {
+                        where: {
+                            deptId: currentUser.deptId
+                        }
+                    }
+                )
+            }
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    replaceUserDept = async(metadata) => {
+        const { oldId, newId, newValue } = metadata;
+
+        const t = await sequelize.transaction();
+
+        try {
+            const existingRow = await Dept.findOne({
+                where: { id: newId },
+                transaction: t
+            });
+    
+            if (existingRow) {
+                // Point all references to newId
+                await Usr.update(
+                    { deptId: newId },
+                    {
+                        where: { deptId: oldId },
+                        transaction: t,
+                    }
+                );
+                // Delete old entry
+                await Dept.destroy({
+                    where: { id: oldId },
+                    transaction: t
+                });
+            } else {
+                // Just rename
+                await Dept.update(
+                    { deptName: newValue },
+                    {
+                        where: { id: oldId },
+                        transaction: t,
+                    }
+                );
+            }
+    
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
 }    
 
 module.exports = new UserController();

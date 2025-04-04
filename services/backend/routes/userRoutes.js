@@ -6,10 +6,10 @@ const formUserTagController = require('../controllers/formUserTagController.js')
 const router = express.Router();
 
 router.get('/', userController.getUsers);
+router.patch('/update', userController.updateUser);
 router.get('/filters/all', userController.getAllFilters);
 router.post('/filters', userController.getFilters)
 router.get("/:id", userController.getUser);
-router.patch('/update', userController.updateUser);
 
 router.post('/add/dept', formUserController.createNewDept); // TODO
 router.post('/add/user', formUserController.add);

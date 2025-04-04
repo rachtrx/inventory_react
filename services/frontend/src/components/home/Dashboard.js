@@ -4,13 +4,14 @@ import ChartjsPluginScrollBar from 'chartjs-plugin-scroll-bar';
 import DoughnutChart from './DoughnutChart';
 import BarChart from './BarChart';
 import { useEffect, useState } from 'react';
-import { axiosInstance } from '../../config';
+import { api } from '../../config';
 import { API_URL } from '../../config';
-import { Container, Grid, VStack } from '@chakra-ui/react';
+import { Box, Container, Flex, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './config';
 import { useUI } from '../../context/UIProvider';
 import { Reminders } from './Reminders';
 import { useLoading } from '../../context/LoadingProvider';
+import { convertCamelToTitle } from './utils';
 
 // Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
 Chart.register(ChartjsPluginScrollBar);
@@ -27,7 +28,7 @@ export default function Dashboard() {
         const fetchData = async () => {
             try {
                 console.log("Fetching data for dashboard");
-                const response = await axiosInstance.get(`${API_URL}/dashboard`, { withCredentials: true });
+                const response = await api.get(`${API_URL}/dashboard`, { withCredentials: true });
                 console.log("Axios response received", response);
                 const data = response.data;
     
@@ -63,34 +64,49 @@ export default function Dashboard() {
     }, []);
 
     return (
-        <VStack spacing={8}> {/* Vertical Stack with spacing between children */}
-            <Reminders/>
-
-            {/* Doughnut Charts in a 2-row x 3-column formation */}
-            <Grid templateColumns="repeat(3, 1fr)" width="100%" gap={6} px={{ base: 4, md: 8 }} py={4}>
+        <VStack spacing={8}>
+            {/* Responsive Doughnut Charts Grid */}
+            <Grid
+                // Responsive grid: 1 column on small screens, 2 on medium, 3 on large
+                templateColumns={["repeat(1, 1fr)", "repeat(2, 1fr)", "repeat(3, 1fr)"]}
+                width="100%"
+                gap={6}
+                px={{ base: 4, md: 8 }}
+                py={4}
+            >
             {doughnuts.map((doughnut, index) => (
-                <DoughnutChart
-                    key={index}
-                    loading={loading}
-                    data={doughnut.data}
-                    options={doughnut.options}
-                    title={doughnut.title}
-                />
+                // Wrap each doughnut chart in a Box that prevents overflow
+                <Box key={index} overflow="hidden">
+                    <DoughnutChart
+                        loading={loading}
+                        data={doughnut.data}
+                        options={doughnut.options}
+                        title={convertCamelToTitle(doughnut.title)}
+                    />
+                </Box>
             ))}
             </Grid>
-        
-            {/* Bar Charts each taking up about 70% of the middle */}
-            <Container maxW="70%" centerContent>
+
+            {/* Responsive Bar Charts Flex container */}
+            <Flex wrap="wrap" justify="center" gap={6}>
             {barCharts.map((barChart, index) => (
-                <BarChart
-                    key={index}
-                    loading={loading}
-                    data={barChart.data}
-                    options={barChart.options}
-                    title={barChart.title}
-                />
+                // Each bar chart takes 100% width on very small screens and 70% on larger screens.
+                <Box
+                key={index}
+                width={["100%", "70%"]}
+                overflow="hidden"
+                >
+                    <BarChart
+                        loading={loading}
+                        data={barChart.data}
+                        options={barChart.options}
+                        title={convertCamelToTitle(barChart.title)}
+                    />
+                </Box>
             ))}
-            </Container>
+            </Flex>
+
+            <Reminders />
         </VStack>
     );
 }

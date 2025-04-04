@@ -1,11 +1,11 @@
 import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 import qs from 'qs';
 
 class EventService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
     }
 
     defaultFilters = {
@@ -62,6 +62,15 @@ class EventService {
     async addRemark(eventId, remark, dateTime) {
         return await this.axios.post(`${API_URL}/events/add/remark`, {eventId, remark, dateTime});
     }
+
+    async getReminders() {
+        return await this.axios.get(`${API_URL}/dashboard/reminders`)
+    }
+
+    async extendReturnDate(formData) {
+        console.log(formData);
+        return await this.axios.patch(`${API_URL}/dashboard/reminders/update`, formData);
+    }
 }
 
 const downloadFormData = (formData) => {
@@ -76,5 +85,5 @@ const downloadFormData = (formData) => {
 };
   
 
-const eventService = new EventService(axiosInstance);
+const eventService = new EventService(api);
 export default eventService;

@@ -57,6 +57,11 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                                         name={`depts.${deptIndex}.users.${userIndex}.userName`} 
                                         placeholder="Enter user name"
                                     />
+                                    <InputFormControl
+                                        label={`Email`}
+                                        name={`depts.${deptIndex}.users.${userIndex}.email`} 
+                                        placeholder="Enter email"
+                                    />
                                     <DateInputControl label="Added Date" name={`depts.${deptIndex}.users.${userIndex}.addDate`} />
                                     <InputFormControl label={`Remarks for user`} name={`depts.${deptIndex}.users.${userIndex}.remarks`}/>
                                     {/* User Control */}

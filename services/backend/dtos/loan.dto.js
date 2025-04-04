@@ -18,8 +18,26 @@ class LoanDTO {
 
         this.loanEventId = loanEventId;
         this.reserveEventId = reserveEventId;
-        this.expectedReturnDate = expectedReturnDate;
-        this.expectedLoanDate = expectedLoanDate;
+
+        if (expectedReturnDate) {
+            const date = new Date(expectedReturnDate);
+            this.expectedReturnDate = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "Asia/Singapore"
+            });
+        }
+
+        if (expectedLoanDate) {
+            const date = new Date(expectedLoanDate);
+            this.expectedLoanDate = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "Asia/Singapore"
+            });
+        }
 
         const EventDTO = require("./event.dto");
         this.reserveEvent = ReserveEvent && new EventDTO(ReserveEvent.dataValues);

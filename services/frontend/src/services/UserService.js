@@ -1,10 +1,10 @@
 import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 
 class UserService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
         this.URL = `${API_URL}/users`
     }
 
@@ -37,8 +37,8 @@ class UserService {
         });
     }
     
-    async updateItem(id, field, newValue) {
-        return await this.axios.patch(`${this.URL}/update`, {id, field, newValue});
+    async updateItem(body) {
+        return await this.axios.patch(`${this.URL}/update`, body);
     }
 
     async searchUsers(value, formType) {
@@ -127,5 +127,5 @@ const downloadFormData = (formData) => {
 };
   
 
-const userService = new UserService(axiosInstance);
+const userService = new UserService(api);
 export default userService;

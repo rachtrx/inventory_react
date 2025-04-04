@@ -1,8 +1,9 @@
 const bcrypt = require('bcryptjs');
 const logger = require('../logging.js');
 const { Admin } = require('../models');
-const { generateToken, generatePKCE } = require('../utils/jwtHelper.js');
+const { generateToken, generatePKCE, generateRefreshToken } = require('../utils/jwtHelper.js');
 const axios = require('axios');
+const { MIN_15, DAYS_30 } = require('./utils.js');
 
 const createAdminObject = (admin) => ({
     adminName: admin.adminName,
@@ -40,55 +41,60 @@ class AuthController {
     const codeVerifier = req.cookies?.code_verifier;
 
     if (!code || !codeVerifier) {
-        return res.status(400).send("Authorization code or code verifier missing");
+      return res.status(400).send("Authorization code or code verifier missing");
     }
 
     try {
-        // Exchange code for access token with PKCE
-        const tokenResponse = await axios.post(
-        `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/token`,
-            new URLSearchParams({
-                client_id: process.env.AZURE_CLIENT_ID,
-                scope: "openid email profile",
-                code,
-                redirect_uri: process.env.AZURE_CALLBACK_URL,
-                grant_type: "authorization_code",
-                code_verifier: codeVerifier, // PKCE proof
-                client_secret: process.env.AZURE_CLIENT_SECRET
-            })
-        );
+      // Exchange code for access token with PKCE
+      const tokenResponse = await axios.post(
+      `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/token`,
+          new URLSearchParams({
+              client_id: process.env.AZURE_CLIENT_ID,
+              scope: "openid email profile",
+              code,
+              redirect_uri: process.env.AZURE_CALLBACK_URL,
+              grant_type: "authorization_code",
+              code_verifier: codeVerifier, // PKCE proof
+              client_secret: process.env.AZURE_CLIENT_SECRET
+          })
+      );
 
-        const { access_token } = tokenResponse.data;
-        console.log(access_token);
+      const { access_token } = tokenResponse.data;
+      console.log(access_token);
 
-        // Fetch user profile from Microsoft Graph
-        const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
+      // Fetch user profile from Microsoft Graph
+      const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
         headers: { Authorization: `Bearer ${access_token}` },
-        });
+      });
 
-        const profile = profileResponse.data;
+      const profile = profileResponse.data;
 
-        // Authenticate user in database
-        let admin = await Admin.findOne({ where: { id: profile.id } });
+      // Authenticate user in database
+      let admin = await Admin.findOne({ where: { id: profile.id } });
 
-        if (!admin) {
-        admin = await Admin.create({
-            id: profile.id,
-            email: profile.mail,
-            adminName: profile.displayName,
-            authType: ["SSO"],
-        });
-        }
+      if (!admin) {
+      admin = await Admin.create({
+          id: profile.id,
+          email: profile.mail,
+          adminName: profile.displayName,
+          authType: ["SSO"],
+      });
+      }
 
-        const jwtToken = generateToken(admin); // Generate JWT for frontend
+      const jwtToken = generateToken(admin); // Generate JWT for frontend
+      const refreshToken = generateRefreshToken(admin);
 
-        res.cookie("INVENTORY", jwtToken, {
-            httpOnly: true, secure: true, sameSite: 'strict'
-        });
+      res.cookie("INVENTORY", jwtToken, {
+          httpOnly: true, secure: true, sameSite: 'strict', maxAge: MIN_15
+      });
 
-        if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Redirect user to frontend
-        return res.redirect(`${process.env.FRONTEND_URL}/profile`);
-      } catch (error) {
+      res.cookie("INVENTORY_REFRESH", refreshToken, {
+          httpOnly: true, secure: true, sameSite: 'strict', maxAge: DAYS_30
+      });
+
+      if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Redirect user to frontend
+      return res.redirect(`${process.env.FRONTEND_URL}/profile`);
+    } catch (error) {
       logger.error("OAuth Login Error:", error);
       return res.status(500).send("Authentication failed");
     }
@@ -104,8 +110,17 @@ class AuthController {
       }
   
       if (admin.authType.includes('local') && bcrypt.compareSync(password, admin.pwd)) {
-        const token = generateToken(admin);
-        res.cookie('INVENTORY', token, { httpOnly: true, secure: true, sameSite: 'strict' });
+        const jwtToken = generateToken(admin); // Generate JWT for frontend
+        const refreshToken = generateRefreshToken(admin);
+
+        res.cookie("INVENTORY", jwtToken, {
+            httpOnly: true, secure: true, sameSite: 'strict', maxAge: MIN_15
+        });
+
+        res.cookie("INVENTORY_REFRESH", refreshToken, {
+            httpOnly: true, secure: true, sameSite: 'strict', maxAge: DAYS_30
+        });
+        
         return res.json(createAdminObject(admin)); // Redirect user to frontend
       } else if (admin.authType.includes('SSO')) {
         return res.status(401).json({ error: "SSO login required" });
@@ -188,12 +203,95 @@ class AuthController {
       res.status(500).json({ error: error.message });
     }
   };
+
+  refresh = async (req, res) => {
+    // Get the refresh token from cookies
+    const refreshToken = req.cookies.INVENTORY_REFRESH;
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'No refresh token provided' });
+    }
   
+    // Verify the refresh token
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid or expired refresh token' });
+      }
+  
+      // Optionally check if the refresh token is still valid in database
+      // TODO For enhanced security, store refresh tokens in a db and verify the token exists for the user
+  
+      // Generate a new access token
+      const newAccessToken = generateToken({ id: decoded.id });
+      res.cookie("INVENTORY", newAccessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: MIN_15
+      });
+  
+      return res.json({ message: 'Access token refreshed' });
+    });
+  };
   
   async logout (req, res) {
     res.clearCookie('INVENTORY');
+    res.clearCookie('INVENTORY_REFRESH');
     res.json({ msg: 'Logout successful' });
   }
+
+  getAccessToken = async () => {
+    const tokenResponse = await axios.post(
+      `https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/token`,
+      qs.stringify({
+        client_id: process.env.AZURE_CLIENT_ID,
+        client_secret: process.env.AZURE_CLIENT_SECRET,
+        scope: 'https://graph.microsoft.com/.default',
+        grant_type: 'client_credentials',
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+  
+    return tokenResponse.data.access_token;
+  }
+  
+  sendSystemEmail = async (to, subject, bodyText) => {
+    const token = await getAccessToken();
+  
+    await axios.post(
+      `https://graph.microsoft.com/v1.0/users/${process.env.SENDER_EMAIL}/sendMail`,
+      {
+        message: {
+          subject: subject,
+          body: {
+            contentType: 'Text',
+            content: bodyText,
+          },
+          // body: {
+          //   contentType: 'HTML',
+          //   content: '<b>This is bold HTML content</b>',
+          // },
+          toRecipients: [
+            {
+              emailAddress: {
+                address: to,
+              },
+            },
+          ],
+        },
+        saveToSentItems: 'true',
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }  
 }
 
 module.exports = new AuthController();

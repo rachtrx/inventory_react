@@ -1,12 +1,12 @@
 import { FormType } from '../context/ModalProvider';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 import qs from 'qs';
 import { AssetStatus } from '../components/assets/utils/AssetStatus';
 
 class AssetService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
         this.URL = `${API_URL}/assets`
     }
 
@@ -44,8 +44,8 @@ class AssetService {
         });
     }
 
-    async updateItem(id, field, newValue) {
-        return await this.axios.patch(`${this.URL}/update`, {id, field, newValue});
+    async updateItem(body) {
+        return await this.axios.patch(`${this.URL}/update`, body );
     }
 
     createNewType = async (typeName) => {
@@ -127,5 +127,5 @@ const downloadFormData = (formData) => {
 };
   
 
-const assetService = new AssetService(axiosInstance);
+const assetService = new AssetService(api);
 export default assetService;

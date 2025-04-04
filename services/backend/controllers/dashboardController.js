@@ -1,7 +1,8 @@
-const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event } = require('../models');
+const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event, AccLoan, AccType, AccReturn } = require('../models');
 const { Op } = require('sequelize');
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController.js');
 const logger = require('../logging.js');
+const LoanDTO = require('../dtos/loan.dto.js');
 
 class DashboardController {
 
@@ -392,6 +393,114 @@ class DashboardController {
 			'chartShape': chart.chartShape
 		};
 	}
+
+	getScheduledReturns = async(req, res) => {
+		try {
+
+			const query = await Loan.findAll({
+				include: [
+					{
+						model: Usr
+					},
+					{
+						model: AstLoan,
+						required: false,
+						include: {
+							model: Ast,
+							include: {
+								model: AstSType,
+								include: {
+									model: AstType
+								}
+							}
+						}
+					},
+					{
+						model: AccLoan,
+						required: false,
+						include: [
+							{
+								model: AccReturn
+							},
+							{
+								model: AccType
+							}
+						]
+					}
+				],
+				where: {
+					[Op.and]: [
+						{
+							expectedReturnDate: {
+								[Op.gte]: new Date()
+							}
+						},
+						{
+							[Op.or]: [
+								Sequelize.literal(`EXISTS (
+									SELECT 1 FROM ast_loans
+									WHERE ast_loans.return_event_id IS NULL
+									AND ast_loans.id = "AstLoan"."id"
+								)`),
+								Sequelize.literal(`EXISTS (
+									SELECT 1
+									FROM "acc_returns" AS "AccReturns"
+									WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
+									GROUP BY "AccLoans"."id"
+									HAVING COALESCE(SUM("AccReturns"."count"), 0) <= "AccLoans"."count"
+								)`),
+							]
+						}
+					]
+				},
+				order: [['expectedReturnDate', 'ASC']]
+			})
+			const loans = query.map(loan => new LoanDTO(loan));
+			res.json(loans);
+		} catch (err) {
+			res.status(500).json({ error: "Unable to retrieve reminders" });
+		}
+	}
+
+	async updateExpectedReturnDate (req, res) {
+        const { loanIds, newReturnDate } = req.body;
+
+        const uniqueLoanIds = [...new Set(loanIds)]; // just for sanity check
+
+        const transaction = await sequelize.transaction();
+
+        try {
+			if (!newReturnDate) throw new Error("Return Date cannot be null")
+
+			// Fetch the loans in the transaction context
+			const loans = await Loan.findAll({
+				where: { 
+					id: {
+						[Op.in]: uniqueLoanIds
+					}
+				},
+				transaction
+			});
+
+			for (const loanId of uniqueLoanIds) {
+				const loan = loans.find(loan => loan.id === loanId);
+				if (!loan) throw new Error(`Loan ID ${loanId} not found!`)
+			}
+
+			// Update each loan and save the change within the transaction
+			for (const loan of loans) {
+				loan.expectedReturnDate = newReturnDate;
+				await loan.save({ transaction });
+			}
+
+			await transaction.commit();
+            return res.json({ message: 'All dates extended successfully.' });
+        } catch (error) {
+            await transaction.rollback();
+            console.error("Transaction failed:", error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
 }
 
 module.exports = new DashboardController();

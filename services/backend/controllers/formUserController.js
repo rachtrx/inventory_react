@@ -46,7 +46,7 @@ class FormUserController {
                 },
                 { transaction }
             );
-            transaction.commit();
+            await transaction.commit();
             console.log(dept.get({plain: true}));
 
             return res.json({
@@ -56,6 +56,7 @@ class FormUserController {
 
         } catch (error) {
             logger.info(error)
+            console.log(error);
             return res.status(500).json({ error: error.message });
         }
     }
@@ -92,7 +93,7 @@ class FormUserController {
                 
                         // Process users concurrently with Promise.all
                         await Promise.all(
-                            users.map(async ({ userName, bookmarked, addDate, remarks }) => {
+                            users.map(async ({ userName, bookmarked, email, addDate, remarks }) => {
                 
                                 // Check if the user already exists
                                 const existingUser = await Usr.findOne({
@@ -131,13 +132,14 @@ class FormUserController {
                                         { transaction: t }
                                     );
                                 }
-
+                                
                                 // Create the user
                                 await Usr.create(
                                     {
                                         id: generateSecureID(),
                                         userName: userName,
                                         deptId: userDeptId,
+                                        email: email || null,
                                         bookmarked: bookmarked || 0,
                                         addEventId: addEventId,
                                     },

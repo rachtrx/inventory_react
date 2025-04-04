@@ -36,11 +36,7 @@ const Accessory = ({ accType }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-					<TextEditableField 
-						label="Current Stock"
-            name="stock"
-            value={accType.stock}
-					/>
+					<ResponsiveText>Current Stock: {accType.stock}</ResponsiveText>
         </Grid>
       </Box>
 

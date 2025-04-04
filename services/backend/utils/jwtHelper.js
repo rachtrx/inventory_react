@@ -5,9 +5,16 @@ const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, email: user.email }, // Include any necessary claims
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '15m' }
   );
 };
+
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user.id },
+    process.env.JWT_REFRESH_SECRET, 
+    { expiresIn: '30d' }
+  );
+}
 
 const generatePKCE = () => {
     const codeVerifier = crypto.randomBytes(64).toString("hex");
@@ -15,4 +22,4 @@ const generatePKCE = () => {
     return { codeVerifier, codeChallenge };
 };
 
-module.exports = { generateToken, generatePKCE }
+module.exports = { generateToken, generateRefreshToken, generatePKCE }

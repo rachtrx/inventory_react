@@ -6,51 +6,73 @@ import assetService from "../../services/AssetService";
 import { useLoading } from "../../context/LoadingProvider";
 import { useUI } from "../../context/UIProvider";
 import { useDrawer } from "../../context/DrawerProvider";
-import { Box, Button, Flex, Text } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons";
+import { Box, Button, Flex, HStack, Radio, RadioGroup, Stack, Text, Tooltip } from "@chakra-ui/react";
+import { CheckIcon, EditIcon, InfoIcon } from "@chakra-ui/icons";
 import EditCancelButton from "../forms/utils/EditCancelButton";
+import { ResponsiveText } from "./ResponsiveText";
+import RadioOptions from "./RadioOptions";
 
-const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}) => {
+const SelectEditableField = ({label, name, id, value, createFn, updateOptions, customOptions}) => {
 
     const [ options, setOptions ] = useState([])
-    const { showToast, handleError, handleDevError } = useUI();
+    const { showToast, handleError } = useUI();
     const { setLoading } = useLoading();
-    const { handleSave, editKey, setEditKey } = useDrawer();
+    const { updateState, editKey, currentItem } = useDrawer(); 
+
+    const defaultUpdateOptions = [
+        { value: "update-delete", label: `Update All and Discard ${value}` },
+        { value: "update-keep", label: `Update All and Keep ${value}` },
+        { value: "update-one", label: "Update One" },
+    ];
 
     useEffect(() => {
-        const getFilters = async () => {
-            const response = await optionsFn(name);
-            const options = response.data;
-            console.log(options);
-            setOptions(options.map(option => ({
-                id: option.value,
-                value: option.label,
-                label: option.label
-            })));
-        };
-        getFilters()
-    }, [])
+        if (customOptions) {
+            setOptions(
+                customOptions.map(option => ({
+                    ...option,
+                    isDisabled: id === option.value,
+                }))
+            );
+        } else {
+          const getFilters = async () => {
+            try {
+                const response = await currentItem.service.getFilters(name);
+                const optionsData = response.data;
+                console.log(optionsData);
+                setOptions(
+                    optionsData.map(option => ({
+                        id: option.value,
+                        value: option.label,
+                        label: option.label,
+                        isDisabled: id === option.value,
+                    }))
+                );
+            } catch (error) {
+              handleError(error);
+            }
+          };
+          getFilters();
+        }
+    }, [customOptions, name, currentItem, handleError, id]);
 
     const submitFn = async (values) => {
         setLoading(true);
         try {
-            await updateFn(values);
-            updateFn(name, values);
-            // handleSave(name, values);
-            setLoading(false);
-            showToast('Successfully updated details', 'success', 500);
+            await currentItem.service.updateItem({name, oldId: id, itemId: currentItem.breadcrumbId, ...values});
+            await updateState();
+            showToast('Asset successfully updated', 'success', 500);
         } catch (err) {
             console.error(err);
             handleError(err);
-            console.error("Error Handled");
+        } finally {
             setLoading(false);
         }
     }
 
-    const createItemFn = async (value, setFieldValue) => {
+    const createItemFn = async (newValue, setFieldValue) => {
         try {
             setLoading(true);
-            const response = await createFn(value);
+            const response = await createFn(newValue);
             console.log(response);
     
             const itemData = response?.data?.data;
@@ -65,7 +87,7 @@ const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}
             };
     
             setOptions(oldArray => [
-                ...oldArray.filter(item => !(item.value === value && !item.id)),
+                ...oldArray.filter(item => !(item.value === newValue && !item.id)),
                 newOption
             ]);
     
@@ -80,15 +102,25 @@ const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}
         }
     };
 
+    const handleOption = (selected, setFieldValue) => {
+        if (!selected) {
+            setFieldValue('newId', id);
+            setFieldValue('newValue', value);
+            setFieldValue('updateType', null)
+            return
+        }
+        setFieldValue('newId', selected?.id || "")
+    }
+
     return (
         <>
             <Text fontSize="md">{label}:</Text>
             {editKey === name ? (
                 <Formik
                     initialValues={{
-                        newId: "",
-                        newValue: "",
-                        global: false
+                        newId: id,
+                        newValue: value,
+                        updateType: null
                     }}
                     onSubmit={(values) => {
                         console.log("Final submit", values);
@@ -100,7 +132,7 @@ const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}
                             <Box position="relative">
                                 <CreatableSingleSelectFormControl
                                     name={'newValue'}
-                                    updateFields={(selected) => setFieldValue('newId', selected?.id || "")}
+                                    updateFields={(selected) => handleOption(selected, setFieldValue)}
                                     initialOptions={options}
                                     placeholder={`Enter new ${name}`}
                                 />
@@ -114,7 +146,14 @@ const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}
                                     style={{ top: '100%' }}
                                     gap={2}
                                 >
-                                    {values.newValue && !values.newId && (
+                                    {values.newValue && values.newId !== id && (
+                                        <RadioOptions 
+                                            name="updateType" 
+                                            updateOptions={updateOptions || defaultUpdateOptions}
+                                        />
+                                    )}
+
+                                    {values.updateType && values.updateType !== "update-delete" && !values.newId && (
                                         <WarningCard
                                             message={`Create ${values.newValue}?`}
                                             items={options}
@@ -122,28 +161,16 @@ const SelectEditableField = ({label, name, value, optionsFn, createFn, updateFn}
                                             onCreate={() => createItemFn(values.newValue, setFieldValue)}
                                         />
                                     )}
-                                    {values.newValue && values.newId && <Flex gap={2}>
+                                    {values.updateType && (values.newId || values.updateType === 'update-delete') && (
                                         <Button
-                                            type="button"
-                                            onClick={() => {
-                                                handleDevError();
-                                                // setFieldValue("global", true);
-                                                // handleSubmit();
-                                            }}
+                                            leftIcon={<CheckIcon />} 
+                                            colorScheme="green" 
+                                            onClick={handleSubmit}
+                                            alignSelf="start"
                                         >
-                                            Update All
+                                            Save
                                         </Button>
-                                        <Button
-                                            type="button"
-                                            onClick={() => {
-                                                handleDevError();
-                                                // setFieldValue("global", false);
-                                                // handleSubmit();
-                                            }}
-                                        >
-                                            Update One
-                                        </Button>
-                                    </Flex>}
+                                    )}
                                 </Flex>
                             </Box>
                         </Form>

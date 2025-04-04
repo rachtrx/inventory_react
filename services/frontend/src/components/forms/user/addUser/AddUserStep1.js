@@ -35,6 +35,7 @@ export const AddUserStep1 = () => {
       
       const deptNameDuplicates = validateUniqueValues(values.depts, ['deptName']);
       const userNameDuplicates = validateUniqueValues(values.depts, ['users', 'userName']);
+      const emailDuplicates = validateUniqueValues(values.depts, ['users', 'email']);
 
       values.depts.forEach((dept, deptIndex) => {
         console.log(dept);
@@ -47,6 +48,11 @@ export const AddUserStep1 = () => {
           const userNameError = validateField(userNameDuplicates, user['userName'], "User Name");
           if (userNameError) {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'userName'], userNameError);
+          }
+
+          const emailError = user['email'] && validateField(emailDuplicates, user['email'], "Email");
+          if (emailError) {
+            setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'email'], emailError);
           }
           
           if (user['addDate'] && compareDates(user['addDate'])) {
@@ -75,7 +81,7 @@ export const AddUserStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['deptName', 'userName', 'addDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['deptName', 'userName', 'email', 'addDate', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="depts">
                   {deptHelpers => (

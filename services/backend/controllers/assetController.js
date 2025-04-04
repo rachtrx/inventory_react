@@ -4,6 +4,7 @@ const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, get
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
+const { generateSecureID } = require('../utils/nanoidValidation.js');
 
 const dateTimeObject = {
     weekday: 'short',
@@ -154,6 +155,7 @@ class AssetController {
                         model: AstSType,
                         required: true,
                         attributes: ['subTypeName'],
+                        ...(filters?.subTypeName?.length && { where: { id: { [Op.in]: filters.subTypeName } } }),
                         include: {
                             model: AstType,
                             required: true,
@@ -254,10 +256,10 @@ class AssetController {
                     },
                     {
                         model: AstSType,
-                        attributes: ['subTypeName'],
+                        attributes: ['subTypeName', 'id'],
                         include: {
                             model: AstType,
-                            attributes: ['typeName']
+                            attributes: ['typeName', 'id']
                         }
                     },
                     {
@@ -454,22 +456,151 @@ class AssetController {
         return events;
     }
     
-    async updateAsset(req, res) {
-        const { id, field, newValue } = req.body;
-        logger.info(`${id}, ${field}, ${newValue}`);
-    
+    updateAsset = async (req, res, next) => {
+        let { name, itemId, newValue } = req.body;
+        
         try {
-            const asset = await Ast.findByPk(id);
-    
-            if (asset) {
-                asset[field] = newValue;
-                await asset.save();
-                res.json({ message: "Ast updated successfully" });
+            if (['typeName', 'subTypeName', 'vendorName'].includes(name)) {
+                let model;
+                let attr;
+                let refModel;
+                let refAttr;
+            
+                switch (name) {
+                    case 'typeName':
+                        model = AstType;
+                        attr = 'typeName';
+                        refModel = AstSType;
+                        refAttr = 'assetTypeId';
+                        break;
+                    case 'subTypeName':
+                        model = AstSType;
+                        attr = 'subTypeName';
+                        refModel = Ast;
+                        refAttr = 'subTypeId';
+                        break;
+                    case 'vendorName':
+                        model = Vendor;
+                        attr = 'vendorName';
+                        refModel = Ast;
+                        refAttr = 'vendorId';
+                        break;
+                    default:
+                        throw new Error('Invalid name');
+                }
+
+                if (req.body.updateType === 'update-delete') {
+                    await this.replaceOldValue({...req.body, model, attr, refModel, refAttr});
+                } else {
+                    await this.updateNewValue({...req.body, model, attr, refModel, refAttr});
+                }
+                res.json({ message: "Asset updated successfully" });
             } else {
-                res.status(404).json({ message: "Ast not found" });
+                if (name === 'value') newValue = parseFloat(newValue);
+
+                const asset = await Ast.findByPk(itemId);
+        
+                if (asset) {
+                    asset[name] = newValue;
+                    await asset.save();
+                    res.json({ message: "Asset updated successfully" });
+                } else {
+                    res.status(404).json({ error: "Ast not found" });
+                }
             }
         } catch (error) {
-            res.status(500).send({ error: error.message })
+            logger.error(error);
+            next(error);
+        }
+    };
+
+    updateNewValue = async (metadata) => {
+        // update-one
+        // Find existing. if not exist, create. If exist, update that one. typeName → might have to create new subType under that type. update asset
+
+        // update-keep
+        // find existing. 
+        let {itemId, name, newId, newValue, updateType, model, refModel, refAttr} = metadata;
+        console.log(newId);
+        const t = await sequelize.transaction();
+        try {
+            let existingRow = await model.findByPk(newId);
+
+            if (!existingRow) throw new Error(`${newValue} must be created first!`)
+            
+            let currentItem = await Ast.findByPk(itemId);
+            if (name === 'typeName') {
+                const currentSubType = await AstSType.findByPk(currentItem.subTypeId);
+                if (!currentSubType) throw new Error(`Unable to find subtype with ID ${currentItem.subTypeId}!`)
+                
+                if (updateType === "update-one") {
+                    throw new Error(`Cannot Duplicate Model ${currentSubType.subTypeName} as it already exists under another Asset Type.`)
+                } else {
+                    await currentSubType.update({ assetTypeId: existingRow.id });
+                }
+            } else {
+                if (updateType === "update-one") {
+                    await currentItem.update({ [refAttr] : existingRow.id })
+                } else {
+                    await refModel.update(
+                        { [refAttr]: existingRow.id },
+                        {
+                            where: {
+                                [refAttr]: currentItem[refAttr]
+                            }
+                        }
+                    )
+                }
+            }
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
+        }
+    }
+
+    replaceOldValue = async (metadata) => {
+
+        const { model, refModel, refAttr, oldId, newId, newValue } = metadata;
+    
+        const t = await sequelize.transaction();
+
+        // update-delete
+        try {
+            const existingRow = await model.findOne({
+                where: { id: newId },
+                transaction: t
+            });
+    
+            if (existingRow) {
+                // Point all references to newId
+                await refModel.update(
+                    { [refAttr]: newId },
+                    {
+                        where: { [refAttr]: oldId },
+                        transaction: t,
+                    }
+                );
+                // Delete old entry
+                await model.destroy({
+                    where: { id: oldId },
+                    transaction: t
+                });
+            } else {
+                // Just rename
+                await model.update(
+                    { [attr]: newValue },
+                    {
+                        where: { id: oldId },
+                        transaction: t,
+                    }
+                );
+            }
+    
+            await t.commit();
+        } catch (err) {
+            await t.rollback();
+            throw err;
         }
     };
 }
