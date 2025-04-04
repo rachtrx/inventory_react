@@ -3,6 +3,9 @@
 # Define the services in order
 services=("backend" "frontend" "nginx-inventory")
 
+echo "Pruning Docker"
+docker system prune -a -f
+
 echo "Starting sequential Docker build and deployment..."
 
 # Loop through each service and build + start it
