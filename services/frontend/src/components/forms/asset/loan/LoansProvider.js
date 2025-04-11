@@ -103,8 +103,12 @@ export const LoansProvider = ({ children }) => {
         record.userName = record.userName.trim();
         userNames.add(record.userName);
 
-        // Trim and add asset tags to the set
-        record.serialNumber = record.serialNumber?.trim();
+        if (!record.serialNumber) throw new Error (`Serial Number required at line ${record.__rowNum__}`)
+
+        if (typeof record.serialNumber === 'number') {
+          record.serialNumber = record.serialNumber.toString();
+        }
+        record.serialNumber = record.serialNumber.trim();
         if (record.serialNumber) {
             if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
             else serialNumbers.add(record.serialNumber);
@@ -132,9 +136,11 @@ export const LoansProvider = ({ children }) => {
       const newUserOptions = userResponse.data;
 
       let newAccessoryoptions = [];
+      console.log(accessoryNames);
       if (accessoryNames.size !== 0) {
         const accessoryResponse = await loanService.fetchAccLoan([...accessoryNames]);
         newAccessoryoptions = accessoryResponse.data;
+        console.log(newAccessoryoptions);
       }
   
       // Convert grouped records into loans
