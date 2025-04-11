@@ -2,13 +2,10 @@ services:
   backend:
     build: ./services/backend
     container_name: inventory-backend
-    ports:
-      - "3001:3001"
-    expose:
-      - 3001
     environment:
       - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - SIGNATURES_DIR=${SIGNATURES_DIR}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -16,7 +13,6 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
       - DATABASE_HOST=db
     volumes:
-      # - ./services/backend/node_modules:/usr/src/app/node_modules # TODO map
       - ./services/backend/logs:/usr/src/app/logs # TODO dont log all
       - ./services/backend/uploads:/usr/src/app/uploads
     restart: always
@@ -32,8 +28,6 @@ services:
       args:
         - NODE_ENV=${NODE_ENV}
         - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-    ports:
-      - "3000:3000"
     restart: always
     networks:
       - nginx_network
