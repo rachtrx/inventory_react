@@ -287,58 +287,51 @@ class DashboardController {
 			const chartDataInputs = [
 				{
 					'data': topDevicesByCount,
-					'agg': (chart) => chart.sumValue(),
-					'methods': [(chart) => chart.reduceDataSize()]
+					'generate': (chart) => chart.setSumValue().reduceDataSize(),
 				},
 				{
 					'data': topDevicesByValue,
-					'agg': (chart) => chart.sumValue(),
 					'isCurrency': true,
-					'methods': [(chart) => chart.reduceDataSize()]
+					'generate': (chart) => chart.setSumValue().reduceDataSize(),
 				},
 				{
 					'data': assetStatus,
-					'agg': (chart) => chart.pctValue(['loaned']),
-					'methods': [(chart) => chart.reduceDataSize()]
+					'generate': (chart) => chart.setPctValue(['loaned']).reduceDataSize(),
 				},
 				{
 					'data': users,
-					'agg': (chart) => chart.sumValue(),
-					'methods': [(chart) => chart.reduceDataSize()]
+					'generate': (chart) => chart.setSumValue().reduceDataSize(),
 				},
 				{
 					'data': usersLoan,
-					'agg': (chart) => chart.sumValue(),
-					'methods': [(chart) => chart.reduceDataSize()]
+					'generate': (chart) => chart.setSumValue().reduceDataSize(),
 				},
 				{
 					'data': devicesAge,
-					'agg': (chart) => chart.avgValue(),
-					'methods': [
-						(chart) => chart.addSuffixToLabels(' years'),
-						(chart) => chart.reduceDataSize()
-					]
+					'generate': (chart) => chart
+						.setAvgValue()
+						.addSuffixToLabels(' years')
+						.reduceDataSize()
 				},
 				{
 					'data': topVariantsByCount,
 					'chartType': OneToOneChart,
-					'methods': [(chart) => chart.generateData()]
+					'generate': (chart) => chart.generateData()
 				},
 				{
 					'data': topVariantsByValue,
-					'chartType': OneToOneChart,
 					'isCurrency': true,
-					'methods': [(chart) => chart.generateData()]
+					'chartType': OneToOneChart,
+					'generate': (chart) => chart.generateData()
 				},
 				{
 					'data': costPerYearByAsset,
-					'chartType': ManyToManyChart,
 					'isCurrency': true,
-					'methods': [
-						(chart) => chart.generateData(),
-						(chart) => chart.aggregateDataByGroup(),
-						(chart) => chart.mapYearToTotalCost()
-					]
+					'chartType': ManyToManyChart,
+					'generate': (chart) => chart
+						.generateData()
+						.aggregateDataByGroup()
+						.mapYearToTotalCost()
 				}
 	
 			];
@@ -374,17 +367,11 @@ class DashboardController {
 	prepareChartData = (pipeline) => {
 		if (!pipeline) return { 'data': null, 'agg': null };
 	
-		const { data = null, agg = null, chartType = Chart, isCurrency = false, methods = [] } = pipeline;
+		const { data = null, generate, chartType = Chart, isCurrency = false } = pipeline;
 		const chart = new chartType(data, isCurrency);
 		let aggData = null;
 	
-		if (agg) {
-			aggData = agg(chart);
-		}
-	
-		if (methods.length > 0) {
-			for (let method of methods) method(chart);
-		}
+		generate(chart);
 	
 		return {
 			'data': chart.getData(),

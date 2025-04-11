@@ -29,45 +29,46 @@ export const getDoughnutOptions = function(type, aggValue, isCurrency=false) {
 	const { label='', title='Dev In Progress' } = doughnutOptions[type] || {}
 	return {
 		plugins: {
-				tooltip: {
-						enabled: true,
-						callbacks: {
-								title: function(context) {
-										return `${context[0].label}`
-								},
-								label: function(context) {
-										if (isCurrency) console.log(context.formattedValue);
-										const value = isCurrency ? parseFloat(context.formattedValue.replaceAll(',', '')).toFixed(2) : context.formattedValue;
-										return `${label}${value}`;
-								},
-						}
-				},
-				legend: {
-						display: true,
-						position: 'right',
-						maxWidth: 120,
-						labels: {
-								boxWidth: 10
-						}
-				},
-				doughnutLabel: {
-						labels: [{
-								text: title,
-								color: "black",
-								font: {
-									size: "10",
-									weight: "bold"
-								}
-						},
-						{
-								text: aggValue,
-								color: "black",
-								font: {
-									size: "13",
-									weight: "bold"
-								}
-						}],
+			tooltip: {
+				enabled: true,
+				callbacks: {
+					title: function(context) {
+						return `${context[0].label}`
+					},
+					label: function(context) {
+						if (isCurrency) console.log(context.formattedValue);
+						const value = isCurrency ? parseFloat(context.formattedValue.replaceAll(',', '')).toFixed(2) : context.formattedValue;
+						return `${label}${value}`;
+					},
 				}
+			},
+			legend: {
+				display: true,
+				position: 'bottom',
+				maxWidth: 120,
+				labels: {
+					boxWidth: 10,
+					usePointStyle: true
+				}
+			},
+			doughnutLabel: {
+				labels: [{
+					text: title,
+					color: "black",
+					font: {
+						size: "10",
+						weight: "bold"
+					}
+				},
+				{
+					text: aggValue,
+					color: "black",
+					font: {
+						size: "13",
+						weight: "bold"
+					}
+				}],
+			}
 		},
 		animation: {
 				animateScale: true,
@@ -132,24 +133,24 @@ export const getBarOptions = function(type, isCurrency=false) {
 		indexAxis: axis,
 		scales: getScale(axis, scaleOptions),
 		plugins: {
-				scrollBar: getScroll(axis, scrollSize),
-				legend: {
-						display: displayLegend
-				},
-				tooltip: {
-						callbacks: barCallback(axis, prefixes, isCurrency),
-				}
+			scrollBar: getScroll(axis, scrollSize),
+			legend: {
+				display: displayLegend
+			},
+			tooltip: {
+				callbacks: barCallback(axis, prefixes, isCurrency),
+			}
 		},
 		animation: {
-				animateScale: true,
+			animateScale: true,
 		},
 		onHover: (event, elements) => {
-				const chartElement = event.native.target;
-				if (elements.length > 0) {
-						chartElement.style.cursor = 'pointer';
-				} else {
-						chartElement.style.cursor = 'default';
-				}
+			const chartElement = event.native.target;
+			if (elements.length > 0) {
+				chartElement.style.cursor = 'pointer';
+			} else {
+				chartElement.style.cursor = 'default';
+			}
 		}
 	}
 }
@@ -165,10 +166,10 @@ const barCallback = function(axis, prefixes={}, isCurrency=false) {
 			return `${titlePrefix}: ${value}}`
 		},
 		label: function(context) {
-				console.log(context);
-				const label = axis === 'x' ? context.parsed.y : context.parsed.x;
-				// const label = context.formattedValue
-				return `${labelPrefix}: ${isCurrency ? `$${label.toFixed(2)}` : label}`;
+			console.log(context);
+			const label = axis === 'x' ? context.parsed.y : context.parsed.x;
+			// const label = context.formattedValue
+			return `${labelPrefix}: ${isCurrency ? `$${label.toFixed(2)}` : label}`;
 		},
 	}
 }
@@ -177,16 +178,16 @@ const getScale = function(axis, scaleOptions={}) {
 	const { stepSize = null, min = null, max = null } = scaleOptions || {};
 	return {
 		x: {
-				stacked: true,
-				...(min && axis === 'x' ? { min: min } : {}),
-				...(max && axis === 'x' ? { max: max } : {}),
-				...(stepSize && axis === 'x' ? { ticks: {stepSize: stepSize} } : {})
+			stacked: true,
+			...(min && axis === 'x' ? { min: min } : {}),
+			...(max && axis === 'x' ? { max: max } : {}),
+			...(stepSize && axis === 'x' ? { ticks: {stepSize: stepSize} } : {})
 		},
 		y: {
-				stacked: true,
-				...(min && axis === 'y' ? { min: min } : {}),
-				...(max && axis === 'y' ? { max: max } : {}),
-				...(stepSize && axis === 'y' ? { ticks: {stepSize: stepSize} } : {})
+			stacked: true,
+			...(min && axis === 'y' ? { min: min } : {}),
+			...(max && axis === 'y' ? { max: max } : {}),
+			...(stepSize && axis === 'y' ? { ticks: {stepSize: stepSize} } : {})
 		}
 	}
 }

@@ -1,9 +1,7 @@
 const chroma = require('chroma-js');
 
 const baseColors = ['#FF6384', '#19C4A6', '#36A2EB', '#FFA53F', '#FFF58F', '#B582D3']
-
-const numberOfAdditionalColors = 5;
-const COLORSCALE = chroma.scale(baseColors).colors(numberOfAdditionalColors);
+const COLORSCALE = chroma.scale(baseColors).mode('lab').colors(11);
 
 class Chart { // DOUGHNUTS
     
@@ -21,23 +19,21 @@ class Chart { // DOUGHNUTS
         // console.log(this.arr);
     }
 
-    addSuffixToLabels = function(suffix) {
-        this.arr = this.arr.map((el) => ({ ...el, label: String(el.label) + suffix }))
-    }
-
-	sumValue = function(isCurrency=false) {
+	setSumValue = function() {
 		const rawSum = this.arr.reduce((counter, el) => {
 			counter += +el.data
 			return counter
 		}, 0)
-        if (!isCurrency) return String(rawSum);
-        return rawSum.toFixed(2);
+        if (!this.isCurrency) this.sumValue = String(rawSum);
+        else this.sumValue = rawSum.toFixed(2);
+		return this;
 	}
 	
-	avgValue = function() {
-		const totalCount = parseFloat(this.sumValue(this.arr))
+	setAvgValue = function() {
+		this.setSumValue();
+		const totalCount = parseFloat(this.sumValue);
 		// console.log(totalCount);
-		return this.arr.reduce((counter, el) => {
+		this.arr.reduce((counter, el) => {
 			if (this.arr.length !== 0){
                 // console.log(el);
 				counter += (+el.label * (+el.data / totalCount))
@@ -45,16 +41,19 @@ class Chart { // DOUGHNUTS
             // console.log(counter);
 			return counter
 		}, 0).toFixed(2)
+		return this;
 	}
 	
-	pctValue = function(labels) {
-		const totalCount = parseFloat(this.sumValue(this.arr))
+	setPctValue = function(labels) {
+		this.setSumValue();
+		const totalCount = parseFloat(this.sumValue);
 		// console.log(totalCount);
-		return this.arr.reduce((counter, el) => {
+		this.arr.reduce((counter, el) => {
 			if (!labels.includes(el.label)) return counter
 			// console.log(el);
 			return counter += el.data / totalCount * 100
 		}, 0).toFixed(2)
+		return this;
 	}
 
     reduceDataSize() {
@@ -68,10 +67,12 @@ class Chart { // DOUGHNUTS
                 { label: 'Others', data: otherData }
             ];
         }
+		return this;
     }
 
     addSuffixToLabels = function(suffix) {
         this.arr = this.arr.map((el) => ({ ...el, label: String(el.label) + suffix }))
+		return this;
     }
 
     getData = function() {
@@ -124,6 +125,7 @@ class GroupChart extends Chart {
                 return acc;
             }, {});
         }
+		return this;
 	}
 
     getData = () => {
@@ -161,6 +163,7 @@ class OneToOneChart extends GroupChart {
             }
             this.finalArr.push(arr);
         }
+		return this;
 	}
 }
 
@@ -215,11 +218,13 @@ class ManyToManyChart extends GroupChart { // NEED TO ALWAYS CHECK IF FOUND...
 			}
 			this.finalArr.push(arr);
 		}
+		return this;
 	}
 
     mapYearToTotalCost = () => {
         this.groups = this.groups.map((year) => [`${year}`, `$${parseFloat(this.aggGroupedData?.year?.value || 0).toFixed(2)}`])
-    }
+		return this;
+	}
 }
 
 // renameNames(type, prefix = '', suffix = '') { // accepts dictionary to map on group

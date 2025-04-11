@@ -92,9 +92,9 @@ export default function Dashboard() {
             {barCharts.map((barChart, index) => (
                 // Each bar chart takes 100% width on very small screens and 70% on larger screens.
                 <Box
-                key={index}
-                width={["100%", "70%"]}
-                overflow="hidden"
+                    key={index}
+                    width={["100%", "70%"]}
+                    overflow="hidden"
                 >
                     <BarChart
                         loading={loading}
