@@ -186,7 +186,9 @@ class LoanService extends ValidationService {
             const base64Data = signature.replace(/^data:image\/png;base64,/, '');
             const fileName = `${Date.now()}-${userId}-signature.png`;
             const filePath = path.join(process.env.SIGNATURES_DIR, fileName);
-            
+
+            fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+
             await fs.promises.writeFile(filePath, base64Data, 'base64');
 
             for (const loan of loans) {
