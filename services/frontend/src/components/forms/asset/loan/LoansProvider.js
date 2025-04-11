@@ -29,7 +29,6 @@ export const LoansProvider = ({ children }) => {
     users: [createNewUser()],
     signatures: {},
   });
-  const [userLoans, setUserLoans] = useState({});
   const [step, setStep] = useState(1);
 
   useEffect(() => {
@@ -253,13 +252,11 @@ export const LoansProvider = ({ children }) => {
     accessoryOptions,
     formData,
     addNewAccessory,
-    userLoans,
     step,
     setAssetOptions,
     setUserOptions,
     setAccessoryOptions,
     setFormData,
-    setUserLoans,
     setStep,
     processAccessories,
     setValuesExcel,
@@ -272,12 +269,13 @@ export const LoansProvider = ({ children }) => {
 
   return (
     <LoansContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <LoanStep1/>
+      {/* Step 1: always mounted, just hidden when not active */}
+      <Box hidden={step !== 1}>
+        <LoanStep1 />
       </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <LoanStep2/>
-      </Box>
+
+      {/* Step 2: only render/mount when needed */}
+      {step === 2 && <LoanStep2 />}
     </LoansContext.Provider>
   )
 };

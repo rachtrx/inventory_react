@@ -108,8 +108,9 @@ export const LoanItems = function({ field, loan, children }) {
 									))
 								)}
 							</HStack>
-							{loan.accessories.map((accessory, accessoryIndex, accessoryArray) => 
+							{loan.accessories.map((accessory, accessoryIndex) => 
 								<LoanAccessory
+									key={accessory.key}
 									accessory={accessory}
 									field={`${field}.accessories.${accessoryIndex}`}
 									index={accessoryIndex}

@@ -192,7 +192,7 @@ class LoanService extends ValidationService {
 
             for (const loan of loans) {
                 await loan.update({
-                    filepath: filePath
+                    filepath: fileName
                 }, { transaction: this.transaction });
             }
         }

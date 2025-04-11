@@ -79,9 +79,9 @@ class ReturnService extends ValidationService{
             throw new Error(`Asset is not on loan for loan ID ${loan.id}!`);
         }
 
-        if(assetId && assetId !== loanRow.AstLoan?.Ast?.id) {
+        if(assetId && assetId !== loan.AstLoan?.Ast?.id) {
             throw new Error(`Mismatch for Asset ID: ${_return.asset?.assetId}. 
-                Expected serialNumber: ${_return.asset.serialNumber}, but found: ${loanRow.AstLoan.Ast.serialNumber}`);
+                Expected serialNumber: ${_return.asset.serialNumber}, but found: ${loan.AstLoan.Ast.serialNumber}`);
         }
 
         return loan;

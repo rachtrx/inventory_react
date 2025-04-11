@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../../context/UIProvider";
-import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { createNewAccessory, createNewReturn } from "./ReturnSearch";
@@ -153,7 +152,7 @@ export const ReturnsProvider = ({ children }) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await assetService.returnItems(values);
+      await loanService.returnItems(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully returned', 'success', 500);
@@ -186,12 +185,11 @@ export const ReturnsProvider = ({ children }) => {
 
   return (
     <ReturnsContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
+      <Box hidden={step !== 1}>
         <ReturnStep1/>
       </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <ReturnStep2/>
-      </Box>
+      
+      {step === 2 && <ReturnStep2 />}
     </ReturnsContext.Provider>
   );
 };

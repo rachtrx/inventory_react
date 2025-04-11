@@ -7,7 +7,7 @@ import { useLoans } from "./LoansProvider";
 
 export const LoanStep2 = () => {
 
-	const {prevStep, handleSubmit, userLoans, formData} = useLoans()
+	const {prevStep, handleSubmit, formData} = useLoans()
 	const parentRef = useRef(null);
     const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
