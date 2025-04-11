@@ -90,6 +90,8 @@ export const LoanStep1 = () => {
             if (assetError) {
               setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
             }
+          } else {
+            if (!loan.accessories?.some(acc => acc.accessoryName)) setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'excludeAsset'], "At least 1 accessory must be added");
           }
 
           if (!loan.expectedReturnDate) {

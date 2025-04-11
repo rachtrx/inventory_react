@@ -7,7 +7,6 @@ const { Op } = require("sequelize");
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const path = require('path');
 
 class EventController {
 

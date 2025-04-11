@@ -3,7 +3,6 @@ const { generateSecureID } = require("../utils/nanoidValidation");
 const ValidationService = require("./ValidationService");
 const path = require('path');
 const fs = require('fs');
-const accessoryController = require("../controllers/accessoryController");
 const logger = require("../logging");
 
 class LoanService extends ValidationService {

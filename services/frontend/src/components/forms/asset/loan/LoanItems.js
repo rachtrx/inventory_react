@@ -3,8 +3,8 @@ import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl }
 import { useFormModal } from "../../../../context/ModalProvider"
 import { useUI } from "../../../../context/UIProvider"
 import accessoryService from "../../../../services/AccessoryService"
-import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton, Checkbox, FormControl } from "@chakra-ui/react";
-import { FieldArray } from "formik"
+import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton, Checkbox, FormControl, FormErrorMessage } from "@chakra-ui/react";
+import { Field, FieldArray } from "formik"
 import InputFormControl from "../../utils/InputFormControl"
 import { ResponsiveText } from "../../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
@@ -22,7 +22,7 @@ import loanService from "../../../../services/LoanService"
 
 export const LoanItems = function({ field, loan, children }) {
 	
-	const { setFieldValue } = useFormikContext();
+	const { setFieldValue, errors, touched } = useFormikContext();
 	const { warnings } = useLoan();
 	const { assetOptions } = useLoans();
 	const { handleError } = useUI();
@@ -67,17 +67,23 @@ export const LoanItems = function({ field, loan, children }) {
 
 	return (
 		<>
-		    <FormControl>
-				<Checkbox
-					isChecked={loan.excludeAsset}
-					onChange={handleSwitchChange}
-					colorScheme="red"
-					size="lg"
-					iconColor="white"
-				>
-				<ResponsiveText size="sm">No Asset</ResponsiveText>
-				</Checkbox>
-			</FormControl>
+		    <Field name={`${field}.excludeAsset`}>
+				{({ field, meta }) => (
+					<FormControl isInvalid={meta.touched && !!meta.error}>
+						<Checkbox
+							{...field}
+							isChecked={field.value}
+							onChange={(e) => field.onChange(e)} // optional: use helpers.setValue for full control
+							colorScheme="red"
+							size="lg"
+							iconColor="white"
+						>
+							<ResponsiveText size="sm">No Asset</ResponsiveText>
+						</Checkbox>
+						<FormErrorMessage>{meta.error}</FormErrorMessage>
+					</FormControl>
+				)}
+			</Field>
 			<Flex direction="column" gap={1} alignItems={'flex-start'}>
 				 {/* SECTION ASSET  */}
 				{!loan.excludeAsset && 
