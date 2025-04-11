@@ -9,7 +9,11 @@ export const RangeField = ({ label, range = [], name }) => {
 
     const { values } = useFormikContext();
 
-    return Number.isFinite(min) && Number.isFinite(max) ? (
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
+        return null;
+    }
+
+    return (
         <FormControl mb={4}>
             {label && <FormLabel>{label}</FormLabel>}
 
@@ -62,5 +66,5 @@ export const RangeField = ({ label, range = [], name }) => {
                 <ErrorMessage name={name} />
             </FormErrorMessage>
         </FormControl>
-    ) : null;
+    );
 };

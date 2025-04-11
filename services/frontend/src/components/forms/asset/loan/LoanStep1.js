@@ -67,23 +67,10 @@ export const LoanStep1 = () => {
       if (!accessory['accessoryName']) return 'Accessory is Required';
       return null;
     };
-    
-    // Generate warnings based on new accessories
-    const generateWarnings = (accessories, newAccessories={}) => {
-      return new Map(
-        accessories
-            .filter(acc => newAccessories.hasOwnProperty(acc.accessoryName)) // Check if it exists
-            .map(acc => [
-                acc.key,
-                `New accessory will be created (${newAccessories[acc.accessoryName]}x found in this form)`
-            ])
-      );
-    }
 
     const validate = values => {
 			// console.log(formRef.current?.values);
       const errors = {};
-      const newAccessories = {};
   
       const assetIDDuplicates = validateUniqueAssetIDs(values.users.flatMap(user => user.loans.map(loan => loan.asset)));
       

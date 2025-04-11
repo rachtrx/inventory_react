@@ -242,6 +242,7 @@ class AssetController {
                     'location',
                     'value',
                     'bookmarked',
+                    'delEventId'
                 ],
                 include: [
                     {
