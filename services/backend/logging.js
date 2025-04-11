@@ -12,7 +12,7 @@ if (!fs.existsSync(dir)){
 }
 
 const logger = createLogger({
-    level: 'info',
+    level: process.env.NODE_ENV !== 'development' ? 'error' : 'info',
     format: format.combine(
         format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'

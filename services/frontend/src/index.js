@@ -12,11 +12,11 @@ import { Global, css } from '@emotion/react';
 import { LoadingProvider } from './context/LoadingProvider';
 import theme from './theme';
 
-/*if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV !== "development") {
   console.log = () => {};
   console.warn = () => {};
   console.error = () => {};
-}*/
+}
 
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
