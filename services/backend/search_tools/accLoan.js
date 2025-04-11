@@ -16,32 +16,26 @@ class AccLoanSearch {
 
         // console.log(accessoryNames);
 
-        const isBulkSearch = Array.isArray(accessoryNames) 
-        
-        if (isBulkSearch) {
-            this.accessoryNames = accessoryNames.map(name => name.toLowerCase());
-        
-            this.accessoryCondition = {
-                [Op.or]: this.accessoryNames.map(name => ({
-                    // Postgres-specific: LOWER(dbField) = lowerInput
-                    [Op.and]: Sequelize.where(
-                        Sequelize.fn('LOWER', Sequelize.col('accessory_name')),
-                        name
+        const names = Array.isArray(accessoryNames)
+            ? accessoryNames.map(name => name.toLowerCase())
+            : [accessoryNames.toLowerCase()];
+
+        this.accessoryNames = Array.isArray(accessoryNames) ? names : names[0];
+
+        this.accessoryCondition = Array.isArray(accessoryNames)
+            ? {
+                [Op.or]: names.map(name =>
+                    Sequelize.where(
+                    Sequelize.fn('LOWER', Sequelize.col('accessory_name')),
+                    name
                     )
-                }))
-            };
-        } else {
-            const lowered = accessoryNames.toLowerCase();
-        
-            this.accessoryNames = lowered;
-        
-            this.accessoryCondition = Sequelize.where(
+                )
+            } : Sequelize.where(
                 Sequelize.fn('LOWER', Sequelize.col('accessory_name')),
                 {
-                    [Op.like]: `%${lowered}%`  // partial match, case-insensitive
+                    [Op.like]: `%${names[0]}%`
                 }
             );
-        }
     }
 
     async run() {

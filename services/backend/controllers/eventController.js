@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 class EventController {
 
@@ -686,7 +687,7 @@ class EventController {
                 return res.status(400).send('Invalid filename');
             }
 
-            const fullPath = `${process.env.SIGNATURES_DIR}${filepath}`
+            const fullPath = path.join(process.env.SIGNATURES_DIR, filepath);
 
             if (!fs.existsSync(fullPath)) {
                 return res.status(404).send('Signature file not found');
