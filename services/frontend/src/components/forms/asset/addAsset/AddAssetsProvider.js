@@ -32,6 +32,7 @@ export const createNewAsset = (asset={}) => ({
   'cost': asset.cost || '',
   'remarks': asset.remarks || '',
   'addDate': asset.addDate || new Date(),
+  'location': asset.location || '',
 })
 
 // Create a context
@@ -46,6 +47,7 @@ export const AddAssetsProvider = ({ children }) => {
 
   const [vendorOptions, setVendorOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
   const [subTypeOptionsDict, setSubTypeOptionsDict] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -62,9 +64,12 @@ export const AddAssetsProvider = ({ children }) => {
     const fetchFilters = async () => {
         const typeFilters = await getTypeFilters();
         const vendorFilters = await getVendorFilters();
+        const locationResponse = await assetService.getFilters('location');
+        const locationFilters = locationResponse.data;
         
         setTypeOptions(typeFilters);
         setVendorOptions(vendorFilters);
+        setLocationOptions(locationFilters);
     };
 
     fetchFilters();
@@ -107,11 +112,11 @@ export const AddAssetsProvider = ({ children }) => {
             : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
         });
 
-        ['type', 'subType', 'alias', 'serialNumber'].forEach(field => {
+        ['type', 'subType', 'serialNumber'].forEach(field => {
           if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
         });
 
-        const { type, subType, alias, serialNumber, vendorName, cost, remarks, addDate } = record;
+        const { type, subType, alias, serialNumber, vendorName, cost, location, remarks, addDate } = record;
         
         if (aliases.has(alias)) throw new Error(`Duplicate records for alias: ${alias} were found`);
         else aliases.add(alias);
@@ -135,6 +140,7 @@ export const AddAssetsProvider = ({ children }) => {
           vendorName,
           cost,
           addDate,
+          location,
           remarks
         });
       });
@@ -303,6 +309,7 @@ export const AddAssetsProvider = ({ children }) => {
   const value = {
     typeOptions,
     vendorOptions,
+    locationOptions,
     subTypeOptionsDict,
     setSubTypeOptionsDict,
     addNewSubType,

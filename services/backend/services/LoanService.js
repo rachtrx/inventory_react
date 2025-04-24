@@ -154,6 +154,16 @@ class LoanService extends ValidationService {
                 }, { transaction: this.transaction });
             }
 
+            if (asset?.location){
+                await Ast.update(
+                    { location: asset.location },
+                    {
+                      where: { id: asset.assetId },
+                      transaction: this.transaction
+                    }
+                );
+            }
+
             // Acc Loans for each count of each type for each user
             if (accessories) {
                 for (const accessory of accessories) {

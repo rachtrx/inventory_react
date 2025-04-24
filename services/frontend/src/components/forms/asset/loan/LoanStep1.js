@@ -146,7 +146,7 @@ export const LoanStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['serialNumber', 'userName', 'accessoryTypes', 'expectedReturnDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['serialNumber', 'userName', 'accessoryTypes', 'expectedReturnDate', 'location', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="users">
                   {loanHelpers => (

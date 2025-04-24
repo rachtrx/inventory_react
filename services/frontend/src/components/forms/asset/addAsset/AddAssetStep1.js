@@ -33,10 +33,10 @@ export const AddAssetStep1 = () => {
       return null;
     };
     
-    const validateField = (fieldDuplicates, fieldValue, fieldName) => {
+    const validateField = (fieldDuplicates, fieldValue, fieldName, required = true) => {
       if (fieldDuplicates.has(fieldValue)) return `${fieldName}s should be unique`;
-      if (!fieldValue || fieldValue === '') return `${fieldName} is Required`;
-      return null;
+      if (!required || (fieldValue && fieldValue !== "")) return null;
+      return `${fieldName} is Required`;
     }
   
     const validate = values => {
@@ -44,7 +44,7 @@ export const AddAssetStep1 = () => {
       const errors = {};
   
       const tNameDuplicates = validateUniqueValues(values.types, ['typeName']);
-      // const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'alias']);
+      const atDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'alias']);
       const snDuplicates = validateUniqueValues(values.types, ['subTypes', 'assets', 'serialNumber']);
 
       values.types.forEach((type, typeIndex) => {
@@ -66,10 +66,11 @@ export const AddAssetStep1 = () => {
             if (!asset['vendorName']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], 'Vendor is required');
             if (asset['vendorName'] && !asset['vendorId']) setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'vendorName'], `Please create new vendor ${asset['vendorName']}`);
 
-            // const alError = validateField(atDuplicates, asset['alias'], "Alias");
-            // if (alError) {
-            //   setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'alias'], alError);
-            // }
+            const atError = validateField(atDuplicates, asset['alias'], "Alias", false);
+            if (atError) {
+              setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'alias'], atError);
+            }
+
             const snError = validateField(snDuplicates, asset['serialNumber'], "Serial Number");
             if (snError) {
               setFieldError(errors, ['types', typeIndex, 'subTypes', subTypeIndex, 'assets', assetIndex, 'serialNumber'], snError);
@@ -102,7 +103,7 @@ export const AddAssetStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'alias', 'serialNumber', 'vendorName', 'cost', 'addDate', 'remarks']}/>
+                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['type', 'subType', 'alias', 'serialNumber', 'vendorName', 'cost', 'addDate', 'location', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="types">
                   {typeHelpers => (

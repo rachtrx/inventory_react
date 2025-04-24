@@ -28,6 +28,7 @@ export const createNewAsset = (asset) => ({ // 1 loan only can have 1 asset
 	'accessories': asset?.accessories?.map(accessory => createNewAccessory(accessory)) || [createNewAccessory()],
 	'serialNumber': asset?.serialNumber || '',
 	'onLoan': asset?.astLoans?.length > 0 ? true : false,
+	'location': asset?.location || ''
 })
 
 export const createNewLoan = ({

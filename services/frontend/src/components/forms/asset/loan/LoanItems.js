@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
+import { CreatableSingleSelectFormControl, SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useFormModal } from "../../../../context/ModalProvider"
 import { useUI } from "../../../../context/UIProvider"
 import accessoryService from "../../../../services/AccessoryService"
@@ -23,8 +23,7 @@ import loanService from "../../../../services/LoanService"
 export const LoanItems = function({ field, loan, children }) {
 	
 	const { setFieldValue, errors, touched } = useFormikContext();
-	const { warnings } = useLoan();
-	const { assetOptions } = useLoans();
+	const { assetOptions, locationOptions } = useLoans();
 	const { handleError } = useUI();
 	// console.log(warnings);
 
@@ -56,14 +55,11 @@ export const LoanItems = function({ field, loan, children }) {
 		setFieldValue(`${field}.asset.onLoan`, selected?.loan ? true : false);
 	}
 
-	const handleSwitchChange = () => {
-		if(!loan.excludeAsset) {
-			setFieldValue(`${field}.excludeAsset`, true);
-			setFieldValue(`${field}.asset`, createNewAsset({}));
-		} else {
-			setFieldValue(`${field}.excludeAsset`, false);
+	useEffect(() => {
+		if (loan.excludeAsset) {
+			setFieldValue(`${field}.asset.location`, "")
 		}
-	}
+	}, [loan.excludeAsset, field, setFieldValue])
 
 	return (
 		<>
@@ -87,14 +83,23 @@ export const LoanItems = function({ field, loan, children }) {
 			<Flex direction="column" gap={1} alignItems={'flex-start'}>
 				 {/* SECTION ASSET  */}
 				{!loan.excludeAsset && 
-				<LoanAstSelectFormControl
-					name={`${field}.asset.serialNumber`}
-					searchFn={value => loanService.fetchAstLoan(value)}
-					updateFields={updateAssetFields}
-					label={`Serial Number`}
-					placeholder="Serial Number"
-					initialOptions={assetOptions}
-				/>}
+				<>
+					<LoanAstSelectFormControl
+						name={`${field}.asset.serialNumber`}
+						searchFn={value => loanService.fetchAstLoan(value)}
+						updateFields={updateAssetFields}
+						label={`Serial Number`}
+						placeholder="Serial Number"
+						initialOptions={assetOptions}
+					/>
+					<CreatableSingleSelectFormControl
+						name={`${field}.asset.location`}
+						label={`Location`}
+						placeholder="Select Location"
+						initialOptions={locationOptions}
+					/>
+				</>
+				}
 
 				{/* SECTION ACCESSORIES  */}
 				<ResponsiveText>Accessories</ResponsiveText>

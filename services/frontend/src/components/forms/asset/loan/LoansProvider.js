@@ -22,6 +22,7 @@ export const LoansProvider = ({ children }) => {
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
+  const [locationOptions, setLocationOptions] = useState([]);
   const [assetOptions, setAssetOptions] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
@@ -30,6 +31,15 @@ export const LoansProvider = ({ children }) => {
     signatures: {},
   });
   const [step, setStep] = useState(1);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const locationResponse = await assetService.getFilters('location');
+      const locationFilters = locationResponse.data;
+      setLocationOptions(locationFilters);
+    };
+    fetchLocations();
+  }, []);
 
   useEffect(() => {
     console.log(initialValues);
@@ -155,14 +165,16 @@ export const LoansProvider = ({ children }) => {
         userObj.loans = []
         
         for (const rowIdx of rowIdxs) {
-          const { serialNumber, accessoryTypes, expectedReturnDate, remarks } = records[rowIdx];
+          const { serialNumber, accessoryTypes, expectedReturnDate, location, remarks } = records[rowIdx];
 
           const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
           console.log(matchedAssetOption);
           
           let assetObj;
+          
           if (!matchedAssetOption || matchedAssetOption.isDisabled) assetObj = {serialNumber: serialNumber}
           else assetObj = matchedAssetOption; // Pass serialNumber regardless of whether id is found
+          assetObj.location = location || "";
 
           const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
             const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
@@ -250,6 +262,7 @@ export const LoansProvider = ({ children }) => {
     assetOptions,
     userOptions,
     accessoryOptions,
+    locationOptions,
     formData,
     addNewAccessory,
     step,

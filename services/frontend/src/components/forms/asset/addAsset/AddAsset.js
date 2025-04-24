@@ -10,7 +10,7 @@ import WarningCard from "../../utils/Warnings";
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
 	const { setFieldValue } = useFormikContext();
-	const { vendorOptions, addNewVendor } = useAddAssets();
+	const { vendorOptions, addNewVendor, locationOptions } = useAddAssets();
 
 	// useEffect(() => { // perhaps this is not required TODO
 	// 	// update all if any cost changes
@@ -66,6 +66,12 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				placeholder="Enter cost" 
 			/>
 			<DateInputControl label="Added Date" name={`${field}.addDate`} />
+			<CreatableSingleSelectFormControl
+				name={`${field}.location`}
+				label={`Location`}
+				placeholder="Select Location"
+				initialOptions={locationOptions}
+			/>
 			<InputFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
 			{/* Include the helper functions */}
 			{children}
