@@ -13,8 +13,8 @@ const ReturnBadge = ({eventId, event}) => {
     const [isMain, setIsMain] = useState(false);
 
     useEffect(() => {
-        if (currentItem?.service?.constructor.name === accessoryService.constructor.name) {
-            const hasAccessory = event.accessories?.some(accessory => accessory.accessoryTypeId === currentItem.breadcrumbId);
+        const hasAccessory = event.accessories?.some(accessory => accessory.accessoryTypeId === currentItem.breadcrumbId);
+        if (currentItem?.service?.type === "accessory") {
             if (hasAccessory) {
                 setIsMain(true);
             } else {

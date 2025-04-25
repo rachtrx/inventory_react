@@ -15,7 +15,7 @@ import theme from './theme';
 if (process.env.NODE_ENV !== "development") {
   console.log = () => {};
   console.warn = () => {};
-  console.error = () => {};
+  // console.error = () => {};
 }
 
 const rootElement = document.getElementById('root');

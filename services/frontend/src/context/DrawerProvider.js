@@ -1,10 +1,8 @@
 import { createContext, useContext, useState } from 'react';
 import assetService from '../services/AssetService';
 import userService from '../services/UserService';
-import { Drawer, useDisclosure } from '@chakra-ui/react';
-import ItemDrawer from '../components/ItemDrawer';
+import { useDisclosure } from '@chakra-ui/react';
 import accessoryService from '../services/AccessoryService';
-import { getDisplayValue } from '../config';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
 
@@ -100,6 +98,10 @@ export const DrawerProvider = ({ children }) => {
 
 				newItem.breadcrumbId = id;
 				newItem.service = service;
+				if (service === assetService) newItem.type = "asset";
+				else if (service === userService) newItem.type = "user";
+				else if (service === accessoryService) newItem.type = "accessory";
+				else newItem.type = "unknown";
 
 				setLoading(true);
 				setState(prev => ({

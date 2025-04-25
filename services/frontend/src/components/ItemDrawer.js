@@ -49,13 +49,10 @@ const ItemDrawer = () => {
         </Breadcrumb>
       </DrawerHeader>
       <DrawerBody p={0}>
-        {currentItem?.service?.constructor.name === assetService.constructor.name ? (
-          <Asset asset={currentItem} />
-        ) : currentItem?.service?.constructor.name === userService.constructor.name ? (
-          <User user={currentItem} />
-        ) : currentItem?.service?.constructor.name === accessoryService.constructor.name ? (
-          <Accessory accType={currentItem} />
-        ) : (
+      {currentItem?.type === "asset" ? ( <Asset asset={currentItem}/> )
+        : currentItem?.type === "user" ? ( <User user={currentItem}/> )
+        : currentItem?.type === "accessory" ? ( <Accessory accType={currentItem}/> )
+        : (
           <Alert status="error" borderRadius="md" m="4">
             <AlertIcon />
             <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
