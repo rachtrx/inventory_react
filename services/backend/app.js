@@ -56,6 +56,7 @@ const accessoryRoutes = require('./routes/accessoryRoutes.js');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
+const reminderRoutes = require('./routes/reminderRoutes');
 
 app.use('/inventory/auth', authRoutes);
 app.use('/inventory/assets', assetRoutes);
@@ -64,6 +65,7 @@ app.use('/inventory/dashboard', dashboardRoutes);
 app.use('/inventory/events', eventRoutes);
 app.use('/inventory/accessories', accessoryRoutes);
 app.use('/inventory/forms', formRoutes);
+app.use('/inventory/reminders', reminderRoutes);
 
 // Setup global error handling middleware to catch authentication errors
 

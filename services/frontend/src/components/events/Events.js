@@ -11,7 +11,7 @@ import EventActions from './EventActions';
 export const EventsPage = () => {
 
   return (
-    <ItemsProvider service={eventService}>
+    <ItemsProvider service={eventService} initSortField="eventDate" initSortOrder="desc">
       <RecordsLayout
         header="Events"
         Filters={EventFilters}

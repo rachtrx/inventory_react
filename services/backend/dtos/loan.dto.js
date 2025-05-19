@@ -20,14 +20,43 @@ class LoanDTO {
         this.reserveEventId = reserveEventId;
 
         if (expectedReturnDate) {
-            const date = new Date(expectedReturnDate);
-            this.expectedReturnDate = date.toLocaleDateString("en-GB", {
+            const expected = new Date(expectedReturnDate);
+        
+            // Force Singapore date parts
+            const sgNow = new Date();
+            const sgParts = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Singapore",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }).formatToParts(sgNow);
+        
+            const day = sgParts.find(p => p.type === "day").value;
+            const month = sgParts.find(p => p.type === "month").value;
+            const year = sgParts.find(p => p.type === "year").value;
+        
+            // Construct new Date in Singapore timezone (local midnight)
+            const today = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
+        
+            if (id === "1B1896E5") {
+                logger.info(expected);
+                logger.info(today);
+            }
+        
+            expected.setHours(0, 0, 0, 0);
+        
+            if (expected < today) this.overdue = "red";
+            else if (expected.getTime() === today.getTime()) this.overdue = "yellow";
+            else this.overdue = null;
+        
+            this.expectedReturnDate = expected.toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
                 timeZone: "Asia/Singapore"
             });
         }
+        
 
         if (expectedLoanDate) {
             const date = new Date(expectedLoanDate);

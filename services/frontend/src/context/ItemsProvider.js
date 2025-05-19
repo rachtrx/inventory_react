@@ -9,7 +9,7 @@ import { useSearchParams } from 'react-router-dom';
 const ItemsContext = createContext();
 
 // Devices Provider component
-export const ItemsProvider = ({ children, service, idField }) => {
+export const ItemsProvider = ({ children, service, idField, initSortField, initSortOrder="asc" }) => {
   console.log("rendering items provider");
   const [data, setData] = useState([]);
   const { handleError } = useUI();
@@ -25,8 +25,8 @@ export const ItemsProvider = ({ children, service, idField }) => {
   const [maxPage, setMaxPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const [sortField, setSortField] = useState("typeName");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortField, setSortField] = useState(initSortField);
+  const [sortOrder, setSortOrder] = useState(initSortOrder);
 
   // useEffect(() => {
   //   console.log(filters);
@@ -119,6 +119,7 @@ export const ItemsProvider = ({ children, service, idField }) => {
         });
         console.log(response.data.totalPages);
         console.log(response.data.totalCount);
+        console.log(response.data?.data?.slice(0, 10));
         setData(response.data.data);
         setMaxPage(response.data.totalPages);
         setTotalCount(response.data.totalCount);
@@ -157,19 +158,6 @@ export const ItemsProvider = ({ children, service, idField }) => {
     }
   }, [handleError, service, setLoading, idField]);
 
-  const fetchFilters = useCallback(async (filterName) => {
-    try {
-      const response = await service.getFilters(filterName);
-      const filterOptions = response.data;
-      setFilters(prevFilters => ({
-        ...prevFilters,
-        [filterName]: filterOptions
-      }));
-    } catch (error) {
-      handleError(`Error fetching ${filterName} filters: ${error.message}`);
-    }
-  }, [handleError, service]);
-
   return (
     <ItemsContext.Provider value={{ 
       defaultFilters: service.defaultFilters,
@@ -179,7 +167,6 @@ export const ItemsProvider = ({ children, service, idField }) => {
       handleSort,
       sortField,
       sortOrder,
-      fetchFilters,
       fetchAllFilters,
       setSearchFilters,
       downloadExcel,

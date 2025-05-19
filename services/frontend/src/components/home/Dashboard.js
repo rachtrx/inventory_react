@@ -8,8 +8,6 @@ import { api } from '../../config';
 import { API_URL } from '../../config';
 import { Box, Container, Flex, Grid, VStack } from '@chakra-ui/react';
 import { getDoughnutOptions, getBarOptions } from './config';
-import { useUI } from '../../context/UIProvider';
-import { Reminders } from './Reminders';
 import { useLoading } from '../../context/LoadingProvider';
 import { convertCamelToTitle } from './utils';
 
@@ -106,7 +104,6 @@ export default function Dashboard() {
             ))}
             </Flex>
 
-            <Reminders />
         </VStack>
     );
 }

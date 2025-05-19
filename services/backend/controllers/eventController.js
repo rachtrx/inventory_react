@@ -2,18 +2,18 @@ const { Rmk, Admin, Ast, AccTxn, AccType, Usr, Loan, AstLoan, AccReturn, AccLoan
 const logger = require('../logging.js');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
 const EventLogDTO = require("../dtos/eventLog.dto");
-const { getAllOptions, getUserFilters, getAssetFilters, assetFilters, userFilters, FormType, assetTagMapQuery, userTagMapQuery, getSortCondition, generateExcel } = require("./utils.js");
+const { FormType, assetTagMapQuery, userTagMapQuery, getSortCondition, generateExcel } = require("./utils.js");
 const { Op } = require("sequelize");
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const EventFilterController = require("./helpers/EventFilterController.js");
 
-class EventController {
+class EventController extends EventFilterController {
 
     constructor() {
+        super()
         this.fixedFields = ['adminId', 'eventDate', 'id']
-        this.userFields = ["deptName", "userTag"]
-        this.assetFields = ["typeName", "subTypeName", "assetTag"]
     }
 
     async addRemark(req, res) {
@@ -44,47 +44,6 @@ class EventController {
             console.error("Remark failed to add:", err);
             return res.status(400).json({ error: err.message });
         }   
-    }
-
-    getFilters = async(req, res) => {
-        const { field } = req.body;
-
-        let options;
-        try {
-            if (this.userFields.includes(field)) options = await getUserFilters(field);
-            else if (this.assetFields.includes(field)) options = await getAssetFilters(field);
-            else if (field === 'admin') {
-                const meta = [Admin, 'adminName', 'id'];
-                options = await getAllOptions(meta);
-            } else throw new Error(`Unknown filtering field detected: ${field}`);
-            return res.json(options || [])
-        } catch (error) {
-            logger.error(error)
-            console.error(error);
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    getAllFilters = async (req, res) => {
-        try {
-            const assetOptionsDict = Object.fromEntries(
-                await Promise.all(
-                    this.assetFields.map(async (field) => [field, await getAssetFilters(field)])
-                )
-            );
-            const userOptionsDict = Object.fromEntries(
-                await Promise.all(
-                    this.assetFields.map(async (field) => [field, await getAssetFilters(field)])
-                )
-            );
-            const meta = [Admin, 'adminName', 'id'];
-            const options = await getAllOptions(meta);
-            return res.json({...assetOptionsDict, ...userOptionsDict, admin: options})
-        } catch (error) {
-            logger.error(error)
-            console.error(error);
-            res.status(500).json({ error: error.message });
-        }
     }
 
     getAllEventsEndpoint = async (req, res, next) => {
@@ -287,6 +246,15 @@ class EventController {
 
         if (conditionGroups.length > 0) {
             whereClause[Op.and] = conditionGroups;
+
+            if (filters?.startDate || filters?.endDate) {
+                whereClause[Op.and].push({
+                    eventDate: {
+                        ...(filters.startDate && { [Op.gte]: filters.startDate }),
+                        ...(filters.endDate && { [Op.lte]: filters.endDate }),
+                    }
+                });
+            }
         }
 
         // console.log(filters.assetTag);

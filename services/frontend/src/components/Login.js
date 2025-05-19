@@ -42,7 +42,7 @@ export default function Login() {
       const response = await authService.login(values.email, values.password);
       const validatedAdmin = response.data;
       setAdmin(validatedAdmin);
-      navigate('/dashboard', {replace: true});
+      navigate('/reminders', {replace: true});
     } catch (err) {
       console.error('Login failed:', err.response ? err.response.data : err);
     } finally {

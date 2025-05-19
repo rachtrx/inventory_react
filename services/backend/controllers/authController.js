@@ -60,26 +60,39 @@ class AuthController {
           })
       );
 
-      const { access_token } = tokenResponse.data;
-      console.log(access_token);
+      const { id_token, access_token } = tokenResponse.data;
+
+      const decoded = jwt.decode(id_token);
+
+      const inGroup = decoded.groups?.includes(process.env.SECURITY_GROUP_ID); 
+      if (!inGroup) {
+        return res.status(403).send("Access denied: not in required security group");
+      }
+
+      // logger.info(decoded, { depth: null });
+      // logger.info(decoded.name);
+      // logger.info("Groups:", decoded.groups);
+      // console.log(access_token);
 
       // Fetch user profile from Microsoft Graph
-      const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
-        headers: { Authorization: `Bearer ${access_token}` },
-      });
+      // const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
+      //   headers: { Authorization: `Bearer ${access_token}` },
+      // });
 
-      const profile = profileResponse.data;
+      // const profile = profileResponse.data;
+
+      // logger.info(profile)
 
       // Authenticate user in database
-      let admin = await Admin.findOne({ where: { id: profile.id } });
+      let admin = await Admin.findOne({ where: { id: decoded.oid } });
 
       if (!admin) {
-      admin = await Admin.create({
-          id: profile.id,
-          email: profile.mail,
-          adminName: profile.displayName,
-          authType: ["SSO"],
-      });
+        admin = await Admin.create({
+            id: decoded.oid,
+            email: decoded.email,
+            adminName: decoded.name,
+            authType: ["SSO"],
+        });
       }
 
       const jwtToken = generateToken(admin); // Generate JWT for frontend

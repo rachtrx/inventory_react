@@ -1,13 +1,15 @@
 import {
+  Box,
     Flex,
+    IconButton,
     Menu,
+    Tooltip,
     useColorModeValue,
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
-import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdEvent } from 'react-icons/md'; // react-icons
+import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdAlarm } from 'react-icons/md'; // react-icons
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthProvider';
-import { useCallback } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { useUI } from '../context/UIProvider';
 
 const Nav = () => {
@@ -26,8 +28,9 @@ const Nav = () => {
       bg={useColorModeValue('gray.50', 'gray.900')}
       color={linkHoverColor}
     >
+
       <Menu>
-        <NavButton next={() => navigate('/dashboard')} icon={<MdDashboard />} label="Home" />
+        <NavButton next={() => navigate('/reminders')} icon={<MdAlarm />} label="Reminders" />
       </Menu>
 
       <Menu>
@@ -46,13 +49,34 @@ const Nav = () => {
         <NavButton next={() => navigate('/users')} icon={<MdPeople />} label="Users" />
       </Menu>
 
-      <Menu>
-        <NavButton next={handleDevError} icon={<MdEvent />} label="Reservations" />
-      </Menu>
+      <Flex gap={3} align="center">
+        <Tooltip label="Stats" hasArrow>
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              as={RouterLink}
+              to="/stats"
+              icon={<MdDashboard />}
+              aria-label="Stats"
+              variant="ghost"
+            />
+          </Box>
+        </Tooltip>
 
-      <Menu>
-        <NavButton next={() => navigate('/profile')} icon={<MdAccountCircle />} label="Profile" />
-      </Menu>
+        <Tooltip label="Profile" hasArrow placement="bottom">
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              icon={<MdAccountCircle />}
+              aria-label="Profile"
+              variant="ghost"
+              onClick={() => navigate('/profile')}
+            />
+          </Box>
+        </Tooltip>
+      </Flex>
+
+      {/* <Menu>
+        <NavButton next={handleDevError} icon={<MdEvent />} label="Reservations" />
+      </Menu> */}
 
     </Flex>
   );

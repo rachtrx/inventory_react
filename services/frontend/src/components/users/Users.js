@@ -9,7 +9,7 @@ import userService from "../../services/UserService";
 export const UsersPage = () => {
 
   return (
-    <ItemsProvider service={userService} idField="userId">
+    <ItemsProvider service={userService} idField="userId" initSortField="userName">
       <RecordsLayout
         header="Users"
         Filters={UserFilters}

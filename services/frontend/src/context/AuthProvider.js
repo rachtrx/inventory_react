@@ -31,8 +31,9 @@ export const AuthProvider = () => {
           setAdmin(validatedAdmin);
           // Redirect only if on the login page.
           if (location.pathname === '/login') {
+            console.log("IN LOGIN");
             if (!validatedAdmin.canSetupPassword) {
-              navigate('/dashboard');
+              navigate('/reminders');
             } else {
               navigate('/profile');
             }
@@ -40,6 +41,7 @@ export const AuthProvider = () => {
         }
       } catch (error) {
         // Optionally, only redirect to login if not already there.
+        console.log(error)
         if (location.pathname !== '/login') {
           navigate('/login');
         }

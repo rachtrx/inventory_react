@@ -436,7 +436,19 @@ class UserController {
                     ]
                 }
             ],
-            order: [['eventDate', 'DESC']]
+            order: [
+                [
+                  Sequelize.literal(`
+                    CASE
+                      WHEN "DeletedUser"."id" IS NOT NULL THEN 0
+                      WHEN "AddedUser"."id" IS NOT NULL THEN 2
+                      ELSE 1
+                    END
+                  `),
+                  'ASC'
+                ],
+                ['eventDate', 'DESC']
+            ]
         });
 
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects
