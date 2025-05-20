@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useUI } from "../../context/UIProvider.js"
-import reminderService from "../../services/EventService.js";
+import reminderService from "../../services/ReminderService.js";
 import { 
   Box,
   Checkbox, 

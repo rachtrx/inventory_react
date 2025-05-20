@@ -88,9 +88,10 @@ class ReminderController extends EventFilterController {
 			expectedReturnDateClause[Op.gte] = new Date(filters.startDate);
 		}
 		if (filters?.endDate) {
-			expectedReturnDateClause[Op.lte] = new Date(filters.endDate);
+			expectedReturnDateClause[Op.lte] = new Date(filters.endDate).setHours(23, 59, 59, 999);
 		}
-		if (Object.keys(expectedReturnDateClause).length > 0) {
+
+		if (expectedReturnDateClause[Op.gte] || expectedReturnDateClause[Op.lte]) {
 			conditionGroups.push({ expectedReturnDate: expectedReturnDateClause });
 		}
           
@@ -190,90 +191,6 @@ class ReminderController extends EventFilterController {
 
         return query;
     }
-
-	getScheduledReturns = async(req, res) => {
-		try {
-			const query = await Loan.findAll({
-				include: [
-					{
-						model: Usr,
-                        attributes: ['id', 'userName'],
-                        include: [
-                            {
-                                model: Dept,
-                                attributes: ['id', 'deptName']
-                            },
-                            ...(filters?.userTag ? [userTagMapQuery(filters.userTag)] : [])
-                        ],
-					},
-					{
-						model: AstLoan,
-						required: false,
-						include: [
-                            {
-                                model: Ast,
-                                attributes: ['id', 'serialNumber'], // todo add details so timeline can display
-                                required: false,
-                                include: [
-                                    {
-                                        model: AstSType,
-                                        attributes: ['id','subTypeName'],
-                                        include: {
-                                            model: AstType,
-                                            attributes: ['id', 'typeName']
-                                        },
-                                    },
-                                    ...(filters?.assetTag ? [assetTagMapQuery(filters.assetTag)] : [])
-                                ]
-                            }
-                        ]
-					},
-					{
-						model: AccLoan,
-						required: false,
-						include: [
-							{
-								model: AccReturn
-							},
-							{
-								model: AccType
-							}
-						]
-					}
-				],
-				where: {
-					[Op.and]: [
-						{
-							expectedReturnDate: {
-								[Op.gte]: new Date()
-							}
-						},
-						{
-							[Op.or]: [
-								Sequelize.literal(`EXISTS (
-									SELECT 1 FROM ast_loans
-									WHERE ast_loans.return_event_id IS NULL
-									AND ast_loans.id = "AstLoan"."id"
-								)`),
-								Sequelize.literal(`EXISTS (
-									SELECT 1
-									FROM "acc_returns" AS "AccReturns"
-									WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
-									GROUP BY "AccLoans"."id"
-									HAVING COALESCE(SUM("AccReturns"."count"), 0) <= "AccLoans"."count"
-								)`),
-							]
-						}
-					]
-				},
-				order: [['expectedReturnDate', 'ASC']]
-			})
-			const loans = query.map(loan => new LoanDTO(loan));
-			res.json(loans);
-		} catch (err) {
-			res.status(500).json({ error: "Unable to retrieve reminders" });
-		}
-	}
 
 	async updateExpectedReturnDate (req, res) {
         const { loanIds, newReturnDate } = req.body;

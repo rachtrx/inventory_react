@@ -244,20 +244,25 @@ class EventController extends EventFilterController {
             ...(eventTypeConditions.length > 0 ? [{ [Op.or]: eventTypeConditions }] : [])
         ];
 
-        if (conditionGroups.length > 0) {
-            whereClause[Op.and] = conditionGroups;
-
-            if (filters?.startDate || filters?.endDate) {
-                whereClause[Op.and].push({
-                    eventDate: {
-                        ...(filters.startDate && { [Op.gte]: filters.startDate }),
-                        ...(filters.endDate && { [Op.lte]: filters.endDate }),
-                    }
-                });
+        const dateFilter = (filters?.startDate || filters?.endDate) && {
+            eventDate: {
+                ...(filters.startDate && { [Op.gte]: filters.startDate }),
+                ...(filters.endDate && {
+                    [Op.lte]: new Date(filters.endDate).setHours(23, 59, 59, 999)
+                }),
             }
+        };
+        
+        const andConditions = [
+            ...conditionGroups,
+            ...(dateFilter ? [dateFilter] : [])
+        ];
+        
+        if (andConditions.length > 0) {
+            whereClause[Op.and] = andConditions;
         }
 
-        // console.log(filters.assetTag);
+        console.log(filters.endDate);
         const query = await Event.findAll({
             attributes: ['id', 'adminId', 'eventDate'],
             logger: console.log,

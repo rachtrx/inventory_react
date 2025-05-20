@@ -252,60 +252,6 @@ class AuthController {
     res.clearCookie('INVENTORY_REFRESH');
     res.json({ msg: 'Logout successful' });
   }
-
-  getAccessToken = async () => {
-    const tokenResponse = await axios.post(
-      `https://login.microsoftonline.com/${process.env.TENANT_ID}/oauth2/v2.0/token`,
-      qs.stringify({
-        client_id: process.env.AZURE_CLIENT_ID,
-        client_secret: process.env.AZURE_CLIENT_SECRET,
-        scope: 'https://graph.microsoft.com/.default',
-        grant_type: 'client_credentials',
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-  
-    return tokenResponse.data.access_token;
-  }
-  
-  sendSystemEmail = async (to, subject, bodyText) => {
-    const token = await getAccessToken();
-  
-    await axios.post(
-      `https://graph.microsoft.com/v1.0/users/${process.env.SENDER_EMAIL}/sendMail`,
-      {
-        message: {
-          subject: subject,
-          body: {
-            contentType: 'Text',
-            content: bodyText,
-          },
-          // body: {
-          //   contentType: 'HTML',
-          //   content: '<b>This is bold HTML content</b>',
-          // },
-          toRecipients: [
-            {
-              emailAddress: {
-                address: to,
-              },
-            },
-          ],
-        },
-        saveToSentItems: 'true',
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  }  
 }
 
 module.exports = new AuthController();

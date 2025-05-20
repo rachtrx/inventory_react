@@ -22,7 +22,7 @@ import {
 import { FiMoreVertical } from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
 import { useUI } from "../../context/UIProvider.js";
-import eventService from "../../services/EventService.js";
+import reminderService from "../../services/ReminderService.js";
 import { UpdateReturnDate } from "../home/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import { ResponsiveText } from "../utils/ResponsiveText.js";
@@ -59,7 +59,7 @@ function ReminderCards({ items }) {
 
   const handleSubmit = async (values) => {
     try {
-      const response = await eventService.extendReturnDate({ loanIds: selectedLoanIds, ...values });
+      const response = await reminderService.extendReturnDate({ loanIds: selectedLoanIds, ...values });
       showToast(response.data?.message, 'success', 1000);
       onClose();
     } catch (err) {
