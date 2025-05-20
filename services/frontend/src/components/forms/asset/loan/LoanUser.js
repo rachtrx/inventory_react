@@ -113,7 +113,7 @@ export const LoanUser = () => {
 									<AddButton
 										alignSelf="flex-start"
 										handleClick={() => loanHelpers.push(createNewLoan())}
-										label={`Add loan for ${loan.userName ? `${loan.userName}` : `User #${userIndex+1}`}`}
+										label={`Add loan for ${user.userName ? `${user.userName}` : `User #${userIndex+1}`}`}
 									/>
 								)}
 							</LoanItems>

@@ -167,7 +167,7 @@ export const LoanStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.loans}>Next</Button>
+                  <Button colorScheme="blue" type="submit" isDisabled={errors.users}>Next</Button>
                 </ModalFooter>
               </Form>
             );
