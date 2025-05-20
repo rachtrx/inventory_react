@@ -228,6 +228,27 @@ class EventController extends EventFilterController {
             { '$AssetReturn->Ast->AstTagMaps->AstTag.id$': { [Op.in]: filters.assetTag } },
         ] : []
 
+        const snConditions = filters?.serialNumber?.trim() ? [
+            { '$AddedAsset.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$DeletedAsset.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$Loan->AstLoan->Ast.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$Reservation->AstLoan->Ast.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$AssetReturn->Ast.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$AddedAstTag->Ast.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+            { '$DeletedAstTag->Ast.serial_number$': { [Op.iLike]: `%${filters.serialNumber}%` } },
+        ] : [];
+
+        const unConditions = filters?.userName?.trim() ? [
+            { '$AddedUser.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$DeletedUser.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$Loan->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$Reservation->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$AssetReturn->Loan->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$AccReturns->AccLoan->Loan->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$AddedUsrTag->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+            { '$DeletedUsrTag->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
+        ] : [];
+
         const adminConditions = filters?.admin ? [
             { '$Admin.id$': { [Op.in]: filters.admin } },
         ] : []
@@ -241,7 +262,9 @@ class EventController extends EventFilterController {
             ...(userTagConditions.length > 0 ? [{ [Op.or]: userTagConditions }] : []),
             ...(assetTagConditions.length > 0 ? [{ [Op.or]: assetTagConditions }] : []),
             ...(adminConditions.length > 0 ? [{ [Op.or]: adminConditions }] : []),
-            ...(eventTypeConditions.length > 0 ? [{ [Op.or]: eventTypeConditions }] : [])
+            ...(eventTypeConditions.length > 0 ? [{ [Op.or]: eventTypeConditions }] : []),
+            ...(snConditions.length > 0 ? [{ [Op.or]: snConditions }] : []),
+            ...(unConditions.length > 0 ? [{ [Op.or]: unConditions }] : [])
         ];
 
         const dateFilter = (filters?.startDate || filters?.endDate) && {

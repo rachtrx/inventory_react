@@ -69,19 +69,28 @@ class ReminderController extends EventFilterController {
         if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
 
         const filterDefs = [
-            { key: 'typeName', path: '$AstLoan->Ast->AstSType->AstType.id$' },
-            { key: 'subTypeName', path: '$AstLoan->Ast->AstSType.id$' },
-            { key: 'deptName', path: '$Usr->Dept.id$' },
-            { key: 'userTag', path: '$Usr->UsrTag.id$' },
-            { key: 'assetTag', path: '$AstLoan->Ast->AstTag.id$' },
-            { key: 'admin', path: '$Admin.id$' }
+			{ key: 'typeName', path: '$AstLoan->Ast->AstSType->AstType.id$', op: Op.in },
+			{ key: 'subTypeName', path: '$AstLoan->Ast->AstSType.id$', op: Op.in },
+			{ key: 'deptName', path: '$Usr->Dept.id$', op: Op.in },
+			{ key: 'userTag', path: '$Usr->UsrTag.id$', op: Op.in },
+			{ key: 'assetTag', path: '$AstLoan->Ast->AstTag.id$', op: Op.in },
+			{ key: 'admin', path: '$Admin.id$', op: Op.in },
+			{ key: 'userName', path: '$Usr.user_name$', op: Op.iLike },
+			{ key: 'serialNumber', path: '$AstLoan->Ast.serial_number$', op: Op.iLike }
 		];
 		
-		const conditionGroups = filterDefs.flatMap(({ key, path }) =>
-            filters?.[key]?.length
-				? [{ [Op.or]: [{ [path]: { [Op.in]: filters[key] } }] }]
-				: []
-		);
+		const conditionGroups = filterDefs.flatMap(({ key, path, op }) => {
+			const val = filters?.[key];
+			if (!val || val.length === 0) return [];
+		
+			// Handle iLike as partial string match
+			if (op === Op.iLike) {
+				return [{ [Op.or]: [{ [path]: { [Op.iLike]: `%${val}%` } }] }];
+			}
+		
+			// Handle normal IN array match
+			return [{ [Op.or]: [{ [path]: { [Op.in]: val } }] }];
+		});
 
 		const expectedReturnDateClause = {};
 		if (filters?.startDate) {
