@@ -7,7 +7,7 @@ const { Op } = require("sequelize");
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const EventFilterController = require("./helpers/EventFilterController.js");
+const EventFilterController = require("./helpers/eventFilterController.js");
 
 class EventController extends EventFilterController {
 

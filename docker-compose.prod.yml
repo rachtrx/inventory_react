@@ -12,6 +12,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - FRONTEND_URL=${FRONTEND_URL}
       - DATABASE_HOST=db
+      - SECURITY_GROUP_ID=${SECURITY_GROUP_ID}
     volumes:
       - ./services/backend/logs:/usr/src/app/logs # TODO dont log all
       - ./services/backend/uploads:/usr/src/app/uploads
