@@ -120,7 +120,7 @@ class ReminderController extends EventFilterController {
 					SELECT 1 FROM "acc_returns" AS "AccReturns"
 					WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
 					GROUP BY "AccLoans"."id"
-					HAVING COALESCE(SUM("AccReturns"."count"), 0) <= "AccLoans"."count"
+					HAVING COALESCE(SUM("AccReturns"."count"), 0) < "AccLoans"."count"
 				  )`)
 				]
 			  }
