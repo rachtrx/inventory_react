@@ -106,7 +106,7 @@ class AuthController {
           httpOnly: true, secure: true, sameSite: 'strict', maxAge: DAYS_30
       });
 
-      if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Redirect user to frontend
+      if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/reminders`); // Redirect user to frontend
       return res.redirect(`${process.env.FRONTEND_URL}/profile`);
     } catch (error) {
       logger.error("OAuth Login Error:", error);

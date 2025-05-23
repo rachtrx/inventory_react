@@ -53,7 +53,7 @@ const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes.js');
-const dashboardRoutes = require('./routes/dashboardRoutes');
+const statRoutes = require('./routes/statRoutes');
 const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
 const reminderRoutes = require('./routes/reminderRoutes');
@@ -61,7 +61,7 @@ const reminderRoutes = require('./routes/reminderRoutes');
 app.use('/inventory/auth', authRoutes);
 app.use('/inventory/assets', assetRoutes);
 app.use('/inventory/users', userRoutes);
-app.use('/inventory/dashboard', dashboardRoutes);
+app.use('/inventory/stats', statRoutes);
 app.use('/inventory/events', eventRoutes);
 app.use('/inventory/accessories', accessoryRoutes);
 app.use('/inventory/forms', formRoutes);

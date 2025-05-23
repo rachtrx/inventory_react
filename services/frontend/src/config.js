@@ -22,7 +22,6 @@ api.interceptors.response.use(
 
     // Prevent interceptor loop: if the request is to an auth endpoint, reject immediately.
     if (
-      originalRequest.url.includes('/auth/checkAuth') ||
       originalRequest.url.includes('/auth/refresh')
     ) {
       return Promise.reject(error);
@@ -46,10 +45,6 @@ api.interceptors.response.use(
         // Emit a global logout event so subscribers (like AuthProvider) can react.
         eventBus.emit('logout');
 
-        // Only redirect if not already on the login page.
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
         return Promise.reject(refreshError);
       }
     }

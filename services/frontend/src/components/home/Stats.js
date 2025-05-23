@@ -14,7 +14,7 @@ import { convertCamelToTitle } from './utils';
 // Chart.register(DoughnutLabel, ChartjsPluginScrollBar);
 Chart.register(ChartjsPluginScrollBar);
 
-export default function Dashboard() {
+export default function Stats() {
 
     const [doughnuts, setDoughnuts] = useState([])
     const [barCharts, setBarCharts] = useState([])
@@ -26,7 +26,7 @@ export default function Dashboard() {
         const fetchData = async () => {
             try {
                 console.log("Fetching data for dashboard");
-                const response = await api.get(`${API_URL}/dashboard`, { withCredentials: true });
+                const response = await api.get(`${API_URL}/stats`, { withCredentials: true });
                 console.log("Axios response received", response);
                 const data = response.data;
     

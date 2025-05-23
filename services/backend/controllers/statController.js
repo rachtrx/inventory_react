@@ -1,10 +1,10 @@
-const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event, AccLoan, AccType, AccReturn } = require('../models');
+const { Sequelize, Ast, AstType, AstSType, Loan, AstLoan, Usr, Dept, sequelize, Event, AccLoan, AccType, AccReturn } = require('../models/index.js');
 const { Op } = require('sequelize');
 const { Chart, OneToOneChart, ManyToManyChart } = require('./chartDataController.js');
 const logger = require('../logging.js');
 const LoanDTO = require('../dtos/loan.dto.js');
 
-class DashboardController {
+class StatController {
 
 	constructor() {
         this.prepareChartData = this.prepareChartData.bind(this);
@@ -490,4 +490,4 @@ class DashboardController {
     }
 }
 
-module.exports = new DashboardController();
+module.exports = new StatController();

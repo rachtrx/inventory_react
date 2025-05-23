@@ -11,7 +11,7 @@ import './index.css';
 import Login from "./components/Login";
 import { AssetsPage } from "./components/assets/Assets";
 import { UsersPage } from "./components/users/Users";
-import Dashboard from "./components/home/Dashboard";
+import Stats from "./components/home/Stats";
 import { PrivateLayout } from "./components/PrivateLayout";
 import { AuthProvider } from "./context/AuthProvider";
 import Register from "./components/Register";
@@ -37,7 +37,7 @@ export const App = createBrowserRouter(
         <Route path="/assets" element={<AssetsPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/accessories" element={<AccessoriesPage />} />
-        <Route path="/stats" element={<Dashboard />} />
+        <Route path="/stats" element={<Stats />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
     </Route>

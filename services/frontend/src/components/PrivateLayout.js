@@ -10,10 +10,6 @@ import ItemDrawer from './ItemDrawer';
 export const PrivateLayout = () => {
   const { admin } = useAuth();
 
-  if (admin === null) {
-    return <Navigate to="/login" replace />;
-  }
-
   return admin ? (
     <div>
       <Nav />
