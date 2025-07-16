@@ -6,7 +6,7 @@ import { useDelAssets } from "./DelAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { LoanAstSelectFormControl } from "../loan/CustomSelect";
+import { LoanAstSelectFormControl } from "../../loan/CustomSelect";
 import assetService from "../../../../services/AssetService";
 
 export const DelAsset = function({ field, asset, children }) {

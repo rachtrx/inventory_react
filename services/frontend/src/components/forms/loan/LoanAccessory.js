@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
-import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { useFormModal } from "../../../../context/ModalProvider"
-import { useUI } from "../../../../context/UIProvider"
-import accessoryService from "../../../../services/AccessoryService"
+import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
+import { useUI } from "../../../context/UIProvider"
+import accessoryService from "../../../services/AccessoryService"
 import { Flex } from "@chakra-ui/react";
-import InputFormControl from "../../utils/InputFormControl"
+import InputFormControl from "../utils/InputFormControl"
 import { useFormikContext } from 'formik';
-import { RemoveButton } from "../../utils/ItemButtons"
+import { RemoveButton } from "../utils/ItemButtons"
 import { useLoans } from "./LoansProvider"
 import { LoanAccSelectFormControl } from "./CustomSelect"
-import WarningCard from "../../utils/Warnings"
-import loanService from "../../../../services/LoanService"
+import WarningCard from "../utils/Warnings"
+import loanService from "../../../services/LoanService"
 
 const LoanAccessory = ({ accessory, field, index, helpers }) => {
 	

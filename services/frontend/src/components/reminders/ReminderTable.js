@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { ResponsiveText } from "../utils/ResponsiveText.js";
 import { FiMoreVertical } from "react-icons/fi";
-import { UpdateReturnDate } from "../home/updateReturnDate.js";
+import { UpdateReturnDate } from "../stats/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { ACTION_COLORS } from '../buttons/constants'; 

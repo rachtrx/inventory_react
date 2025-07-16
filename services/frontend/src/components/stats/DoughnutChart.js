@@ -9,6 +9,7 @@ export default function DoughnutChart({ loading, data, options, title }) {
     <Box
       w="100%"
       p={4}
+      gap={4}
       borderWidth="1px"
       borderRadius="lg"
       boxShadow="md"

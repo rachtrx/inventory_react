@@ -3,14 +3,14 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid';
 import { useReturn } from "./ReturnProvider"
 import { useReturns } from "./ReturnsProvider"
-import { useUI } from "../../../../context/UIProvider"
-import assetService from "../../../../services/AssetService"
+import { useUI } from "../../../context/UIProvider"
+import assetService from "../../../services/AssetService"
 import { ReturnAccSelectFormControl, ReturnAstSelectFormControl, ReturnUsrSelectFormControl } from "./CustomSelect"
-import userService from "../../../../services/UserService"
-import accessoryService from "../../../../services/AccessoryService"
+import userService from "../../../services/UserService"
+import accessoryService from "../../../services/AccessoryService"
 import { Select } from "@chakra-ui/react";
 import { useFormikContext } from "formik";
-import loanService from "../../../../services/LoanService";
+import loanService from "../../../services/LoanService";
 
 export const createNewAccessory = (accLoan) => ({
 	key: uuidv4(),

@@ -1,75 +1,79 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  ModalBody,
+  ModalFooter,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
+import { Formik, Form } from "formik";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
-import { FormikSignatureField } from "../../../utils/SignatureField";
-import { FieldArray, Form, Formik } from "formik";
 import { useUserTags } from "../UserTagsProvider";
 
 export const AddUserTagsStep2 = () => {
-
   const { formData, handleAddTagsSubmit, prevStep } = useUserTags();
 
-	return (
-		<Formik
-			initialValues={formData}
-			onSubmit={handleAddTagsSubmit}
-			validateOnChange={true}
-			enableReinitialize={true}
-			// validateOnBlur={true}
-		>
-			<Form>
-				<ModalBody>
-				{Object.entries(formData).map(([type, subTypes], idx) => (
-					<Flex 
-						key={idx}
-						direction="column"
-						border="1px solid"
-						borderColor="gray.300"
-						borderRadius="md"
-						p={4}
-						mb={4}
-						boxShadow="sm"
-					>
-						{/* Display Asset Information */}
-						<ResponsiveText size="lg" fontWeight="bold">
-						Type: {type}
-						</ResponsiveText>
+  return (
+    <Formik
+      initialValues={formData}
+      onSubmit={handleAddTagsSubmit}
+      validateOnChange={true}
+      enableReinitialize={true}
+    >
+      <Form>
+        <ModalBody>
+          {formData.tags.map((tag, tagIndex) => (
+            <Flex
+              key={tag.key || tagIndex}
+              direction="column"
+              border="1px solid"
+              borderColor="gray.300"
+              borderRadius="md"
+              p={4}
+              mb={4}
+              boxShadow="sm"
+            >
+              <ResponsiveText size="lg" fontWeight="bold">
+                Tag: {tag.tagName}
+              </ResponsiveText>
 
-						{/* Display Users Associated with This Asset */}
-						{/* {assetReturn.userNames.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.userNames.map((userName, index) => (
-								<ListItem key={assetReturn.userIds[index]}>
-								{userName}
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
+              {tag.users.length > 0 && (
+                <Box overflowX="auto" w="100%" mt={2}>
+                  <Table size="sm" variant="striped" minW="500px">
+                    <Thead>
+                      <Tr>
+                        <Th>User Name</Th>
+                        <Th>Remarks</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {tag.users.map((user, userIndex) => (
+                        <Tr key={user.key || userIndex}>
+                          <Td>{user.userName}</Td>
+                          <Td>{user.remarks || "-"}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              )}
+            </Flex>
+          ))}
 
-						{/* Display Accessories Associated with This Asset */}
-						{/* {assetReturn.accessories.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.accessories.map(accessory => (
-								<ListItem key={accessory.accessoryTypeId}>
-								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryLoanIds.length} returned
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
-					</Flex>
-					))}
-				</ModalBody>
-			
-				<ModalFooter>
-					<Button onClick={prevStep}>Back</Button>
-					<Button colorScheme="blue" type="submit">Submit</Button>
-				</ModalFooter>
-			</Form>
-		</Formik>
-	);
-}
+        </ModalBody>
+
+        <ModalFooter>
+          <Button onClick={prevStep}>Back</Button>
+          <Button colorScheme="blue" type="submit">
+            Confirm
+          </Button>
+        </ModalFooter>
+      </Form>
+    </Formik>
+  );
+};

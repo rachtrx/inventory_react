@@ -16,6 +16,9 @@ export const AccessoriesPage = () => {
         Actions={AccessoryActions}
         Cards={AccessoryCards}
         Table={AccessoryTable}
+        defaultSearches={[
+          { attr: "accessoryName", label: "accessory"},
+        ]}
       />
     </ItemsProvider>
   );

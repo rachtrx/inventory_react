@@ -26,8 +26,7 @@ const DelUsersContext = createContext();
 export const DelUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { reload } = useItems();
-  const { setFormType, initialValues } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [userOptions, setUserOptions] = useState([]);
@@ -136,7 +135,7 @@ export const DelUsersProvider = ({ children }) => {
       setLoading(false);
       showToast('Users successfully deleted', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

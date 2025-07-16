@@ -1,6 +1,6 @@
 import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
-import { FormikSignatureField } from "../../utils/SignatureField";
+import { ResponsiveText } from "../../utils/ResponsiveText";
+import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useReturns } from "./ReturnsProvider";

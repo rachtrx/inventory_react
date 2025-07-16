@@ -59,12 +59,6 @@ const EventFilters = () => {
                 label="Asset Type"
                 name="typeName"
             />
-
-            <InputFormControl
-                name="serialNumber"
-                label="Serial Number"
-                placeholder="Serial Number"
-            />
     
             <CheckboxGroupField
                 items={filters.subTypeName}
@@ -76,12 +70,6 @@ const EventFilters = () => {
                 items={filters.deptName}
                 label="Department"
                 name="deptName"
-            />
-
-            <InputFormControl
-                name="userName"
-                label="User Name"
-                placeholder="User Name"
             />
 
             <CheckboxGroupField

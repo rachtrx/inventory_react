@@ -29,9 +29,8 @@ const UpdateAccessories = () => {
 
   // console.log('update acc form rendered');
 
-  const { setFormType, initialValues, reinitializeForm } = useFormModal()
+  const { setFormType, initialValues, reinitializeForm, triggerRefresh } = useFormModal()
   const { showToast, handleError } = useUI();
-  const { reload } = useItems();
   const { setLoading } = useLoading();
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
@@ -67,7 +66,7 @@ const UpdateAccessories = () => {
       setLoading(false);
       showToast('Accessories successfully loaned', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();
     } catch (err) {
       console.error(err);
       handleError(err);

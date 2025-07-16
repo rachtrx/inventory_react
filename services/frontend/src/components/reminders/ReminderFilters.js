@@ -35,12 +35,6 @@ const ReminderFilters = () => {
                 label="Asset Type"
                 name="typeName"
             />
-
-            <InputFormControl
-                name="serialNumber"
-                label="Serial Number"
-                placeholder="Serial Number"
-            />
     
             <CheckboxGroupField
                 items={filters.subTypeName}
@@ -52,12 +46,6 @@ const ReminderFilters = () => {
                 items={filters.deptName}
                 label="Department"
                 name="deptName"
-            />
-
-            <InputFormControl
-                name="userName"
-                label="User Name"
-                placeholder="User Name"
             />
 
             <CheckboxGroupField

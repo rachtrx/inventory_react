@@ -17,6 +17,10 @@ export const RemindersPage = () => {
         Actions={ReminderActions}
         Cards={ReminderCards}
         Table={ReminderTable}
+        defaultSearches={[
+          { attr: "serialNumber", label: "asset"},
+          { attr: "userName", label: "user"}
+        ]}
       />
     </ItemsProvider>
   );

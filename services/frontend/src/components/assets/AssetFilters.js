@@ -38,12 +38,6 @@ export default function AssetFilters() { // TODO can have external filters from 
             label="Asset Type"
             name="typeName"
         />
-        
-        <InputFormControl
-            name="serialNumber"
-            label="Serial Number"
-            placeholder="Serial Number"
-        />
 
         <CheckboxGroupField
             items={filters.subTypeName}

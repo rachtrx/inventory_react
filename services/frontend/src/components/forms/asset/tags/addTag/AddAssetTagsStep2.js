@@ -1,4 +1,4 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, UnorderedList, VStack } from "@chakra-ui/react";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { FormikSignatureField } from "../../../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
@@ -17,59 +17,53 @@ export const AddAssetTagsStep2 = () => {
 			// validateOnBlur={true}
 		>
 			<Form>
-				<ModalBody>
-				{Object.entries(formData).map(([type, subTypes], idx) => (
-					<Flex 
-						key={idx}
-						direction="column"
-						border="1px solid"
-						borderColor="gray.300"
-						borderRadius="md"
-						p={4}
-						mb={4}
-						boxShadow="sm"
-					>
-						{/* Display Asset Information */}
-						<ResponsiveText size="lg" fontWeight="bold">
-						Type: {type}
-						</ResponsiveText>
+			<ModalBody>
+			{formData.tags.map((tag, tagIndex) => (
+				<Flex
+				key={tagIndex}
+				direction="column"
+				border="1px solid"
+				borderColor="gray.300"
+				borderRadius="md"
+				p={4}
+				mb={4}
+				boxShadow="sm"
+				>
+				<ResponsiveText size="lg" fontWeight="bold">
+					Tag: {tag.tagName}
+				</ResponsiveText>
 
-						{/* Display Users Associated with This Asset */}
-						{/* {assetReturn.userNames.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.userNames.map((userName, index) => (
-								<ListItem key={assetReturn.userIds[index]}>
-								{userName}
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
+				{tag.assets.length > 0 && (
+					<Box overflowX="auto" w="100%" mt={2}>
+					<Table size="sm" variant="striped" minW="500px">
+						<Thead>
+						<Tr>
+							<Th>Serial Number</Th>
+							<Th>Remarks</Th>
+						</Tr>
+						</Thead>
+						<Tbody>
+						{tag.assets.map((asset, assetIndex) => (
+							<Tr key={assetIndex}>
+							<Td>{asset.serialNumber}</Td>
+							<Td>{asset.remarks || '-'}</Td>
+							</Tr>
+						))}
+						</Tbody>
+					</Table>
+					</Box>
+				)}
+				</Flex>
+			))}
+			</ModalBody>
 
-						{/* Display Accessories Associated with This Asset */}
-						{/* {assetReturn.accessories.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.accessories.map(accessory => (
-								<ListItem key={accessory.accessoryTypeId}>
-								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryLoanIds.length} returned
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
-					</Flex>
-					))}
-				</ModalBody>
-			
-				<ModalFooter>
-					<Button onClick={prevStep}>Back</Button>
-					<Button colorScheme="blue" type="submit">Submit</Button>
-				</ModalFooter>
-			</Form>
+			<ModalFooter>
+				<Button onClick={prevStep}>Back</Button>
+				<Button colorScheme="blue" type="submit">
+					Submit
+				</Button>
+			</ModalFooter>
+		</Form>
 		</Formik>
 	);
 }

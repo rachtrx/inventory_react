@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { LoanStep2 } from "./LoanStep2";
 import { LoanStep1 } from "./LoanStep1";
-import { useUI } from "../../../../context/UIProvider";
-import assetService from "../../../../services/AssetService";
+import { useUI } from "../../../context/UIProvider";
+import assetService from "../../../services/AssetService";
 import { createNewLoan, createNewUser } from "./LoanUser";
 import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../../context/ModalProvider";
-import { compareStrings, convertExcelDate } from "../../utils/validation";
-import userService from "../../../../services/UserService";
-import accessoryService from "../../../../services/AccessoryService";
-import { useLoading } from "../../../../context/LoadingProvider";
-import loanService from "../../../../services/LoanService";
-import { useItems } from "../../../../context/ItemsProvider";
+import { useFormModal } from "../../../context/ModalProvider";
+import { compareStrings, convertExcelDate } from "../utils/validation";
+import userService from "../../../services/UserService";
+import accessoryService from "../../../services/AccessoryService";
+import { useLoading } from "../../../context/LoadingProvider";
+import loanService from "../../../services/LoanService";
+import { useItems } from "../../../context/ItemsProvider";
 
 // Create a context
 const LoansContext = createContext();
@@ -20,8 +20,7 @@ const LoansContext = createContext();
 export const LoansProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { reload } = useItems();
-  const { setFormType, initialValues } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [locationOptions, setLocationOptions] = useState([]);
@@ -251,7 +250,7 @@ export const LoansProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

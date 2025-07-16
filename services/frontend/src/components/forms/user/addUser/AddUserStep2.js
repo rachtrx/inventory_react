@@ -1,4 +1,4 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, UnorderedList, VStack } from "@chakra-ui/react";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { FormikSignatureField } from "../../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
@@ -18,9 +18,9 @@ export const AddUserStep2 = () => {
 		>
 			<Form>
 				<ModalBody>
-				{Object.entries(formData).map(([type, subTypes], idx) => (
-					<Flex 
-						key={idx}
+					{formData.depts.map((dept, deptIndex) => (
+						<Flex
+						key={dept.key || deptIndex}
 						direction="column"
 						border="1px solid"
 						borderColor="gray.300"
@@ -28,46 +28,48 @@ export const AddUserStep2 = () => {
 						p={4}
 						mb={4}
 						boxShadow="sm"
-					>
-						{/* Display Asset Information */}
+						>
 						<ResponsiveText size="lg" fontWeight="bold">
-						Type: {type}
+							Department: {dept.deptName}
 						</ResponsiveText>
 
-						{/* Display Users Associated with This Asset */}
-						{/* {assetReturn.userNames.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Users:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.userNames.map((userName, index) => (
-								<ListItem key={assetReturn.userIds[index]}>
-								{userName}
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
-
-						{/* Display Accessories Associated with This Asset */}
-						{/* {assetReturn.accessories.length > 0 && (
-						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
-							<UnorderedList>
-							{assetReturn.accessories.map(accessory => (
-								<ListItem key={accessory.accessoryTypeId}>
-								{accessory.accessoryName} - {accessory.count}/{accessory.accessoryLoanIds.length} returned
-								</ListItem>
-							))}
-							</UnorderedList>
-						</Box>
-						)} */}
-					</Flex>
+						{dept.users.length > 0 && (
+							<Box overflowX="auto" w="100%" mt={2}>
+							<Table size="sm" variant="striped" minW="750px">
+								<Thead>
+								<Tr>
+									<Th>User Name</Th>
+									<Th>Email</Th>
+									<Th>Added Date</Th>
+									<Th>Remarks</Th>
+								</Tr>
+								</Thead>
+								<Tbody>
+								{dept.users.map((user, userIndex) => (
+									<Tr key={user.key || userIndex}>
+									<Td>{user.userName}</Td>
+									<Td>{user.email}</Td>
+									<Td>
+										{user.addDate
+										? new Date(user.addDate).toLocaleDateString()
+										: "-"}
+									</Td>
+									<Td>{user.remarks || "-"}</Td>
+									</Tr>
+								))}
+								</Tbody>
+							</Table>
+							</Box>
+						)}
+						</Flex>
 					))}
 				</ModalBody>
-			
+
 				<ModalFooter>
-					<Button onClick={prevStep}>Back</Button>
-					<Button colorScheme="blue" type="submit">Submit</Button>
+				<Button onClick={prevStep}>Back</Button>
+				<Button colorScheme="blue" type="submit">
+					Confirm
+				</Button>
 				</ModalFooter>
 			</Form>
 		</Formik>

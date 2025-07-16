@@ -1,14 +1,14 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
-import ExcelFormControl from "../../utils/ExcelFormControl";
-import { useFormModal } from "../../../../context/ModalProvider";
+import ExcelFormControl from "../utils/ExcelFormControl";
+import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik, useFormikContext } from "formik";
-import assetService from "../../../../services/AssetService";
-import { useUI } from "../../../../context/UIProvider";
+import assetService from "../../../services/AssetService";
+import { useUI } from "../../../context/UIProvider";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LoanType } from "./LoanUser";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
-import { setFieldError } from "../../utils/validation";
+import { setFieldError } from "../utils/validation";
 
 export const LoanStep1 = () => {
 
@@ -153,7 +153,7 @@ export const LoanStep1 = () => {
                     values.users.map((user, userIndex, array) => (
 											// Change to single asset only
                       <LoanProvider
-                        key={user.key}
+                        key={user?.key}
                         user={user}
                         userIndex={userIndex}
                         userHelpers={loanHelpers}

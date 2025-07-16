@@ -65,8 +65,7 @@ export default function Stats() {
         <VStack spacing={8}>
             {/* Responsive Doughnut Charts Grid */}
             <Grid
-                // Responsive grid: 1 column on small screens, 2 on medium, 3 on large
-                templateColumns={["repeat(1, 1fr)", "repeat(2, 1fr)", "repeat(3, 1fr)"]}
+                templateColumns="repeat(auto-fit, minmax(250px, 1fr))"
                 width="100%"
                 gap={6}
                 px={{ base: 4, md: 8 }}
@@ -87,13 +86,14 @@ export default function Stats() {
 
             {/* Responsive Bar Charts Flex container */}
             <Flex wrap="wrap" justify="center" gap={6}>
-            {barCharts.map((barChart, index) => (
-                // Each bar chart takes 100% width on very small screens and 70% on larger screens.
-                <Box
-                    key={index}
-                    width={["100%", "70%"]}
-                    overflow="hidden"
-                >
+                {barCharts.map((barChart, index) => (
+                    <Box
+                        key={index}
+                        flex="1 1 500px"
+                        maxW="650px"
+                        minW="250px"
+                        overflow="hidden"
+                    >
                     <BarChart
                         loading={loading}
                         data={barChart.data}

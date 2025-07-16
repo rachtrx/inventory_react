@@ -28,11 +28,6 @@ export default function UserFilters() { // TODO can have external filters from D
                 label="Department"
                 name="deptName"
             />
-            <InputFormControl
-                name="userName"
-                // label="User Name"
-                placeholder="User Name"
-            />
             <RangeField 
                 label="Asset Count"
                 range={[0,...filters.assetCount?.map(option => option.value)]} 

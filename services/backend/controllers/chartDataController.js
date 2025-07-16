@@ -132,9 +132,9 @@ class GroupChart extends Chart {
 		return {
 			labels: this.groups,
 			datasets: this.finalArr.map((arr, idx) => ({
-				label: arr.map((item) => item?.label),
+				label: arr[0]?.label || `Group ${idx + 1}`, // Fix: use label of first item
 				data: arr.map((item) => item?.data || 0),
-				backgroundColor: arr.map(() => COLORSCALE[idx % COLORSCALE.length]),
+				backgroundColor: COLORSCALE[idx % COLORSCALE.length],
 			}))
 		}
 	}
@@ -222,25 +222,20 @@ class ManyToManyChart extends GroupChart { // NEED TO ALWAYS CHECK IF FOUND...
 	}
 
     mapYearToTotalCost = () => {
-        this.groups = this.groups.map((year) => [`${year}`, `$${parseFloat(this.aggGroupedData?.year?.value || 0).toFixed(2)}`])
+		this.groups = this.groups.map((year) => {
+			// Sum all values for this year from all datasets
+			let total = 0;
+			for (const dataset of this.finalArr) {
+				const dataPoint = dataset.find((item) => item.group === year);
+				if (dataPoint) total += dataPoint.data;
+			}
+			return [
+				`${year}`,
+				`$${total.toFixed(2)}`
+			];
+		});
 		return this;
 	}
 }
-
-// renameNames(type, prefix = '', suffix = '') { // accepts dictionary to map on group
-// 	if (type === 'labels') namesArr = this.labels
-// 	if (type === 'groups') namesArr = this.groups
-// 	// TODO for the most nested label...
-	
-// 	return namesArr.map((name, index) => {
-// 		const currentPrefix = Array.isArray(prefix) ? prefix[index % prefix.length] :
-// 							 typeof prefix === 'object' ? prefix[name] || '' : prefix;
-
-// 		const currentSuffix = Array.isArray(suffix) ? suffix[index % suffix.length] :
-// 							 typeof suffix === 'object' ? suffix[name] || '' : suffix;
-
-// 		return currentPrefix + name + currentSuffix;
-// 	});
-// }
 
 module.exports = { Chart, OneToOneChart, ManyToManyChart };

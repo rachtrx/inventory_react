@@ -1,18 +1,18 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
-import { AddButton, RemoveButton } from "../../utils/ItemButtons"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
 import { FaUser, FaUsers } from "react-icons/fa"
 import { LoanItems } from "./LoanItems";
-import { SearchMultiSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { useFormModal } from "../../../../context/ModalProvider"
+import { SearchMultiSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
 import { v4 as uuidv4 } from 'uuid';
-import DateInputControl from "../../utils/DateInputControl"
+import DateInputControl from "../utils/DateInputControl"
 import { useLoans } from "./LoansProvider"
-import userService from "../../../../services/UserService"
-import loanService from "../../../../services/LoanService"
+import userService from "../../../services/UserService"
+import loanService from "../../../services/LoanService"
 
 export const createNewAccessory = (accessory=null) => ({
 	'key': uuidv4(),

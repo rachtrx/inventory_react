@@ -23,7 +23,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
 import { useUI } from "../../context/UIProvider.js";
 import reminderService from "../../services/ReminderService.js";
-import { UpdateReturnDate } from "../home/updateReturnDate.js";
+import { UpdateReturnDate } from "../stats/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import { ResponsiveText } from "../utils/ResponsiveText.js";
 import Cards from "../utils/Cards.js";

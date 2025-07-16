@@ -11,7 +11,7 @@ import './index.css';
 import Login from "./components/Login";
 import { AssetsPage } from "./components/assets/Assets";
 import { UsersPage } from "./components/users/Users";
-import Stats from "./components/home/Stats";
+import Stats from "./components/stats/Stats";
 import { PrivateLayout } from "./components/PrivateLayout";
 import { AuthProvider } from "./context/AuthProvider";
 import Register from "./components/Register";

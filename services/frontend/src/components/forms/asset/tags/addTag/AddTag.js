@@ -6,7 +6,7 @@ import { AddButton, RemoveButton } from "../../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../../utils/SelectFormControl"
 import { createNewAsset, useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
-import { LoanAstSelectFormControl } from "../../loan/CustomSelect"
+import { LoanAstSelectFormControl } from "../../../loan/CustomSelect"
 import InputFormControl from "../../../utils/InputFormControl"
 import WarningCard from "../../../utils/Warnings"
 

@@ -1,14 +1,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useUI } from "../../../../context/UIProvider";
+import { useUI } from "../../../context/UIProvider";
 import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useFormModal } from "../../../context/ModalProvider";
 import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
-import { compareStrings, convertExcelDate } from "../../utils/validation";
-import { useLoading } from "../../../../context/LoadingProvider";
-import loanService from "../../../../services/LoanService";
-import { useItems } from "../../../../context/ItemsProvider";
+import { compareStrings, convertExcelDate } from "../utils/validation";
+import { useLoading } from "../../../context/LoadingProvider";
+import loanService from "../../../services/LoanService";
+import { useItems } from "../../../context/ItemsProvider";
 
 // Create a context
 const ReturnsContext = createContext();
@@ -16,9 +16,8 @@ const ReturnsContext = createContext();
 // Create a provider component
 export const ReturnsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
-  const { reload } = useItems();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
   const [ userOptions, setUserOptions ] = useState([]);
@@ -159,7 +158,7 @@ export const ReturnsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully returned', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

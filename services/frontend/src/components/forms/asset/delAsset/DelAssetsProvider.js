@@ -25,9 +25,8 @@ const DelAssetsContext = createContext();
 // Create a provider component
 export const DelAssetsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
-  const { reload } = useItems();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [assetOptions, setAssetOptions] = useState([]);
@@ -134,7 +133,7 @@ export const DelAssetsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully deleted', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

@@ -18,6 +18,9 @@ export const AssetsPage = () => {
         Actions={AssetsActions}
         Cards={AssetCards}
         Table={AssetTable}
+        defaultSearches={[
+          { attr: "serialNumber", label: "asset"}
+        ]}
       />
     </ItemsProvider>
   );

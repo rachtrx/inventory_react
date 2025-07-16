@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Table, Thead, Tbody, Tr, Th, Td, Input, Flex } from '@chakra-ui/react';
 import { useReturn } from './ReturnProvider';
-import InputFormControl from '../../utils/InputFormControl';
+import InputFormControl from '../utils/InputFormControl';
 import { useFormikContext } from 'formik';
-import { useUI } from '../../../../context/UIProvider';
+import { useUI } from '../../../context/UIProvider';
 import { createNewAccessory, createNewUsers } from './ReturnSearch';
-import { SingleSelectFormControl } from '../../utils/SelectFormControl';
-import DateInputControl from '../../utils/DateInputControl';
-import { ResponsiveText } from '../../../utils/ResponsiveText';
+import { SingleSelectFormControl } from '../utils/SelectFormControl';
+import DateInputControl from '../utils/DateInputControl';
+import { ResponsiveText } from '../../utils/ResponsiveText';
 import { useReturns } from './ReturnsProvider';
 
 export const ManageReturn = () => {

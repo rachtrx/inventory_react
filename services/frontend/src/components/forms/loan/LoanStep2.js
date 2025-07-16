@@ -1,6 +1,6 @@
-import { Box, Button, Flex, List, ModalBody, ModalFooter, Text, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
-import { FormikSignatureField } from "../../utils/SignatureField";
+import { Box, Button, Flex, List, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
+import { ResponsiveText } from "../../utils/ResponsiveText";
+import { FormikSignatureField } from "../utils/SignatureField";
 import { FieldArray, Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useLoans } from "./LoansProvider";
@@ -51,25 +51,48 @@ export const LoanStep2 = () => {
 							mb={4}
 							boxShadow="sm"
 						>
-							<ResponsiveText size='lg'>{user.userName}</ResponsiveText>
-							<ResponsiveText>
-							{user.loans.map((loan, index) => (
-								<Text as="span" key={index}> {/* ✅ Fix: Use Text instead of Box */}
-								{loan.asset && loan.asset.serialNumber && `${loan.asset.serialNumber}`}
-								{loan.asset && loan.asset.serialNumber && loan.accessories && loan.accessories.length > 0 && ` | `}
-								{loan.accessories && loan.accessories.length > 0 &&
-									`${loan.accessories.map(accessory => `${accessory.accessoryName} x${accessory.count}`).join(", ")}`}
-								{loan.expectedReturnDate && ` | Due on: ${loan.expectedReturnDate}`}
-								</Text>
-							))}
+							<ResponsiveText size='lg' fontWeight="bold">
+								{user.userName}
 							</ResponsiveText>
+
+							{user.loans.length > 0 && (
+								<Box overflowX="auto" w="100%" mt={2}>
+								<Table size="sm" variant="striped" minW="650px">
+									<Thead>
+									<Tr>
+										<Th>Serial Number</Th>
+										<Th>Accessories</Th>
+										<Th>Expected Return Date</Th>
+									</Tr>
+									</Thead>
+									<Tbody>
+									{user.loans.map((loan, index) => (
+										<Tr key={index}>
+										<Td>{loan.asset?.serialNumber || '-'}</Td>
+										<Td>
+											{loan.accessories && loan.accessories.length > 0
+											? loan.accessories.map(acc => `${acc.accessoryName} x${acc.count}`).join(', ')
+											: '-'}
+										</Td>
+										<Td>
+											{loan.expectedReturnDate
+											? new Date(loan.expectedReturnDate).toLocaleDateString()
+											: '-'}
+										</Td>
+										</Tr>
+									))}
+									</Tbody>
+								</Table>
+								</Box>
+							)}
 
 							<FormikSignatureField
 								name={`users.${userIndex}.signature`}
 								label='Signature'
 								signatureFieldWidth={signatureFieldWidth}
 							/>
-						</Flex>
+							</Flex>
+
 					))}
 				</ModalBody>
 			

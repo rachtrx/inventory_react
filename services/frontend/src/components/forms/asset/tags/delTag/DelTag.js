@@ -5,7 +5,7 @@ import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl, Single
 import { Box, Divider, Flex } from "@chakra-ui/react";
 import DateInputControl from "../../../utils/DateInputControl";
 import { useFormModal } from "../../../../../context/ModalProvider";
-import { LoanAstSelectFormControl } from "../../loan/CustomSelect";
+import { LoanAstSelectFormControl } from "../../../loan/CustomSelect";
 import assetService from "../../../../../services/AssetService";
 import { createNewAsset, useAssetTags } from "../AssetTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";

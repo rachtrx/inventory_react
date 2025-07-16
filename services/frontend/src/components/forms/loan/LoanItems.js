@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react"
-import { CreatableSingleSelectFormControl, SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { useFormModal } from "../../../../context/ModalProvider"
-import { useUI } from "../../../../context/UIProvider"
-import accessoryService from "../../../../services/AccessoryService"
+import { CreatableSingleSelectFormControl, SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
+import { useFormModal } from "../../../context/ModalProvider"
+import { useUI } from "../../../context/UIProvider"
+import accessoryService from "../../../services/AccessoryService"
 import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton, Checkbox, FormControl, FormErrorMessage } from "@chakra-ui/react";
 import { Field, FieldArray } from "formik"
-import InputFormControl from "../../utils/InputFormControl"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
+import InputFormControl from "../utils/InputFormControl"
+import { ResponsiveText } from "../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { AddButton, RemoveButton } from "../../utils/ItemButtons"
+import { AddButton, RemoveButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
 import { v4 as uuidv4 } from 'uuid';
 import { useLoans } from "./LoansProvider"
 import { createNewAccessory, createNewAsset } from "./LoanUser"
-import DateInputControl from "../../utils/DateInputControl"
+import DateInputControl from "../utils/DateInputControl"
 import { ReturnAstSelectFormControl } from "../return/CustomSelect"
 import { LoanAstSelectFormControl } from "./CustomSelect"
-import assetService from "../../../../services/AssetService"
+import assetService from "../../../services/AssetService"
 import LoanAccessory from "./LoanAccessory"
-import loanService from "../../../../services/LoanService"
+import loanService from "../../../services/LoanService"
 
 export const LoanItems = function({ field, loan, children }) {
 	
@@ -106,16 +106,16 @@ export const LoanItems = function({ field, loan, children }) {
 				<FieldArray name={`${field}.accessories`}>
 					{accessoryHelpers => (
 						<Box>
-							<HStack mb={1}>
+							{/* <HStack mb={1}>
 								{suggestedOptions && suggestedOptions.length > 0 && (
 									suggestedOptions.map((option) => (
 										<Button onClick={() => accessoryHelpers.push(createNewAccessory({accessoryTypeId: option.value, accessoryName: option.label}))}/>
 									))
 								)}
-							</HStack>
+							</HStack> */}
 							{loan.accessories.map((accessory, accessoryIndex) => 
 								<LoanAccessory
-									key={accessory.key}
+									key={accessory?.key}
 									accessory={accessory}
 									field={`${field}.accessories.${accessoryIndex}`}
 									index={accessoryIndex}

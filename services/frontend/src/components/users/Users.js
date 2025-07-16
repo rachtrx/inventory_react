@@ -3,8 +3,9 @@ import UserActions from './UserActions';
 import UserCards from './UserCards';
 import UserTable from './UserTable'
 import RecordsLayout from '../RecordsLayout';
-import { ItemsProvider, useItems } from "../../context/ItemsProvider";
+import { ItemsProvider } from "../../context/ItemsProvider";
 import userService from "../../services/UserService";
+import SearchBar from "../utils/SearchBar";
 
 export const UsersPage = () => {
 
@@ -16,6 +17,7 @@ export const UsersPage = () => {
         Actions={UserActions}
         Cards={UserCards}
         Table={UserTable}
+        defaultSearches={[{ attr: "userName", label: "user"}]}
       />
     </ItemsProvider>
   );

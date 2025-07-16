@@ -33,8 +33,7 @@ const AddUsersContext = createContext();
 export const AddUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { reload } = useItems();
-  const { setFormType } = useFormModal();
+  const { setFormType, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [deptOptions, setDeptOptions] = useState([]);
@@ -165,7 +164,7 @@ export const AddUsersProvider = ({ children }) => {
       setLoading(false);
       showToast('Users successfully added', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

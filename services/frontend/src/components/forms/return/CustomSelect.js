@@ -2,8 +2,8 @@ import React from 'react';
 import Select, { components } from 'react-select';
 import { Box, Flex, Icon, Text } from '@chakra-ui/react';
 import { FaChevronDown } from 'react-icons/fa';
-import { SearchSingleSelectFormControl } from '../../utils/SelectFormControl';
-import { ResponsiveText } from '../../../utils/ResponsiveText';
+import { SearchSingleSelectFormControl } from '../utils/SelectFormControl';
+import { ResponsiveText } from '../../utils/ResponsiveText';
 
 const CustomOption = (props) => {
   // console.log(props.data);

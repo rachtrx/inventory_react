@@ -18,8 +18,9 @@ import FilterSidebar from './utils/FilterSidebar';
 import ActionSidebar from './utils/ActionSidebar';
 import FloatingButtons from './buttons/FloatingButtons';
 import { useFormModal } from '../context/ModalProvider';
+import SearchBar from './utils/SearchBar';
 
-export default function RecordsLayout({ header, Filters, Actions, Cards, Table }) {
+export default function RecordsLayout({ header, Filters, Actions, Cards, Table, defaultSearches=[] }) {
 
   const { headerSize, isIpad } = useResponsive()
   const { handleDevError } = useUI();
@@ -92,8 +93,16 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           </Formik>
         </Box>
         
-        <Flex p={4} justifyContent="space-around">
-          <InfoBar count={totalCount} />
+        <Flex p={4} gap={1} justifyContent="space-around" alignItems="center">
+          {defaultSearches?.length > 0 && (
+              <Flex gap={1}>{
+                defaultSearches.map(({ attr, label }, idx) => (
+                  <SearchBar key={idx} attr={attr} label={label}/>
+                ))
+              }
+            </Flex>)
+          }
+          <InfoBar count={totalCount}/>
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />
         </Flex>
         {loading ? <CardSkeleton /> : 
@@ -107,8 +116,6 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table }
           next={next} 
           prev={prev}
         />
-
-        
       </>
   );
 }

@@ -18,6 +18,10 @@ export const EventsPage = () => {
         Actions={EventActions}
         Cards={EventCards}
         Table={EventTable}
+        defaultSearches={[
+          { attr: "serialNumber", label: "asset"},
+          { attr: "userName", label: "user"}
+        ]}
       />
     </ItemsProvider>
   );

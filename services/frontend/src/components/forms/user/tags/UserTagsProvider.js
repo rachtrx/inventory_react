@@ -41,8 +41,7 @@ export const UserTagsFormProvider = ({
 }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { reload } = useItems();
-  const { setFormType } = useFormModal();
+  const { setFormType, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [ tagOptions, setTagOptions ] = useState([]);
@@ -184,7 +183,7 @@ export const UserTagsFormProvider = ({
       setLoading(false);
       showToast('Users successfully tagged', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -202,7 +201,7 @@ export const UserTagsFormProvider = ({
       setLoading(false);
       showToast('Users successfully untagged', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

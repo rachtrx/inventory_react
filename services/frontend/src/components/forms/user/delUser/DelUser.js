@@ -37,7 +37,6 @@ export const DelUser = function({ field, user, children }) {
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
 			<InputFormControl label={`Remarks for user`} name={`${field}.remarks`}/>
-			{/* Include the helper functions */}
 			{children}
 		</Flex>
 	)

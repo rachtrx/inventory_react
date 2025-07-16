@@ -50,7 +50,7 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                     <FieldArray name={`depts.${deptIndex}.users`}>
                         {userHelpers => (
                             dept.users.map((user, userIndex, userArray) => (
-                                <Flex direction="column" gap={2}>
+                                <Flex key={user?.key} direction="column" gap={2}>
                                     {/* Add the User */}
                                     <InputFormControl
                                         label={`User Name`}
@@ -73,7 +73,7 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                                                 alignSelf="flex-start"
                                                 colorScheme="red"
                                             >
-                                            <ResponsiveText>`Remove User`</ResponsiveText>
+                                            <ResponsiveText>Remove User</ResponsiveText>
                                             </Button>
                                         )}
                                     </Flex>

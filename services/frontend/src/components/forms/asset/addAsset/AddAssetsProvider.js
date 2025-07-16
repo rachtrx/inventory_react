@@ -42,9 +42,8 @@ const AddAssetsContext = createContext();
 // Create a provider component
 export const AddAssetsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
-  const { reload } = useItems();
   const { setLoading } = useLoading();
-  const { setFormType } = useFormModal();
+  const { setFormType, triggerRefresh } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [vendorOptions, setVendorOptions] = useState([]);
@@ -299,7 +298,7 @@ export const AddAssetsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully added', 'success', 500);
       setFormType(null);
-      reload();
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);

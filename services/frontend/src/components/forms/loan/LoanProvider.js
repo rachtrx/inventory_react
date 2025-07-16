@@ -1,15 +1,15 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { dateTimeObject } from '../../../../config';
+import { dateTimeObject } from '../../../config';
 import { useContext, useMemo } from 'react';
-import { useUI } from '../../../../context/UIProvider';
+import { useUI } from '../../../context/UIProvider';
 import { useFormikContext } from 'formik';
 import { Box, Button, Checkbox, Divider, Flex, FormControl, FormLabel, HStack, Spacer, Switch, VStack } from '@chakra-ui/react';
 import { createNewAccessory, createNewAsset, createNewLoan, createNewUser, LoanUser } from './LoanUser';
 import { FaUser, FaUsers } from 'react-icons/fa';
-import { ResponsiveText } from '../../../utils/ResponsiveText';
-import { AddButton } from '../../utils/ItemButtons';
-import ThreeWaySwitch from '../../utils/ThreeWaySwitch';
-import { useFormModal } from '../../../../context/ModalProvider';
+import { ResponsiveText } from '../../utils/ResponsiveText';
+import { AddButton } from '../utils/ItemButtons';
+import ThreeWaySwitch from '../utils/ThreeWaySwitch';
+import { useFormModal } from '../../../context/ModalProvider';
 
 // Create a context for assets
 const LoanContext = createContext();
@@ -37,12 +37,12 @@ export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) =
       <Flex mt={2} gap={4} justifyContent="space-between">
         {values.users.length > 1 && (
           <Button
-          type="button"
-          onClick={() => removeUser()}
-          alignSelf="flex-start"
-          colorScheme="red"
+            type="button"
+            onClick={() => removeUser()}
+            alignSelf="flex-start"
+            colorScheme="red"
           >
-          <ResponsiveText>Remove</ResponsiveText>
+          <ResponsiveText>{`Remove ${user?.userName ? `all for ${user.userName}` : 'User'}`}</ResponsiveText>
           </Button>
         )}
       </Flex>

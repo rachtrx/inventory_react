@@ -11,26 +11,6 @@ class StatController {
         this.dashboard = this.dashboard.bind(this);
     }
 
-	// async getReminders() {
-	// 	try {
-	// 		const reminders = await Loan.findAll({
-	// 			attributes: ['expectedLoanDate', 'expectedReturnDate']
-	// 		})
-	// 	} catch(error) {
-	// 		logger.error(error)
-	// 		next(error)
-	// 	}
-	// }
-
-	// async setReminders() {
-	// 	try {
-
-	// 	} catch(error) {
-	// 		logger.error(error)
-	// 		next(error)
-	// 	}
-	// }
-
 	async dashboard (req, res, next) {
 		try {
 			// Top devices
@@ -337,8 +317,8 @@ class StatController {
 			];
 	
 			const chartNames = [
-				'topDevicesByCount', 'topDevicesByValue', 'assetStatus',
-				'users', 'usersLoan', 'devicesAge', 'topVariantsByCount', 
+				'topDevicesByCount', 'topDevicesByValue', 'deviceAvailability',
+				'usersByDepartment', 'loansByDepartment', 'ageOfDevices', 'topVariantsByCount', 
 				'topVariantsByValue', 'costPerYearByAsset'
 			];
 
@@ -372,6 +352,7 @@ class StatController {
 		let aggData = null;
 	
 		generate(chart);
+		console.log(JSON.stringify(chart.getData(), null, 2));
 	
 		return {
 			'data': chart.getData(),
@@ -383,7 +364,6 @@ class StatController {
 
 	getScheduledReturns = async(req, res) => {
 		try {
-
 			const query = await Loan.findAll({
 				include: [
 					{

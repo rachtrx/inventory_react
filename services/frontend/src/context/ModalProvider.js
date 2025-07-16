@@ -36,9 +36,13 @@ export const actionTypes = {
 
 export const ModalProvider = ({ children }) => {
 
+  // to refresh items
+  const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = () => setRefreshKey(k => k + 1);
+
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
-  const [ initialValues, setInitialValues ] = useState(null);
+  const [ initialValues, setInitialValues ] = useState(null); 
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -72,7 +76,6 @@ export const ModalProvider = ({ children }) => {
 
       const touchedFields = createTouchedStructure(newValues);
       formRef.current.setTouched(touchedFields, true);
-
       formRef.current.validateForm();
     }
   };
@@ -86,7 +89,9 @@ export const ModalProvider = ({ children }) => {
       isModalOpen, 
       onModalOpen, 
       onModalClose, 
-      reinitializeForm 
+      reinitializeForm,
+      refreshKey,
+      triggerRefresh
     }}>
       {children}
     </ModalContext.Provider>

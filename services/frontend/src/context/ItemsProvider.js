@@ -4,6 +4,8 @@ import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
 import { useSearchParams } from 'react-router-dom';
+import { useModal } from '@chakra-ui/react';
+import { useFormModal } from './ModalProvider';
 
 // Create a context for assets
 const ItemsContext = createContext();
@@ -14,6 +16,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   const [data, setData] = useState([]);
   const { handleError } = useUI();
   const { setLoading } = useLoading();
+  const { refreshKey } = useFormModal();
   
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = parseInt(searchParams.get('page'), 10) || 1;
@@ -62,28 +65,6 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
     setPage(() => Math.min(pageNumber, maxPage));
   }, [maxPage]);
 
-  const reload = useCallback(async () => {
-      try {
-        setLoading(true);
-        const response = await service.loadItems({
-          filters: searchFilters,
-          sort: sortField ? [sortField, sortOrder] : undefined,
-          page,
-          pageSize: itemsPerPage,
-        });
-        console.log(response.data.totalPages);
-        console.log(response.data.totalCount);
-        console.log(response.data?.data?.slice(0, 10));
-        setData(response.data.data);
-        setMaxPage(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        handleError(error);
-      }
-    }, [handleError, page, searchFilters, service, setLoading, sortField, sortOrder]);
-
   const fetchAllFilters = useCallback(async () => {
     try {
       const response = await service.getAllFilters();
@@ -130,8 +111,29 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   };
 
   useEffect(() => {
-    reload();
-  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading, reload]);
+    const reload = async () => {
+      try {
+        setLoading(true);
+        const response = await service.loadItems({
+          filters: searchFilters,
+          sort: sortField ? [sortField, sortOrder] : undefined,
+          page,
+          pageSize: itemsPerPage,
+        });
+        console.log(response.data.totalPages);
+        console.log(response.data.totalCount);
+        console.log(response.data?.data?.slice(0, 10));
+        setData(response.data.data);
+        setMaxPage(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        handleError(error);
+      }
+    }
+    reload();;
+  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading, refreshKey]);
 
   const handleSort = (key) => {
     const isSameKey = key === sortField;
@@ -178,8 +180,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
       setPage,
       next,
       prev,
-      jump,
-      reload
+      jump
     }}>
       {children}
     </ItemsContext.Provider>
