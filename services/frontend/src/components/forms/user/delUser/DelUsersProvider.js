@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const delNewUser = (user={}) => ({
   'key': uuidv4(),
@@ -25,6 +26,7 @@ const DelUsersContext = createContext();
 export const DelUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
+  const { reload } = useItems();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
@@ -134,6 +136,7 @@ export const DelUsersProvider = ({ children }) => {
       setLoading(false);
       showToast('Users successfully deleted', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

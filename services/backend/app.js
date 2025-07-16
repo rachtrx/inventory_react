@@ -30,18 +30,18 @@ app.use(cookieParser());
 // CORS middleware
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-    console.log(req.path);
-    if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
-        jwt({
-            secret: process.env.JWT_SECRET,
-            algorithms: ['HS256'],
-            getToken: req => req.cookies.INVENTORY
-        })(req, res, next);
-    } else {
-        next();
-    }
-});
+// app.use((req, res, next) => {
+//     console.log(req.path);
+//     if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
+//         jwt({
+//             secret: process.env.JWT_SECRET,
+//             algorithms: ['HS256'],
+//             getToken: req => req.cookies.INVENTORY
+//         })(req, res, next);
+//     } else {
+//         next();
+//     }
+// });
 
 // Body parser middleware
 app.use(express.json());

@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const logger = require('../logging');
 const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('../models');
+const ExcelJS = require('exceljs');
 
 exports.MIN_15 = 15 * 60 * 1000
 exports.DAYS_30 = 30 * 24 * 60 * 60 * 1000
@@ -299,19 +300,46 @@ exports.getSortCondition = (sortFieldLookup, sort) => {
     return sortCondition;
 }
 
-exports.generateExcel = (dataArr, worksheetName) => {
+function flattenObject(obj, prefix = '', res = {}, isRoot = true) {
+  if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      const newPrefix = isRoot ? `${index}` : `${prefix}.${index}`;
+      flattenObject(item, newPrefix, res, false);
+    });
+  } else if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      const newPrefix = isRoot ? key : `${prefix}.${key}`;
+      flattenObject(obj[key], newPrefix, res, false);
+    }
+  } else {
+    res[prefix] = obj;
+  }
+  return res;
+}
+
+exports.generateExcel = (dataArr, worksheetName, excludedHeaders=[]) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(worksheetName);
 
+    console.log(dataArr[4]);
+
+    const flattenedData = dataArr.map(item => flattenObject(item));
+
+    const excludeHeadersSet = new Set(excludedHeaders)
+
+    const allHeaders = Array.from(
+        new Set(flattenedData.flatMap(obj => Object.keys(obj)))
+    ).filter(key => !excludeHeadersSet.has(key));
+
     // Add headers
-    worksheet.columns = Object.keys(dataArr[0]).map(key => ({
+    worksheet.columns = allHeaders.map(key => ({
         header: key,
         key,
         width: 20
     }));
 
     // Add rows
-    result.forEach(item => {
+    flattenedData.forEach(item => {
         worksheet.addRow(item);
     });
 

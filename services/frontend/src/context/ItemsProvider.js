@@ -62,6 +62,28 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
     setPage(() => Math.min(pageNumber, maxPage));
   }, [maxPage]);
 
+  const reload = useCallback(async () => {
+      try {
+        setLoading(true);
+        const response = await service.loadItems({
+          filters: searchFilters,
+          sort: sortField ? [sortField, sortOrder] : undefined,
+          page,
+          pageSize: itemsPerPage,
+        });
+        console.log(response.data.totalPages);
+        console.log(response.data.totalCount);
+        console.log(response.data?.data?.slice(0, 10));
+        setData(response.data.data);
+        setMaxPage(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        handleError(error);
+      }
+    }, [handleError, page, searchFilters, service, setLoading, sortField, sortOrder]);
+
   const fetchAllFilters = useCallback(async () => {
     try {
       const response = await service.getAllFilters();
@@ -108,29 +130,8 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        const response = await service.loadItems({
-          filters: searchFilters,
-          sort: sortField ? [sortField, sortOrder] : undefined,
-          page,
-          pageSize: itemsPerPage,
-        });
-        console.log(response.data.totalPages);
-        console.log(response.data.totalCount);
-        console.log(response.data?.data?.slice(0, 10));
-        setData(response.data.data);
-        setMaxPage(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        handleError(error);
-      }
-    };
-    fetchItems();
-  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading]);
+    reload();
+  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading, reload]);
 
   const handleSort = (key) => {
     const isSameKey = key === sortField;
@@ -178,6 +179,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
       next,
       prev,
       jump,
+      reload
     }}>
       {children}
     </ItemsContext.Provider>

@@ -6,6 +6,7 @@ import qs from 'qs';
 class ReminderService {
     constructor(api) {
         this.axios = api;
+        this.URL = `${API_URL}/reminders`
     }
 
     defaultFilters = {
@@ -22,13 +23,20 @@ class ReminderService {
         // "admin": []
     }
 
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${this.URL}/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
+    }
+
     async getAllFilters() {
-        return await this.axios.get(`${API_URL}/reminders/filters/all`);
+        return await this.axios.get(`${this.URL}/filters/all`);
     }
 
     async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
         console.log(filters)
-        return await this.axios.get(`${API_URL}/reminders`, {
+        return await this.axios.get(`${this.URL}`, {
             params: {
                 filters,
                 sort,
@@ -39,7 +47,7 @@ class ReminderService {
     }
 
     // async downloadExcel({ filters = this.defaultFilters, sort }) {
-    //     return await this.axios.get(`${API_URL}/reminders/excel`, {
+    //     return await this.axios.get(`${this.URL}/excel`, {
     //       params: { filters, sort },
     //       responseType: 'blob',
     //     });
@@ -47,7 +55,7 @@ class ReminderService {
 
     async extendReturnDate(formData) {
         console.log(formData);
-        return await this.axios.patch(`${API_URL}/reminders/update`, formData);
+        return await this.axios.patch(`${this.URL}/update`, formData);
     }
 }
 

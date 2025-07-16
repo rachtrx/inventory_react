@@ -5,7 +5,9 @@ const formAssetTagController = require('../controllers/formAssetTagController.js
 
 const router = express.Router();
 
-router.get('/', assetController.getAssets);
+router.get('/', assetController.getAllAssetsEndpoint);
+router.get('/excel', assetController.getAllAssetsExcelEndpoint);
+
 router.get('/filters/all', assetController.getAllFilters);
 router.post('/filters', assetController.getFilters);
 router.post('/filters/subTypes', assetController.getSubTypeFilters);

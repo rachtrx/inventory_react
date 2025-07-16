@@ -15,7 +15,7 @@ import { useDrawer } from "../../context/DrawerProvider";
 import { UserActionButton } from "../buttons/actions/UserActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
-import { ItemsList } from "./popovers/ItemsList";
+import { ItemsList, UserItemsList } from "../utils/popovers/ItemsList";
 import { ItemStarButton } from "../buttons/StarButton";
 import { useItems } from "../../context/ItemsProvider";
 import { UserLink } from "../buttons/ItemLink";
@@ -42,7 +42,7 @@ function UserCards({ items }) {
                 <Text fontSize="md" fontWeight="semibold">
                   {user.deptName}
                 </Text>
-                {user.loans?.length > 0 && <ItemsList user={user}/>}
+                {user.loans?.length > 0 && <UserItemsList loans={user.loans} />}
                 <Tags tags={user.tags}/>
               </VStack>
 

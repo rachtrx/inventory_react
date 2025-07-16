@@ -20,7 +20,7 @@ class SystemController {
     };
 
     exportDb = async () => {
-        const backupDir = path.join(__dirname, 'backups');
+        const backupDir = process.env.LOCAL_BACKUP_PATH
         const fileName = `backup_${new Date().toISOString().split('T')[0]}.sql`;
         const fullPath = path.join(backupDir, fileName);
       
@@ -28,8 +28,8 @@ class SystemController {
           fs.mkdirSync(backupDir);
         }
       
-        const command = `pg_dump -U your_pg_user -h localhost -d your_db_name -F c -f ${fullPath}`;
-        exec(command, { env: { ...process.env, PGPASSWORD: 'your_pg_password' } }, (err, stdout, stderr) => {
+        const command = `pg_dump -U ${process.env.POSTGRES_USER} -h ${process.env.DATABASE_HOST} -d ${process.env.POSTGRES_DB} -f ${fullPath}`;
+        exec(command, { env: { ...process.env, PGPASSWORD: process.env.POSTGRES_PASSWORD } }, (err, stdout, stderr) => {
           if (err) console.error('Backup failed', err);
           else console.log('Backup created:', fullPath);
         });
@@ -40,9 +40,9 @@ class SystemController {
     uploadToSharePoint = async (filePath, fileName, accessToken) => {
         const fileStream = fs.createReadStream(filePath);
       
-        const siteId = 'your-site-id';
-        const driveId = 'your-drive-id'; // or use `/sites/${siteId}/drive/root:/Backups/`
-        const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/Backups/${fileName}:/content`;
+        const driveId = process.env.DRIVE_ID; 
+        const path = process.env.REMOTE_BACKUP_PATH
+        const uploadUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${path}/${fileName}:/content`;
       
         const res = await axios.put(uploadUrl, fileStream, {
           headers: {
@@ -55,8 +55,9 @@ class SystemController {
     };
 
     deleteFromSharePoint = async (fileName, accessToken) => {
-        const siteId = 'your-site-id';
-        const deleteUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/Backups/${fileName}`;
+        const driveId = process.env.DRIVE_ID;
+        const path = process.env.REMOTE_BACKUP_PATH
+        const deleteUrl = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${path}/${fileName}`;
       
         await axios.delete(deleteUrl, {
           headers: {

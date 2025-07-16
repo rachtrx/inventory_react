@@ -1,12 +1,12 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue } from '@chakra-ui/react';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { ItemStarButton } from '../buttons/StarButton';
-import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
-import { useLoading } from '../../context/LoadingProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import accessoryService from '../../services/AccessoryService';
+import { LoansPopover } from './LoansPopover';
 
 const AccessoryTable = ({ items }) => {
 
@@ -20,8 +20,10 @@ const AccessoryTable = ({ items }) => {
           <Th onClick={() => handleSort("accessoryName")} cursor="pointer">
             Accessory Name {sortField === "accessoryName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
           </Th>
-          <Th>Assets</Th>
-          <Th>Users</Th>
+          <Th>Available</Th>
+          <Th>Registered</Th>
+          <Th>Loaned</Th>
+          <Th>Reserved</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -35,15 +37,31 @@ const AccessoryTable = ({ items }) => {
             
             <Td>
               <CircleText
-                text={accessoryType.assets?.length || 0}
+                text={accessoryType.stock || 0}
               />
-              <ResponsiveText>Assets</ResponsiveText>
+              <ResponsiveText>Available</ResponsiveText>
             </Td>
             <Td>
               <CircleText
-                text={accessoryType.users?.length || 0}
+                text={accessoryType.registeredCount || 0}
               />
-              <ResponsiveText>Users</ResponsiveText>
+              <ResponsiveText>Registered</ResponsiveText>
+            </Td>
+            <Td>
+              <LoansPopover
+                accessoryType={accessoryType}
+                searchFunc={(id) => accessoryService.getLoanDetails(id)}
+                count={accessoryType.loanCount}
+              />
+              <ResponsiveText>Loaned</ResponsiveText>
+            </Td>
+            <Td>
+              <LoansPopover
+                accessoryType={accessoryType}
+                searchFunc={(id) => accessoryService.getReservationDetails(id)}
+                count={accessoryType.reserveCount}
+              />
+              <ResponsiveText>Reserved</ResponsiveText>
             </Td>
           </Tr>
         ))}

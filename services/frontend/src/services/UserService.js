@@ -13,6 +13,13 @@ class UserService {
         bookmarked: false,
     }
 
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${this.URL}/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
+    }
+
     async getItem(id) {
         return await this.axios.get(`${this.URL}/${id}`);
     }

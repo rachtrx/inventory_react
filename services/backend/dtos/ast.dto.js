@@ -5,6 +5,8 @@ const { runInitialAstLoanCheck } = require("./utils");
 
 class AssetDTO {
 
+    #checked = false;
+
     constructor({
         id, 
         serialNumber,
@@ -23,7 +25,7 @@ class AssetDTO {
         AstTagMaps=null,
         lastEventDate=null
     }) {
-        this.lastEventDate = lastEventDate
+        if (lastEventDate) this.lastEventDate = lastEventDate
 
         if (AstTagMaps !== undefined) {
             this.tags = AstTagMaps && AstTagMaps.map(astTagMap => new AssetTagMapDTO(astTagMap.dataValues));
@@ -63,13 +65,13 @@ class AssetDTO {
         if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent.dataValues);
     }
 
-    setOngoingLoan(includesLoan=true) {
+    setOngoingLoan(loanModelIsChild=true) {
 
-        if (!this.checked) {
+        if (!this.#checked) {
             if (!this.astLoans) throw new Error("Dev error: Include AstLoans in the query")
             if (this.astLoans.length === 0) return this;
-            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, includesLoan));
-            this.checked = true;
+            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, loanModelIsChild));
+            this.#checked = true;
         }
 
         const ongoingAssetLoans = this.astLoans.filter(astLoan =>
@@ -82,13 +84,13 @@ class AssetDTO {
         return this;
     }
 
-    setOngoingReservation(includesLoan=true) {
+    setOngoingReservation(loanModelIsChild=true) {
 
-        if (!this.checked) {
+        if (!this.#checked) {
             if (!this.astLoans) throw new Error("Dev error: Include AstLoans in the query")
             if (this.astLoans.length === 0) return this;
-            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, includesLoan));
-            this.checked = true;
+            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, loanModelIsChild));
+            this.#checked = true;
         }
 
         const ongoingAssetReservations = this.astLoans.filter(astLoan => astLoan.loan.loanEventId === null)
@@ -96,6 +98,11 @@ class AssetDTO {
         if (ongoingAssetReservations.length === 1) this.reservation = ongoingAssetReservations[0].loan;
         else if (ongoingAssetReservations.length > 1) throw new Error(`Multiple ongoing reservations found for ${this.serialNumber}`);
 
+        return this;
+    }
+
+    deleteLoans() {
+        delete this.astLoans;
         return this;
     }
 }

@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import userService from "../../../../services/UserService";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const createNewDept = (dept={}) => ({
   'key': uuidv4(),
@@ -32,6 +33,7 @@ const AddUsersContext = createContext();
 export const AddUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
+  const { reload } = useItems();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
@@ -163,6 +165,7 @@ export const AddUsersProvider = ({ children }) => {
       setLoading(false);
       showToast('Users successfully added', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

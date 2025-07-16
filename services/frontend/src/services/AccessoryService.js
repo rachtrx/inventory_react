@@ -11,6 +11,13 @@ class AccessoryService {
         "accessoryName": ""
     }
 
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${this.URL}/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
+    }
+
     async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
         console.log(filters)
         return await this.axios.get(`${this.URL}`, {
@@ -21,6 +28,14 @@ class AccessoryService {
                 limit: pageSize,
             }
         });
+    }
+
+    async getLoanDetails(id) {
+        return await this.axios.get(`${this.URL}/loans/${id}`);
+    }
+
+    async getReservationDetails(id) {
+        return await this.axios.get(`${this.URL}/reservations/${id}`);
     }
 
     async getItem(id) {

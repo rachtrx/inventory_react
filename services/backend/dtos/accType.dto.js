@@ -17,8 +17,8 @@ class AccTypeDTO {
         this.accessoryTypeId = id;
         this.accessoryName = accessoryName;
 
-        this.isMatching = isMatching;
-        if (remarks !== null) this.remarks = remarks;
+        if (isMatching !== undefined) this.isMatching = isMatching;
+        if (remarks !== undefined) this.remarks = remarks;
         
         if (Number.isFinite(stock)) this.stock = stock;
 
@@ -27,45 +27,39 @@ class AccTypeDTO {
                 accCount += accTxn.count;
                 return accCount;
             }, 0)
-        } else if (AccTxns) { // TODO check if sequelize will give empty array
+        } else if (Array.isArray(AccTxns) && AccTxns.length === 0) {
             this.registeredCount = 0;
         }
 
-        if (AccLoans && AccLoans.length > 0) {
-            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
+        if (!Number.isFinite || !Number.isFinite(this.registeredCount) || !Array.isArray(AccLoans)) return;
 
-            if (Number.isFinite(this.stock) && Number.isFinite(this.registeredCount) && 
-                this.accLoans.every(accLoan => Number.isFinite(accLoan.count) && accLoan.loan)) {
+        this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
 
-                const loanCount = this.accLoans
-                    .filter(accLoan => 
-                        (accLoan.loan.loanEventId || accLoan.loan.loanEvent)
-                    ).reduce((count, accLoan) => {
-                        if (Number.isFinite(accLoan.unreturned)) count += accLoan.unreturned // returns made
-                        else count += accLoan.count // no accReturns yet
-                        return count;
-                    }, 0)
-
-                const reserveCount = this.accLoans
-                    .filter(accLoan => 
-                        (accLoan.loan.reserveEventId || accLoan.loan.reserveEvent) &&
-                        !accLoan.loan.loanEventId && !accLoan.loan.loanEvent
-                    ).reduce((count, accLoan) => {
-                        count += accLoan.count // no accReturns yet
-                        return count;
-                    }, 0)
-
-                logger.info(`${loanCount}, ${reserveCount}`)
-
-                if (loanCount + reserveCount === this.registeredCount - this.stock) {
-                    this.loanCount = loanCount;
-                    this.reserveCount = reserveCount;
-                }
-            }
-        } else if (AccLoans && Number.isFinite(this.stock) && Number.isFinite(this.registeredCount)) {
+        if (!this.accLoans.length) {
             if (this.registeredCount === this.stock) {
                 this.loanCount = 0;
                 this.reserveCount = 0;
+            }
+        } else if (this.accLoans.every(accLoan => Number.isFinite(accLoan.count) && accLoan.loan)) {
+
+            const loanCount = this.accLoans
+                .filter(accLoan => accLoan.loan.hasLoan()).reduce((count, accLoan) => {
+                    if (Number.isFinite(accLoan.unreturned)) count += accLoan.unreturned // returns made
+                    else count += accLoan.count // no accReturns yet
+                    return count;
+                }, 0)
+
+            const reserveCount = this.accLoans
+                .filter(accLoan => accLoan.loan.hasReservation()).reduce((count, accLoan) => {
+                    count += accLoan.count // no accReturns yet
+                    return count;
+                }, 0)
+
+            logger.info(`${loanCount}, ${reserveCount}`)
+
+            if (loanCount + reserveCount === this.registeredCount - this.stock) {
+                this.loanCount = loanCount;
+                this.reserveCount = reserveCount;
             }
         }
     }

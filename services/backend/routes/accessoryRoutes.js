@@ -3,10 +3,14 @@ const accessoryController = require('../controllers/accessoryController.js');
 
 const router = express.Router();
 
-router.get('/', accessoryController.getAccesories);
+router.get('/', accessoryController.getAllAccsEndpoint);
+router.get('/excel', accessoryController.getAllAccsExcelEndpoint);
 router.get('/:id', accessoryController.getAccType);
 router.post('/filters', accessoryController.getFilters);
 router.post('/getSuggested', accessoryController.getSuggestedAccessories);
+
+router.get('/loans/:id', accessoryController.getOngoingLoans);
+router.get('/reservations/:id', accessoryController.getOngoingReservations);
 
 // router.post('/updateAssetTypeSuggestion', accessoryController.updateAssetTypeSuggestion);
 // router.post('/updateVariantSuggestion', accessoryController.updateVariantSuggestion);

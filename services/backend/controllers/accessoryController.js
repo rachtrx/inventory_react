@@ -1,12 +1,14 @@
 const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk, Sequelize } = require('../models/index.js');
 const logger = require('../logging.js');
-const { getAllOptions, getSortCondition } = require('./utils.js');
+const { getAllOptions, getSortCondition, generateExcel } = require('./utils.js');
 const AccTypeDTO = require('../dtos/accType.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
 const { DateTime } = require("luxon");
 const { Op } = require('sequelize');
 const { generateSecureID } = require('../utils/nanoidValidation.js');
+const LoanDTO = require('../dtos/loan.dto.js');
+const { LoanSearch } = require('../services/loanSearch.js');
 
 class AccessoryController {
 
@@ -37,10 +39,74 @@ class AccessoryController {
         return
     }
 
-    async getAccesories (req, res) {
+    async getOngoingLoans (req, res) {
+        try {
+            const accTypeId = req.params.id;
+            console.log(accTypeId);
+            const loanSearch = new LoanSearch();
+            const loanRows = await loanSearch.getLoansById({ accTypeId })
+            res.status(200).json(loanRows.map(row => new LoanDTO(row)));
+        } catch (error) {
+            console.error("Error fetching loans:", error);
+            res.status(500).json({ error: error.message });
+        }
+    }
 
-        const { filters={}, sort, page = 1, limit = 10 } = req.query; // Default page 1, limit 10
-        logger.info(filters);
+    async getOngoingReservations(req, res) {
+        try {
+            const accTypeId = req.params.id;
+            const loanSearch = new LoanSearch();
+            const loanRows = await loanSearch.getLoansById({ accTypeId, status: Loan.RESERVED })
+            res.status(200).json(loanRows.map(row => new LoanDTO(row)));
+        } catch (error) {
+            console.error("Error fetching reservations:", error);
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    getAllAccsEndpoint = async (req, res, next) => {
+        try {
+            const { filters, page = 1, limit = 30, sort } = req.query;
+            const query = await this.getAccesories(filters, sort);
+
+            const count = query.length;
+            const rows = query.slice((page - 1) * limit, page * limit);
+            
+            let result = rows.map(accTypeRow => new AccTypeDTO(accTypeRow));
+
+            res.json({
+                data: result,
+                totalCount: count, // Total assets count
+                totalPages: Math.max(Math.ceil(count / limit), 1), // Calculate total pages
+                currentPage: Math.max(parseInt(page, 10), 1)
+            });
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getAllAccsExcelEndpoint = async (req, res, next) => {
+        try {
+            const { filters, sort } = req.query;
+
+            const query = await this.getAccesories(filters, sort);
+            let result = query.map(accTypeRow => new AccTypeDTO(accTypeRow));
+
+            const workbook = generateExcel(result, 'User Logs')
+
+            // Prepare response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getAccesories = async (filters, sort) => {
 
         const sortFieldLookup = {
             "accessoryName": '"accessory_name"'
@@ -50,85 +116,63 @@ class AccessoryController {
         if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
 
         const accessoriesExist = await AccType.count();
-        if (accessoriesExist === 0) {
-            return res.json({
-                data: [],
-                totalCount: 0,
-                totalPages: 1,
-                currentPage: 1
-            });
-        }
+        if (accessoriesExist === 0) return [];
 
-        try {
-            let query = await AccType.findAll({
-                attributes: ['id', 'accessoryName', 'stock'],
-                ...(filters.accessoryName?.length > 0 && { where: { accessoryName: { [Op.iLike]: `%${filters.accessoryName}%` } } }),
-                include: [
-                    {
-                        model: AccTxn,
-                        required: false,
-                        attributes: ['id', 'count'],
-                    },
-                    {
-                        model: AccLoan,
-                        required: false,
-                        attributes: ['id', 'count'],
-                        include: [
-                            {
-                                model: AccReturn,
-                                attributes: ['id', 'count'],
-                                required: false
-                            },
-                            {
-                                model: Loan,
-                                required: true,
-                                include: [
-                                    {
-                                        model: Usr,
-                                        attributes: ['id', 'userName', 'bookmarked'],
-                                    },
-                                    {
-                                        model: AstLoan,
-                                        required: false,
-                                        include: {
-                                            model: Ast,
-                                            attributes: ['id', 'alias', 'serialNumber'],
-                                        }
+        let query = await AccType.findAll({
+            attributes: ['id', 'accessoryName', 'stock'],
+            ...(filters.accessoryName?.length > 0 && { where: { accessoryName: { [Op.iLike]: `%${filters.accessoryName}%` } } }),
+            include: [
+                {
+                    model: AccTxn,
+                    required: false,
+                    attributes: ['id', 'count'],
+                },
+                {
+                    model: AccLoan,
+                    required: false,
+                    attributes: ['id', 'count'],
+                    include: [
+                        {
+                            model: AccReturn,
+                            attributes: ['id', 'count'],
+                            required: false
+                        },
+                        {
+                            model: Loan,
+                            required: true,
+                            include: [
+                                {
+                                    model: Usr,
+                                    attributes: ['id', 'userName', 'bookmarked'],
+                                },
+                                {
+                                    model: AstLoan,
+                                    required: false,
+                                    include: {
+                                        model: Ast,
+                                        attributes: ['id', 'alias', 'serialNumber'],
                                     }
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                group: [
-                    '"AccType"."id"',
-                    '"AccTxns"."id"',
-                    '"AccLoans"."id"',
-                    '"AccLoans->AccReturns"."id"',
-                    '"AccLoans->Loan"."id"',
-                    '"AccLoans->Loan->Usr"."id"',
-                    '"AccLoans->Loan->AstLoan"."id"',
-                    '"AccLoans->Loan->AstLoan->Ast"."id"',
-                ],
-                order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
-                logging: console.log // Logs the full query for debugging
-            });
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            group: [
+                '"AccType"."id"',
+                '"AccTxns"."id"',
+                '"AccLoans"."id"',
+                '"AccLoans->AccReturns"."id"',
+                '"AccLoans->Loan"."id"',
+                '"AccLoans->Loan->Usr"."id"',
+                '"AccLoans->Loan->AstLoan"."id"',
+                '"AccLoans->Loan->AstLoan->Ast"."id"',
+            ],
+            order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
+            logging: console.log // Logs the full query for debugging
+        });
 
-            const count = query.length; // Total number of results
-            const paginatedResults = query.slice((page - 1) * limit, page * limit);
-
-            const result = paginatedResults.map(accTypeRow => new AccTypeDTO(accTypeRow));
-
-            res.json({
-                data: result,
-                totalCount: count, // Total assets count
-                totalPages: Math.ceil(count / limit), // Calculate total pages
-                currentPage: parseInt(page, 10)
-            });
-        } catch (error) {
-            console.error("Error fetching accessories:", error);
-            res.status(500).json({ error: error.message });
-        }
+        return query;
     }
 
     getAccType = async (req, res) => {
@@ -578,8 +622,12 @@ class AccessoryController {
     // Method to reduce accessory count
 
     addAccessoriesEndpoint = async (req, res) => {
-        const { accessories } = req.body;
+        const { accessories = [] } = req.body;
         const transaction = await sequelize.transaction();
+
+        if (!accessories.length) res.status(400).json({ error: "No accessories detected" });
+
+        if (accessories.some(acc => acc.count === 0)) res.status(400).json({ error: "Accessory Change cannot be 0" });
     
         try {
             for (const accessory of accessories) {

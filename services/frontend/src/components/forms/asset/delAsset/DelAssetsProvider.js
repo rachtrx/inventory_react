@@ -8,6 +8,7 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const delNewAsset = (asset={}) => ({
   'key': uuidv4(),
@@ -24,6 +25,7 @@ const DelAssetsContext = createContext();
 // Create a provider component
 export const DelAssetsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
+  const { reload } = useItems();
   const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
@@ -132,6 +134,7 @@ export const DelAssetsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully deleted', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

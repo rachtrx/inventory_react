@@ -32,7 +32,7 @@ class AccLoanDTO {
 
         if (count) this.count = count;
 
-        if (AccReturns) { // IMPT empty array is true
+        if (AccReturns) {
             this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn.dataValues));
 
             if (count && AccReturns.every(accReturn => Number.isFinite(accReturn.count))) {

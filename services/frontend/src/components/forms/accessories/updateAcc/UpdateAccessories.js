@@ -13,6 +13,7 @@ import { RemoveButton } from "../../utils/ItemButtons";
 import { v4 as uuidv4 } from 'uuid';
 import { useLoading } from "../../../../context/LoadingProvider";
 import { UpdateAccessory } from "./UpdateAccessory";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const createNewAccessory = (accessory=null) => {
   return {
@@ -30,6 +31,7 @@ const UpdateAccessories = () => {
 
   const { setFormType, initialValues, reinitializeForm } = useFormModal()
   const { showToast, handleError } = useUI();
+  const { reload } = useItems();
   const { setLoading } = useLoading();
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
@@ -65,6 +67,7 @@ const UpdateAccessories = () => {
       setLoading(false);
       showToast('Accessories successfully loaned', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

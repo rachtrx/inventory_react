@@ -1,7 +1,7 @@
 const { sequelize, Sequelize, Event, Dept, Usr, AstType, AstSType, Ast, AstLoan, AccLoan, AccType, Loan, AccReturn, Rmk, Admin, UsrTag, UsrTagMap } = require('../models');
 const { Op, where } = require('sequelize');
 const logger = require('../logging.js');
-const { getUserFilters, userFilters, getSortCondition } = require('./utils.js');
+const { getUserFilters, userFilters, getSortCondition, generateExcel } = require('./utils.js');
 const UserDTO = require('../dtos/usr.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
 
@@ -35,195 +35,212 @@ class UserController {
             res.status(500).json({ error: error.message });
         }
     }
-    
-    async getUsers (req, res) {
+
+    getAllUsersEndpoint = async (req, res, next) => {
         try {
-            const { filters={}, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
-            console.log(req.query);
-    
-            const usersExist = await Usr.count();
-            
-            if (usersExist === 0) {
-                return res.json({
-                    data: [],
-                    totalCount: 0,
-                    totalPages: 1,
-                    currentPage: 1
-                });
-            }
+            const { filters, page = 1, limit = 30, sort } = req.query;
+            const query = await this.getUsers(filters, sort);
 
-            const sortFieldLookup = {
-                "userName": '"user_name"',
-                "deptName": '"Dept"."dept_name"',
-            }
-
-            let sortCondition;
-            if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
-
-            // console.log(filters.userName);
-            
-            // SELECT ALL rows that either/both pending astLoan or pending accLoans → Removes all other LOANs 
-            const whereClause = {
-                [Op.and]: [
-                    ...(filters.userName ? [{ userName: { [Op.iLike]: `%${filters.userName}%` } }] : []),
-                    ...(filters.bookmarked === true ? [{ bookmarked: true }] : []),
-                    ...(filters.assetCount?.length === 2
-                        ? [Sequelize.literal(`
-                            EXISTS (
-                                SELECT 1
-                                FROM "usrs"
-                                LEFT JOIN "loans" AS "UserLoans" ON "usrs"."id" = "UserLoans"."user_id"
-                                AND "UserLoans"."loan_event_id" IS NOT NULL -- unreturned loans
-                                LEFT JOIN "ast_loans" AS "AstLoans" ON "AstLoans"."loan_id" = "UserLoans"."id"
-                                AND "AstLoans"."return_event_id" IS NULL
-                                WHERE "usrs"."id" = "Usr"."id"
-                                GROUP BY "usrs"."id"
-                                HAVING COALESCE(COUNT(DISTINCT "AstLoans"."id"), 0) BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
-                            )
-                        `)] : []
-                    ),
-                    // ...(filters.accessoryCount?.length === 2 // TODO, add accessory count filter soon?
-                    //     ? [Sequelize.where(
-                    //         Sequelize.literal(`
-                    //             (
-                    //                 SELECT COALESCE(SUM("AccLoan"."count"), 0) 
-                    //                 FROM "acc_loans" AS "AccLoan"
-                    //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
-                    //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
-                    //             )
-                    //             -
-                    //             (
-                    //                 SELECT COALESCE(SUM("AccReturns"."count"), 0) 
-                    //                 FROM "acc_returns" AS "AccReturns"
-                    //                 JOIN "acc_loans" AS "AccLoan" ON "AccReturns"."acc_loan_id" = "AccLoan"."id"
-                    //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
-                    //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
-                    //             )
-                    //             BETWEEN ${filters.accessoryCount[0]} AND ${filters.accessoryCount[1]}
-                    //         `)
-                    //     )] : []
-                    // ),
-                ],
-            };
-            
-
-            // IMPT allow reservations
-    
-            const query = await Usr.findAll({
-                attributes: ['id', 'userName', 'bookmarked'],
-                logging: console.log,
-                include: [
-                    {
-                        model: UsrTagMap,
-                        attributes: ['id'],
-                        where: { delEventId: { [Op.eq]: null } },
-                        include: {
-                            model: UsrTag,
-                            attributes: ['id', 'tagName'],
-                            ...(filters?.userTag?.length && { where: { id: { [Op.in]: filters.userTag } } }),
-                        },
-                        required: filters?.userTag?.length ? true : false,
-                    },
-                    {
-                        model: Event,
-                        as: 'AddEvent',
-                        attributes: ['eventDate'],
-                    },
-                    {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['eventDate'],
-                        required: false,
-                    },
-                    {
-                        model: Loan,
-                        required: false,
-                        include: [
-                            {
-                                model: AstLoan,
-                                required: false,
-                                where: {
-                                    returnEventId: {
-                                        [Op.eq]: null,
-                                    }
-                                },
-                                include: [
-                                    {
-                                        model: Ast,
-                                        required: true,
-                                        attributes: ['id', 'alias', 'serialNumber', 'bookmarked'],
-                                        include: {
-                                            model: AstSType,
-                                            required: true,
-                                            attributes: ['id', 'subTypeName'],
-                                            include: {
-                                                model: AstType,
-                                                required: true,
-                                                attributes: ['id', 'typeName'],
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                model: AccLoan,
-                                required: false,
-                                attributes: ['id', 'count'],
-                                where: Sequelize.literal(`
-                                    NOT EXISTS (
-                                        SELECT 1
-                                        FROM "acc_returns" AS "AccReturns"
-                                        WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
-                                        GROUP BY "Loans->AccLoans"."id"
-                                        HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
-                                    )
-                                `),
-                                include: [
-                                    {
-                                        model: AccType,
-                                        required: true,
-                                        attributes: ['id', 'accessoryName'],
-                                    },
-                                    {
-                                        model: AccReturn, // Need to calculate remaining count later
-                                        attributes: ['id', 'count'],
-                                        required: false,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        model: Dept,
-                        required: true,
-                        attributes: ['deptName'],
-                        ...(filters?.deptName?.length && { where: { id: { [Op.in]: filters.deptName } } }),
-                    },
-                ],
-                where: whereClause || {},
-                order: sortCondition ? [sortCondition] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
-            });
-            
             const count = query.length;
             const rows = query.slice((page - 1) * limit, page * limit);
             
             let result = rows.map(userRow => {
-                return new UserDTO(userRow).setOngoingLoans().setOngoingReservations();
+                return new UserDTO(userRow).setOngoingLoans().setOngoingReservations().deleteLoans();
             });
-            
-            // logger.info(result.slice(0, 10));
-            
+
             res.json({
                 data: result,
-                totalCount: count, // Total users count
-                totalPages: Math.ceil(count / limit), // Calculate total pages
-                currentPage: parseInt(page, 10),
+                totalCount: count, // Total assets count
+                totalPages: Math.max(Math.ceil(count / limit), 1), // Calculate total pages
+                currentPage: Math.max(parseInt(page, 10), 1)
             });
-            
-        } catch (error) {
-            console.error('Error fetching user views:', error);
-            res.status(500).send({ error: error.message });
+        } catch (err) {
+            logger.error(err)
+            next(err);
         }
+    }
+
+    getAllUsersExcelEndpoint = async (req, res, next) => {
+        try {
+            const { filters, sort } = req.query;
+
+            const query = await this.getUsers(filters, sort);
+            let result = query.map(userRow => {
+                return new UserDTO(userRow).setOngoingLoans().setOngoingReservations().deleteLoans();
+            });
+
+            const workbook = generateExcel(result, 'User Logs')
+
+            // Prepare response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+    
+    async getUsers (filters, sort) {
+
+        const usersExist = await Usr.count();
+        
+        if (usersExist === 0) return []
+
+        const sortFieldLookup = {
+            "userName": '"user_name"',
+            "deptName": '"Dept"."dept_name"',
+        }
+
+        let sortCondition;
+        if (sort?.length === 2) sortCondition = getSortCondition(sortFieldLookup, sort);
+
+        // console.log(filters.userName);
+        
+        // SELECT ALL rows that either/both pending astLoan or pending accLoans → Removes all other LOANs 
+        const whereClause = {
+            [Op.and]: [
+                ...(filters.userName ? [{ userName: { [Op.iLike]: `%${filters.userName}%` } }] : []),
+                ...(filters.bookmarked === true ? [{ bookmarked: true }] : []),
+                ...(filters.assetCount?.length === 2
+                    ? [Sequelize.literal(`
+                        EXISTS (
+                            SELECT 1
+                            FROM "usrs"
+                            LEFT JOIN "loans" AS "UserLoans" ON "usrs"."id" = "UserLoans"."user_id"
+                            AND "UserLoans"."loan_event_id" IS NOT NULL -- unreturned loans
+                            LEFT JOIN "ast_loans" AS "AstLoans" ON "AstLoans"."loan_id" = "UserLoans"."id"
+                            AND "AstLoans"."return_event_id" IS NULL
+                            WHERE "usrs"."id" = "Usr"."id"
+                            GROUP BY "usrs"."id"
+                            HAVING COALESCE(COUNT(DISTINCT "AstLoans"."id"), 0) BETWEEN ${filters.assetCount[0]} AND ${filters.assetCount[1]}
+                        )
+                    `)] : []
+                ),
+                // ...(filters.accessoryCount?.length === 2 // TODO, add accessory count filter soon?
+                //     ? [Sequelize.where(
+                //         Sequelize.literal(`
+                //             (
+                //                 SELECT COALESCE(SUM("AccLoan"."count"), 0) 
+                //                 FROM "acc_loans" AS "AccLoan"
+                //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                //             )
+                //             -
+                //             (
+                //                 SELECT COALESCE(SUM("AccReturns"."count"), 0) 
+                //                 FROM "acc_returns" AS "AccReturns"
+                //                 JOIN "acc_loans" AS "AccLoan" ON "AccReturns"."acc_loan_id" = "AccLoan"."id"
+                //                 JOIN "loans" AS "UserLoans" ON "AccLoan"."loan_id" = "UserLoans".id
+                //                 WHERE "UserLoans"."user_id" = "Loans"."user_id"
+                //             )
+                //             BETWEEN ${filters.accessoryCount[0]} AND ${filters.accessoryCount[1]}
+                //         `)
+                //     )] : []
+                // ),
+            ],
+        };
+        
+
+        // IMPT allow reservations
+
+        const query = await Usr.findAll({
+            attributes: ['id', 'userName', 'bookmarked'],
+            logging: console.log,
+            include: [
+                {
+                    model: UsrTagMap,
+                    attributes: ['id'],
+                    where: { delEventId: { [Op.eq]: null } },
+                    include: {
+                        model: UsrTag,
+                        attributes: ['id', 'tagName'],
+                        ...(filters?.userTag?.length && { where: { id: { [Op.in]: filters.userTag } } }),
+                    },
+                    required: filters?.userTag?.length ? true : false,
+                },
+                {
+                    model: Event,
+                    as: 'AddEvent',
+                    attributes: ['eventDate'],
+                },
+                {
+                    model: Event,
+                    as: 'DeleteEvent',
+                    attributes: ['eventDate'],
+                    required: false,
+                },
+                {
+                    model: Loan,
+                    required: false,
+                    include: [
+                        {
+                            model: AstLoan,
+                            required: false,
+                            where: {
+                                returnEventId: {
+                                    [Op.eq]: null,
+                                }
+                            },
+                            include: [
+                                {
+                                    model: Ast,
+                                    required: true,
+                                    attributes: ['id', 'alias', 'serialNumber', 'bookmarked'],
+                                    include: {
+                                        model: AstSType,
+                                        required: true,
+                                        attributes: ['id', 'subTypeName'],
+                                        include: {
+                                            model: AstType,
+                                            required: true,
+                                            attributes: ['id', 'typeName'],
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            model: AccLoan,
+                            required: false,
+                            attributes: ['id', 'count'],
+                            where: Sequelize.literal(`
+                                NOT EXISTS (
+                                    SELECT 1
+                                    FROM "acc_returns" AS "AccReturns"
+                                    WHERE "AccReturns"."acc_loan_id" = "Loans->AccLoans"."id"
+                                    GROUP BY "Loans->AccLoans"."id"
+                                    HAVING COALESCE(SUM("AccReturns"."count"), 0) = "Loans->AccLoans"."count"
+                                )
+                            `),
+                            include: [
+                                {
+                                    model: AccType,
+                                    required: true,
+                                    attributes: ['id', 'accessoryName'],
+                                },
+                                {
+                                    model: AccReturn, // Need to calculate remaining count later
+                                    attributes: ['id', 'count'],
+                                    required: false,
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    model: Dept,
+                    required: true,
+                    attributes: ['deptName'],
+                    ...(filters?.deptName?.length && { where: { id: { [Op.in]: filters.deptName } } }),
+                },
+            ],
+            where: whereClause || {},
+            order: sortCondition ? [sortCondition] : [[{ model: Event, as: 'AddEvent' }, 'eventDate', 'DESC']], // Handle sorting dynamically
+        });
+        
+        return query;
     };
     
     getUser = async (req, res) => {

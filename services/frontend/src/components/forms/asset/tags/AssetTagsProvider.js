@@ -10,6 +10,7 @@ import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { DelAssetTagsStep1 } from "./delTag/DelAssetTagsStep1";
 import { DelAssetTagsStep2 } from "./delTag/DelAssetTagsStep2";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const createNewTag = (tag=null, assets=[]) => ({
 	'key': uuidv4(),
@@ -39,6 +40,7 @@ export const AssetTagsFormProvider = ({
   const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
+  const { reload } = useItems();
 
   const [ tagOptions, setTagOptions ] = useState([]);
   const [ assetOptions, setAssetOptions ] = useState({});
@@ -185,6 +187,7 @@ export const AssetTagsFormProvider = ({
       setLoading(false);
       showToast('Assets successfully tagged', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -201,6 +204,7 @@ export const AssetTagsFormProvider = ({
       setLoading(false);
       showToast('Assets successfully untagged', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

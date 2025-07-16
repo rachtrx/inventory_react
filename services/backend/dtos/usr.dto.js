@@ -4,6 +4,8 @@ const UserTagMapDTO = require("./usrTagMap.dto");
 const { runInitialLoanCheck } = require("./utils");
 class UserDTO {
 
+    #checked = false;
+
     constructor({
         id,
         userName,
@@ -54,11 +56,11 @@ class UserDTO {
 
     setOngoingLoans() {
 
-        if (!this.checked) {
+        if (!this.#checked) {
             if (!this.userLoans) throw new Error("Dev error: Include Loans in the query")
             if (this.userLoans.length === 0) return this;
             this.userLoans.forEach(userLoan => runInitialLoanCheck(userLoan));
-            this.checked = true;
+            this.#checked = true;
         }
 
         this.loans = this.userLoans.filter(loan => {
@@ -76,15 +78,20 @@ class UserDTO {
 
     setOngoingReservations() {
         
-        if(!this.checked) {
+        if(!this.#checked) {
             if (!this.userLoans) throw new Error("Dev error: Include Loans in the query")
             if (this.userLoans.length === 0) return this;
             this.userLoans.forEach(userLoan => runInitialLoanCheck(userLoan));
-            this.checked = true;
+            this.#checked = true;
         }
         
         this.reservations = this.userLoans.filter(loan => loan.loanEventId === null) || [];
 
+        return this;
+    }
+
+    deleteLoans() {
+        delete this.userLoans;
         return this;
     }
 }

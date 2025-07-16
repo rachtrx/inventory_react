@@ -14,10 +14,10 @@ class LoanDTO {
         AccLoans,
         Usr,
     }) {
-        this.loanId = id;
-
-        this.loanEventId = loanEventId;
-        this.reserveEventId = reserveEventId;
+        if (id) this.loanId = id;
+        
+        if (loanEventId !== undefined) this.loanEventId = loanEventId;
+        if (reserveEventId !== undefined) this.reserveEventId = reserveEventId;
 
         if (expectedReturnDate) {
             const expected = new Date(expectedReturnDate);
@@ -37,11 +37,6 @@ class LoanDTO {
         
             // Construct new Date in Singapore timezone (local midnight)
             const today = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
-        
-            if (id === "1B1896E5") {
-                logger.info(expected);
-                logger.info(today);
-            }
         
             expected.setHours(0, 0, 0, 0);
         
@@ -69,8 +64,8 @@ class LoanDTO {
         }
 
         const EventDTO = require("./event.dto");
-        this.reserveEvent = ReserveEvent && new EventDTO(ReserveEvent.dataValues);
-        this.loanEvent = LoanEvent && new EventDTO(LoanEvent.dataValues);
+        if (ReserveEvent) this.reserveEvent = new EventDTO(ReserveEvent.dataValues);
+        if (LoanEvent) this.loanEvent = new EventDTO(LoanEvent.dataValues);
         
         if (AstLoan !== undefined) {
             const AstLoanDTO = require("./astLoan.dto");
@@ -82,7 +77,7 @@ class LoanDTO {
             this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
         }
 
-        this.filepath = filepath;
+        if (filepath) this.filepath = filepath;
 
         if (Usr) {
             const UserDTO = require("./usr.dto");
@@ -150,7 +145,15 @@ class LoanDTO {
             .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
 
         return this;
-    }    
+    }
+
+    hasLoan() {
+        return this.loanEventId || this.loanEvent
+    }
+
+    hasReservation() {
+        return this.reserveEventId || this.reserveEvent && !this.hasLoan()
+    }
 }
 
 module.exports = LoanDTO;

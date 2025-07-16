@@ -19,6 +19,8 @@ import { useItems } from "../../context/ItemsProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { CircleText } from "../utils/CircleText";
 import { AccTypeLink } from "../buttons/ItemLink";
+import { LoansPopover } from "./LoansPopover";
+import accessoryService from "../../services/AccessoryService";
 
 function AccessoryCards({ items }) {
 
@@ -49,27 +51,32 @@ function AccessoryCards({ items }) {
                 <Flex direction="column" justifyContent='space-evenly' alignSelf='stretch' gap={1}>
                   <Flex gap={1}>
                     <CircleText
+                      text={accessoryType.stock ? accessoryType.stock : 0}
+                    />
+                    <ResponsiveText>Available</ResponsiveText>
+                  </Flex>
+
+                  <Flex gap={1}>
+                    <CircleText
                       text={accessoryType.registeredCount ? accessoryType.registeredCount : 0}
                     />
                     <ResponsiveText>Registered</ResponsiveText>
                   </Flex>
                   <Flex gap={1}>
-                    <CircleText
-                      text={accessoryType.loanCount ? accessoryType.loanCount : 0}
+                    <LoansPopover
+                      accessoryType={accessoryType}
+                      searchFunc={(id) => accessoryService.getLoanDetails(id)}
+                      count={accessoryType.loanCount}
                     />
                     <ResponsiveText>Loaned</ResponsiveText>
                   </Flex>
                   <Flex gap={1}>
-                    <CircleText
-                      text={accessoryType.reserveCount ? accessoryType.reserveCount : 0}
+                    <LoansPopover
+                      accessoryType={accessoryType}
+                      searchFunc={(id) => accessoryService.getReservationDetails(id)}
+                      count={accessoryType.reserveCount}
                     />
                     <ResponsiveText>Reserved</ResponsiveText>
-                  </Flex>
-                  <Flex gap={1}>
-                    <CircleText
-                      text={accessoryType.stock ? accessoryType.stock : 0}
-                    />
-                    <ResponsiveText>Available</ResponsiveText>
                   </Flex>
                 </Flex>
               </VStack>

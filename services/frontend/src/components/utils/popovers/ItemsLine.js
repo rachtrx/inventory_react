@@ -1,6 +1,6 @@
 import { Box, Collapse, Flex, Text, Tooltip } from "@chakra-ui/react"
 import { AccTypeLink, AssetLink } from "../../buttons/ItemLink"
-import { CircleText, OverlappingCircles } from "../../utils/CircleText"
+import { CircleText, OverlappingCircles } from "../CircleText"
 import { AssetActionButton } from "../../buttons/actions/AssetActionButton"
 import { ReturnButton } from "../../buttons/actions/ReturnButton"
 import { FormType } from "../../../context/ModalProvider"

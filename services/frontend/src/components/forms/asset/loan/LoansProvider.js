@@ -11,6 +11,7 @@ import userService from "../../../../services/UserService";
 import accessoryService from "../../../../services/AccessoryService";
 import { useLoading } from "../../../../context/LoadingProvider";
 import loanService from "../../../../services/LoanService";
+import { useItems } from "../../../../context/ItemsProvider";
 
 // Create a context
 const LoansContext = createContext();
@@ -19,6 +20,7 @@ const LoansContext = createContext();
 export const LoansProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
+  const { reload } = useItems();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
@@ -249,6 +251,7 @@ export const LoansProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

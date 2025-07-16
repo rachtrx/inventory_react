@@ -14,7 +14,6 @@ const createAdminObject = (admin) => ({
     canSetupPassword: !admin.authType.includes('local')
 })
 class AuthController {
-
   /*
   * https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow
   * Redirects the user to the Microsoft to /authorize to authenticate
@@ -150,7 +149,8 @@ class AuthController {
   async checkAuth(req, res) {
     
     try {
-      const admin = await Admin.findOne({ where: { id: req.auth.id } });
+      // const admin = await Admin.findOne({ where: { id: req.auth.id } });
+      const admin = await Admin.findOne({ where: { email: "rachmielteo@go.edu.sg" } });
       if (admin) {
         return res.json(createAdminObject(admin));
       } else {

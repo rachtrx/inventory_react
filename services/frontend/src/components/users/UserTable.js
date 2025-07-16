@@ -3,7 +3,7 @@ import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 import { CircleUserActionButton, UserActionButton } from '../buttons/actions/UserActionButton';
 import { useDrawer } from '../../context/DrawerProvider';
 import { FormType, useFormModal } from '../../context/ModalProvider';
-import { ItemsList } from './popovers/ItemsList';
+import { ItemsList, UserItemsList } from "../utils/popovers/ItemsList";
 import { useResponsive } from '../../context/ResponsiveProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
@@ -45,7 +45,7 @@ const UserTable = ({ items }) => {
             <Td><ResponsiveText>{user.deptName}</ResponsiveText></Td>
             
             <Td>
-              {user.loans?.length > 0 && <ItemsList user={user}/>}
+              {user.loans?.length > 0 && <UserItemsList loans={user.loans}/>}
             </Td>
             <Td><Tags tags={user.tags}/></Td>
             <Td>

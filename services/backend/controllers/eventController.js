@@ -292,16 +292,6 @@ class EventController extends EventFilterController {
             where: whereClause,
             include: [
                 {
-                    model: Rmk,
-                    attributes: ['id', 'text'],
-                    include: {
-                        model: Admin,
-                        attributes: ['id', 'adminName'],
-                        required: false
-                    },
-                    required: false
-                },
-                {
                     model: Admin,
                     attributes: ['id', 'adminName'],
                     required: false

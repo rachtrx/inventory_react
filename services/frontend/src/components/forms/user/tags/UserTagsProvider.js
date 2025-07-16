@@ -13,6 +13,7 @@ import { DelUserTagsStep1 } from "./delTag/DelUserTagsStep1";
 import { DelUserTagsStep2 } from "./delTag/DelUserTagsStep2";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const createNewTag = (tag=null, users=[]) => ({
 	'key': uuidv4(),
@@ -40,6 +41,7 @@ export const UserTagsFormProvider = ({
 }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
+  const { reload } = useItems();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
@@ -182,6 +184,7 @@ export const UserTagsFormProvider = ({
       setLoading(false);
       showToast('Users successfully tagged', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -199,6 +202,7 @@ export const UserTagsFormProvider = ({
       setLoading(false);
       showToast('Users successfully untagged', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

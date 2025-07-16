@@ -1,6 +1,6 @@
 const { Ast, AstType, AstSType, Vendor, Usr, AstLoan, Sequelize, sequelize, Event, AccType, AccLoan, AccReturn, Loan, Admin, Rmk, AstTagMap, AstTag } = require('../models/index.js');
 const { Op } = require('sequelize');
-const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes, assetFilters, getSortCondition } = require('./utils.js');
+const { createSelection, getAllOptions, getDistinctOptions, getAssetFilters, getSubTypes, assetFilters, getSortCondition, generateExcel } = require('./utils.js');
 const logger = require('../logging.js');
 const AssetDTO = require('../dtos/ast.dto.js');
 const EventDTO = require('../dtos/event.dto.js');
@@ -55,20 +55,60 @@ class AssetController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    getAllAssetsEndpoint = async (req, res, next) => {
+        try {
+            const { filters, page = 1, limit = 30, sort } = req.query;
+            const query = await this.getAssets(filters, sort);
+
+            const count = query.length;
+            const rows = query.slice((page - 1) * limit, page * limit);
+            
+            let result = rows.map(assetRow => {
+                const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation().deleteLoans();
+                return asset;
+            });
+
+            res.json({
+                data: result,
+                totalCount: count, // Total assets count
+                totalPages: Math.max(Math.ceil(count / limit), 1), // Calculate total pages
+                currentPage: Math.max(parseInt(page, 10), 1)
+            });
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getAllAssetsExcelEndpoint = async (req, res, next) => {
+        try {
+            const { filters, sort } = req.query;
+
+            const query = await this.getAssets(filters, sort);
+            let result = query.map(assetRow => {
+                const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation().deleteLoans();
+                asset.astLoans = undefined
+                return asset;
+            });
+
+            const workbook = generateExcel(result, 'Asset Logs')
+
+            // Prepare response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
     
-    async getAssets(req, res) {
-        const { filters, sort, page = 1, limit = 30 } = req.query; // Ensure proper query param parsing
-        console.log(req.query);
+    getAssets = async (filters, sort) => {
 
         const assetsExist = await Ast.count();
-        if (assetsExist === 0) {
-            return res.json({
-                data: [],
-                totalCount: 0,
-                totalPages: 1,
-                currentPage: 1
-            });
-        }
+        if (assetsExist === 0) return [];
 
         const sortFieldLookup = {
             typeName: '"AstSType->AstType"."type_name"',
@@ -134,92 +174,71 @@ class AssetController {
                 )
             ]
         };
-    
-        try {
-            // Use `findAndCountAll` for pagination
-            const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'alias', 'location', 'bookmarked', 'value'],
-                include: [
-                    {
-                        model: AstTagMap,
-                        attributes: ['id'],
-                        where: { delEventId: { [Op.eq]: null }}, 
-                        include: {
-                            model: AstTag,
-                            attributes: ['id', 'tagName'],
-                            ...(filters?.assetTag?.length && { where: { id: { [Op.in]: filters.assetTag } } }),
-                        },
-                        required: filters?.assetTag?.length ? true : false
+        // Use `findAndCountAll` for pagination
+        const query = await Ast.findAll({
+            attributes: ['id', 'serialNumber', 'alias', 'location', 'bookmarked', 'value'],
+            include: [
+                {
+                    model: AstTagMap,
+                    attributes: ['id'],
+                    where: { delEventId: { [Op.eq]: null }}, 
+                    include: {
+                        model: AstTag,
+                        attributes: ['id', 'tagName'],
+                        ...(filters?.assetTag?.length && { where: { id: { [Op.in]: filters.assetTag } } }),
                     },
-                    {
-                        model: AstSType,
+                    required: filters?.assetTag?.length ? true : false
+                },
+                {
+                    model: AstSType,
+                    required: true,
+                    attributes: ['subTypeName'],
+                    ...(filters?.subTypeName?.length && { where: { id: { [Op.in]: filters.subTypeName } } }),
+                    include: {
+                        model: AstType,
                         required: true,
-                        attributes: ['subTypeName'],
-                        ...(filters?.subTypeName?.length && { where: { id: { [Op.in]: filters.subTypeName } } }),
-                        include: {
-                            model: AstType,
-                            required: true,
-                            attributes: ['typeName'],
-                            ...(filters?.typeName?.length && { where: { id: { [Op.in]: filters.typeName } } }),
-                        }
-                    },                    
-                    {
-                        model: Event,
-                        as: 'AddEvent',
-                        attributes: ['eventDate'],
-                        required: true
-                    },
-                    {
-                        model: Event,
-                        as: 'DeleteEvent',
-                        attributes: ['eventDate'],
-                        required: false,
-                    },
-                    {
-                        model: Vendor,
-                        attributes:['vendorName'],
-                        ...(filters?.vendor?.length && { where: { id: { [Op.in]: filters.vendor } } }),
-                    },
-                    {
-                        model: AstLoan,
-                        attributes: ['id', 'returnEventId'],
-                        include: {
-                            model: Loan,
-                            include: {
-                                model: Usr,
-                                attributes: ['id', 'userName', 'bookmarked'],
-                            },
-                        },
-                        where: { returnEventId: null },
-                        required: false
+                        attributes: ['typeName'],
+                        ...(filters?.typeName?.length && { where: { id: { [Op.in]: filters.typeName } } }),
                     }
-                ],
-                where: whereClause || {},
-                order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
-            });
+                },                    
+                {
+                    model: Event,
+                    as: 'AddEvent',
+                    attributes: ['eventDate'],
+                    required: true
+                },
+                {
+                    model: Event,
+                    as: 'DeleteEvent',
+                    attributes: ['eventDate'],
+                    required: false,
+                },
+                {
+                    model: Vendor,
+                    attributes:['vendorName'],
+                    ...(filters?.vendor?.length && { where: { id: { [Op.in]: filters.vendor } } }),
+                },
+                {
+                    model: AstLoan,
+                    attributes: ['id', 'returnEventId'],
+                    include: {
+                        model: Loan,
+                        include: {
+                            model: Usr,
+                            attributes: ['id', 'userName', 'bookmarked'],
+                        },
+                    },
+                    where: { returnEventId: null },
+                    required: false
+                }
+            ],
+            where: whereClause || {},
+            order: sortCondition ? [sortCondition] : [], // Handle sorting dynamically
+        });
 
-            const count = query.length;
-            const rows = query.slice((page - 1) * limit, page * limit);
-    
-            let result = rows.map(assetRow => {
-                const asset = new AssetDTO(assetRow).setOngoingLoan().setOngoingReservation();
-                return asset;
-            });
-    
-            // logger.info(result.slice(0, 10));
-    
-            res.json({
-                data: result,
-                totalCount: count, // Total assets count
-                totalPages: Math.ceil(count / limit), // Calculate total pages
-                currentPage: parseInt(page, 10)
-            });
-    
-        } catch (error) {
-            logger.error(error);
-            console.error(error);
-            res.status(500).json({ error: error.message });
-        }
+        // logger.info(result.slice(0, 10));
+
+        return query;
     }
     
 

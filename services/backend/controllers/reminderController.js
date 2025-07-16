@@ -13,30 +13,10 @@ class ReminderController extends EventFilterController {
         super()
     }
 
-	// async getReminders() {
-	// 	try {
-	// 		const reminders = await Loan.findAll({
-	// 			attributes: ['expectedLoanDate', 'expectedReturnDate']
-	// 		})
-	// 	} catch(error) {
-	// 		logger.error(error)
-	// 		next(error)
-	// 	}
-	// }
-
-	// async setReminders() {
-	// 	try {
-
-	// 	} catch(error) {
-	// 		logger.error(error)
-	// 		next(error)
-	// 	}
-	// }
-
-	getAllRemindersEndpoint = async (req, res, next) => {
+    getAllRemindersEndpoint = async (req, res, next) => {
         try {
             const { filters, page = 1, limit = 30, sort } = req.query;
-            const query = await this.getAllReminders(filters, sort);
+            const query = await this.getReminders(filters, sort);
 
             const count = query.length;
             const rows = query.slice((page - 1) * limit, page * limit);
@@ -45,9 +25,9 @@ class ReminderController extends EventFilterController {
 
             res.json({
                 data: result,
-                totalCount: count, // Total events count
-                totalPages: Math.ceil(count / limit), // Calculate total pages
-                currentPage: parseInt(page, 10),
+                totalCount: count, // Total assets count
+                totalPages: Math.max(Math.ceil(count / limit), 1), // Calculate total pages
+                currentPage: Math.max(parseInt(page, 10), 1)
             });
         } catch (err) {
             logger.error(err)
@@ -55,7 +35,27 @@ class ReminderController extends EventFilterController {
         }
     }
 
-    getAllReminders = async (filters, sort) => {
+    getAllRemindersExcelEndpoint = async (req, res, next) => {
+        try {
+            const { filters, sort } = req.query;
+
+            const query = await this.getReminders(filters, sort);
+            const result = query.map(row => new LoanDTO(row.dataValues));
+
+            const workbook = generateExcel(result, 'User Logs', ['checked'])
+
+            // Prepare response headers
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename="event_logs.xlsx"');
+            await workbook.xlsx.write(res);
+            res.end();
+        } catch (err) {
+            logger.error(err)
+            next(err);
+        }
+    }
+
+    getReminders = async (filters, sort) => {
     
         logger.info(filters);
 		logger.info(sort)
@@ -92,6 +92,8 @@ class ReminderController extends EventFilterController {
 			return [{ [Op.or]: [{ [path]: { [Op.in]: val } }] }];
 		});
 
+        conditionGroups.push({ loanEventId: { [Op.ne]: null }})
+
 		const expectedReturnDateClause = {};
 		if (filters?.startDate) {
 			expectedReturnDateClause[Op.gte] = new Date(filters.startDate);
@@ -107,23 +109,8 @@ class ReminderController extends EventFilterController {
 		const whereClause = {
 			[Op.and]: [
 			  ...conditionGroups,
-		  
 			  // Sequelize raw conditions for AstLoan / AccLoan logic
-			  {
-				[Op.or]: [
-				  Sequelize.literal(`EXISTS (
-					SELECT 1 FROM ast_loans
-					WHERE ast_loans.return_event_id IS NULL
-					AND ast_loans.id = "AstLoan"."id"
-				  )`),
-				  Sequelize.literal(`EXISTS (
-					SELECT 1 FROM "acc_returns" AS "AccReturns"
-					WHERE "AccReturns"."acc_loan_id" = "AccLoans"."id"
-					GROUP BY "AccLoans"."id"
-					HAVING COALESCE(SUM("AccReturns"."count"), 0) < "AccLoans"."count"
-				  )`)
-				]
-			  }
+			  Loan.TOP_LEVEL_ON_LOAN_WHERE_CLAUSE
 			]
 		  };
 

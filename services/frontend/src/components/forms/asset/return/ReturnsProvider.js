@@ -8,6 +8,7 @@ import { ReturnStep2 } from "./ReturnStep2";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
 import loanService from "../../../../services/LoanService";
+import { useItems } from "../../../../context/ItemsProvider";
 
 // Create a context
 const ReturnsContext = createContext();
@@ -15,11 +16,12 @@ const ReturnsContext = createContext();
 // Create a provider component
 export const ReturnsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
+  const { reload } = useItems();
   const { setLoading } = useLoading();
   const { setFormType, initialValues } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
-  const [ userOptions, setUserOptions ] = useState([])
+  const [ userOptions, setUserOptions ] = useState([]);
 
   const [formData, setFormData] = useState({
     returns: [createNewReturn()],
@@ -157,6 +159,7 @@ export const ReturnsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully returned', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);

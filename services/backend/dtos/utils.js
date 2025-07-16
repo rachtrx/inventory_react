@@ -1,10 +1,10 @@
 
 
-exports.runInitialAstLoanCheck = (astLoan, includesLoan) => {
+exports.runInitialAstLoanCheck = (astLoan, loanModelIsChild) => {
 
     if (astLoan.returnEventId === undefined) throw new Error("Dev error: Include returnEventId for asset loan");
 
-    if (includesLoan) {
+    if (loanModelIsChild) {
         if (!astLoan.loan) throw new Error("Dev error: Include loan model for asset loan");
         if (astLoan.loan.reserveEventId === undefined || astLoan.loan.loanEventId === undefined) throw new Error("Dev error: Include both reserve and loan IDs for loan model");
     }

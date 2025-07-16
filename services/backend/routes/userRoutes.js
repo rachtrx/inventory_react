@@ -5,7 +5,8 @@ const formUserTagController = require('../controllers/formUserTagController.js')
 
 const router = express.Router();
 
-router.get('/', userController.getUsers);
+router.get('/', userController.getAllUsersEndpoint);
+router.get('/excel', userController.getAllUsersExcelEndpoint);
 router.patch('/update', userController.updateUser);
 router.get('/filters/all', userController.getAllFilters);
 router.post('/filters', userController.getFilters)

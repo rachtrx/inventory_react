@@ -8,6 +8,7 @@ import { useFormModal } from "../../../../context/ModalProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { useItems } from "../../../../context/ItemsProvider";
 
 export const createNewType = (type={}) => ({
   'key': uuidv4(),
@@ -41,6 +42,7 @@ const AddAssetsContext = createContext();
 // Create a provider component
 export const AddAssetsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
+  const { reload } = useItems();
   const { setLoading } = useLoading();
   const { setFormType } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
@@ -297,6 +299,7 @@ export const AddAssetsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully added', 'success', 500);
       setFormType(null);
+      reload();
     } catch (err) {
       console.error(err);
       handleError(err);
