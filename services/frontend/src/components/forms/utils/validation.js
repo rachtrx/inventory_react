@@ -70,7 +70,8 @@ export function convertExcelDate(value, rowNum=null) {
 export function compareDates(date1, date2=new Date()) {
     // console.log(date1.setHours(0, 0, 0, 0));
     // console.log(date2.setHours(0, 0, 0, 0));
-    return date1.setHours(0, 0, 0, 0) > date2.setHours(0, 0, 0, 0);
+
+    return new Date(date1).setHours(0, 0, 0, 0) > date2.setHours(0, 0, 0, 0);
 }
 
 export function compareStrings(str1, str2) {

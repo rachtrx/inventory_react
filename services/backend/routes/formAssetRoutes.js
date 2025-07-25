@@ -1,5 +1,5 @@
 const express = require('express');
-const formAssetController = require('../controllers/formAssetController.js');
+const formAssetController = require('@controllers/formAssetController.js');
 
 const router = express.Router();
 

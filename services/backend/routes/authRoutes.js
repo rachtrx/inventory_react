@@ -1,7 +1,5 @@
 const express = require('express');
-const authController = require('../controllers/authController.js');
-const { generateToken } = require('../utils/jwtHelper.js');
-const logger = require('../logging.js');
+const authController = require('@controllers/admin/authController.js');
 const router = express.Router();
 
 // router.post("/login-sso", authController.loginSSO);

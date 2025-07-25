@@ -1,16 +1,16 @@
 import { ActionButton, CircleActionButton } from "./ActionButton"
 
 const withAccTypeAction = (ButtonComponent) => ({
-	accType=null,
+	accTypeIds=null,
 	grouped=false,
 	...rest
 }) => {
 
-	const accTypeArray = !accType ? [] : Array.isArray(accType) ? accType : [accType]
-
 	return (
 		<ButtonComponent
-			initialValues={{serialNumbers: accTypeArray.map(ast => ast.serialNumber), grouped}}
+			initialValues={{ 
+				accTypeIds: !accTypeIds ? [] : Array.isArray(accTypeIds) ? accTypeIds : [accTypeIds]
+			 }}
 			{...rest}
 		/>
 	)

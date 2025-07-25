@@ -75,7 +75,7 @@ const ExcelFormControl = ({ templateCols, loadValues }) => {
   };
 
   return (
-    <Grid mt={4} templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
+    <Grid templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
       <Button size="md" bg="white" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
         <Icon as={FaDownload} />
           <ResponsiveText>Get Template</ResponsiveText>

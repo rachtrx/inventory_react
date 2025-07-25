@@ -1,5 +1,5 @@
-const { FormType } = require("../controllers/utils");
-const logger = require("../logging");
+const { FormType } = require('@utils/constants.js')
+const logger = require("@/utils/logging");
 const AccTypeDTO = require("./accType.dto");
 const AssetDTO = require("./ast.dto");
 const AssetTagMapDTO = require("./astTagMap.dto");

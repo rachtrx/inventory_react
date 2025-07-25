@@ -1,138 +1,134 @@
 import { useEffect, useState } from "react"
-import { CreatableSingleSelectFormControl, SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
-import { useFormModal } from "../../../context/ModalProvider"
+import { CreatableSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useUI } from "../../../context/UIProvider"
 import accessoryService from "../../../services/AccessoryService"
-import { Button, Flex, VStack, IconButton, Box, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, HStack, CloseButton, Checkbox, FormControl, FormErrorMessage } from "@chakra-ui/react";
-import { Field, FieldArray } from "formik"
+import { Flex, Box, FormControl, FormErrorMessage, Card, SimpleGrid, CardHeader, CardBody, CardFooter, Button, Stack, StackDivider } from "@chakra-ui/react";
+import { FieldArray } from "formik"
 import InputFormControl from "../utils/InputFormControl"
 import { ResponsiveText } from "../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
-import { AddButton, RemoveButton } from "../utils/ItemButtons"
-import { useLoan } from "./LoanProvider"
-import { v4 as uuidv4 } from 'uuid';
-import { useLoans } from "./LoansProvider"
-import { createNewAccessory, createNewAsset } from "./LoanUser"
+import { AddButton } from "../utils/ItemButtons"
+import { createNewAccessory, createNewAsset } from "./helpers"
 import DateInputControl from "../utils/DateInputControl"
-import { ReturnAstSelectFormControl } from "../return/CustomSelect"
-import { LoanAstSelectFormControl } from "./CustomSelect"
-import assetService from "../../../services/AssetService"
 import LoanAccessory from "./LoanAccessory"
-import loanService from "../../../services/LoanService"
+import { LoanAsset } from "./LoanAsset";
+import get from 'lodash/get';
+import { SuggestedAccessories } from "./SuggestedAccessories";
 
 export const LoanItems = function({ field, loan, children }) {
 	
-	const { setFieldValue, errors, touched } = useFormikContext();
-	const { assetOptions, locationOptions } = useLoans();
-	const { handleError } = useUI();
-	// console.log(warnings);
+	const { setFieldValue, errors, touched, setTouched } = useFormikContext();
 
-	const [ suggestedOptions, setSuggestedOptions ] = useState([]);
+	const errorMessage = get(errors, `${field}.valid`);
+	const isTouched = get(touched, `${field}.valid`);
+	const isInvalid = !!errorMessage && isTouched;
 
-	useEffect(() => {
-		if (!loan?.asset) setSuggestedOptions([]);
+	const handleClearAsset = () => {
+		setFieldValue(`${field}.asset`, null);
+	}
 
-		if (!loan.asset.assetId) return;
-		const fetchItems = async () => {
-			try {
-			const response = await accessoryService.getSuggestedAccessories(loan.asset.assetId);
-			const suggestedOptions = response.data;
-				// console.log(suggestedOptions);
-				setSuggestedOptions(suggestedOptions);
-			} catch (err) {
-				handleError(err);
-				console.error(err);
-			}
-		};
-	
-		fetchItems();
-	}, [loan.asset, handleError, setFieldValue]);
-
-	const updateAssetFields = (selected) => {
-		console.log(selected);
-		console.log(`${field}.asset.assetId`);
-		setFieldValue(`${field}.asset.assetId`, selected?.assetId || '');
-		setFieldValue(`${field}.asset.onLoan`, selected?.loan ? true : false);
+	const handleClearAccessories = () => {
+		setFieldValue(`${field}.accessories`, []);
 	}
 
 	useEffect(() => {
-		if (loan.excludeAsset) {
-			setFieldValue(`${field}.asset.location`, "")
+		if ((get(touched, `${field}.asset.serialNumber`) || get(touched, `${field}.accessories.0.accessoryName`)) && !loan.asset && !loan.accessories?.length) {
+			setFieldValue(`${field}.valid`, false);
+		} else if (!loan.valid) setFieldValue(`${field}.valid`, true);
+	}, [loan, field, setFieldValue, touched])
+
+	useEffect(() => {
+		if (get(touched, `${field}.valid`)) return;
+
+		if (get(touched, `${field}.asset.serialNumber`) || get(touched, `${field}.accessories.0.accessoryName`)) {
+			setTouched({ [`${field}.valid`]: true });
 		}
-	}, [loan.excludeAsset, field, setFieldValue])
+		console.log(touched);
+	}, [field, touched, setTouched])
 
 	return (
 		<>
-		    <Field name={`${field}.excludeAsset`}>
-				{({ field, meta }) => (
-					<FormControl isInvalid={meta.touched && !!meta.error}>
-						<Checkbox
-							{...field}
-							isChecked={field.value}
-							onChange={(e) => field.onChange(e)} // optional: use helpers.setValue for full control
-							colorScheme="red"
-							size="lg"
-							iconColor="white"
-						>
-							<ResponsiveText size="sm">No Asset</ResponsiveText>
-						</Checkbox>
-						<FormErrorMessage>{meta.error}</FormErrorMessage>
+			<Flex direction="column" gap={1}>
+				{/* SECTION ASSET  */}
+				<FormControl isInvalid={isInvalid}>
+					<SimpleGrid 
+						spacing={2}
+						templateColumns='repeat(auto-fill, minmax(200px, 1fr))'
+					>
+						<Card size="sm" border={isInvalid ? '1px solid red' : undefined} borderRadius="md">
+							<CardHeader>
+								<ResponsiveText size='sm' fontWeight="bold">Asset</ResponsiveText>
+							</CardHeader>
+							<CardBody>
+								{loan.asset ? 
+								<LoanAsset
+									field={`${field}.asset`}
+									asset={loan.asset}
+								/> : 
+								<AddButton
+									ariaLabel="Add Asset"
+									handleClick={() => {
+										setFieldValue(`${field}.asset`, createNewAsset());
+									}}
+									label={`Add Asset`}
+									size='xs'
+								/>}
+							</CardBody>
+							<CardFooter>
+								<Button 
+									onClick={handleClearAsset}
+									isDisabled={!loan.asset}
+								>Clear</Button>
+							</CardFooter>
+						</Card>
+						<Card size="sm" border={isInvalid ? '1px solid red' : undefined} borderRadius="md">
+							<CardHeader>
+								<ResponsiveText size='sm' fontWeight="bold">Accessories</ResponsiveText>
+							</CardHeader>
+							<CardBody>
+								<FieldArray name={`${field}.accessories`}>
+									{accessoryHelpers => (
+										<Box>
+											{!loan.accessories.length && loan.asset?.sTypeId && 
+												<SuggestedAccessories 
+													sTypeId={loan.asset.sTypeId}
+													accessoryHelpers={accessoryHelpers}
+												/>}
+											<Stack divider={<StackDivider />}>
+												{loan.accessories.map((accessory, accessoryIndex) => 
+													(<LoanAccessory
+														key={accessory?.key}
+														accessory={accessory}
+														field={`${field}.accessories.${accessoryIndex}`}
+														index={accessoryIndex}
+														helpers={accessoryHelpers}
+														autoFocus={accessoryIndex === loan.accessories.length - 1}
+													/>)
+												)}
+											</Stack>
+											<AddButton
+												ariaLabel="Add Accessory"
+												handleClick={() => {
+													accessoryHelpers.push(createNewAccessory());
+												}}
+												label={`Add Accessory`}
+												size='xs'
+											/>
+										</Box>
+									)}
+								</FieldArray>
+							</CardBody>
+							<CardFooter>
+								<Button 
+									onClick={handleClearAccessories}
+									isDisabled={!loan.accessories?.length}
+								>Clear</Button>
+							</CardFooter>
+						</Card>
+					</SimpleGrid>
+					<FormErrorMessage>{errorMessage}</FormErrorMessage>
 					</FormControl>
-				)}
-			</Field>
-			<Flex direction="column" gap={1} alignItems={'flex-start'}>
-				 {/* SECTION ASSET  */}
-				{!loan.excludeAsset && 
-				<>
-					<LoanAstSelectFormControl
-						name={`${field}.asset.serialNumber`}
-						searchFn={value => loanService.fetchAstLoan(value)}
-						updateFields={updateAssetFields}
-						label={`Serial Number`}
-						placeholder="Serial Number"
-						initialOptions={assetOptions}
-					/>
-					<CreatableSingleSelectFormControl
-						name={`${field}.asset.location`}
-						label={`Location`}
-						placeholder="Select Location"
-						initialOptions={locationOptions}
-					/>
-				</>
-				}
-
-				{/* SECTION ACCESSORIES  */}
-				<ResponsiveText>Accessories</ResponsiveText>
-				<FieldArray name={`${field}.accessories`}>
-					{accessoryHelpers => (
-						<Box>
-							{/* <HStack mb={1}>
-								{suggestedOptions && suggestedOptions.length > 0 && (
-									suggestedOptions.map((option) => (
-										<Button onClick={() => accessoryHelpers.push(createNewAccessory({accessoryTypeId: option.value, accessoryName: option.label}))}/>
-									))
-								)}
-							</HStack> */}
-							{loan.accessories.map((accessory, accessoryIndex) => 
-								<LoanAccessory
-									key={accessory?.key}
-									accessory={accessory}
-									field={`${field}.accessories.${accessoryIndex}`}
-									index={accessoryIndex}
-									helpers={accessoryHelpers}
-								/>
-							)}
-							<AddButton
-								ariaLabel="Add Accessory"
-								handleClick={() => {
-									accessoryHelpers.push(createNewAccessory());
-								}}
-								label={`Add Accessory`}
-								size='xs'
-							/>
-						</Box>
-					)}
-				</FieldArray>
+				
 				<DateInputControl label="Expected Return Date" name={`${field}.expectedReturnDate`} />
 				<InputFormControl name={`${field}.remarks`} label={`Loan Remarks`}/>
 				{children}

@@ -1,7 +1,7 @@
 import { ActionButton, CircleActionButton } from "./ActionButton"
 const withAssetAction = (ButtonComponent) => ({
 	asset=null,
-	grouped=false, // ie loan to the same user instead of different users
+	user=null,
 	...rest
 }) => {
 
@@ -9,7 +9,7 @@ const withAssetAction = (ButtonComponent) => ({
 
 	return (
 		<ButtonComponent
-			initialValues={{serialNumbers: assetArray.map(ast => ast.serialNumber), grouped}}
+			initialValues={{serialNumbers: assetArray.map(ast => ast.serialNumber), user}}
 			{...rest}
 		/>
 	)

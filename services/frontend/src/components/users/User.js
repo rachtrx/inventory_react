@@ -5,17 +5,20 @@ import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
 import Timeline from '../timeline/Timeline';
-import TextEditableField from '../utils/TextEditableField';
+import TextEditableField from '../utils/editing/TextEditableField';
 import { useEffect } from 'react';
 import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
 import UserTimeline from '../timeline/users/UserTimeline';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
-import SelectEditableField from '../utils/SelectEditableField';
 import userService from '../../services/UserService';
+import SelectEditableField from '../utils/editing/SelectEditableField';
+import { StarButton } from '../buttons/StarButton';
+import { ReloanButton } from '../buttons/actions/ReloanButton';
+import { EditToggleButton } from '../buttons/EditToggleButton';
 
 const User = ({ user }) => {
-	const { editKey, editedValue, handleSave, handleEdit } = useDrawer()
-  	const { setFormType } = useFormModal()
+
+	const { updateItem } = useDrawer();
 
 	const loans = user.loans.map(loan => ({
 		loanId: loan.loanId,
@@ -31,71 +34,87 @@ const User = ({ user }) => {
 	useEffect(() => {
 		console.log(user);
 	}, [user])
+
+	const handleBookmarkUpdate = async (isBookmarked) => {
+		await updateItem({ name: 'bookmarked', itemId: user.userId, newValue: !isBookmarked });
+	}
     
     return (
 			<Box p={4}>
-			<Box mb={4}>
-				<Heading as="h1" size="lg" mb={4}>{user.userName}</Heading>
-				<Grid
-					templateColumns="auto 1fr auto"
-					gap={1}
-					p={4}
-					alignItems='center'
-				>
-					<TextEditableField
-						label="Name"
-						name="userName"
-						value={user.userName}
-					/>
-					<TextEditableField
-						label="Email"
-						name="email"
-						value={user.email}
-					/>
-					<SelectEditableField 
-						label="Department"
-						name="deptName"
-						value={user.deptName}
-						id={user.deptId}
-						createFn={async (value) => await userService.createNewDept(value)}
-					/>
-				</Grid>
-			</Box>
-		
-			<Box mb={4}>
-				<Heading as="h2" size="md" mb="2">PAST ASSETS</Heading>
-				<SimpleGrid columns={3} spacing={4}>
-					{user.pastAssets?.map((asset) => (
-						<AssetLink asset={asset}/>
-					))}
-				</SimpleGrid>
-			</Box>
-		
-			<Box mb={4}>
-				<Heading as="h2" size="md" mb="2">CURRENT ASSETS</Heading>
-				{loans?.map((loan) => (
-					<Flex alignItems="center" mb="2">
-						{loan.asset && <AssetLink asset={loan.asset}/>}
-						{loan.accessories?.length > 0 && (
-							loan.accessories.map((accessory) => (
-								<AccTypeLink key={accessory.accessoryTypeId} accType={accessory} />
-							))
-						)}
-						<ReturnButton 
-							loanId={loan.loanId}
+				<Box mb={4}>
+					<Flex gap={2} justifyContent="space-between">
+						<Flex gap={1}>
+							<StarButton
+								id={user.userId}
+								isBookmarked={user.bookmarked}
+								handleUpdate={() => handleBookmarkUpdate(user.bookmarked)}
+							/>
+							<EditToggleButton/>
+						</Flex>
+						<TextEditableField
+							name="userName"
+							value={user.userName}
+							isHeading={true}
+							textProps={{as:"h1", size:"lg", mb: "4"}}
 						/>
 					</Flex>
-				))}
-			</Box>
-		
-			<Box>
-				<IconButton
-					icon={<InfoOutlineIcon />}
-					isRound
-					aria-label="Bookmark"
-					mb={4}
-				/>
-				<Flex gridGap="2">
+					
+					<Grid
+						templateColumns="auto 1fr auto"
+						gap={1}
+						p={4}
+						alignItems='center'
+					>
+						<TextEditableField
+							label="Email"
+							name="email"
+							value={user.email}
+						/>
+						<SelectEditableField 
+							label="Department"
+							name="deptName"
+							value={user.deptName}
+							id={user.deptId}
+							createFn={async (value) => await userService.createNewDept(value)}
+						/>
+					</Grid>
+				</Box>
+			
+				<Box mb={4}>
+					<Heading as="h2" size="md" mb="2">PAST ASSETS</Heading>
+					<SimpleGrid columns={3} spacing={4}>
+						{user.pastAssets?.map((asset) => (
+							<Flex gap={1}>
+								<AssetLink asset={asset} withTooltip={true}/>
+								<AssetActionButton 
+									asset={asset}
+									formType={FormType.RELOAN}
+									user={user}
+								/>
+							</Flex>
+						))}
+						
+					</SimpleGrid>
+				</Box>
+			
+				<Box mb={4}>
+					<Heading as="h2" size="md" mb="2">CURRENT ASSETS</Heading>
+					{loans?.map((loan) => (
+						<Flex alignItems="center" mb="2" gap={1}>
+							{loan.asset && <AssetLink asset={loan.asset} withTooltip={true}/>}
+							{loan.accessories?.length > 0 && (
+								loan.accessories.map((accessory) => (
+									<AccTypeLink key={accessory.accessoryTypeId} accType={accessory} />
+								))
+							)}
+							<ReturnButton 
+								loanId={loan.loanId}
+							/>
+						</Flex>
+					))}
+				</Box>
+			
+				<Flex gridGap="2" mb={4}>
 					<UserActionButton 
 						formType={FormType.DEL_USER} 
 						user={user}
@@ -105,13 +124,12 @@ const User = ({ user }) => {
 						user={user}
 					/>
 				</Flex>
-			</Box>
-		
-			{user.history && 
-				<UserTimeline
-					events={user.history}
-				/>
-			}
+			
+				{user.history && 
+					<UserTimeline
+						events={user.history}
+					/>
+				}
 		</Box>
     );
 };

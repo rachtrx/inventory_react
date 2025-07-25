@@ -1,6 +1,6 @@
 // RecordsLayout.js
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Button, Collapse, Flex, Heading, IconButton, useBreakpointValue, useDisclosure } from '@chakra-ui/react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Box, Button, Collapse, Flex, Heading, IconButton, SimpleGrid, Tooltip, useBreakpointValue, useDisclosure } from '@chakra-ui/react';
 import InfoBar from './utils/InfoBar';
 import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
@@ -19,11 +19,11 @@ import ActionSidebar from './utils/ActionSidebar';
 import FloatingButtons from './buttons/FloatingButtons';
 import { useFormModal } from '../context/ModalProvider';
 import SearchBar from './utils/SearchBar';
+import { MdRefresh } from 'react-icons/md';
 
 export default function RecordsLayout({ header, Filters, Actions, Cards, Table, defaultSearches=[] }) {
 
   const { headerSize, isIpad } = useResponsive()
-  const { handleDevError } = useUI();
   const { loading } = useLoading();
 
   const { data, totalCount, page, maxPage, next, prev, defaultFilters, setSearchFilters, downloadExcel } = useItems();
@@ -37,6 +37,12 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
   } = useDisclosure();
   
   const [isOpen, setIsOpen] = useState(false);
+  const [resetFlag, setResetFlag] = useState(0);
+
+  const handleReset = () => {
+    setSearchFilters(defaultFilters);
+    setResetFlag((prev) => prev + 1);
+  };
 
   return (
       <>
@@ -93,14 +99,33 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
           </Formik>
         </Box>
         
-        <Flex p={4} gap={1} justifyContent="space-around" alignItems="center">
+        <Flex spacing={2} p={4} gap={1} justifyContent="space-around" alignItems="center">
+
+          <Tooltip label="Reset All Filters">
+            <IconButton
+              aria-label="Reset"
+              size="sm"
+              icon={<MdRefresh />}
+              variant="outline"
+              colorScheme="gray"
+              onClick={handleReset}
+            />
+          </Tooltip>
+
           {defaultSearches?.length > 0 && (
-              <Flex gap={1}>{
+              <Flex gap={2}>{
                 defaultSearches.map(({ attr, label }, idx) => (
-                  <SearchBar key={idx} attr={attr} label={label}/>
+                  <SearchBar 
+                    key={idx} 
+                    attr={attr} 
+                    label={label} 
+                    resetFlag={resetFlag}
+                  />
                 ))
               }
-            </Flex>)
+            </Flex>
+            )
+            
           }
           <InfoBar count={totalCount}/>
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />

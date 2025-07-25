@@ -1,18 +1,14 @@
-import { useEffect, useState } from "react"
-import { SearchCreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
-import { useFormModal } from "../../../context/ModalProvider"
-import { useUI } from "../../../context/UIProvider"
-import accessoryService from "../../../services/AccessoryService"
-import { Flex } from "@chakra-ui/react";
+import { useEffect } from "react"
+import { Box, Flex } from "@chakra-ui/react";
 import InputFormControl from "../utils/InputFormControl"
 import { useFormikContext } from 'formik';
 import { RemoveButton } from "../utils/ItemButtons"
 import { useLoans } from "./LoansProvider"
-import { LoanAccSelectFormControl } from "./CustomSelect"
+import { AvailAccSelectFormControl } from "../options/AvailAccessoryOptions"
 import WarningCard from "../utils/Warnings"
 import loanService from "../../../services/LoanService"
 
-const LoanAccessory = ({ accessory, field, index, helpers }) => {
+const LoanAccessory = ({ accessory, field, index, helpers, autoFocus }) => {
 	
 	const { setFieldValue } = useFormikContext();
 	const { accessoryOptions, addNewAccessory } = useLoans()
@@ -30,22 +26,27 @@ const LoanAccessory = ({ accessory, field, index, helpers }) => {
 
     return (
         <Flex direction="column" key={accessory.key}>
-            <LoanAccSelectFormControl
-                name={`${field}.accessoryName`}
-                searchFn={loanService.fetchAccLoan}
-                updateFields={(selected) => updateAccessoryFields(selected)}
-                initialOptions={accessoryOptions}
-            >
-                <InputFormControl
-                    name={`${field}.count`} 
-                    type="number" 
-                    placeholder="Enter count" 
+            <Flex direction="column" gap={1}>
+                <AvailAccSelectFormControl
+                    name={`${field}.accessoryName`}
+                    searchFn={loanService.fetchAccLoan}
+                    autoFocus={autoFocus}
+                    updateFields={(selected) => updateAccessoryFields(selected)}
+                    initialOptions={accessoryOptions}
+                    errorAbove={true}
                 />
-                <RemoveButton
-                    ariaLabel="Remove Accessory"
-                    handleClick={() => helpers.remove(index)}
-                />
-            </LoanAccSelectFormControl>
+                <Flex gap={1} alignItems="center">
+                    <InputFormControl
+                        name={`${field}.count`} 
+                        type="number" 
+                        placeholder="Enter count" 
+                    />
+                    <RemoveButton
+                        ariaLabel="Remove Accessory"
+                        handleClick={() => helpers.remove(index)}
+                    />
+                </Flex>
+            </Flex>
             {accessory.accessoryName && !accessory.accessoryTypeId && 
                 <WarningCard
                     message={`Create ${accessory.accessoryName}?`}

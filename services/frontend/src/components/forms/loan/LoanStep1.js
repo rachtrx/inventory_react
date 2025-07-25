@@ -1,20 +1,18 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from "../utils/ExcelFormControl";
 import { useFormModal } from "../../../context/ModalProvider";
-import { FieldArray, Form, Formik, useFormikContext } from "formik";
-import assetService from "../../../services/AssetService";
-import { useUI } from "../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { LoanType } from "./LoanUser";
+import { FieldArray, Form, Formik } from "formik";
+import { useEffect, useRef, useState } from "react";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
 import { setFieldError } from "../utils/validation";
+import { useUI } from "../../../context/UIProvider";
 
 export const LoanStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useLoans();
     const { setFormType, reinitializeForm } = useFormModal();
-    const [ warnings, setWarnings ] = useState({});
+    const { handleError } = useUI();
     const formRef = useRef(null);
   
     useEffect(() => console.log('loan form rendered'))
@@ -27,7 +25,7 @@ export const LoanStep1 = () => {
       const assetIDSet = new Set();
       const duplicates = new Set();
       assets.forEach(asset => {
-				if (asset['assetId'] === '') return;
+				if (!asset || asset['assetId'] === '') return;
         if (assetIDSet.has(asset['assetId'])) {
           duplicates.add(asset['assetId']);
         }
@@ -85,13 +83,15 @@ export const LoanStep1 = () => {
           // }
 
           // Validate unique Asset IDs across all loans
-          if (!loan.excludeAsset) {
+          if (!loan.valid) {
+            setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'valid'], "Include at least 1 item to loan");
+          }
+          
+          if (loan.asset) {
             const assetError = validateAsset(loan.asset, assetIDDuplicates);
             if (assetError) {
               setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'asset', 'serialNumber'], assetError);
             }
-          } else {
-            if (!loan.accessories?.some(acc => acc.accessoryName)) setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'excludeAsset'], "At least 1 accessory must be added");
           }
 
           if (!loan.expectedReturnDate) {
@@ -112,22 +112,11 @@ export const LoanStep1 = () => {
             if (accessoryError) {
               setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
             }
-            // Track new accessories for warnings
-            // if (accessory.id === '' && accessory.accessoryName) {
-            //   newAccessories[accessory.accessoryName] = (newAccessories[accessory.accessoryName] || 0) + parseInt(accessory.count, 10);
-            // }
             console.log(accessory);
             if (accessory['accessoryName'] && !accessory['accessoryTypeId']) setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], `Please create new accessory type ${accessory['accessoryName']}`);
           });
         })
       });
-
-      console.log(errors);
-    
-      // Set warnings based on new accessories
-      // const updatedWarnings = generateWarnings(values.users.flatMap(user => user.loans.flatMap(loan => loan.accessories)), newAccessories);
-      // console.log(updatedWarnings);
-      // setWarnings(updatedWarnings);
       return errors;
     };
   
@@ -157,7 +146,6 @@ export const LoanStep1 = () => {
                         user={user}
                         userIndex={userIndex}
                         userHelpers={loanHelpers}
-                        warnings={warnings}
                         isLast={userIndex === array.length - 1}
                       >
                       </LoanProvider>
@@ -167,7 +155,15 @@ export const LoanStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.users}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

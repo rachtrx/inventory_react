@@ -5,7 +5,7 @@ import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl, Single
 import { Box, Divider, Flex } from "@chakra-ui/react";
 import DateInputControl from "../../../utils/DateInputControl";
 import { useFormModal } from "../../../../../context/ModalProvider";
-import { LoanAstSelectFormControl } from "../../../loan/CustomSelect";
+import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions";
 import assetService from "../../../../../services/AssetService";
 import { createNewAsset, useAssetTags } from "../AssetTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
@@ -57,7 +57,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
                             tag.assets.map((asset, assetIndex, assetArray) => (
                                 <Flex direction="column" gap={2} key={asset.key}>
                                     <Flex key={asset.key} alignItems="center"gap={2}>
-                                        <LoanAstSelectFormControl
+                                        <AvailAstSelectFormControl
                                             name={`tags.${tagIndex}.assets.${assetIndex}.serialNumber`}
                                             searchFn={value => assetService.fetchUntagAsset(value, tag.tagId)} // TODO handle shareds
                                             updateFields={(selected) => updateAssetFields(assetIndex, selected)}

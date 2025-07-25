@@ -144,29 +144,11 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
-  const handleUpdate = useCallback(async (id, field, newValue) => {
-    const value = newValue;
-    console.log(value);
-    setLoading(true);
-    try {
-      await service.updateItem(id, field, newValue);
-      setData(prevItems => 
-        prevItems.map(item =>item[idField] === id ? { ...item, [field]: value } : item)
-      );
-    } catch (err) {
-      console.log(err);
-      handleError(err); // Call handleError to handle the error
-    } finally {
-      setLoading(false);
-    }
-  }, [handleError, service, setLoading, idField]);
-
   return (
     <ItemsContext.Provider value={{ 
       defaultFilters: service.defaultFilters,
       filters, 
       setFilters,
-      handleUpdate,
       handleSort,
       sortField,
       sortOrder,

@@ -13,6 +13,7 @@ class AssetDTO {
         alias,
         bookmarked,
         value,
+        subTypeId,
         remarks,
         Vendor,
         location,
@@ -25,7 +26,9 @@ class AssetDTO {
         AstTagMaps=null,
         lastEventDate=null
     }) {
-        if (lastEventDate) this.lastEventDate = lastEventDate
+        if (lastEventDate) this.lastEventDate = lastEventDate;
+
+        if (subTypeId) this.subTypeId = subTypeId;
 
         if (AstTagMaps !== undefined) {
             this.tags = AstTagMaps && AstTagMaps.map(astTagMap => new AssetTagMapDTO(astTagMap.dataValues));

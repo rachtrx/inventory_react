@@ -1,12 +1,12 @@
 const express = require('express');
-const assetController = require('../controllers/assetController.js');
-const formAssetController = require('../controllers/formAssetController.js');
-const formAssetTagController = require('../controllers/formAssetTagController.js');
+const assetController = require('@controllers/assets/assetController.js');
+const formAssetController = require('@controllers/assets/formAssetController.js');
+const formAssetTagController = require('@controllers/assets/formAssetTagController.js');
 
 const router = express.Router();
 
-router.get('/', assetController.getAllAssetsEndpoint);
-router.get('/excel', assetController.getAllAssetsExcelEndpoint);
+router.get('/', assetController.getAllItemsEndpoint);
+router.get('/excel', assetController.getAllItemsExcelEndpoint);
 
 router.get('/filters/all', assetController.getAllFilters);
 router.post('/filters', assetController.getFilters);

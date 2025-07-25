@@ -16,7 +16,7 @@ const AccessoryTable = ({ items }) => {
     <Table size='sm' variant="simple">
       <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
         <Tr>
-          <Th></Th>
+          {/* <Th></Th> */}
           <Th onClick={() => handleSort("accessoryName")} cursor="pointer">
             Accessory Name {sortField === "accessoryName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
           </Th>
@@ -32,7 +32,7 @@ const AccessoryTable = ({ items }) => {
             key={accessoryType.accessoryTypeId} 
             _hover={{ bg: 'gray.100' }}
            >
-            <Td><ItemStarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td>
+            {/* <Td><ItemStarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td> */}
             <Td><AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/></Td>
             
             <Td>

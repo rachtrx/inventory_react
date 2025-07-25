@@ -40,13 +40,13 @@ function AccessoryCards({ items }) {
               <VStack align="start" flex='1'>
                 <Flex gap={2} alignItems="center">
                   <AccTypeLink accType={accessoryType}/>
-                  <Box alignSelf='flex-end'>
+                  {/* <Box alignSelf='flex-end'>
                     <AccTypeActionButton
                       key={FormType.UPDATE_ACC}
                       formType={FormType.UPDATE_ACC}
                       accType={accessoryType}
                     />
-                  </Box>
+                  </Box> */}
                 </Flex>
                 <Flex direction="column" justifyContent='space-evenly' alignSelf='stretch' gap={1}>
                   <Flex gap={1}>
@@ -83,12 +83,12 @@ function AccessoryCards({ items }) {
             </Flex>
           </CardBody>
           
-          <ItemStarButton
+          {/* <ItemStarButton
             position="absolute" top={2} right={2}
             id={accessoryType.accessoryTypeId}
             isBookmarked={accessoryType.bookmarked}
             onToggle={handleUpdate}
-          />
+          /> */}
         </Card>
       </Box>
       ))}

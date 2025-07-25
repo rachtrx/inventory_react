@@ -16,6 +16,7 @@ export const DelAssetStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useDelAssets();
     const { setFormType, reinitializeForm } = useFormModal();
+    const { handleError } = useUI();
     const formRef = useRef(null);
   
     // console.log('add asset form rendered');
@@ -111,7 +112,15 @@ export const DelAssetStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.assets}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

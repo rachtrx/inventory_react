@@ -16,6 +16,7 @@ export const AddAssetTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAssetTags();
     const { setFormType, reinitializeForm } = useFormModal();
+    const { handleError } = useUI();
     const formRef = useRef(null);
 
     useEffect(() => {
@@ -127,7 +128,15 @@ export const AddAssetTagsStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.types}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

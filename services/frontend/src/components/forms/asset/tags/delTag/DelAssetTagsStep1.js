@@ -15,6 +15,7 @@ export const DelAssetTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAssetTags();
     const { setFormType, reinitializeForm } = useFormModal();
+    const { handleError } = useUI();
     const formRef = useRef(null);
   
     // console.log('add asset form rendered');
@@ -121,7 +122,15 @@ export const DelAssetTagsStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.types}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

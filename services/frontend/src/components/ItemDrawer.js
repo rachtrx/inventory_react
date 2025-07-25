@@ -22,6 +22,7 @@ import assetService from '../services/AssetService';
 import userService from '../services/UserService';
 import accessoryService from '../services/AccessoryService';
 import Accessory from './accessories/Accessory';
+import { EditModeProvider } from '../context/EditModeProvider';
 
 
 const ItemDrawer = () => {
@@ -49,16 +50,19 @@ const ItemDrawer = () => {
         </Breadcrumb>
       </DrawerHeader>
       <DrawerBody p={0}>
-      {currentItem?.type === "asset" ? ( <Asset asset={currentItem}/> )
-        : currentItem?.type === "user" ? ( <User user={currentItem}/> )
-        : currentItem?.type === "accessory" ? ( <Accessory accType={currentItem}/> )
-        : (
-          <Alert status="error" borderRadius="md" m="4">
-            <AlertIcon />
-            <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
-            <AlertDescription>There was a problem retrieving the data. Please try again later.</AlertDescription>
-          </Alert>
-        )}
+        <EditModeProvider>
+        {currentItem?.type === "asset" ? ( <Asset asset={currentItem}/> )
+          : currentItem?.type === "user" ? ( <User user={currentItem}/> )
+          : currentItem?.type === "accessory" ? ( <Accessory accType={currentItem}/> )
+          : (
+            <Alert status="error" borderRadius="md" m="4">
+              <AlertIcon />
+              <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
+              <AlertDescription>There was a problem retrieving the data. Please try again later.</AlertDescription>
+            </Alert>
+          )
+        }
+        </EditModeProvider>
       </DrawerBody>
     </DrawerContent>
   </Drawer>

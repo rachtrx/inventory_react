@@ -1,10 +1,10 @@
 const express = require('express');
-const accessoryController = require('../controllers/accessoryController.js');
+const accessoryController = require('@controllers/accessories/accessoryController.js');
 
 const router = express.Router();
 
-router.get('/', accessoryController.getAllAccsEndpoint);
-router.get('/excel', accessoryController.getAllAccsExcelEndpoint);
+router.get('/', accessoryController.getAllItemsEndpoint);
+router.get('/excel', accessoryController.getAllItemsExcelEndpoint);
 router.get('/:id', accessoryController.getAccType);
 router.post('/filters', accessoryController.getFilters);
 router.post('/getSuggested', accessoryController.getSuggestedAccessories);

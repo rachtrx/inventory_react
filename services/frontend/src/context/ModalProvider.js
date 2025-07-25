@@ -14,6 +14,7 @@ export const FormType = {
   DEL_ASSET: 'DEL_ASSET',
   LOAN: 'LOAN',
   RETURN: 'RETURN',
+  RELOAN: 'RELOAN',
   ADD_USER: 'ADD_USER',
   DEL_USER: 'DEL_USER',
   RESTORE_ASSET: 'RESTORE_ASSET',
@@ -42,7 +43,7 @@ export const ModalProvider = ({ children }) => {
 
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
-  const [ initialValues, setInitialValues ] = useState(null); 
+  const [ initialValues, setInitialValues ] = useState(null);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -61,11 +62,12 @@ export const ModalProvider = ({ children }) => {
         return acc;
       }, {});
     } else {
-      return true;
+      return values !== '';
     }
   }, []);
 
   const reinitializeForm = (formRef, newValues) => {
+    
     if (formRef.current) {
       if (isFirstRender.current) {
         isFirstRender.current = false;
@@ -75,6 +77,7 @@ export const ModalProvider = ({ children }) => {
       formRef.current.setValues(newValues);
 
       const touchedFields = createTouchedStructure(newValues);
+      console.log(touchedFields);
       formRef.current.setTouched(touchedFields, true);
       formRef.current.validateForm();
     }

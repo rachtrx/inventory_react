@@ -21,11 +21,11 @@ export const ReturnsProvider = ({ children }) => {
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
   const [ userOptions, setUserOptions ] = useState([]);
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     returns: [createNewReturn()],
   });
-  const [step, setStep] = useState(1);
 
   useEffect(() => console.log(formData), [formData])
 
@@ -158,7 +158,7 @@ export const ReturnsProvider = ({ children }) => {
       setLoading(false);
       showToast('Assets successfully returned', 'success', 500);
       setFormType(null);
-      triggerRefresh();;
+      triggerRefresh();
     } catch (err) {
       console.error(err);
       handleError(err);

@@ -1,26 +1,24 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { dateTimeObject } from '../../../config';
-import { useContext, useMemo } from 'react';
-import { useUI } from '../../../context/UIProvider';
+import React, { createContext, useEffect, useCallback, useState } from 'react';
+import { useContext } from 'react';
 import { useFormikContext } from 'formik';
-import { Box, Button, Checkbox, Divider, Flex, FormControl, FormLabel, HStack, Spacer, Switch, VStack } from '@chakra-ui/react';
-import { createNewAccessory, createNewAsset, createNewLoan, createNewUser, LoanUser } from './LoanUser';
-import { FaUser, FaUsers } from 'react-icons/fa';
+import { Button, Divider, Flex } from '@chakra-ui/react';
+import { LoanUser } from './LoanUser';
+import { createNewUser } from './helpers';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 import { AddButton } from '../utils/ItemButtons';
-import ThreeWaySwitch from '../utils/ThreeWaySwitch';
 import { useFormModal } from '../../../context/ModalProvider';
 
 // Create a context for assets
 const LoanContext = createContext();
 
 // Devices Provider component
-export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) => {
+export const LoanProvider = ({user, userIndex, userHelpers, isLast}) => {
   // console.log('loan provider');
-  const { values, setFieldValue } = useFormikContext();
+  const { values } = useFormikContext();
+  const { initialValues } = useFormModal();
   // console.log(values);
 
-  useEffect(() => console.log(values), [values]);
+  // useEffect(() => console.log(values), [values]);
 
   const removeUser = useCallback(() => userHelpers.remove(userIndex), [userHelpers, userIndex])
 
@@ -30,7 +28,6 @@ export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) =
       userIndex, 
       userHelpers, 
       removeUser, 
-      warnings 
     }}>
       <LoanUser />
       
@@ -47,7 +44,7 @@ export const LoanProvider = ({user, userIndex, userHelpers, warnings, isLast}) =
         )}
       </Flex>
       <Divider borderColor="black" borderWidth="2px" my={4} />
-      {isLast && (
+      {isLast && !Object.values(initialValues || {}).length && (
         <AddButton
           handleClick={() => userHelpers.push(createNewUser())}
           label="Add Another User"

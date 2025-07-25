@@ -18,6 +18,7 @@ const withSelect = (Component, isCreatable) => ({
   children,
   components = undefined,
   styles = undefined,
+  errorAbove = false,
   ...props
 }) => {
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
@@ -58,9 +59,8 @@ const withSelect = (Component, isCreatable) => ({
       
       console.log(newValue);
       setValue(newValue);
-      setTouched(true);
     },
-    [updateFields, value, setValue, setTouched, isMulti]
+    [updateFields, value, setValue, isMulti]
   );
 
   useEffect(() => {
@@ -95,6 +95,7 @@ const withSelect = (Component, isCreatable) => ({
       {label && <FormLabel htmlFor={name}>
         <ResponsiveText>{label}</ResponsiveText>
       </FormLabel>}
+      {errorAbove === true && <FormErrorMessage mt={0} mb={1}>{meta.error}</FormErrorMessage>}
       <Flex alignItems="center">
         <Component
           classNamePrefix="react-select"
@@ -103,6 +104,7 @@ const withSelect = (Component, isCreatable) => ({
           setOptions={setOptions}
           isMulti={isMulti}
           onChange={handleChange}
+          onBlur={() => setTouched(true)}
           value={selectedOption}
           hideSelectedOptions={hideSelectedOptions}
           isSearchable
@@ -118,7 +120,7 @@ const withSelect = (Component, isCreatable) => ({
         />
         {children}
       </Flex>
-      <FormErrorMessage>{meta.error}</FormErrorMessage>
+      {errorAbove === false && <FormErrorMessage>{meta.error}</FormErrorMessage>}
       {!meta.error && warning && <FormHelperText color="orange.400">{warning}</FormHelperText>}
     </FormControl>
   );
@@ -206,17 +208,6 @@ export const CreatableSingleSelectFormControl = (props) => {
   );
 };
 
-// Creatable Multi Select without Search
-export const CreatableMultiSelectFormControl = (props) => {
-  return (
-    <EnhancedCreatableSelect 
-      {...props}
-      isMulti={true}
-      hideSelectedOptions={true}
-    />
-  );
-};
-
 // Single Select with Search
 export const SearchSingleSelectFormControl = (props) => {
   return (
@@ -224,17 +215,6 @@ export const SearchSingleSelectFormControl = (props) => {
       {...props}
       isClearable={true}
       isMulti={false}
-    />
-  );
-};
-
-// Multi Select with Search
-export const SearchMultiSelectFormControl = (props) => {
-  return (
-    <SearchSelect 
-      {...props}
-      isMulti={true}
-      closeMenuOnSelect={false}
     />
   );
 };
@@ -247,17 +227,6 @@ export const SearchCreatableSingleSelectFormControl = (props) => {
       {...props}
       isClearable={true}
       isMulti={false}
-    />
-  );
-};
-
-// Creatable Multi Select with Search
-export const SearchCreatableMultiSelectFormControl = (props) => {
-  return (
-    <SearchCreatableSelect 
-      {...props}
-      isMulti={true}
-      hideSelectedOptions={true}
     />
   );
 };

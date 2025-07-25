@@ -16,6 +16,7 @@ export const DelUserStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useDelUsers();
     const { setFormType, reinitializeForm } = useFormModal();
+    const { handleError } = useUI();
     const formRef = useRef(null);
   
     console.log('add user form rendered');
@@ -109,7 +110,15 @@ export const DelUserStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.users}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

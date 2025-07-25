@@ -6,6 +6,7 @@ import { MdAddToQueue, MdRemoveFromQueue } from "react-icons/md";
 
 export const ACTION_TEXT = {
   [FormType.LOAN]: 'Loan',
+  [FormType.RELOAN]: 'Reloan',
   [FormType.RETURN]: 'Return',
   [FormType.ADD_ASSET]: 'Add',
   [FormType.DEL_ASSET]: 'Condemn',
@@ -23,6 +24,7 @@ export const ACTION_TEXT = {
 
 export const ACTION_COLORS = {
   [FormType.LOAN]: 'blue',         
+  [FormType.RELOAN]: 'blue',         
   [FormType.RETURN]: 'orange',     
   [FormType.ADD_ASSET]: 'green',   
   [FormType.DEL_ASSET]: 'red',     

@@ -11,7 +11,7 @@ export default function CapsuleToggleButton({ isGridView, setIsGridView }) {
 			borderRadius="full"
 			boxSizing="border-box"
 			overflow="hidden"
-			width={{ base: "60px", sm: "80px" }} // Ensure it doesn't shrink below this size
+			width={{ base: "60px", sm: "80px" }}
 			height={{ base: "24px", sm: "32px" }}
 			alignSelf="center"
 		>

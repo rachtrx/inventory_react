@@ -2,7 +2,7 @@ import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack,
 import { InfoOutlineIcon } from '@chakra-ui/icons';
 import { useDrawer } from '../../context/DrawerProvider';
 import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
-import TextEditableField from '../utils/TextEditableField';
+import TextEditableField from '../utils/editing/TextEditableField';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from './utils/AssetStatus';
@@ -10,14 +10,15 @@ import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
 import Tags from '../tags/Tags';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
-import { ItemStarButton, StarButton } from '../buttons/StarButton';
-import SelectEditableField from '../utils/SelectEditableField';
+import { StarButton } from '../buttons/StarButton';
+import SelectEditableField from '../utils/editing/SelectEditableField';
 import assetService from '../../services/AssetService';
 import { useEffect, useState } from 'react';
 import { useUI } from '../../context/UIProvider';
+import { EditToggleButton } from '../buttons/EditToggleButton';
 
 const Asset = ({ asset }) => {
-  const { editKey, editedValue, handleEdit, handleSave } = useDrawer()
+  const { updateItem } = useDrawer();
   const [ subTypeOptions, setSubTypeOptions ] = useState([]);
   const { handleError } = useUI()
 
@@ -37,12 +38,9 @@ const Asset = ({ asset }) => {
     fetchSubTypeOptions()
   }, [])
 
-  const handleBookmarkUpdate = (isBookmarked) => {
-    console.log(isBookmarked)
-    handleSave('bookmarked', !isBookmarked);
+  const handleBookmarkUpdate = async (isBookmarked) => {
+    await updateItem({ name: 'bookmarked', itemId: asset.assetId, newValue: !isBookmarked });
   }
-
-  console.log(asset)
 
   const pastUsers = asset.pastUsers;
 
@@ -59,7 +57,22 @@ const Asset = ({ asset }) => {
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
-        <Heading as="h1" size="lg" mb={4}>{asset.serialNumber}</Heading>
+        <Flex gap={2} justifyContent="space-between">
+          <Flex gap={1}>
+            <StarButton
+              id={asset.assetId}
+              isBookmarked={asset.bookmarked}
+              handleUpdate={() => handleBookmarkUpdate(asset.bookmarked)}
+            />
+            <EditToggleButton/>
+          </Flex>
+          <TextEditableField
+						name="serialNumber"
+						value={asset.serialNumber}
+						isHeading={true}
+						textProps={{as:"h1", size:"lg", mb: "4"}}
+					/>
+        </Flex>
 				<Heading as="h2" size="md" mb="2">Status: {status}</Heading>	
 
         <Grid
@@ -69,13 +82,13 @@ const Asset = ({ asset }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-          <TextEditableField 
+          {/* <TextEditableField 
 						label="Serial Number"
             name="serialNumber"
             value={asset.serialNumber}
-					/>
+					/> */}
           <TextEditableField 
-						label="Alias"
+						label="Asset Tag"
             name="alias"
             value={asset.alias}
 					/>
@@ -93,10 +106,10 @@ const Asset = ({ asset }) => {
             id={asset.typeId}
             value={asset.typeName}
             createFn={async (value) => await assetService.createNewType(value)}
-            updateOptions={[
-              { value: "update-delete", label: `Update All and Discard ${asset.typeName}` },
-              { value: "update-keep", label: `Update All ${asset.subTypeName}` },
-            ]}
+            getUpdateOptions={(newValue) => ([
+              { value: "update-delete", label: `This action RENAMES ALL records of ${asset.typeName} to ${newValue}, DELETING ${asset.typeName}` },
+              { value: "update-keep", label: `This action TRANSFERS ALL records of ${asset.typeName} to ${newValue}, KEEPING ${asset.typeName}` },
+            ])}
 					/>
 					<SelectEditableField 
 						label="Vendor"
@@ -141,14 +154,21 @@ const Asset = ({ asset }) => {
             <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
-                <UserLink key={user.userId} isCopy={false} user={user} />
+                <Flex gap={1}>
+                  <UserLink key={user.userId} isCopy={false} user={user} withTooltip={true}/>
+                  {status === AssetStatus.AVAILABLE && <AssetActionButton
+                    asset={asset}
+                    formType={FormType.RELOAN}
+                    user={user}
+                  />}
+                </Flex>
               ))}
             </Flex>
 
             <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
             <Box>
               {reservation && (
-                <UserLink key={reservation.user.userId} isCopy={false} user={reservation.user} />
+                <UserLink key={reservation.user.userId} isCopy={false} user={reservation.user} withTooltip={true}/>
               )}
             </Box>
 
@@ -157,25 +177,18 @@ const Asset = ({ asset }) => {
         </Grid>
       </Flex>
 
-      <Box>
-        <StarButton
-          id={asset.assetId}
-          isBookmarked={asset.bookmarked}
-          handleUpdate={() => handleBookmarkUpdate(asset.bookmarked)}
-        />
-        {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
-          <Flex gridGap="2">
-            <AssetActionButton
-              formType={FormType.DEL_ASSET}
-              asset={asset}
-            />
-            <AssetActionButton
-              formType={FormType.LOAN}
-              asset={asset}
-            />
-          </Flex>
-        )}
-      </Box>
+      {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
+        <Flex gridGap="2" mb={4}>
+          <AssetActionButton
+            formType={FormType.DEL_ASSET}
+            asset={asset}
+          />
+          <AssetActionButton
+            formType={FormType.LOAN}
+            asset={asset}
+          />
+        </Flex>
+      )}
 
 			{asset.history && asset.history.length > 0 &&
 				<AssetTimeline 

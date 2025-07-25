@@ -16,19 +16,30 @@ import { useReturns } from "./ReturnsProvider";
 const ReturnStep1 = () => {
 
     // REINITIALISE FORM TO INCLUDE ALL POSSIBLE UPDATES
-    const [ assetOptions, setAssetOptions ] = useState([]);
-    const { setFormType, reinitializeForm, initialValues } = useFormModal();
-    const { handleError } = useUI()
+    const { setFormType, reinitializeForm } = useFormModal();
     const { nextStep, formData, setValuesExcel } = useReturns();
+    const { handleError } = useUI();
     const formRef = useRef(null);
 
     useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
 
     const validate = (values) => {
       const errors = {};
-      const assetIds = new Set();
+
+      const loanIdCounts = new Map();
+
+      for (const ret of values.returns) {
+        const id = ret.loanId;
+        loanIdCounts.set(id, (loanIdCounts.get(id) || 0) + 1);
+      }
+
+      const duplicateLoanIds = new Set(
+        [...loanIdCounts.entries()]
+          .filter(([_, count]) => count > 1)
+          .map(([id]) => id)
+      );
   
-      // Validate 'returns' for duplicate assetIds
+      // Validate 'returns' for duplicate loanIds
       values.returns.forEach((ret, returnIndex) => {
 
         // BULK EXCEL LOADING
@@ -55,15 +66,13 @@ const ReturnStep1 = () => {
           };
         }
 
-        // Check for duplicate assetIds
-        if (ret.asset.assetId && assetIds.has(ret.asset.assetId)) {
+        // Check for duplicate loanIds
+        if (ret.loanId && duplicateLoanIds.has(ret.loanId)) {
           errors.returns = errors.returns || {};
           errors.returns[returnIndex] = {
             ...errors.returns[returnIndex],
-            search: `Duplicate Serial Number ${ret.asset.serialNumber} found`
+            search: `Duplicate Loan Found`
           };
-        } else {
-          assetIds.add(ret.assetId);
         }
 
         if (ret.asset.count === 0 && ret.accessoryTypes.every(accType => accType.count === 0)) {
@@ -115,7 +124,15 @@ const ReturnStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.returns}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

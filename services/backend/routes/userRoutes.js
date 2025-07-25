@@ -1,12 +1,12 @@
 const express = require('express');
-const userController = require('../controllers/userController.js');
-const formUserController = require('../controllers/formUserController.js');
-const formUserTagController = require('../controllers/formUserTagController.js');
+const userController = require('@controllers/users/userController.js');
+const formUserController = require('@controllers/users/formUserController.js');
+const formUserTagController = require('@controllers/users/formUserTagController.js');
 
 const router = express.Router();
 
-router.get('/', userController.getAllUsersEndpoint);
-router.get('/excel', userController.getAllUsersExcelEndpoint);
+router.get('/', userController.getAllItemsEndpoint);
+router.get('/excel', userController.getAllItemsExcelEndpoint);
 router.patch('/update', userController.updateUser);
 router.get('/filters/all', userController.getAllFilters);
 router.post('/filters', userController.getFilters)

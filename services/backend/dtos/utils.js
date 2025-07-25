@@ -1,5 +1,3 @@
-
-
 exports.runInitialAstLoanCheck = (astLoan, loanModelIsChild) => {
 
     if (astLoan.returnEventId === undefined) throw new Error("Dev error: Include returnEventId for asset loan");

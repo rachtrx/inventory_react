@@ -6,7 +6,7 @@ import { AddButton, RemoveButton } from "../../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../../utils/SelectFormControl"
 import { createNewAsset, useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
-import { LoanAstSelectFormControl } from "../../../loan/CustomSelect"
+import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions"
 import InputFormControl from "../../../utils/InputFormControl"
 import WarningCard from "../../../utils/Warnings"
 
@@ -73,7 +73,7 @@ export const AddTag = ({tag, tagIndex, children}) => {
                             tag.assets.map((asset, assetIndex, assetArray) => (
                                 <Flex direction="column" gap={2} key={asset.key}>
                                     <Flex key={asset.key} alignItems="center"gap={2}>
-                                        <LoanAstSelectFormControl
+                                        <AvailAstSelectFormControl
                                             name={`tags.${tagIndex}.assets.${assetIndex}.serialNumber`}
                                             searchFn={value => assetService.fetchTagAsset(value, tag.tagId)} // TODO handle shareds
                                             updateFields={(selected) => updateAssetFields(assetIndex, selected)}

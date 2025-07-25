@@ -16,7 +16,6 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useItems } from '../../context/ItemsProvider';
 import { useFormikContext } from 'formik';
-import { FaSearch } from 'react-icons/fa';
 
 const FilterSidebar = ({ isOpen, onClose, children }) => {
     const { setPage } = useItems()
@@ -38,24 +37,6 @@ const FilterSidebar = ({ isOpen, onClose, children }) => {
                 <DrawerOverlay />
                 <DrawerContent maxW="300px">
                     <DrawerHeader>
-                        Filters
-                        <Button
-                            variant="ghost"
-                            onClick={onClose}
-                            position="absolute"
-                            right="10px"
-                        >
-                            <ChevronLeftIcon />
-                        </Button>
-                    </DrawerHeader>
-
-                    <DrawerBody>
-                        <Grid templateColumns="1fr" gap="10px">
-                            {children}
-                        </Grid>
-                    </DrawerBody>
-
-                    <DrawerFooter>
                         <Flex w="full" gap={4}>
                             <Button 
                                 colorScheme="blue" 
@@ -78,6 +59,23 @@ const FilterSidebar = ({ isOpen, onClose, children }) => {
                                 Reset
                             </Button>
                         </Flex>
+                    </DrawerHeader>
+
+                    <DrawerBody>
+                        <Grid templateColumns="1fr" gap="10px">
+                            {children}
+                        </Grid>
+                    </DrawerBody>
+
+                    <DrawerFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}
+                            position="absolute"
+                            right="10px"
+                        >
+                            <ChevronLeftIcon />
+                        </Button>
                     </DrawerFooter>
                 </DrawerContent>
             </Drawer>

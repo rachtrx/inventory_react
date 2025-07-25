@@ -1,10 +1,10 @@
 const express = require('express');
-const eventController = require('../controllers/eventController');
+const eventController = require('@controllers/events/eventController');
 
 const router = express.Router();
 
-router.get('/', eventController.getAllEventsEndpoint);
-router.get('/excel', eventController.getAllEventsExcelEndpoint);
+router.get('/', eventController.getAllItemsEndpoint);
+router.get('/excel', eventController.getAllItemsExcelEndpoint);
 router.get('/filters/all', eventController.getAllFilters)
 router.post('/add/remark', eventController.addRemark)
 router.post('/update', eventController.updateEvent)

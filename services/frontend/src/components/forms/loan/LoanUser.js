@@ -1,59 +1,13 @@
 import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../utils/ResponsiveText"
-import React, { useEffect, useState } from "react"
-import { AddButton, RemoveButton } from "../utils/ItemButtons"
+import { AddButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
-import { FaUser, FaUsers } from "react-icons/fa"
 import { LoanItems } from "./LoanItems";
-import { SearchMultiSelectFormControl, SearchSingleSelectFormControl } from "../utils/SelectFormControl"
-import { useFormModal } from "../../../context/ModalProvider"
-import { v4 as uuidv4 } from 'uuid';
-import DateInputControl from "../utils/DateInputControl"
+import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useLoans } from "./LoansProvider"
-import userService from "../../../services/UserService"
 import loanService from "../../../services/LoanService"
-
-export const createNewAccessory = (accessory=null) => ({
-	'key': uuidv4(),
-	'accessoryTypeId': accessory?.accessoryTypeId || '',
-	'accessoryName': accessory?.accessoryName || '',
-	'count': accessory?.count || 1,
-})
-
-export const createNewAsset = (asset) => ({ // 1 loan only can have 1 asset
-	'key': uuidv4(),
-	'assetId': asset?.assetId || '',
-	'alias': asset?.alias || '',
-	'accessories': asset?.accessories?.map(accessory => createNewAccessory(accessory)) || [createNewAccessory()],
-	'serialNumber': asset?.serialNumber || '',
-	'onLoan': asset?.astLoans?.length > 0 ? true : false,
-	'location': asset?.location || ''
-})
-
-export const createNewLoan = ({
-	asset={},
-	accessories=[],
-	expectedReturnDate=null, 
-	remarks=null
-} = {}) => ({
-	'key': uuidv4(),
-	'excludeAsset': false,
-	'asset': createNewAsset(asset),
-	'accessories': accessories.length > 0 ? accessories.map(acc => createNewAccessory(acc)) : [],
-	'expectedReturnDate': expectedReturnDate || '',
-	'remarks': remarks || '',
-})
-
-export const createNewUser = (
-	user={}
-) => ({
-	'key': uuidv4(),
-	'userId': user.userId || user.userId || '',
-	'userName': user.userName || '',
-	'loans': user.loans?.length > 0 ? user.loans.map(loan => createNewLoan(loan)) : [createNewLoan()],
-	'signature': ""
-})
+import { createNewLoan } from "./helpers"
 
 export const LoanUser = () => {
 

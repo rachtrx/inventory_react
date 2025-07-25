@@ -100,13 +100,13 @@ const UserLoanEvent = ({ event }) => {
                 </Box>
             )}
 
-            <Button
+            {returnEvents?.length && <Button
                 size="sm"
                 variant="link"
                 onClick={() => setIsOpen(!isOpen)} // Toggle collapse
             >
                 {isOpen ? "Hide Details" : "Show Details"}
-            </Button>
+            </Button>}
         </VStack>
     );
 };

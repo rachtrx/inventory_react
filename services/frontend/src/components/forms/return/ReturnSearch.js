@@ -1,16 +1,14 @@
-import { Flex, FormControl, FormLabel } from "@chakra-ui/react"
+import { Box, Flex, FormControl, FormLabel } from "@chakra-ui/react"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid';
 import { useReturn } from "./ReturnProvider"
 import { useReturns } from "./ReturnsProvider"
 import { useUI } from "../../../context/UIProvider"
-import assetService from "../../../services/AssetService"
-import { ReturnAccSelectFormControl, ReturnAstSelectFormControl, ReturnUsrSelectFormControl } from "./CustomSelect"
-import userService from "../../../services/UserService"
-import accessoryService from "../../../services/AccessoryService"
+import { ReturnAccSelectFormControl, ReturnAstSelectFormControl, ReturnUsrSelectFormControl } from "../options/ReturnOptions"
 import { Select } from "@chakra-ui/react";
 import { useFormikContext } from "formik";
 import loanService from "../../../services/LoanService";
+import { useLocation } from "react-router-dom";
 
 export const createNewAccessory = (accLoan) => ({
 	key: uuidv4(),
@@ -54,7 +52,18 @@ export const ReturnSearch = () => {
 	const { ret, returnIndex, currentLoan, returnOptions } = useReturn();
 	const { setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
-	const [selectedType, setSelectedType] = useState("asset");
+	
+	const location = useLocation();
+	const initialSearchType = useMemo(() => {
+		if (location.pathname.includes('users')) {
+			return 'user'
+		} else if (location.pathname.includes('accessories')) {
+			return 'accessory'
+		} else {
+			return 'asset'
+		}
+	}, [location.pathname]);
+	const [selectedType, setSelectedType] = useState(initialSearchType);
 
 	const handleTypeChange = (event) => {
 		setSelectedType(event.target.value);
@@ -148,18 +157,22 @@ export const ReturnSearch = () => {
 	return (
 		<FormControl>
   			<FormLabel>Select Type</FormLabel>
-			<Flex direction="column" gap={2} position='relative'>
-				<Select 
-					value={selectedType}
-					onChange={handleTypeChange}
-				>
-				{options.map((option) => (
-					<option key={option.value} value={option.value}>
-					{option.label}
-					</option>
-				))}
-				</Select>
-				{renderedDropdown}
+			<Flex gap={2} position='relative'>
+				<Box flex="1">
+					<Select 
+						value={selectedType}
+						onChange={handleTypeChange}
+					>
+					{options.map((option) => (
+						<option key={option.value} value={option.value}>
+						{option.label}
+						</option>
+					))}
+					</Select>
+				</Box>
+				<Box flex="2">
+					{renderedDropdown}
+				</Box>
 			</Flex>
 		</FormControl>
 	);

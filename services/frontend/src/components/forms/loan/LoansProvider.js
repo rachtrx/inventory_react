@@ -1,17 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { LoanStep2 } from "./LoanStep2";
 import { LoanStep1 } from "./LoanStep1";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
-import { createNewLoan, createNewUser } from "./LoanUser";
+import { createNewAccessory, createNewAsset, createNewLoan, createNewUser } from "./helpers";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
 import { compareStrings, convertExcelDate } from "../utils/validation";
-import userService from "../../../services/UserService";
 import accessoryService from "../../../services/AccessoryService";
 import { useLoading } from "../../../context/LoadingProvider";
 import loanService from "../../../services/LoanService";
-import { useItems } from "../../../context/ItemsProvider";
+import { useLocation } from 'react-router-dom';
 
 // Create a context
 const LoansContext = createContext();
@@ -21,17 +20,28 @@ export const LoansProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
   const { setFormType, initialValues, triggerRefresh } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
+  const [step, setStep] = useState(1);
+  const [ sTypeAccMap, setSTypeAccMap ] = useState({});
 
   const [locationOptions, setLocationOptions] = useState([]);
   const [assetOptions, setAssetOptions] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
+
+  const location = useLocation();
+  const initialUser = useMemo(() => {
+    if (location.pathname.includes('assets')) {
+      return createNewUser({loans: [{ asset: createNewAsset(), accessories: [] }]});
+    } else if (location.pathname.includes('accessories')) {
+      return createNewUser({loans: [{ asset: null, accessories: [createNewAccessory()] }]});
+    } else {
+      return createNewUser();
+    }
+  }, [location.pathname]);
+  
   const [formData, setFormData] = useState({
-    users: [createNewUser()],
-    signatures: {},
+    users: [initialUser]
   });
-  const [step, setStep] = useState(1);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -44,10 +54,15 @@ export const LoansProvider = ({ children }) => {
 
   useEffect(() => {
     console.log(initialValues);
-    if (!initialValues?.serialNumbers?.length && !initialValues?.userNames?.length) return;
+    if (
+      !initialValues?.serialNumbers?.length && 
+      !initialValues?.userNames?.length &&
+      !initialValues?.accTypeIds?.length
+    ) return;
 
     const fetchAstLoans = async () => {
       const assetResponse = await loanService.fetchAstLoan(initialValues.serialNumbers);
+      console.log(assetResponse.data);
       setAssetOptions(assetResponse.data);
 
       const assetObjs = initialValues.serialNumbers.map(serialNumber => {
@@ -55,13 +70,16 @@ export const LoansProvider = ({ children }) => {
         if (!matchedAssetOption) return { serialNumber }
         else return matchedAssetOption;
       })
-      if (initialValues.grouped) {
+      
+      if (initialValues.user) {
+        const userResponse = await loanService.fetchUserLoan(initialValues.user.userName);
+        setUserOptions(userResponse.data);
         const loans = assetObjs.map(asset => ({ asset }))
         setFormData({
-          users: [createNewUser({ loans })]
+          users: [createNewUser({ ...initialValues.user, loans })]
         });
       } else {
-        const users = assetObjs.map(asset => createNewUser({ loans: [createNewLoan({ asset })] }))
+        const users = assetObjs.map(asset => createNewUser({ loans: [{ asset }] }))
         setFormData({ users });
       }
     }
@@ -79,12 +97,33 @@ export const LoansProvider = ({ children }) => {
       setFormData({ users });
     }
 
-    if(initialValues.serialNumbers) {
-      fetchAstLoans();
-    } else if (initialValues.userNames) {
-      fetchUserLoans();
+    const fetchAccLoans = async() => {
+      const accResponse = await loanService.fetchAccLoan({accTypeIds: initialValues.accTypeIds});
+      setAccessoryOptions(accResponse.data);
+
+      const accessories = initialValues.accTypeIds.map(accTypeId => {
+        const matchedAccOption = accResponse.data.find(accTypeOption => accTypeOption.accessoryTypeId === accTypeId);
+        if (!matchedAccOption) throw new Error(`Accessory with ID ${accTypeId} not found`)
+        else return matchedAccOption;
+      })
+
+      const users = [createNewUser({ loans: [createNewLoan({ accessories })] })]
+      setFormData({ users });
     }
-  }, [initialValues, setFormData]);
+
+    try {
+      if (initialValues.serialNumbers) {
+        fetchAstLoans();
+      } else if (initialValues.userNames) {
+        fetchUserLoans();
+      } else if (initialValues.accTypeIds) {
+        fetchAccLoans();
+      }
+    } catch (err) {
+      handleError(err);
+    }
+    
+  }, [initialValues, setFormData, handleError]);
 
   const processAccessories = (accessoryTypesStr) => {
     if (!accessoryTypesStr) return {};
@@ -97,6 +136,16 @@ export const LoansProvider = ({ children }) => {
       return acc;
     }, {});
   };
+
+  useEffect(() => {
+    console.log("init values changed");
+  }, [initialValues])
+  useEffect(() => {
+    console.log("setFormData changed");
+  }, [setFormData])
+  useEffect(() => {
+    console.log("handleError changed");
+  }, [handleError])
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -278,8 +327,8 @@ export const LoansProvider = ({ children }) => {
     prevStep,
     nextStep,
     handleSubmit,
-    warnings,
-    setWarnings
+    sTypeAccMap,
+    setSTypeAccMap
   };
 
   return (

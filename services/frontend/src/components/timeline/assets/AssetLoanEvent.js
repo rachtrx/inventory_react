@@ -29,7 +29,7 @@ const AssetLoanEvent = ({ event }) => {
     const { accLoans, user, returnEvents, filepath } = event.loan;
 
     const assetReturnEvent = returnEvents && returnEvents.find(ev => ev.asset);
-    console.log(assetReturnEvent);
+    // console.log(assetReturnEvent);
 
     return (
         <VStack align="stretch" spacing={6}>

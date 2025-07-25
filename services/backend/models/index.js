@@ -3,7 +3,7 @@
 const Sequelize = require('sequelize');
 const process = require('process');
 console.log(process.env.NODE_ENV);
-const logger = require('../logging.js');
+const logger = require('../utils/logging.js');
 
 const AstTagModel = require('./AstTag.js')
 const AstTagMapModel = require('./AstTagMap.js')

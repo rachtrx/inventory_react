@@ -17,8 +17,6 @@ export const DelUserTagsStep1 = () => {
     const { nextStep, formData, setValuesExcel } = useUserTags();
     const { setFormType, reinitializeForm } = useFormModal();
     const { showToast, handleError } = useUI();
-    const { setLoading } = useLoading();
-    const [ warnings, setWarnings ] = useState({});
     const formRef = useRef(null);
   
     console.log('User Tag Del Form');
@@ -125,7 +123,15 @@ export const DelUserTagsStep1 = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setFormType(null)}>Cancel</Button>
-                  <Button colorScheme="blue" type="submit" isDisabled={errors.types}>Next</Button>
+                  <Button 
+                    colorScheme="blue" 
+                    type="submit"
+                    onClick={() => {
+                      if (errors) {
+                        handleError("Please check for invalid data in form")
+                      }
+                    }}
+                  >Next</Button>
                 </ModalFooter>
               </Form>
             );

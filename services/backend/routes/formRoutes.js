@@ -1,13 +1,11 @@
 const express = require('express');
-const formLoanReturnController = require('../controllers/formLoanReturnController.js');
-const formAssetController = require('../controllers/formAssetController.js');
-const formUserController = require('../controllers/formUserController.js');
-const multer = require('multer');
-const path = require('path');
-const formAssetTagController = require('../controllers/formAssetTagController.js');
-const formUserTagController = require('../controllers/formUserTagController.js');
+const loanController = require('@controllers/loans/loanController.js');
+// const multer = require('multer');
+// const path = require('path');
 
-const eventController = require('../controllers/eventController.js');
+const accLoanController = require('@controllers/loans/accLoanController.js');
+const astLoanController = require('@controllers/loans/astLoanController.js');
+const usrLoanController = require('@controllers/loans/usrLoanController.js');
 
 const router = express.Router();
 
@@ -34,20 +32,20 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 //   }
 // });
 
-router.post('/loan', formLoanReturnController.loan);
-router.get('/return', formLoanReturnController.loadReturn);
+router.post('/loan', loanController.loan);
 
-router.get('/return/asset', formLoanReturnController.loadAstReturn);
-router.get('/return/user', formLoanReturnController.loadUserReturn);
-router.get('/return/accessory', formLoanReturnController.loadAccReturn);
+router.get('/return/asset', astLoanController.loadAstReturn);
+router.get('/return/user', usrLoanController.loadUsrReturn);
+router.get('/return/accessory', accLoanController.loadAccReturn);
 
-router.get('/loan/asset', formLoanReturnController.loadAstLoan);
-router.get('/loan/user', formLoanReturnController.loadUsrLoan);
-router.get('/loan/accessory', formLoanReturnController.loadAccLoan);
+router.get('/loan/asset', astLoanController.loadAstLoan);
+router.get('/loan/asset/:astSTypeId', astLoanController.loadSuggestedAccLoan);
+router.get('/loan/user', usrLoanController.loadUsrLoan);
+router.get('/loan/accessory', accLoanController.loadAccLoan);
 
-router.get('/return', formLoanReturnController.loadReturn);
-router.post('/return', formLoanReturnController.return);
+router.get('/return', loanController.loadReturn);
+router.post('/return', loanController.return);
 
-router.post('/download', formLoanReturnController.downloadEvent);
+router.post('/download', loanController.downloadEvent);
 
 module.exports = router;

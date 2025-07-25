@@ -1,4 +1,4 @@
-const logger = require("../logging");
+const logger = require("@/utils/logging");
 const AccLoanDTO = require("./accLoan.dto");
 const AstLoanDTO = require("./astLoan.dto");
 const EventDTO = require("./event.dto");

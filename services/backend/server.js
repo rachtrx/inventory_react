@@ -1,4 +1,5 @@
 require('dotenv/config');
+require('module-alias/register');
 const app = require('./app.js');
 const db = require('./models');
 // const connectDB = require('./models/mongo');

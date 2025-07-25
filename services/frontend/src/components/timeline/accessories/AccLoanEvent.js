@@ -40,23 +40,25 @@ const AccLoanEvent = ({ event }) => {
                     <DateText colorScheme="blue" event={event}/>
                 </HStack>
 
-                {!isOpen && accReturnEvents && (
+                {!isOpen && accReturnEvents?.length && (
                     <HStack>
                         <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
                             Returned
                         </ResponsiveText>
                         {
                             
-                            accReturnEvents.map(event => (<DateText 
-                                key={event.eventId}
-                                colorScheme={"yellow"}
-                                event={event}
-                            />))
+                            accReturnEvents.map(event => (
+                                <DateText 
+                                    key={event.eventId}
+                                    colorScheme={"yellow"}
+                                    event={event}
+                                /> 
+                            ))
                         }
                     </HStack>
                 )}
 
-                {!isOpen && accLoans?.length && (
+                {accLoans?.length && (
                     <HStack>
                         {astLoan && <AstStatus astLoan={astLoan}/>}
                         {
@@ -101,13 +103,13 @@ const AccLoanEvent = ({ event }) => {
             </Box>
             )}
 
-            <Button
+            {returnEvents?.length && <Button
                 size="sm"
                 variant="link"
                 onClick={() => setIsOpen(!isOpen)} // Toggle collapse
             >
                 {isOpen ? "Hide Details" : "Show Details"}
-            </Button>
+            </Button>}
         </VStack>
     );
 };

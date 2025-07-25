@@ -10,6 +10,7 @@ import { AddButton } from '../utils/ItemButtons';
 import { createNewReturn, ReturnSearch } from './ReturnSearch';
 import { useReturns } from './ReturnsProvider';
 import { ManageReturn } from './ManageReturn';
+import { useFormModal } from '../../../context/ModalProvider';
 
 // Create a context for assets
 const ReturnContext = createContext();
@@ -18,10 +19,10 @@ const ReturnContext = createContext();
 export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
   // console.log('loan provider');
 
-  const { values, setFieldValue } = useFormikContext();
+  const { values } = useFormikContext();
+  const { initialValues } = useFormModal();
 
   const [ currentLoan, setCurrentLoan ] = useState(null);
-  
   const [ expectedReturnDate, setExpectedReturnDate ] = useState(null);
 
   console.log(values);
@@ -62,12 +63,12 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
         )}
       </Flex>
       <Divider borderColor="black" borderWidth="2px" my={4} />
-      {isLast && (
+      {isLast && !initialValues?.length ? (
         <AddButton
           handleClick={() => returnHelpers.push(createNewReturn())}
           label="Add Return"
         />
-      )}
+      ) : undefined}
     </ReturnContext.Provider>
   );
 }

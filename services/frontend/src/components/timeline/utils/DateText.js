@@ -5,7 +5,7 @@ import AddRemark from "../AddRemark";
 
 const DateText = ({ colorScheme, event }) => {
 
-    console.log(event);
+    // console.log(event);
 
     const { eventDate, remarks, eventId } = event;
     return (

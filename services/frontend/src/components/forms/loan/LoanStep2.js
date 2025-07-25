@@ -62,7 +62,7 @@ export const LoanStep2 = () => {
 									<Tr>
 										<Th>Serial Number</Th>
 										<Th>Accessories</Th>
-										<Th>Expected Return Date</Th>
+										<Th>Expected Return</Th>
 									</Tr>
 									</Thead>
 									<Tbody>

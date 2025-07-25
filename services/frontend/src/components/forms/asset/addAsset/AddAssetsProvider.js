@@ -119,7 +119,7 @@ export const AddAssetsProvider = ({ children }) => {
 
         const { type, subType, alias, serialNumber, vendorName, cost, location, remarks, addDate } = record;
         
-        if (alias && aliases.has(alias)) throw new Error(`Duplicate records for alias: ${alias} were found`);
+        if (alias && aliases.has(alias)) throw new Error(`Duplicate records for asset tag: ${alias} were found`);
         else if (alias) aliases.add(alias);
         
         if (serialNumbers.has(serialNumber)) throw new Error(`Duplicate records for Serial Number: ${serialNumber} were found`);

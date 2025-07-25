@@ -4,11 +4,6 @@ import {
     ModalContent,
     ModalHeader,
     ModalCloseButton,
-    ModalBody,
-    ModalFooter,
-    Button,
-    useDisclosure,
-    Box,
     Divider
 } from '@chakra-ui/react';
 import { useCallback, useEffect } from 'react';
@@ -29,6 +24,7 @@ import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/tags/User
 const formMap = {
     [FormType.ADD_ASSET]: <AddAssetsProvider/>,
     [FormType.LOAN]: <LoansProvider/>,
+    [FormType.RELOAN]: <LoansProvider/>,
     [FormType.RETURN]: <ReturnsProvider/>,
     [FormType.DEL_ASSET]: <DelAssetsProvider/>,
     [FormType.ADD_USER]: <AddUsersProvider/>,
@@ -43,6 +39,7 @@ const formMap = {
 const headerMap = {
     [FormType.ADD_ASSET]: "Add Asset",
     [FormType.LOAN]: 'Loan',
+    [FormType.RELOAN]: 'Loan',
     [FormType.RETURN]: 'Return',
     [FormType.DEL_ASSET]: "Condemn Asset",
     [FormType.ADD_USER]: "Add User",
@@ -89,7 +86,7 @@ export default function FormModal() {
                 }}
             >
                 <ModalCloseButton/>
-                <ModalHeader display="flex" alignItems="center" gap={4}>
+                <ModalHeader display="flex" alignItems="center" gap={1}>
                     <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>
                     <Divider orientation="vertical" height='20px'/>
                 </ModalHeader>

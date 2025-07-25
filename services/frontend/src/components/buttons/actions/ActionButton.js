@@ -1,9 +1,7 @@
-import { Box, Button } from '@chakra-ui/react';
 import { ACTION_COLORS, ACTION_TEXT, ICON_MAP } from '../constants';
-import { actionTypes, FormType, useFormModal } from '../../../context/ModalProvider';
+import { useFormModal } from '../../../context/ModalProvider';
 import { DefaultButton, CircleButton } from './Button';
 import { FaTools } from 'react-icons/fa';
-
 
 const withActionLogic = (WrappedComponent, isIcon=false) => {
 	return ({ formType, initialValues, isMulti = false, textSize = "sm", ...rest }) => {
@@ -29,8 +27,6 @@ const withActionLogic = (WrappedComponent, isIcon=false) => {
 		);
 	};
 };
-  
-
   
 export const ActionButton = withActionLogic(DefaultButton);
 export const CircleActionButton = withActionLogic(CircleButton, true);

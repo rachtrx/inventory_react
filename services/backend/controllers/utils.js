@@ -1,32 +1,7 @@
 const { Op } = require('sequelize');
-const logger = require('../logging');
-const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('../models');
+const logger = require('@/utils/logging');
+const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('@models');
 const ExcelJS = require('exceljs');
-
-exports.MIN_15 = 15 * 60 * 1000
-exports.DAYS_30 = 30 * 24 * 60 * 60 * 1000
-
-exports.FormType = {
-    ADD_ASSET: 'ADD_ASSET',
-    DEL_ASSET: 'DEL_ASSET',
-    LOAN: 'LOAN',
-    RETURN: 'RETURN',
-    ADD_USER: 'ADD_USER',
-    DEL_USER: 'DEL_USER',
-    RESTORE_ASSET: 'RESTORE_ASSET',
-    RESTORE_USER: 'RESTORE_USER',
-    UPDATE_ACC: 'UPDATE_ACC',
-    LOAN_ACC: 'LOAN_ACC',
-    RETURN_ACC: 'RETURN_ACC',
-    TAG_ASSET: 'TAG_ASSET',
-    UNTAG_ASSET: 'UNTAG_ASSET',
-    TAG_USER: 'TAG_USER',
-    UNTAG_USER: 'UNTAG_USER',
-    RESERVE: 'RESERVE',
-}
-
-exports.assetFilters = ['typeName', 'subTypeName', 'vendor', 'assetTag', 'location', 'age']
-exports.userFilters = ['deptName', 'assetCount', 'userTag', 'assetCount']
 
 exports.createSelection = (arr, labelField, valueField) => {
     return arr
@@ -190,69 +165,6 @@ exports.getUserFilters = async (field) => {
     }
 }
 
-exports.cleanField = (val) => {
-    return val === "" ? null : val;
-  };
-  
-exports.cleanString = (val) => {
-    return val === "" ? null : val.toUpperCase();
-  };
-exports.cleanCost = (val) => {
-    const parsed = parseFloat(val);
-    return isNaN(parsed) ? null : parsed.toFixed(2);
-};
-
-
-
-// exports.assetTagMapQuery = () => ({
-//     model: AstTagMap,
-//     required: false,
-//     include: {
-//         model: AstTag
-//     },
-//     where: {
-//         delEventId: {
-//             [Op.eq]: null
-//         }
-//     }
-// })
-
-// exports.userTagMapQuery = () => ({
-//     model: UsrTagMap,
-//     attributes: ['id'],
-//     required: false,
-//     include: {
-//         model: UsrTag,
-//         attributes: ['id', 'tagName']
-//     },
-//     where: {
-//         delEventId: {
-//             [Op.eq]: null
-//         }
-//     }
-// })
-
-// exports.assetTagMapQuery = (assetIdCol, tagIdArr) => ({
-//     where: Sequelize.literal(`EXISTS (
-//         SELECT 1
-//         FROM ast_tag_maps
-//         WHERE ast_tag_maps.asset_id = ${Sequelize.escape(assetIdCol)}
-//         AND ast_tag_maps.tag_id IN (${tagIdArr.map(id => Sequelize.escape(id)).join(',')})
-//         AND ast_tag_maps.del_event_id IS NULL
-//     )`)
-//   });
-
-//   exports.userTagMapQuery = (userIdCol, tagIdArr) => ({
-//     where: Sequelize.literal(`EXISTS (
-//         SELECT 1
-//         FROM usr_tag_maps
-//         WHERE usr_tag_maps.user_id = ${Sequelize.escape(userIdCol)}
-//         AND usr_tag_maps.tag_id IN (${tagIdArr.map(id => Sequelize.escape(id)).join(',')})
-//         AND usr_tag_maps.del_event_id IS NULL
-//     )`)
-//   });
-
-
 exports.assetTagMapQuery = (tagIdArr) => ({
     model: AstTagMap,
     required: false,
@@ -298,50 +210,4 @@ exports.getSortCondition = (sortFieldLookup, sort) => {
     const newSortField = sortFieldLookup[sortField];
     if (newSortField) sortCondition = [sequelize.col(newSortField), sortOrder === 'asc'? 'ASC' : 'DESC'];
     return sortCondition;
-}
-
-function flattenObject(obj, prefix = '', res = {}, isRoot = true) {
-  if (Array.isArray(obj)) {
-    obj.forEach((item, index) => {
-      const newPrefix = isRoot ? `${index}` : `${prefix}.${index}`;
-      flattenObject(item, newPrefix, res, false);
-    });
-  } else if (obj && typeof obj === 'object') {
-    for (const key in obj) {
-      const newPrefix = isRoot ? key : `${prefix}.${key}`;
-      flattenObject(obj[key], newPrefix, res, false);
-    }
-  } else {
-    res[prefix] = obj;
-  }
-  return res;
-}
-
-exports.generateExcel = (dataArr, worksheetName, excludedHeaders=[]) => {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet(worksheetName);
-
-    console.log(dataArr[4]);
-
-    const flattenedData = dataArr.map(item => flattenObject(item));
-
-    const excludeHeadersSet = new Set(excludedHeaders)
-
-    const allHeaders = Array.from(
-        new Set(flattenedData.flatMap(obj => Object.keys(obj)))
-    ).filter(key => !excludeHeadersSet.has(key));
-
-    // Add headers
-    worksheet.columns = allHeaders.map(key => ({
-        header: key,
-        key,
-        width: 20
-    }));
-
-    // Add rows
-    flattenedData.forEach(item => {
-        worksheet.addRow(item);
-    });
-
-    return workbook;
 }

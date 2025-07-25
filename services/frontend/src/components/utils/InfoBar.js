@@ -5,7 +5,7 @@ import { ResponsiveText } from './ResponsiveText';
 function InfoBar({count}) {
 
     return (
-        <ResponsiveText size={'lg'} flex="2" align="center">
+        <ResponsiveText size={'lg'} align="center">
             {count} Results Found
         </ResponsiveText>
     )

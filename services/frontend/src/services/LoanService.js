@@ -25,6 +25,14 @@ class LoanService {
         });
     }
 
+    fetchSuggestedAccessories = async (astSTypeId) => {
+        return await this.axios.get(`${this.URL}/loan/asset/${astSTypeId}`, {
+            params: {
+                astSTypeId,
+            }
+        });
+    }
+
     fetchUserLoan = async (userNames) => {
         return await this.axios.get(`${this.URL}/loan/user`, {
             params: {
@@ -33,10 +41,11 @@ class LoanService {
         });
     }
 
-    fetchAccLoan = async (accessoryNames) => {
+    fetchAccLoan = async ({accessoryNames, accTypeIds}) => {
         return await this.axios.get(`${this.URL}/loan/accessory`, {
             params: {
-                accessoryNames
+                accessoryNames,
+                accTypeIds
             }
         });
     }

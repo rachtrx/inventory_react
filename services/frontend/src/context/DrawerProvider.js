@@ -1,10 +1,11 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import assetService from '../services/AssetService';
 import userService from '../services/UserService';
 import { useDisclosure } from '@chakra-ui/react';
 import accessoryService from '../services/AccessoryService';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
+import { useFormModal } from './ModalProvider';
 
 const DrawerContext = createContext();
 
@@ -18,12 +19,13 @@ const initialState = {
 export const DrawerProvider = ({ children }) => {
 	console.log("In drawer provider");
 
-	const { handleDevError, handleError } = useUI();
+	const { showToast, handleError } = useUI();
 	const { setLoading } = useLoading();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
+	const { refreshKey, triggerRefresh } = useFormModal();
 
-  const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
+  	const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 
 	const resetBreadcrumbs = () => {
 		setState(prev => ({ 
@@ -118,32 +120,52 @@ export const DrawerProvider = ({ children }) => {
 		}
 	};
 
-	const updateState = async () => {
-		// Update the item in the history
-		const updatedHistory = await Promise.all(
-			state.itemsHistory.map(async item => {
-				const itemData = await item.service.getItem(item.breadcrumbId);
-				return { ...item, ...itemData.data };
-			})
-		);
-
-		// Update the state with new currentItem and itemsHistory
-		setState(prev => ({
-			...prev,
-			currentItem: updatedHistory[updatedHistory.length-1],
-			itemsHistory: updatedHistory,
-			loading: false
-		}));
-
-		setEditKey(null);
-	}
-
-	const handleSave = async (key, value) => {
-		handleDevError();
-		// const updatedCurrentItem = { ...state.currentItem, [key]: value };
-		// console.log(updatedCurrentItem);
-		// updateState(updatedCurrentItem)
+	const updateItem = async (payload) => {
+		setLoading(true);
+		try {
+			const response = await state.currentItem.service.updateItem(payload)
+			showToast(response?.data?.message || 'Details successfully updated', 'success', 500);
+			triggerRefresh()
+		} catch (err) {
+            console.error(err);
+            handleError(err);
+        } finally {
+            setLoading(false);
+        }
 	};
+
+	useEffect(() => {
+		if(!isDrawerOpen) return;
+
+		console.log("Fetching update");
+
+		const updateState = async () => {
+			// Update the item in the history
+			const updatedHistory = await Promise.all(
+				state.itemsHistory.map(async item => {
+					const itemData = await item.service.getItem(item.breadcrumbId);
+					return { 
+						breadcrumbId: item.breadcrumbId, 
+						service: item.service,
+						type: item.type,
+						...itemData.data 
+					};
+				})
+			);
+
+			// Update the state with new currentItem and itemsHistory
+			setState(prev => ({
+				...prev,
+				currentItem: updatedHistory[updatedHistory.length-1],
+				itemsHistory: updatedHistory,
+				loading: false
+			}));
+
+			setEditKey(null);
+		};
+
+		updateState();
+	}, [refreshKey])
 
 	const handleClose = () => {
 		setEditKey(null);
@@ -157,12 +179,11 @@ export const DrawerProvider = ({ children }) => {
 		setState, 
 		editKey, 
 		setEditKey,
-		updateState,
 		handleBreadcrumbClick,
 		handleAssetClick,
 		handleUserClick,
 		handleAccTypeClick, 
-		handleSave, 
+		updateItem, 
 		handleClose, 
 		isDrawerOpen 
 	}}>

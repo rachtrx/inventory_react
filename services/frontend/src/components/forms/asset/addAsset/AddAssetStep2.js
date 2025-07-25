@@ -42,7 +42,7 @@ export const AddAssetStep2 = () => {
 											<Thead>
 												<Tr>
 													<Th>Serial Number</Th>
-													<Th>Alias</Th>
+													<Th>Asset Tag</Th>
 													<Th>Vendor</Th>
 													<Th>Cost</Th>
 													<Th>Added Date</Th>
