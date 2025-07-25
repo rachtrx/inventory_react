@@ -1,4 +1,4 @@
-import { Button, IconButton } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import { useDrawer } from "../../../context/DrawerProvider";
 import { useEditMode } from "../../../context/EditModeProvider";

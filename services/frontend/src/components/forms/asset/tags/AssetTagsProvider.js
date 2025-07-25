@@ -1,31 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { AddAssetTagsStep2 } from "./addTag/AddAssetTagsStep2";
 import { AddAssetTagsStep1 } from "./addTag/AddAssetTagsStep1";
 import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
-import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { compareStrings } from "../../utils/validation";
 import { DelAssetTagsStep1 } from "./delTag/DelAssetTagsStep1";
 import { DelAssetTagsStep2 } from "./delTag/DelAssetTagsStep2";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const createNewTag = (tag=null, assets=[]) => ({
-	'key': uuidv4(),
-	'tagId': tag?.tagId || '',
-	'tagName': tag?.tagName || '',
-	'assets': assets.length !== 0 ? assets.map(asset => createNewAsset(asset)) : []
-})
-
-export const createNewAsset = (asset={}) => ({
-	'key': uuidv4(),
-	'serialNumber': asset.serialNumber || '',
-	'assetId': asset.assetId || '',
-  'remarks': asset.remarks || '',
-	'assetTagId': asset.tags?.find(tag => tag.isMatching)?.assetTagId || '',
-})
+import { createNewTag } from "./helpers";
 
 // Create a context
 const AssetTagsContext = createContext();
@@ -38,7 +22,7 @@ export const AssetTagsFormProvider = ({
 }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [ tagOptions, setTagOptions ] = useState([]);
@@ -54,11 +38,15 @@ export const AssetTagsFormProvider = ({
   // }, [tagOptions])
 
   useEffect(() => {
+    if (!initialValues?.serialNumbers) return;
     const loadAssets = async (serialNumbers) => {
       const response = await fetchAstForTagsFunc(serialNumbers);
-      
+      const newAssetOptions = response.data;
+      setAssetOptions({ ...assetOptions, "": newAssetOptions });
+      reinitializeForm()
     }
-  }, [initialValues])
+    loadAssets(initialValues.serialNumbers)
+  }, [initialValues, assetOptions, fetchAstForTagsFunc, reinitializeForm])
 
   useEffect(() => { 
     const fetchFilters = async () => {
@@ -136,7 +124,7 @@ export const AssetTagsFormProvider = ({
 
       // console.log(tags);
     
-      setFormData({
+      reinitializeForm({
         tags: tags
       });
 

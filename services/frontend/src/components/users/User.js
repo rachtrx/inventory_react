@@ -1,10 +1,8 @@
-import { Box, Heading, Text, Button, Flex, Link, IconButton, useDisclosure, Grid, SimpleGrid } from '@chakra-ui/react';
-import { EditIcon, DownloadIcon, CheckIcon, InfoOutlineIcon } from '@chakra-ui/icons';
+import { Box, Heading, Flex, Grid, SimpleGrid } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
+import { FormType } from '../../context/ModalProvider';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
-import Timeline from '../timeline/Timeline';
 import TextEditableField from '../utils/editing/TextEditableField';
 import { useEffect } from 'react';
 import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
@@ -13,7 +11,6 @@ import { ReturnButton } from '../buttons/actions/ReturnButton';
 import userService from '../../services/UserService';
 import SelectEditableField from '../utils/editing/SelectEditableField';
 import { StarButton } from '../buttons/StarButton';
-import { ReloanButton } from '../buttons/actions/ReloanButton';
 import { EditToggleButton } from '../buttons/EditToggleButton';
 
 const User = ({ user }) => {

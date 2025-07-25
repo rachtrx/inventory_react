@@ -1,4 +1,4 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
 import { ResponsiveText } from "../utils/ResponsiveText";
 import { IoCopyOutline } from "react-icons/io5";

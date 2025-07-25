@@ -1,6 +1,5 @@
 import { Checkbox, CheckboxGroup, FormControl, FormLabel, Stack } from "@chakra-ui/react"
-import { Field, useFormikContext } from "formik";
-import { useEffect } from "react";
+import { Field } from "formik";
 
 export const CheckboxGroupField = ({ label, name, items, labAttr="label", valAttr="value"}) => {
 

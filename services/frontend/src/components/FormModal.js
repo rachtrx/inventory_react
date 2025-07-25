@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { actionTypes, useFormModal, FormType } from '../context/ModalProvider';
+import { useFormModal, FormType } from '../context/ModalProvider';
 import { ResponsiveText } from './utils/ResponsiveText';
 import { LoansProvider } from './forms/loan/LoansProvider';
 import { ReturnsProvider } from './forms/return/ReturnsProvider';
@@ -19,7 +19,6 @@ import { DelUsersProvider } from './forms/user/delUser/DelUsersProvider';
 import UpdateAccessories from './forms/accessories/updateAcc/UpdateAccessories';
 import { AddAssetTagsProvider, DelAssetTagsProvider } from './forms/asset/tags/AssetTagsProvider';
 import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/tags/UserTagsProvider';
-// import { createDelTagsProvider } from './forms/asset/addTag/createDelTagsProvider';
 
 const formMap = {
     [FormType.ADD_ASSET]: <AddAssetsProvider/>,

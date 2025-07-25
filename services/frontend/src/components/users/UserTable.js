@@ -11,7 +11,7 @@ import { ItemStarButton } from '../buttons/StarButton';
 import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { UserLink } from '../buttons/ItemLink';
-import Tags from '../tags/Tags';
+import { Tags } from '../tags/Tags';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 const UserTable = ({ items }) => {
@@ -47,7 +47,7 @@ const UserTable = ({ items }) => {
             <Td>
               {user.loans?.length > 0 && <UserItemsList loans={user.loans}/>}
             </Td>
-            <Td><Tags tags={user.tags}/></Td>
+            <Td><Tags tags={user.tags} textSize="xs"/></Td>
             <Td>
               {!user.deleteEvent && 
                 <CircleUserActionButton 

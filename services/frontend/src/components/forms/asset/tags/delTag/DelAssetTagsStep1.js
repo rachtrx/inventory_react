@@ -1,27 +1,24 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from "../../../utils/ExcelFormControl";
 import { useFormModal } from "../../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import { validateUniqueValues } from "../../../utils/validation";
 import { setFieldError } from "../../../utils/validation";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { AddButton } from "../../../utils/ItemButtons";
 import { DelTag } from "./DelTag";
-import { createNewTag, useAssetTags } from "../AssetTagsProvider";
+import { useAssetTags } from "../AssetTagsProvider";
+import { createNewTag } from "../helpers";
 
 export const DelAssetTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAssetTags();
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { handleError } = useUI();
-    const formRef = useRef(null);
   
     // console.log('add asset form rendered');
 		// console.log(formData);
-
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
 
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -126,7 +123,7 @@ export const DelAssetTagsStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

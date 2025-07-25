@@ -1,14 +1,12 @@
-import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { Box, Heading, Flex, Grid, VStack } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
+import { FormType } from '../../context/ModalProvider';
 import TextEditableField from '../utils/editing/TextEditableField';
-import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from './utils/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import AssetTimeline from '../timeline/assets/AssetTimeline';
-import Tags from '../tags/Tags';
+import { AssetTags } from '../tags/Tags';
 import { ReturnButton } from '../buttons/actions/ReturnButton';
 import { StarButton } from '../buttons/StarButton';
 import SelectEditableField from '../utils/editing/SelectEditableField';
@@ -138,6 +136,7 @@ const Asset = ({ asset }) => {
           templateRows="repeat(3, 1fr)"
           gap={4}
           width="100%"
+          alignItems="center"
         >
             <Heading as="h2" size="sm" mb="2">Current User</Heading>
             <Box>
@@ -173,7 +172,7 @@ const Asset = ({ asset }) => {
             </Box>
 
             <Heading as="h2" size="sm" mb="2">Tags</Heading>
-            <Tags tags={asset.tags}/>
+            <AssetTags asset={asset} tags={asset.tags}/>
         </Grid>
       </Flex>
 

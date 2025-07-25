@@ -4,10 +4,11 @@ import { ResponsiveText } from "../../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { createNewUser, useAddUsers } from "./AddUsersProvider"
+import { useAddUsers } from "./AddUsersProvider"
 import InputFormControl from "../../utils/InputFormControl"
 import DateInputControl from "../../utils/DateInputControl"
-import WarningCard from "../../utils/Warnings"
+import WarningCard from "../../utils/WarningCard"
+import { createNewUser } from "./helpers"
 
 export const AddDeptUsers = ({dept, deptIndex, children}) => {
 

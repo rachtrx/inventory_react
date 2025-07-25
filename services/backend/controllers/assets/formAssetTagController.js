@@ -46,7 +46,7 @@ class FormAssetTagController {
     async loadAddAssets(req, res) {
         try {
             // console.log(req.query.tagId);
-            const search = new AssetTagSearch(req.query)
+            const search = new AssetTagSearch({...req.query, isAdd: true})
             const assets = await search.run(true)
 
             assets.forEach(asset => {
@@ -70,7 +70,7 @@ class FormAssetTagController {
 
     async loadDelAssets(req, res) {
         try {
-            const search = new AssetTagSearch(req.query)
+            const search = new AssetTagSearch({...req.query, isAdd: false})
             const assets = await search.run(false)
 
             assets.forEach(asset => {

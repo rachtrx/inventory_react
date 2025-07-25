@@ -5,45 +5,18 @@ import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const createNewType = (type={}) => ({
-  'key': uuidv4(),
-  'typeId': type.typeId || '',
-  'typeName': type.typeName || '',
-  'subTypes': (type.subTypes || [{}]).map(subType => createNewSubType(subType))
-})
-
-export const createNewSubType = (subType={}) => ({
-  'key': uuidv4(),
-  'subTypeId': subType.subTypeId || '',
-  'subTypeName': subType.subTypeName || '',
-  'assets': (subType.assets || [{}]).map(asset => createNewAsset(asset)),
-})
-
-export const createNewAsset = (asset={}) => ({
-  'key': uuidv4(),
-  'alias': asset.alias || '',
-  'serialNumber': asset.serialNumber || '',
-  'vendorId': asset.vendorId || '',
-  'vendorName': asset.vendorName || '',
-  'cost': asset.cost || '',
-  'remarks': asset.remarks || '',
-  'addDate': asset.addDate || new Date(),
-  'location': asset.location || '',
-})
+import { createNewSubType, createNewType } from "./helpers";
 
 // Create a context
 const AddAssetsContext = createContext();
 
 // Create a provider component
-export const AddAssetsProvider = ({ children }) => {
+export const AddAssetsProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh } = useFormModal();
+  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [vendorOptions, setVendorOptions] = useState([]);
@@ -206,7 +179,7 @@ export const AddAssetsProvider = ({ children }) => {
 
       setSubTypeOptionsDict(subTypeOptionsMap);
     
-      setFormData({
+      reinitializeForm({
         types: types
       });
 

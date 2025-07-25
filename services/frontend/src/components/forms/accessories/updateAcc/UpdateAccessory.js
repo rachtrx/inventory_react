@@ -1,13 +1,10 @@
-import { Box, Button, Divider, Flex, IconButton, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import InputFormControl from '../../utils/InputFormControl';
-import ExcelFormControl from '../../utils/ExcelFormControl';
-import { SearchCreatableSingleSelectFormControl, SearchFormControl } from "../../utils/SelectFormControl";
-import { useFormModal, actionTypes } from "../../../../context/ModalProvider";
+import { SearchCreatableSingleSelectFormControl } from "../../utils/SelectFormControl";
 import { useFormikContext } from "formik";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
-import accessoryService from "../../../../services/AccessoryService";
 import { RemoveButton } from "../../utils/ItemButtons";
-import WarningCard from "../../utils/Warnings";
+import WarningCard from "../../utils/WarningCard";
 import { useEffect } from "react";
 import loanService from "../../../../services/LoanService";
 

@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import 'react-datepicker/dist/react-datepicker.css';
 import { FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import { useField } from 'formik';
 import { ResponsiveText } from '../../utils/ResponsiveText';

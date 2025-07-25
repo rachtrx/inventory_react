@@ -1,21 +1,16 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import InputFormControl from "../../utils/InputFormControl"
 import { useFormikContext } from 'formik';
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl";
 import { useAddAssets } from "./AddAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
-import WarningCard from "../../utils/Warnings";
+import WarningCard from "../../utils/WarningCard";
 
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
 	const { setFieldValue } = useFormikContext();
 	const { vendorOptions, addNewVendor, locationOptions } = useAddAssets();
-
-	// useEffect(() => { // perhaps this is not required TODO
-	// 	// update all if any cost changes
-	// 	setFieldValue(`${field}.cost`, cost);
-	// }, [cost, setFieldValue, field]);
 
 	useEffect(() => {
 		//  dont do anything if cost doesnt change or cost is 0 (would have been handled by SubType)

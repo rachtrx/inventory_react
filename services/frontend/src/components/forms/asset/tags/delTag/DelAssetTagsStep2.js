@@ -10,7 +10,6 @@ import {
   Th,
   Thead,
   Tr,
-  VStack,
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";

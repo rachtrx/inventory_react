@@ -1,39 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { AddUserStep2 } from "./AddUserStep2";
 import { AddUserStep1 } from "./AddUserStep1";
 import { useUI } from "../../../../context/UIProvider";
-import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
 import userService from "../../../../services/UserService";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const createNewDept = (dept={}) => ({
-  'key': uuidv4(),
-  'deptId': dept.deptId || '',
-  'deptName': dept.deptName || '',
-  'users': (dept.users || [{}]).map(user => createNewUser(user))
-})
-
-export const createNewUser = (user={}) => ({
-  'key': uuidv4(),
-  'userName': user.userName || '',
-  'email': user.email || '',
-  'addDate': user.addDate || new Date(),
-  'remarks': user.remarks || '',
-})
+import { createNewDept } from "./helpers";
 
 // Create a context
 const AddUsersContext = createContext();
 
 // Create a provider component
-export const AddUsersProvider = ({ children }) => {
+export const AddUsersProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh } = useFormModal();
+  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [deptOptions, setDeptOptions] = useState([]);
@@ -115,7 +98,7 @@ export const AddUsersProvider = ({ children }) => {
         }))
       })
     
-      setFormData({
+      reinitializeForm({
         depts: depts
       });
 

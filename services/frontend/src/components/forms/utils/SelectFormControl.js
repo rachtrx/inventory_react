@@ -1,6 +1,6 @@
-import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react';
-import { Field, useField, useFormikContext } from 'formik';
-import Select, { components } from 'react-select';
+import { useCallback, useState, useEffect } from 'react';
+import { useField } from 'formik';
+import Select from 'react-select';
 import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel } from '@chakra-ui/react';
 import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';

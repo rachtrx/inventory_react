@@ -1,29 +1,25 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
-import DateInputControl from "../../utils/DateInputControl";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { FieldArray, Form, Formik, useFormikContext } from "formik";
+import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { delNewAsset, useDelAssets } from "./DelAssetsProvider";
+import { useDelAssets } from "./DelAssetsProvider";
 import { validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { DelAsset } from "./DelAsset";
+import { delNewAsset } from "./helpers";
 
 export const DelAssetStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useDelAssets();
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { handleError } = useUI();
-    const formRef = useRef(null);
   
     // console.log('add asset form rendered');
 		// console.log(formData);
 
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
-    
     const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
       if (fieldValue && !idValue) return `${fieldName} not found`;
       if (fieldDuplicates.has(fieldValue)) return `${fieldName}s should be unique`;
@@ -116,7 +112,7 @@ export const DelAssetStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

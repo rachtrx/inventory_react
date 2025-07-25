@@ -1,23 +1,22 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../context/UIProvider";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../context/ModalProvider";
-import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
-import { compareStrings, convertExcelDate } from "../utils/validation";
+import { compareStrings } from "../utils/validation";
 import { useLoading } from "../../../context/LoadingProvider";
 import loanService from "../../../services/LoanService";
-import { useItems } from "../../../context/ItemsProvider";
+import { createNewReturn } from "./helpers";
 
 // Create a context
 const ReturnsContext = createContext();
 
 // Create a provider component
-export const ReturnsProvider = ({ children }) => {
+export const ReturnsProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
   const [ returnOptions, setReturnOptions ] = useState([]);
   const [ userOptions, setUserOptions ] = useState([]);
@@ -59,7 +58,7 @@ export const ReturnsProvider = ({ children }) => {
           }
         })
 
-        setFormData({
+        reinitializeForm({
           returns: newReturns
         });
       } catch (err) {
@@ -68,7 +67,7 @@ export const ReturnsProvider = ({ children }) => {
       }
     };
     loadPresetValues()
-  }, [initialValues, handleError]);
+  }, [initialValues, handleError, reinitializeForm]);
 
   const setValuesExcel = useCallback(async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -124,13 +123,13 @@ export const ReturnsProvider = ({ children }) => {
     
       console.log(userOptions);
     
-      setFormData({
+      reinitializeForm({
         returns: returns.map(_return => createNewReturn(_return))
       });
     } catch (error) {
       handleError(error);
     }
-  }, [setFormData, handleError]); 
+  }, [handleError, reinitializeForm]); 
 
   const prevStep = () => {
     setStep(Math.min(step - 1, 1))

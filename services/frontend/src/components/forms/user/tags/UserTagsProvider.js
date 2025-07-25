@@ -1,11 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { useUI } from "../../../../context/UIProvider";
-import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
-import { compareStrings, convertExcelDate } from "../../utils/validation";
+import { compareStrings } from "../../utils/validation";
 
 import { AddUserTagsStep2 } from "./addTag/AddUserTagsStep2";
 import { AddUserTagsStep1 } from "./addTag/AddUserTagsStep1";
@@ -13,22 +11,7 @@ import { DelUserTagsStep1 } from "./delTag/DelUserTagsStep1";
 import { DelUserTagsStep2 } from "./delTag/DelUserTagsStep2";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const createNewTag = (tag=null, users=[]) => ({
-	'key': uuidv4(),
-	'tagId': tag?.tagId || '',
-	'tagName': tag?.tagName || '',
-	'users': users.length !== 0 ? users.map(user => createNewUser(user)) : []
-})
-
-export const createNewUser = (user={}) => ({
-	'key': uuidv4(),
-	'userName': user.userName || '',
-	'userId': user.userId || '',
-  'remarks': user.remarks || '',
-	'userTagId': user.tags?.find(tag => tag.isMatching)?.userTagId || '',
-})
+import { createNewTag } from "./helpers";
 
 // Create a context
 const UserTagsContext = createContext();
@@ -41,7 +24,7 @@ export const UserTagsFormProvider = ({
 }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh } = useFormModal();
+  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [ tagOptions, setTagOptions ] = useState([]);
@@ -132,7 +115,7 @@ export const UserTagsFormProvider = ({
 
       console.log(tags);
     
-      setFormData({
+      reinitializeForm({
         tags: tags
       });
 

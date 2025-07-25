@@ -8,6 +8,7 @@ class AssetTagSearch {
     constructor({
         tagId = null,
         serialNumbers = [],
+        isAdd,
         subTypeId = null,
         typeId = null,
     }) {
@@ -21,51 +22,21 @@ class AssetTagSearch {
             : { serialNumber: { [Op.iLike]: `%${serialNumbers}%` } };
             
         this.isBulkSearch = isBulkSearch;
-        this.tagId = tagId;
-
-        this.includeArray = [
-            {
-                model: Event,
-                as: 'DeleteEvent',
-                attributes: ['eventDate']
-            },
-            {
-                model: AstSType,
-                attributes: ['subTypeName'],
-                ...(subTypeId && { where: { id: subTypeId } }),
-                include: {
-                    model: AstType,
-                    attributes: ['typeName'],
-                    ...(typeId && { where: { id: typeId } })
-                }
-            },
-            {
-                model: AstTagMap,
-                attributes: ['id', [
-                    Sequelize.literal(`
-                        CASE
-                            WHEN "AstTagMaps"."tag_id" = '${this.tagId}' THEN true
-                            ELSE false
-                        END
-                    `),
-                    'isMatching'
-                ]],
-                where: { delEventId: { [Op.eq]: null } }, // get all current tags
-                include: {
-                    model: AstTag,
-                    attributes: ['id', 'tagName']
-                },
-                required: false
-            }
-        ];
-    }
-
-    async run(isAdd) {
-
-        const orderByArr = []
+        
+        if (tagId) {
+            this.attributes = ['id', [
+                Sequelize.literal(`
+                    CASE
+                        WHEN "AstTagMaps"."tag_id" = '${this.tagId}' THEN true
+                        ELSE false
+                    END
+                `),
+                'isMatching'
+            ]]
+        } else this.attributes = ['id']
 
         if (this.tagId) {
-            orderByArr.push([
+            this.orderByArr = [[
                 Sequelize.literal(`EXISTS (
                     SELECT 1
                     FROM ast_tag_maps AS "AstTagMaps" 
@@ -74,21 +45,49 @@ class AssetTagSearch {
                     AND "AstTagMaps"."tag_id" = '${this.tagId}'
                 )`), 
                 isAdd ? 'ASC' : 'DESC'
-            ]);
-        }
+                ]];
+        } else this.orderByArr = []
         
         // Always apply the delete event order
-        orderByArr.push([
+        this.orderByArr.push([
             Sequelize.literal('CASE WHEN "Ast"."del_event_id" IS NOT NULL THEN 0 ELSE 1 END'),
             'DESC'
         ]);
+    }
 
+    async run() {
         try {
             const query = await Ast.findAll({
                 attributes: ['id', 'serialNumber', 'alias'],
                 where: this.assetCondition,
-                include: this.includeArray,
-                order: orderByArr
+                include: [
+                    {
+                        model: Event,
+                        as: 'DeleteEvent',
+                        attributes: ['eventDate']
+                    },
+                    {
+                        model: AstSType,
+                        attributes: ['subTypeName'],
+                        // ...(subTypeId && { where: { id: subTypeId } }),
+                        include: {
+                            model: AstType,
+                            attributes: ['typeName'],
+                            // ...(typeId && { where: { id: typeId } })
+                        }
+                    },
+                    {
+                        model: AstTagMap,
+                        attributes: this.attributes,
+                        where: { delEventId: { [Op.eq]: null } }, // get all current tags
+                        include: {
+                            model: AstTag,
+                            attributes: ['id', 'tagName']
+                        },
+                        required: false
+                    }
+                ],
+                order: this.orderByArr
             })
             return query.map(astRow => new AssetDTO(astRow));
         } catch (e) {

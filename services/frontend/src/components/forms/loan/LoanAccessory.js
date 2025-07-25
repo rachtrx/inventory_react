@@ -1,11 +1,11 @@
 import { useEffect } from "react"
-import { Box, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import InputFormControl from "../utils/InputFormControl"
 import { useFormikContext } from 'formik';
 import { RemoveButton } from "../utils/ItemButtons"
 import { useLoans } from "./LoansProvider"
 import { AvailAccSelectFormControl } from "../options/AvailAccessoryOptions"
-import WarningCard from "../utils/Warnings"
+import WarningCard from "../utils/WarningCard"
 import loanService from "../../../services/LoanService"
 
 const LoanAccessory = ({ accessory, field, index, helpers, autoFocus }) => {

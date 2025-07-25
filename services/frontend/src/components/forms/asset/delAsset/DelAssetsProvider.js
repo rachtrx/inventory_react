@@ -1,32 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { DelAssetStep2 } from "./DelAssetStep2";
 import { DelAssetStep1 } from "./DelAssetStep1";
 import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const delNewAsset = (asset={}) => ({
-  'key': uuidv4(),
-  'assetId': asset.assetId || '',
-  'serialNumber': asset.serialNumber || '', // TODO if we move to serialNumber instead of tag
-  'delDate': asset.delDate || new Date(),
-  'lastEventDate': asset.lastEventDate || '',
-  'remarks': asset.remarks || '',
-})
+import { delNewAsset } from "./helpers";
 
 // Create a context
 const DelAssetsContext = createContext();
 
 // Create a provider component
-export const DelAssetsProvider = ({ children }) => {
+export const DelAssetsProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [assetOptions, setAssetOptions] = useState([]);
@@ -51,10 +41,10 @@ export const DelAssetsProvider = ({ children }) => {
       const assets = assetObjs.map(asset => {
         return delNewAsset(asset);
       })
-      setFormData({assets});
+      reinitializeForm({assets});
     }
     fetchAstDeletes()
-  }, [initialValues, setFormData]);
+  }, [initialValues, reinitializeForm]);
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -103,7 +93,7 @@ export const DelAssetsProvider = ({ children }) => {
         }
       })
     
-      setFormData({
+      reinitializeForm({
         assets: assets.map(asset => delNewAsset(asset))
       });
 

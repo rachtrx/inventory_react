@@ -1,32 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { DelUserStep2 } from "./DelUserStep2";
 import { DelUserStep1 } from "./DelUserStep1";
 import { useUI } from "../../../../context/UIProvider";
 import { Box } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { v4 as uuidv4 } from 'uuid';
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const delNewUser = (user={}) => ({
-  'key': uuidv4(),
-  'userId': user?.userId || '',
-  'userName': user?.userName || '',
-  'delDate': user?.delDate || new Date(),
-  'lastEventDate': user?.lastEventDate || '',
-  'remarks': user?.remarks || '',
-})
+import { delNewUser } from "./helpers";
 
 // Create a context
 const DelUsersContext = createContext();
 
 // Create a provider component
-export const DelUsersProvider = ({ children }) => {
+export const DelUsersProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
   const [ warnings, setWarnings ] = useState({});
 
   const [userOptions, setUserOptions] = useState([]);
@@ -51,10 +41,10 @@ export const DelUsersProvider = ({ children }) => {
       const assets = userObjs.map(user => {
         return delNewUser(user);
       })
-      setFormData({assets});
+      reinitializeForm({assets});
     }
     fetchUsrDeletes()
-  }, [initialValues, setFormData]);
+  }, [initialValues, reinitializeForm]);
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -105,7 +95,7 @@ export const DelUsersProvider = ({ children }) => {
         }
       })
     
-      setFormData({
+      reinitializeForm({
         users: users.map(user => delNewUser(user))
       });
 

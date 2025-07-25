@@ -1,29 +1,13 @@
-import { Box, Button, Divider, Flex, IconButton, ModalBody, ModalFooter } from "@chakra-ui/react";
-import InputFormControl from '../../utils/InputFormControl';
-import ExcelFormControl from '../../utils/ExcelFormControl';
-import { SearchCreatableSingleSelectFormControl, SearchFormControl } from "../../utils/SelectFormControl";
-import { useFormModal, actionTypes } from "../../../../context/ModalProvider";
-import { FieldArray, Form, Formik, useFormikContext } from "formik";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { useFormModal } from "../../../../context/ModalProvider";
+import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import accessoryService from "../../../../services/AccessoryService";
-import { MdRemoveCircleOutline } from "react-icons/md";
 import { useEffect, useRef, useState } from "react";
-import { RemoveButton } from "../../utils/ItemButtons";
-import { v4 as uuidv4 } from 'uuid';
 import { useLoading } from "../../../../context/LoadingProvider";
 import { UpdateAccessory } from "./UpdateAccessory";
-import { useItems } from "../../../../context/ItemsProvider";
-
-export const createNewAccessory = (accessory=null) => {
-  return {
-    'key': uuidv4(),
-	  'accessoryTypeId': accessory?.accessoryTypeId || "",
-    'accessoryName': accessory?.accessoryName || "",
-	  'count': 0,
-    'remarks': ""
-  }
-}
+import { createNewAccessory } from "./helpers";
 
 const UpdateAccessories = () => {
 

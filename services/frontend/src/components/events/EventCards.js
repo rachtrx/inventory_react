@@ -14,7 +14,7 @@ import { ItemStarButton } from '../buttons/StarButton';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 // import { CardActions } from './CardActions';
-import Tags from '../tags/Tags';
+import { Tags } from '../tags/Tags';
 import { ACTION_COLORS } from '../buttons/constants';
 
 function EventCards({items}) {
@@ -44,7 +44,7 @@ function EventCards({items}) {
                                         <AccTypeLink key={idx} accType={accessoryType} />
                                     ))
                                 )}
-                                {event.tags && <Tags tags={event.tags}/>}
+                                {event.tags && <Tags tags={event.tags} textSize="xs"/>}
                             </VStack>
                             
                             <ItemStarButton

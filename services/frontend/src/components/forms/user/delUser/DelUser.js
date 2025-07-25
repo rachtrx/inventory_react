@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react"
 import InputFormControl from "../../utils/InputFormControl"
 import { useFormikContext } from 'formik';
-import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl";
+import { SearchSingleSelectFormControl } from "../../utils/SelectFormControl";
 import { useDelUsers } from "./DelUsersProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
-import { useFormModal } from "../../../../context/ModalProvider";
 import userService from "../../../../services/UserService";
 
 export const DelUser = function({ field, user, children }) {
 
 	const { userOptions } = useDelUsers();
-	const { values, setFieldValue } = useFormikContext();
+	const { setFieldValue } = useFormikContext();
 
 	const updateUserFields = async (selected) => {
 		// console.log(selected?.userId);

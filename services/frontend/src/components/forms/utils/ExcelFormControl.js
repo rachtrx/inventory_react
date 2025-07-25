@@ -1,15 +1,10 @@
-import React, { useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
   Button,
-  useToast,
   Icon,
   Grid,
-  GridItem,
 } from '@chakra-ui/react';
 import { FaDownload } from 'react-icons/fa';
-import FileUploadButton from './FileUploadButton';
-import FileNameDisplay from './FileNameDisplay';
-import { useFormikContext } from 'formik';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 import { useFormModal } from '../../../context/ModalProvider';
 import { useUI } from '../../../context/UIProvider';
@@ -19,13 +14,11 @@ import * as XLSX from 'xlsx';
 
 const ExcelFormControl = ({ templateCols, loadValues }) => {
 
-  const { formType, setInitialValues } = useFormModal();
+  const { formType } = useFormModal();
   const fileInputRef = useRef(null);
   const { showToast, handleError } = useUI();
-  const { setFieldValue } = useFormikContext()
 
   const handleDownloadTemplate = () => {
-
 
     const wb = XLSX.utils.book_new();
 

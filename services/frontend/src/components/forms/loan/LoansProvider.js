@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { LoanStep2 } from "./LoanStep2";
 import { LoanStep1 } from "./LoanStep1";
 import { useUI } from "../../../context/UIProvider";
@@ -16,10 +16,10 @@ import { useLocation } from 'react-router-dom';
 const LoansContext = createContext();
 
 // Create a provider component
-export const LoansProvider = ({ children }) => {
+export const LoansProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh } = useFormModal();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
   const [step, setStep] = useState(1);
   const [ sTypeAccMap, setSTypeAccMap ] = useState({});
 
@@ -75,12 +75,12 @@ export const LoansProvider = ({ children }) => {
         const userResponse = await loanService.fetchUserLoan(initialValues.user.userName);
         setUserOptions(userResponse.data);
         const loans = assetObjs.map(asset => ({ asset }))
-        setFormData({
+        reinitializeForm({
           users: [createNewUser({ ...initialValues.user, loans })]
         });
       } else {
         const users = assetObjs.map(asset => createNewUser({ loans: [{ asset }] }))
-        setFormData({ users });
+        reinitializeForm({ users });
       }
     }
 
@@ -94,7 +94,7 @@ export const LoansProvider = ({ children }) => {
         else return matchedUserOption;
       })
       const users = userObjs.map(user => createNewUser(user));
-      setFormData({ users });
+      reinitializeForm({ users });
     }
 
     const fetchAccLoans = async() => {
@@ -108,7 +108,7 @@ export const LoansProvider = ({ children }) => {
       })
 
       const users = [createNewUser({ loans: [createNewLoan({ accessories })] })]
-      setFormData({ users });
+      reinitializeForm({ users });
     }
 
     try {
@@ -123,7 +123,7 @@ export const LoansProvider = ({ children }) => {
       handleError(err);
     }
     
-  }, [initialValues, setFormData, handleError]);
+  }, [initialValues, handleError, reinitializeForm]);
 
   const processAccessories = (accessoryTypesStr) => {
     if (!accessoryTypesStr) return {};
@@ -136,16 +136,6 @@ export const LoansProvider = ({ children }) => {
       return acc;
     }, {});
   };
-
-  useEffect(() => {
-    console.log("init values changed");
-  }, [initialValues])
-  useEffect(() => {
-    console.log("setFormData changed");
-  }, [setFormData])
-  useEffect(() => {
-    console.log("handleError changed");
-  }, [handleError])
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -249,7 +239,7 @@ export const LoansProvider = ({ children }) => {
       setUserOptions(newUserOptions.filter(option => !option.isDisabled));
       setAccessoryOptions(newAccessoryoptions);
     
-      setFormData({
+      reinitializeForm({
         users: users.map(user => createNewUser(user))
       });
     } catch (error) {

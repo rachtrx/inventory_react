@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useField } from 'formik';
 import SignatureCanvas from 'react-signature-canvas';
-import { FormControl, FormLabel, Button, Box, Flex, IconButton, Collapse } from '@chakra-ui/react';
+import { FormControl, FormLabel, Box, Flex, IconButton } from '@chakra-ui/react';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 import { RepeatIcon } from '@chakra-ui/icons';
 

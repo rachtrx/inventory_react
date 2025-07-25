@@ -1,17 +1,13 @@
-import { Box, Button, Divider, Flex, Grid, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
+import { Box, Button, Divider, Flex, Grid } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../../utils/ResponsiveText"
 import React, { useEffect, useState } from "react"
-import { AddButton, RemoveButton } from "../../utils/ItemButtons"
-import { FaUser, FaUsers } from "react-icons/fa"
-import { AddAsset, LoanAsset } from "./AddAsset";
-import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { useFormModal } from "../../../../context/ModalProvider"
-import DateInputControl from "../../utils/DateInputControl"
-import { createNewAsset, useAddAssets } from "./AddAssetsProvider"
-import { Outlet } from "react-router-dom"
-import assetService from "../../../../services/AssetService"
-import WarningCard from "../../utils/Warnings"
+import { AddButton } from "../../utils/ItemButtons"
+import { AddAsset } from "./AddAsset";
+import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
+import { useAddAssets } from "./AddAssetsProvider"
+import WarningCard from "../../utils/WarningCard"
+import { createNewAsset } from "./helpers"
 
 export const AddSubType = ({
 	field,

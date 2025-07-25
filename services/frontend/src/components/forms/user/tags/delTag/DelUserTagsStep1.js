@@ -1,28 +1,24 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from '../../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import { validateUniqueValues } from "../../../utils/validation";
 import { setFieldError } from "../../../utils/validation";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { AddButton } from "../../../utils/ItemButtons";
 import { DelTag } from "./DelTag";
-import { createNewTag, useUserTags } from "../UserTagsProvider";
-import { useLoading } from "../../../../../context/LoadingProvider";
+import { useUserTags } from "../UserTagsProvider";
+import { createNewTag } from "../helpers";
 
 export const DelUserTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useUserTags();
-    const { setFormType, reinitializeForm } = useFormModal();
-    const { showToast, handleError } = useUI();
-    const formRef = useRef(null);
+    const { setFormType, formRef } = useFormModal();
+    const { handleError } = useUI();
   
-    console.log('User Tag Del Form');
-		console.log(formData);
-
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
+    // console.log('User Tag Del Form');
+		// console.log(formData);
 
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -127,7 +123,7 @@ export const DelUserTagsStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

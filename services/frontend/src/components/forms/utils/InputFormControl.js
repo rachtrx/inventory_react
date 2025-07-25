@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FormControl, FormLabel, Input, Textarea, Collapse, IconButton, Box, FormErrorMessage, Flex } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Textarea, Collapse, IconButton, FormErrorMessage, Flex } from '@chakra-ui/react';
 import { Field, useField } from 'formik';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { ResponsiveText } from '../../utils/ResponsiveText';
@@ -14,7 +14,7 @@ export default function InputFormControl({
   min, // Add min value
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [field, meta] = useField(name);
+  const [meta] = useField(name);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

@@ -1,11 +1,5 @@
-import React, { createContext, useReducer, useEffect, useContext, useState, useCallback, useRef } from 'react';
-import { useUI } from './UIProvider';
-import assetService from '../services/AssetService';
-import userService from '../services/UserService';
-import useDebouncedCallback from '../hooks/useDebounce';
-import useDebounce from '../hooks/useDebounce';
+import React, { createContext, useEffect, useContext, useState, useCallback, useRef } from 'react';
 import { useDisclosure } from '@chakra-ui/react';
-import accessoryService from '../services/AccessoryService';
 
 const ModalContext = createContext();
 
@@ -29,12 +23,6 @@ export const FormType = {
   RESERVE: 'RESERVE',
 }
 
-export const actionTypes = {
-  SET_FORM_TYPE: 'SET_FORM_TYPE',
-  SET_ON_SUBMIT: 'SET_ON_SUBMIT',
-  RESET_STATE: 'RESET_STATE',
-};
-
 export const ModalProvider = ({ children }) => {
 
   // to refresh items
@@ -44,11 +32,11 @@ export const ModalProvider = ({ children }) => {
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
   const [ initialValues, setInitialValues ] = useState(null);
-  const isFirstRender = useRef(true);
+
+  const formRef = useRef(null);
 
   useEffect(() => {
     if (!formType) setInitialValues(null);
-    isFirstRender.current = true;
   }, [formType]);
 
   console.log("Modal rendered");
@@ -66,26 +54,25 @@ export const ModalProvider = ({ children }) => {
     }
   }, []);
 
-  const reinitializeForm = (formRef, newValues) => {
+  const reinitializeForm = (newValues) => {
+
+    console.log("reinitializing");
     
     if (formRef.current) {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
+      console.log(newValues);
+      formRef.current.setValues(newValues)
 
-      formRef.current.setValues(newValues);
-
-      const touchedFields = createTouchedStructure(newValues);
+      const touchedFields = createTouchedStructure(formRef.current.values);
       console.log(touchedFields);
       formRef.current.setTouched(touchedFields, true);
       formRef.current.validateForm();
-    }
+    } else console.log("No form found");
   };
 
   return (
-    <ModalContext.Provider value={{ 
-      formType, 
+    <ModalContext.Provider value={{
+      formRef,
+      formType,
       setFormType, 
       initialValues, 
       setInitialValues, 

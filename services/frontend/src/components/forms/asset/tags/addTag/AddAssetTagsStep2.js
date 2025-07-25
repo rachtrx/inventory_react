@@ -1,7 +1,6 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, UnorderedList, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
-import { FormikSignatureField } from "../../../utils/SignatureField";
-import { FieldArray, Form, Formik } from "formik";
+import { Form, Formik } from "formik";
 import { useAssetTags } from "../AssetTagsProvider";
 
 export const AddAssetTagsStep2 = () => {

@@ -2,7 +2,7 @@ import { Box, Button, Divider, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from "../utils/ExcelFormControl";
 import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
 import { setFieldError } from "../utils/validation";
@@ -11,16 +11,13 @@ import { useUI } from "../../../context/UIProvider";
 export const LoanStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useLoans();
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { handleError } = useUI();
-    const formRef = useRef(null);
   
     useEffect(() => console.log('loan form rendered'))
 		
     useEffect(() => console.log(formData), [formData]);
-
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
-    
+        
     const validateUniqueAssetIDs = (assets) => {
       const assetIDSet = new Set();
       const duplicates = new Set();
@@ -159,7 +156,7 @@ export const LoanStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

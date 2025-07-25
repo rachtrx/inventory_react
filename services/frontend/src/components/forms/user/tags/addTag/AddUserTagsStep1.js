@@ -1,35 +1,26 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from '../../../utils/ExcelFormControl';
-import DateInputControl from "../../../utils/DateInputControl";
-import { FieldArray, Form, Formik, useFormikContext } from "formik";
+import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { compareDates, validateUniqueValues } from "../../../utils/validation";
+import { validateUniqueValues } from "../../../utils/validation";
 import { setFieldError } from "../../../utils/validation";
-import { AddTag, AddType } from "./AddTag";
+import { AddTag } from "./AddTag";
 import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { AddButton } from "../../../utils/ItemButtons";
 import { useFormModal } from "../../../../../context/ModalProvider";
-import { createNewTag, useUserTags } from "../UserTagsProvider";
-import { useLoading } from "../../../../../context/LoadingProvider";
+import { useUserTags } from "../UserTagsProvider";
+import { createNewTag } from "../helpers";
 
 export const AddUserTagsStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useUserTags();
-    const { setFormType, reinitializeForm } = useFormModal();
-    const { showToast, handleError } = useUI();
-    const { setLoading } = useLoading();
-    const [ warnings, setWarnings ] = useState({});
-    const formRef = useRef(null);
+    const { setFormType, formRef } = useFormModal();
+    const { handleError } = useUI();
 
-    useEffect(() => {
-      console.log("User Tag Add Form");
-      console.log(formData);
-    }, [formData]);
-
-    useEffect(() => {
-      reinitializeForm(formRef, formData);
-    }, [formData, reinitializeForm]);
+    // useEffect(() => {
+    //   console.log("User Tag Add Form");
+    //   console.log(formData);
+    // }, [formData]);
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -134,7 +125,7 @@ export const AddUserTagsStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

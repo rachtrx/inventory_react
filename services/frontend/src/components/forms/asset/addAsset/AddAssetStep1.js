@@ -1,32 +1,26 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Spacer, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
-import DateInputControl from "../../utils/DateInputControl";
-import { FieldArray, Form, Formik, useFormikContext } from "formik";
+import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createNewType, useAddAssets } from "./AddAssetsProvider";
+import { useAddAssets } from "./AddAssetsProvider";
 import { compareDates, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddType } from "./AddType";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { useFormModal } from "../../../../context/ModalProvider";
+import { createNewType } from "./helpers";
 
 export const AddAssetStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useAddAssets();
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { handleError } = useUI();
-    const formRef = useRef(null);
 
-    useEffect(() => {
-      // console.log("Asset Add Form");
-      // console.log(formData);
-    }, [formData]);
-
-    useEffect(() => {
-      reinitializeForm(formRef, formData);
-    }, [formData, reinitializeForm]);
+    // useEffect(() => {
+    //   console.log("Asset Add Form");
+    //   console.log(formData);
+    // }, [formData]);
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -147,7 +141,7 @@ export const AddAssetStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

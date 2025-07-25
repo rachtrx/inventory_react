@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react"
 import InputFormControl from "../../../utils/InputFormControl"
 import { FieldArray, useFormikContext } from 'formik';
-import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl, SingleSelectFormControl } from "../../../utils/SelectFormControl";
+import { SingleSelectFormControl } from "../../../utils/SelectFormControl";
 import { Box, Divider, Flex } from "@chakra-ui/react";
-import DateInputControl from "../../../utils/DateInputControl";
-import { useFormModal } from "../../../../../context/ModalProvider";
 import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions";
 import assetService from "../../../../../services/AssetService";
-import { createNewAsset, useAssetTags } from "../AssetTagsProvider";
+import { useAssetTags } from "../AssetTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
+import { createNewAsset } from "../helpers";
 
 export const DelTag = function({ tag, tagIndex, children }) {
 

@@ -1,4 +1,4 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, UnorderedList, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { Form, Formik } from "formik";
 import { useAddAssets } from "./AddAssetsProvider";

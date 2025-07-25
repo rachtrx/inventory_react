@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { ACTION_COLORS } from '../buttons/constants';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
-import Tags from '../tags/Tags';
+import { Tags } from '../tags/Tags';
 import { useItems } from '../../context/ItemsProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 const EventTable = ({ items }) => {
@@ -50,7 +50,7 @@ const EventTable = ({ items }) => {
                 ""
               )}
             </Td>
-            <Td>{event.tags && <Tags tags={event.tags}/>}</Td>
+            <Td>{event.tags && <Tags tags={event.tags} textSize="xs"/>}</Td>
             <Td>{event.adminName}</Td>
           </Tr>
         ))}

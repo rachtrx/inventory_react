@@ -1,14 +1,14 @@
-import { Box, Button, Divider, Flex, IconButton, Spacer, Tooltip, VStack } from "@chakra-ui/react"
+import { Box, Divider, Flex } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../../../utils/ResponsiveText"
-import React, { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../../utils/SelectFormControl"
-import { createNewAsset, useAssetTags } from "../AssetTagsProvider"
+import { useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
 import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions"
 import InputFormControl from "../../../utils/InputFormControl"
-import WarningCard from "../../../utils/Warnings"
+import WarningCard from "../../../utils/WarningCard"
+import { createNewAsset } from "../helpers"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 

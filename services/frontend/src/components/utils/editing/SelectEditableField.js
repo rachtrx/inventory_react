@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CreatableSingleSelectFormControl } from "../../forms/utils/SelectFormControl";
-import WarningCard from "../../forms/utils/Warnings";
+import WarningCard from "../../forms/utils/WarningCard";
 import { Form, Formik } from "formik";
 import { useLoading } from "../../../context/LoadingProvider";
 import { useUI } from "../../../context/UIProvider";

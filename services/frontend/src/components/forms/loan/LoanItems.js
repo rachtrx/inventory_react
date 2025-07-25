@@ -1,7 +1,4 @@
-import { useEffect, useState } from "react"
-import { CreatableSingleSelectFormControl } from "../utils/SelectFormControl"
-import { useUI } from "../../../context/UIProvider"
-import accessoryService from "../../../services/AccessoryService"
+import { useEffect } from "react"
 import { Flex, Box, FormControl, FormErrorMessage, Card, SimpleGrid, CardHeader, CardBody, CardFooter, Button, Stack, StackDivider } from "@chakra-ui/react";
 import { FieldArray } from "formik"
 import InputFormControl from "../utils/InputFormControl"

@@ -1,27 +1,17 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from '../utils/ExcelFormControl';
-import InputFormControl from '../utils/InputFormControl';
-import SelectFormControl from "../utils/SelectFormControl";
-import DateInputControl from "../utils/DateInputControl";
 import { useFormModal } from "../../../context/ModalProvider";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createNewAccessory, createNewReturn } from "./ReturnSearch";
 import { useUI } from "../../../context/UIProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { ReturnProvider } from "./ReturnProvider";
-import assetService from "../../../services/AssetService";
-import { v4 as uuidv4 } from 'uuid';
 import { useReturns } from "./ReturnsProvider";
 
 const ReturnStep1 = () => {
 
     // REINITIALISE FORM TO INCLUDE ALL POSSIBLE UPDATES
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { nextStep, formData, setValuesExcel } = useReturns();
     const { handleError } = useUI();
-    const formRef = useRef(null);
-
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm])
 
     const validate = (values) => {
       const errors = {};
@@ -128,7 +118,7 @@ const ReturnStep1 = () => {
                     colorScheme="blue" 
                     type="submit"
                     onClick={() => {
-                      if (errors) {
+                      if (Object.keys(errors).length !== 0) {
                         handleError("Please check for invalid data in form")
                       }
                     }}

@@ -1,20 +1,12 @@
-import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { Box, Heading, Flex, Grid, VStack } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, FormType, useFormModal } from '../../context/ModalProvider';
-import TextEditableField from '../utils/editing/TextEditableField';
+import { FormType, useFormModal } from '../../context/ModalProvider';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { UserLink } from '../buttons/ItemLink';
-import { AssetStatus } from '../assets/utils/AssetStatus';
-import { AssetActionButton } from '../buttons/actions/AssetActionButton';
-import AssetTimeline from '../timeline/assets/AssetTimeline';
 import AccTimeline from '../timeline/accessories/AccTimeline';
-import { ReturnButton } from '../buttons/actions/ReturnButton';
 import { CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
 
 const Accessory = ({ accType }) => {
-  const { editKey, editedValue, handleEdit } = useDrawer()
-  const { setFormType } = useFormModal()
 
   const currentUsers = accType.currentUsers;
   const pastUsers = accType.pastUsers;

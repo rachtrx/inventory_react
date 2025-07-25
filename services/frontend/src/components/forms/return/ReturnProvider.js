@@ -1,16 +1,13 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { dateTimeObject } from '../../../config';
-import { useContext, useMemo } from 'react';
-import { useUI } from '../../../context/UIProvider';
+import { createContext, useState, useCallback } from 'react';
+import { useContext } from 'react';
 import { useFormikContext } from 'formik';
-import { Box, Button, Divider, Flex, Spacer } from '@chakra-ui/react';
-import { FaUser, FaUsers } from 'react-icons/fa';
+import { Button, Divider, Flex } from '@chakra-ui/react';
 import { ResponsiveText } from '../../utils/ResponsiveText';
 import { AddButton } from '../utils/ItemButtons';
-import { createNewReturn, ReturnSearch } from './ReturnSearch';
-import { useReturns } from './ReturnsProvider';
+import { ReturnSearch } from './ReturnSearch';
 import { ManageReturn } from './ManageReturn';
 import { useFormModal } from '../../../context/ModalProvider';
+import { createNewReturn } from './helpers';
 
 // Create a context for assets
 const ReturnContext = createContext();
@@ -44,7 +41,8 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
         {`Loan #${returnIndex + 1}`}
       </ResponsiveText>
 
-      <ReturnSearch/>
+      {!initialValues?.length && <ReturnSearch/>}
+      
       {ret.loanId && (
           ret.asset.unreturned !== 0 || 
           ret.accessoryTypes.some(accType => accType.unreturned > 0) 

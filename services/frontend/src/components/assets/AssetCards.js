@@ -1,10 +1,6 @@
-import { API_URL } from '../../config';
-
 import { 
     Card,
     CardBody,
-    Text,
-    Button,
     Box,
     Flex,
     VStack,
@@ -14,7 +10,7 @@ import { ItemStarButton } from '../buttons/StarButton';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
-import Tags from '../tags/Tags';
+import { Tags } from '../tags/Tags';
 
 function AssetCards({items}) {
 
@@ -42,7 +38,7 @@ function AssetCards({items}) {
                                 {asset.loan && <UserLink 
                                     user={asset.loan.user} 
                                 />}
-                                <Tags tags={asset.tags}/>
+                                <Tags tags={asset.tags} textSize="xs"/>
                             </VStack>
                             
                             <ItemStarButton

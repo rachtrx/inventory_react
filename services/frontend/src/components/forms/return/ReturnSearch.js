@@ -1,6 +1,5 @@
 import { Box, Flex, FormControl, FormLabel } from "@chakra-ui/react"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import { v4 as uuidv4 } from 'uuid';
+import { useCallback, useMemo, useState } from "react"
 import { useReturn } from "./ReturnProvider"
 import { useReturns } from "./ReturnsProvider"
 import { useUI } from "../../../context/UIProvider"
@@ -9,47 +8,12 @@ import { Select } from "@chakra-ui/react";
 import { useFormikContext } from "formik";
 import loanService from "../../../services/LoanService";
 import { useLocation } from "react-router-dom";
-
-export const createNewAccessory = (accLoan) => ({
-	key: uuidv4(),
-	// accessoryLoanId: accLoan.accessoryLoanId || '',
-	accessoryTypeId: accLoan.accType.accessoryTypeId || '',
-	accessoryName: accLoan.accType.accessoryName || '',
-	unreturned: accLoan.unreturned,
-	count: accLoan.unreturned,
-  });
-
-const createNewAsset = (assetLoan={}) => ({
-	assetId: assetLoan.asset?.assetId || '',
-	serialNumber: assetLoan.asset?.serialNumber || '',
-	unreturned: assetLoan.returnEventId ? 0 : 1,
-	count: assetLoan.returnEventId ? 0 : 1,
-})
-
-export const createNewReturn = ({
-	loanId = null, 
-	astLoan = {}, 
-	user = {},
-	// newUser = {},
-	accLoans = [],
-	remarks = null,
-	search = ""
-} = {}) => ({
-	key: uuidv4(),
-	loanId: loanId || null,
-	asset: createNewAsset(astLoan || {}),
-	accessoryTypes: accLoans?.map((accLoan) => createNewAccessory(accLoan)) || [],
-	userId: user.userId || user.userId || '',
-	userName: user.userName || '',
-	// newUser: createNewUser(newUser),
-	remarks: remarks || '',
-	search: search,
-});
+import { createNewAccessory, createNewAsset } from "./helpers"
 
 export const ReturnSearch = () => {
 
 	const { setUserOptions } = useReturns();
-	const { ret, returnIndex, currentLoan, returnOptions } = useReturn();
+	const { returnIndex, currentLoan, returnOptions } = useReturn();
 	const { setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
 	
@@ -177,13 +141,3 @@ export const ReturnSearch = () => {
 		</FormControl>
 	);
 }
-
-// const fetchAsset = useCallback(async (userId = null) => {
-// try {
-// 	const response = await assetService.fetchAstForUser(userId);
-// 	setAccessoryOptions(response.data);
-// } catch (err) {
-// 	handleError(err);
-// 	console.error(err);
-// }
-// }, [handleError, setAccessoryOptions]); // Dependencies to stabilize fetchAsset

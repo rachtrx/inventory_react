@@ -1,13 +1,14 @@
 import { Box, Button, Divider, Flex } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
 import { ResponsiveText } from "../../../utils/ResponsiveText"
-import React, { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
-import { createNewSubType, useAddAssets } from "./AddAssetsProvider"
+import { useAddAssets } from "./AddAssetsProvider"
 import { AddSubType } from "./AddSubType"
 import assetService from "../../../../services/AssetService"
-import WarningCard from "../../utils/Warnings"
+import WarningCard from "../../utils/WarningCard"
+import { createNewSubType } from "./helpers"
 
 export const AddType = ({type, typeIndex, children}) => {
 

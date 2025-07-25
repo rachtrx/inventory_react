@@ -19,7 +19,7 @@ import { ItemsList, UserItemsList } from "../utils/popovers/ItemsList";
 import { ItemStarButton } from "../buttons/StarButton";
 import { useItems } from "../../context/ItemsProvider";
 import { UserLink } from "../buttons/ItemLink";
-import Tags from "../tags/Tags";
+import { Tags } from "../tags/Tags";
 
 function UserCards({ items }) {
 
@@ -43,7 +43,7 @@ function UserCards({ items }) {
                   {user.deptName}
                 </Text>
                 {user.loans?.length > 0 && <UserItemsList loans={user.loans} />}
-                <Tags tags={user.tags}/>
+                <Tags tags={user.tags} textSize="xs"/>
               </VStack>
 
               <ItemStarButton

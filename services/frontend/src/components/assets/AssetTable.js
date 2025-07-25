@@ -5,7 +5,7 @@ import { ResponsiveText } from '../utils/ResponsiveText';
 import { useState } from 'react';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { CardActions } from './CardActions';
-import Tags from '../tags/Tags';
+import { Tags } from '../tags/Tags';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 
 const AssetTable = ({ items }) => {
@@ -47,7 +47,7 @@ const AssetTable = ({ items }) => {
             <Td><ResponsiveText>{asset.typeName}</ResponsiveText></Td>
             <Td><ResponsiveText>{asset.subTypeName}</ResponsiveText></Td>
             <Td><AssetLink item={asset} fontWeight="bold"/></Td>
-            <Td><Tags tags={asset.tags}/></Td>
+            <Td><Tags tags={asset.tags} textSize="xs"/></Td>
             <Td>
               <CardActions asset={asset}/>
             </Td>

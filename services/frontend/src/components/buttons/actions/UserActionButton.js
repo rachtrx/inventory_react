@@ -15,5 +15,6 @@ const withUserAction = (ButtonComponent) => ({
         />
     )
 }
+
 export const UserActionButton = withUserAction(ActionButton);
 export const CircleUserActionButton = withUserAction(CircleActionButton);
