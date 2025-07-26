@@ -12,6 +12,7 @@ const EditCancelButton = ({name, ...props}) => {
         <>
             {!editable || !editKey || editKey !== name ? (
                 <IconButton
+                    size="sm"
                     colorScheme="yellow" 
                     icon={<EditIcon />}
                     onClick={() => setEditKey(name)}
@@ -19,6 +20,7 @@ const EditCancelButton = ({name, ...props}) => {
                 />
             ) : (
                 <IconButton
+                    size="sm"
                     colorScheme="red" 
                     icon={<CloseIcon />}
                     onClick={() => setEditKey(null)}

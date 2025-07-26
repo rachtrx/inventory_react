@@ -18,7 +18,7 @@ export const ItemStarButton = ({ id, isBookmarked, ...props }) => {
   const { handleUpdate } = useItems();
 
   const handleClick = async () => {
-    const response = await handleUpdate(id, 'bookmarked', isBookmarked ? false : true);
+    const response = await handleUpdate(id, 'bookmarked', !isBookmarked);
     console.log(response);
   };
 
@@ -30,4 +30,3 @@ export const ItemStarButton = ({ id, isBookmarked, ...props }) => {
     />
   );
 };
-

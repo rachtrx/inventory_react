@@ -98,7 +98,7 @@ export const LoansProvider = () => {
     }
 
     const fetchAccLoans = async() => {
-      const accResponse = await loanService.fetchAccLoan({accTypeIds: initialValues.accTypeIds});
+      const accResponse = await loanService.fetchAccLoanById(initialValues.accTypeIds);
       setAccessoryOptions(accResponse.data);
 
       const accessories = initialValues.accTypeIds.map(accTypeId => {

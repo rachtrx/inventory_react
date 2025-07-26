@@ -1,4 +1,6 @@
+const { Sequelize } = require("@/models");
 const { AccLoanSearch } = require("./accLoan");
+const { Op } = require("sequelize");
 
 class AccLoanByNameSearch extends AccLoanSearch {
 

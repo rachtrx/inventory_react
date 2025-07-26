@@ -16,7 +16,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   const [data, setData] = useState([]);
   const { handleError } = useUI();
   const { setLoading } = useLoading();
-  const { refreshKey } = useFormModal();
+  const { refreshKey, triggerRefresh } = useFormModal();
   
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = parseInt(searchParams.get('page'), 10) || 1;
@@ -64,6 +64,16 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
     const pageNumber = Math.max(1, page);
     setPage(() => Math.min(pageNumber, maxPage));
   }, [maxPage]);
+
+  const handleUpdate = async (itemId, name, newValue) => {
+		try {
+			await service.updateItem({itemId, name, newValue})
+			triggerRefresh();
+		} catch (err) {
+      console.error(err);
+      handleError(err);
+    }
+	};
 
   const fetchAllFilters = useCallback(async () => {
     try {
@@ -147,6 +157,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   return (
     <ItemsContext.Provider value={{ 
       defaultFilters: service.defaultFilters,
+      handleUpdate,
       filters, 
       setFilters,
       handleSort,

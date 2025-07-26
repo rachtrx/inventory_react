@@ -14,14 +14,14 @@ export default function InputFormControl({
   min, // Add min value
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [meta] = useField(name);
+  const [, meta] = useField(name);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
 
   return (
-    <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
+    <FormControl isInvalid={meta.touched && !!meta.error}>
       <Flex alignItems="center">
         {label && (
           <FormLabel htmlFor={name}>

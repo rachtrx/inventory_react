@@ -41,10 +41,16 @@ class LoanService {
         });
     }
 
-    fetchAccLoan = async ({accessoryNames, accTypeIds}) => {
+    fetchAccLoan = async (accessoryNames) => {
         return await this.axios.get(`${this.URL}/loan/accessory`, {
             params: {
-                accessoryNames,
+                accessoryNames            }
+        });
+    }
+
+    fetchAccLoanById = async (accTypeIds) => {
+        return await this.axios.get(`${this.URL}/loan/accessory`, {
+            params: {
                 accTypeIds
             }
         });

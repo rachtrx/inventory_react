@@ -244,6 +244,50 @@ class AssetController extends BaseController {
                     {
                         model: Vendor,
                         attributes: ['vendorName']
+                    },
+                    {
+                        model: Event,
+                        as: "AddEvent",
+                        required: true,
+                        include: [
+                            {
+                                model: Rmk,
+                                attributes: ['id', 'text'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['id', 'adminName'],
+                                    required: false
+                                },
+                                required: false
+                            },
+                            {
+                                model: Admin,
+                                attributes: ['id', 'adminName'],
+                                required: false
+                            }
+                        ],
+                    },
+                    {
+                        model: Event,
+                        as: "DeleteEvent",
+                        required: false,
+                        include: [
+                            {
+                                model: Rmk,
+                                attributes: ['id', 'text'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['id', 'adminName'],
+                                    required: false
+                                },
+                                required: false
+                            },
+                            {
+                                model: Admin,
+                                attributes: ['id', 'adminName'],
+                                required: false
+                            }
+                        ],
                     }
                 ],
                 where: { id: assetId }
@@ -284,8 +328,6 @@ class AssetController extends BaseController {
             attributes: ['id', 'adminId', 'eventDate'],
             where: {
                 [Op.or]: [
-                    { '$AddedAsset.id$': assetId },
-                    { '$DeletedAsset.id$': assetId },
                     { '$Loan->AstLoan.asset_id$': assetId },
                     { '$Reservation->AstLoan.asset_id$': assetId }
                 ]
@@ -304,18 +346,6 @@ class AssetController extends BaseController {
                 {
                     model: Admin,
                     attributes: ['id', 'adminName'],
-                    required: false
-                },
-                {
-                    model: Ast,
-                    as: 'AddedAsset',
-                    attributes: [], // todo add details so timeline can display
-                    required: false
-                },
-                {
-                    model: Ast,
-                    as: 'DeletedAsset',
-                    attributes: [],
                     required: false
                 },
                 {
@@ -426,19 +456,7 @@ class AssetController extends BaseController {
                     ]
                 }
             ],
-            order: [
-                [
-                  Sequelize.literal(`
-                    CASE
-                      WHEN "DeletedAsset"."id" IS NOT NULL THEN 0
-                      WHEN "AddedAsset"."id" IS NOT NULL THEN 2
-                      ELSE 1
-                    END
-                  `),
-                  'ASC'
-                ],
-                ['eventDate', 'DESC']
-            ]
+            order: [['eventDate', 'DESC']]
         });
 
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects

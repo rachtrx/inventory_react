@@ -17,7 +17,7 @@ export const DefaultButton = ({ onClick, bg, text, isMulti, textSize, ...rest })
 	</Box>
 );
 
-export const CircleButton = ({ onClick, bg, text, icon, isMulti, textSize = "xs", size = "48px", ...rest }) => (
+export const CircleButton = ({ onClick, bg, text, icon, isMulti, textSize = "xs", size = "md", ...rest }) => (
 	<IconButton
 	  onClick={onClick}
 	  bg={bg}
@@ -37,7 +37,7 @@ export const CircleButton = ({ onClick, bg, text, icon, isMulti, textSize = "xs"
 		icon={icon}
 	  aria-label={text}
 	  isRound
-	  size="md"
+	  size={size}
 	  {...rest}
 	/>
 );

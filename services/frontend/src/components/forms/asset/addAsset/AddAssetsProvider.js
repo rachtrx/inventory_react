@@ -17,7 +17,6 @@ export const AddAssetsProvider = () => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
   const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
 
   const [vendorOptions, setVendorOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
@@ -297,9 +296,7 @@ export const AddAssetsProvider = () => {
     setValuesExcel,
     prevStep,
     nextStep,
-    handleSubmit,
-    warnings,
-    setWarnings
+    handleSubmit
   };
 
   return (

@@ -37,16 +37,16 @@ export const AssetTagsFormProvider = ({
   //   console.log(tagOptions);
   // }, [tagOptions])
 
-  useEffect(() => {
-    if (!initialValues?.serialNumbers) return;
-    const loadAssets = async (serialNumbers) => {
-      const response = await fetchAstForTagsFunc(serialNumbers);
-      const newAssetOptions = response.data;
-      setAssetOptions({ ...assetOptions, "": newAssetOptions });
-      reinitializeForm()
-    }
-    loadAssets(initialValues.serialNumbers)
-  }, [initialValues, assetOptions, fetchAstForTagsFunc, reinitializeForm])
+  // useEffect(() => {
+  //   if (!initialValues?.serialNumbers) return;
+  //   const loadAssets = async (serialNumbers) => {
+  //     const response = await fetchAstForTagsFunc(serialNumbers);
+  //     const newAssetOptions = response.data;
+  //     setAssetOptions({ ...assetOptions, "": newAssetOptions });
+  //     reinitializeForm()
+  //   }
+  //   loadAssets(initialValues.serialNumbers)
+  // }, [initialValues, assetOptions, fetchAstForTagsFunc, reinitializeForm])
 
   useEffect(() => { 
     const fetchFilters = async () => {

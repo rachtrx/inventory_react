@@ -3,7 +3,7 @@ import { useDrawer } from '../../context/DrawerProvider';
 import { FormType } from '../../context/ModalProvider';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
-import TextEditableField from '../utils/editing/TextEditableField';
+import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
 import { useEffect } from 'react';
 import { AccTypeLink, AssetLink } from '../buttons/ItemLink';
 import UserTimeline from '../timeline/users/UserTimeline';
@@ -48,11 +48,9 @@ const User = ({ user }) => {
 							/>
 							<EditToggleButton/>
 						</Flex>
-						<TextEditableField
+						<HeadingEditableField
 							name="userName"
 							value={user.userName}
-							isHeading={true}
-							textProps={{as:"h1", size:"lg", mb: "4"}}
 						/>
 					</Flex>
 					

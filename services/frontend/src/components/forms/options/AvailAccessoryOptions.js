@@ -13,12 +13,12 @@ const CustomAccOption = (props) => {
       <Flex direction="column" style={{ fontWeight: props.isSelected ? "bold" : "normal" }}>
         {!accessoryName && value && <ResponsiveText>Create {value}...</ResponsiveText>}
         {accessoryName && <ResponsiveText>{accessoryName}</ResponsiveText>}
-        {stock && <Badge colorScheme={stock > 0 ? "green" : "red"}>Stock: {stock}</Badge>}
+        {!isNaN(stock) && <Badge colorScheme={stock > 0 ? "green" : "red"}>Stock: {stock}</Badge>}
       </Flex>
     </components.Option>
   )};
 
-const AvailAccSelectFormControl = (props) => {
+const AvailAccSelectFormControl = (props, children) => {
   return (
     <SearchCreatableSingleSelectFormControl
       {...props}

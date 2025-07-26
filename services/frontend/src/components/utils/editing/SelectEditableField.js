@@ -5,12 +5,13 @@ import { Form, Formik } from "formik";
 import { useLoading } from "../../../context/LoadingProvider";
 import { useUI } from "../../../context/UIProvider";
 import { useDrawer } from "../../../context/DrawerProvider";
-import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, Flex, useDisclosure } from "@chakra-ui/react";
 import EditCancelButton from "../../forms/utils/EditCancelButton";
 import RadioOptions from "../RadioOptions";
 import { Confirmation } from "./Confirmation";
 import { useAuth } from "../../../context/AuthProvider";
 import { useEditMode } from "../../../context/EditModeProvider";
+import { ResponsiveText } from "../ResponsiveText";
 
 const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions, customOptions}) => {
 
@@ -112,7 +113,7 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
 
     return (
         <>
-            <Text fontSize="md">{label}:</Text>
+            <ResponsiveText size="md">{label}:</ResponsiveText>
             {editKey === name && editable ? (
                 <Formik
                     initialValues={{
@@ -182,9 +183,9 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
                     )}
                 </Formik>
             ) : (
-                <Text fontSize="md">
+                <ResponsiveText size="md">
                     {value}
-                </Text>
+                </ResponsiveText>
             )}
             <EditCancelButton name={name}/>
         </>

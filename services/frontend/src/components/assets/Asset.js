@@ -1,7 +1,7 @@
 import { Box, Heading, Flex, Grid, VStack } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
 import { FormType } from '../../context/ModalProvider';
-import TextEditableField from '../utils/editing/TextEditableField';
+import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from './utils/AssetStatus';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
@@ -14,6 +14,8 @@ import assetService from '../../services/AssetService';
 import { useEffect, useState } from 'react';
 import { useUI } from '../../context/UIProvider';
 import { EditToggleButton } from '../buttons/EditToggleButton';
+import DateText from '../timeline/utils/DateText';
+import { ResponsiveText } from '../utils/ResponsiveText';
 
 const Asset = ({ asset }) => {
   const { updateItem } = useDrawer();
@@ -42,12 +44,11 @@ const Asset = ({ asset }) => {
 
   const pastUsers = asset.pastUsers;
 
-  const status = asset?.delEventId !== undefined ? AssetStatus.DELETED :
+  const status = 
+    asset?.delEventId !== undefined ? AssetStatus.DELETED :
     asset?.loanEventId !== undefined ? AssetStatus.LOANED :
     asset?.reserveEventId !== undefined ? AssetStatus.RESERVED :
     AssetStatus.AVAILABLE;
-
-  // console.log(status);
 
   const loan = asset.loanEventId ? asset.history.find(event => event.eventId === asset.loanEventId)?.loan : null
   const reservation = asset.reserveEventId ? asset.history.find(event => event.eventId === asset.reserveEventId)?.reservation : null
@@ -64,11 +65,9 @@ const Asset = ({ asset }) => {
             />
             <EditToggleButton/>
           </Flex>
-          <TextEditableField
+          <HeadingEditableField
 						name="serialNumber"
 						value={asset.serialNumber}
-						isHeading={true}
-						textProps={{as:"h1", size:"lg", mb: "4"}}
 					/>
         </Flex>
 				<Heading as="h2" size="md" mb="2">Status: {status}</Heading>	
@@ -127,6 +126,18 @@ const Asset = ({ asset }) => {
             name="location"
             value={asset.location}
           />
+          {asset.addEvent ? (
+            <>
+              <ResponsiveText>Added Date:</ResponsiveText>
+              <DateText colorScheme={"green"} event={asset.addEvent}/>
+            </>
+          ) : undefined}
+          {asset.deleteEvent ? (
+            <>
+              <ResponsiveText>Condemned Date:</ResponsiveText>
+              <DateText colorScheme={"red"} event={asset.deleteEvent}/>
+            </>
+          ) : undefined}
         </Grid>
       </Box>
 

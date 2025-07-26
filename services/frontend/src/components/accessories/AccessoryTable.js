@@ -1,4 +1,4 @@
-import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Flex } from '@chakra-ui/react';
 import { ResponsiveText } from '../utils/ResponsiveText';
 import { ItemStarButton } from '../buttons/StarButton';
 import { useItems } from '../../context/ItemsProvider';
@@ -7,10 +7,12 @@ import { CircleText } from '../utils/CircleText';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import accessoryService from '../../services/AccessoryService';
 import { LoansPopover } from './LoansPopover';
+import { AccTypeActionButton, CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
+import { FormType } from '../../context/ModalProvider';
 
 const AccessoryTable = ({ items }) => {
 
-  const { handleUpdate, handleSort, sortField, sortOrder } = useItems()
+  const { handleSort, sortField, sortOrder } = useItems()
 
   return (
     <Table size='sm' variant="simple">
@@ -33,7 +35,12 @@ const AccessoryTable = ({ items }) => {
             _hover={{ bg: 'gray.100' }}
            >
             {/* <Td><ItemStarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td> */}
-            <Td><AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/></Td>
+            <Td>
+              <Flex gap={1}>
+                <AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/>
+                <CircleAccTypeActionButton size="sm" formType={FormType.UPDATE_ACC} accTypeIds={accessoryType.accessoryTypeId}/>
+              </Flex>
+            </Td>
             
             <Td>
               <CircleText

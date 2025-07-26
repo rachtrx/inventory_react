@@ -11,7 +11,7 @@ import {
 import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import Cards from '../utils/Cards';
-import { AccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
+import { AccTypeActionButton, CircleAccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
 import { FormType, useFormModal } from "../../context/ModalProvider";
 import { useState } from "react";
 import { ItemStarButton } from "../buttons/StarButton";
@@ -38,15 +38,9 @@ function AccessoryCards({ items }) {
           <CardBody>
             <Flex>
               <VStack align="start" flex='1'>
-                <Flex gap={2} alignItems="center">
-                  <AccTypeLink accType={accessoryType}/>
-                  {/* <Box alignSelf='flex-end'>
-                    <AccTypeActionButton
-                      key={FormType.UPDATE_ACC}
-                      formType={FormType.UPDATE_ACC}
-                      accType={accessoryType}
-                    />
-                  </Box> */}
+                <Flex gap={1}>
+                  <AccTypeLink accType={accessoryType} size={'lg'} fontWeight="bold"/>
+                  <CircleAccTypeActionButton size="sm" formType={FormType.UPDATE_ACC} accTypeIds={accessoryType.accessoryTypeId}/>
                 </Flex>
                 <Flex direction="column" justifyContent='space-evenly' alignSelf='stretch' gap={1}>
                   <Flex gap={1}>

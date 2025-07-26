@@ -8,17 +8,17 @@ import {
 } from '@chakra-ui/react';
 import { useCallback, useEffect } from 'react';
 import { Form, Formik } from 'formik';
-import { useFormModal, FormType } from '../context/ModalProvider';
-import { ResponsiveText } from './utils/ResponsiveText';
-import { LoansProvider } from './forms/loan/LoansProvider';
-import { ReturnsProvider } from './forms/return/ReturnsProvider';
-import { AddAssetsProvider } from './forms/asset/addAsset/AddAssetsProvider';
-import { AddUsersProvider } from './forms/user/addUser/AddUsersProvider';
-import { DelAssetsProvider } from './forms/asset/delAsset/DelAssetsProvider';
-import { DelUsersProvider } from './forms/user/delUser/DelUsersProvider';
-import UpdateAccessories from './forms/accessories/updateAcc/UpdateAccessories';
-import { AddAssetTagsProvider, DelAssetTagsProvider } from './forms/asset/tags/AssetTagsProvider';
-import { AddUserTagsProvider, DelUserTagsProvider } from './forms/user/tags/UserTagsProvider';
+import { useFormModal, FormType } from '../../../context/ModalProvider';
+import { ResponsiveText } from '../../utils/ResponsiveText';
+import { LoansProvider } from '../loan/LoansProvider';
+import { ReturnsProvider } from '../return/ReturnsProvider';
+import { AddAssetsProvider } from '../asset/addAsset/AddAssetsProvider';
+import { AddUsersProvider } from '../user/addUser/AddUsersProvider';
+import { DelAssetsProvider } from '../asset/delAsset/DelAssetsProvider';
+import { DelUsersProvider } from '../user/delUser/DelUsersProvider';
+import { UpdateAccessoriesProvider } from '../accessories/updateAcc/UpdateAccessoriesProvider';
+import { AddAssetTagsProvider, DelAssetTagsProvider } from '../asset/tags/AssetTagsProvider';
+import { AddUserTagsProvider, DelUserTagsProvider } from '../user/tags/UserTagsProvider';
 
 const formMap = {
     [FormType.ADD_ASSET]: <AddAssetsProvider/>,
@@ -28,7 +28,7 @@ const formMap = {
     [FormType.DEL_ASSET]: <DelAssetsProvider/>,
     [FormType.ADD_USER]: <AddUsersProvider/>,
     [FormType.DEL_USER]: <DelUsersProvider/>,
-    [FormType.UPDATE_ACC]: <UpdateAccessories/>,
+    [FormType.UPDATE_ACC]: <UpdateAccessoriesProvider/>,
     [FormType.TAG_ASSET]: <AddAssetTagsProvider/>,
     [FormType.UNTAG_ASSET]: <DelAssetTagsProvider/>,
     [FormType.TAG_USER]: <AddUserTagsProvider/>,

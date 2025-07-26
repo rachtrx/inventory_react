@@ -2,7 +2,7 @@ import { Box, Button, Divider, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from "../utils/ExcelFormControl";
 import { useFormModal } from "../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
 import { setFieldError } from "../utils/validation";

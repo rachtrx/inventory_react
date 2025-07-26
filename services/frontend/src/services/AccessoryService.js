@@ -65,18 +65,6 @@ class AccessoryService {
     async createAccessory(accessoryName) {
         return await this.axios.post(`${this.URL}/add`, { accessoryName });;
     }
-
-    async getSuggestedAccessories(id) {
-        return await this.axios.post(`${this.URL}/getSuggested`, { assetId: id });
-    }
-
-    async updateVariantSuggestion(assetId, accessoryTypeId, saved) {
-        return await this.axios.post(`${this.URL}/updateVariantSuggestion`, { assetId, accessoryTypeId, saved })
-    }
-
-    async updateAssetTypeSuggestion(assetId, accessoryTypeId, saved) {
-        return await this.axios.post(`${this.URL}/updateAssetTypeSuggestion`, { assetId, accessoryTypeId, saved })
-    }
 }
 
 const accessoryService = new AccessoryService(api);

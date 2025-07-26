@@ -1,26 +1,29 @@
 import { Box, Flex } from "@chakra-ui/react";
 import InputFormControl from '../../utils/InputFormControl';
-import { SearchCreatableSingleSelectFormControl } from "../../utils/SelectFormControl";
 import { useFormikContext } from "formik";
 import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { RemoveButton } from "../../utils/ItemButtons";
 import WarningCard from "../../utils/WarningCard";
 import { useEffect } from "react";
 import loanService from "../../../../services/LoanService";
+import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
+import { AvailAccSelectFormControl } from "../../options/AvailAccessoryOptions";
+import { useFormModal } from "../../../../context/ModalProvider";
 
 export const UpdateAccessory = ({
-    accessory, 
-    accessoryOptions,
-    addNewAccessory,
+    accessory,
     accessoryHelpers,
     index, 
     children
 }) => {
 
+    const { initialValues } = useFormModal();
     const { values, setFieldValue } = useFormikContext();
+    const { addNewAccessory, accessoryOptions } = useUpdateAccessories(); 
 
     const updateAccessoryFields = (selected) => {
 		setFieldValue(`accessories.${index}.accessoryTypeId`, selected?.accessoryTypeId || '');
+		setFieldValue(`accessories.${index}.stock`, selected?.stock || 0);
 	}
 
     useEffect(() => {
@@ -33,25 +36,27 @@ export const UpdateAccessory = ({
     return (
         <Box key={accessory.key}>
             <ResponsiveText size="lg">{`Accessory #${index+1}`}</ResponsiveText>
-            <Flex direction="column" gap={2}>
+            <Flex direction="column" gap={1}>
                 <Flex gap={4} alignItems="flex-start">
-                    <SearchCreatableSingleSelectFormControl
+                    <AvailAccSelectFormControl
+                        isDisabled={!!Object.values(initialValues || {}).length}
                         name={`accessories.${index}.accessoryName`}
                         searchFn={loanService.fetchAccLoan} // TODO create a shared name?
                         updateFields={(selected) => updateAccessoryFields(selected)}
                         initialOptions={accessoryOptions}
-                    >
-                    <InputFormControl
-                        name={`accessories.${index}.count`}
-                        type="number"
-                        placeholder="Enter count"
                     />
-                    <RemoveButton
-                        ariaLabel="Remove Accessory"
-                        handleClick={() => accessoryHelpers.remove(index)}
-                        isDisabled={values.accessories.length === 1}
-                    />
-                    </SearchCreatableSingleSelectFormControl>
+                    <Flex gap={1} alignItems="center">
+                        <InputFormControl
+                            name={`accessories.${index}.count`}
+                            type="number"
+                            placeholder="Enter count"
+                        />
+                        <RemoveButton
+                            ariaLabel="Remove Accessory"
+                            handleClick={() => accessoryHelpers.remove(index)}
+                            isDisabled={values.accessories.length === 1}
+                        />
+                    </Flex>
                 </Flex>
                 {accessory.accessoryName && !accessory.accessoryTypeId && 
                     <WarningCard

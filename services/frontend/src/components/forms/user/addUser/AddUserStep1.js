@@ -3,7 +3,6 @@ import ExcelFormControl from '../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import { useEffect, useRef } from "react";
 import { useAddUsers } from "./AddUsersProvider";
 import { compareDates, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
@@ -107,10 +106,10 @@ export const AddUserStep1 = () => {
                         </Flex>
                         <Divider borderColor="black" borderWidth="2px" my={4} />
                         {deptIndex === array.length - 1 && (
-                        <AddButton
+                          <AddButton
                             handleClick={() => deptHelpers.push(createNewDept())}
                             label="Add Dept"
-                        />
+                          />
                         )}
                       </AddDeptUsers>
                     ))
