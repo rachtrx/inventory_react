@@ -6,6 +6,7 @@ import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
 import { ResponsiveText } from '../../utils/ResponsiveText';
+import { useThemeFontSize } from '../../timeline/utils/useThemeFontSize';
 
 const withSelect = (Component, isCreatable) => ({
   name,
@@ -21,9 +22,25 @@ const withSelect = (Component, isCreatable) => ({
   errorAbove = false,
   ...props
 }) => {
+  const { size, ...rest } = props;
+  console.log(size);
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const [selectedOption, setSelectedOption] = useState(null);
   const [options, setOptions] = useState(initialOptions); // TODO maybe create branch to test passing this down as props
+
+  let newStyles = undefined;
+
+  if (!styles && size) {
+    const fontSize = useThemeFontSize(size); // fallback if not defined
+    newStyles = {
+      input: (provided) => ({ ...provided, fontSize }),
+      singleValue: (provided) => ({ ...provided, fontSize }),
+      multiValueLabel: (provided) => ({ ...provided, fontSize }),
+      placeholder: (provided) => ({ ...provided, fontSize }),
+      control: (provided) => ({ ...provided, fontSize }),
+      valueContainer: (provided) => ({ ...provided, fontSize }),
+    };
+  }
 
   useEffect(() => {
     if (options.length === 0 && initialOptions.length !== 0) {
@@ -110,13 +127,13 @@ const withSelect = (Component, isCreatable) => ({
           isSearchable
           components={components}
           styles={{
-            ...styles,
+            ...newStyles,
             container: (provided) => ({
               ...provided,
               width: '100%',
             }),
           }}
-          {...props}
+          {...rest}
         />
         {children}
       </Flex>

@@ -1,45 +1,36 @@
-// theme.js or theme.ts
-import { extendTheme } from "@chakra-ui/react";
+// theme.js
+import { extendTheme } from '@chakra-ui/react';
 
-const theme = extendTheme({
+const customTheme = extendTheme({
+  fonts: {
+    heading: `'Inter', sans-serif`,
+    body: `'Inter', sans-serif`,
+  },
+  fontSizes: {
+    xs: '10px',
+    sm: '12px',
+    md: '14px',
+    lg: '16px',
+    xl: '20px',
+    '2xl': '24px',
+    '3xl': '30px',
+    '4xl': '36px',
+  },
   colors: {
-    rose: {
-      50: "#ffe4e6",
-      100: "#fecdd3",
-      200: "#fda4af",
-      300: "#fb7185",
-      400: "#f43f5e",
-      500: "#e11d48",
-      600: "#be123c",
-      700: "#9f1239",
-      800: "#881337",
-      900: "#4c0519",
-    },
-    fuchsia: {
-      50: "#fdf4ff",
-      100: "#fae8ff",
-      200: "#f5d0fe",
-      300: "#f0abfc",
-      400: "#e879f9",
-      500: "#d946ef",
-      600: "#c026d3",
-      700: "#a21caf",
-      800: "#86198f",
-      900: "#701a75",
-    },
-    plum: {
-      50: "#f3e8ff",
-      100: "#e9d5ff",
-      200: "#d8b4fe",
-      300: "#c084fc",
-      400: "#a855f7",
-      500: "#9333ea",
-      600: "#7e22ce",
-      700: "#6b21a8",
-      800: "#581c87",
-      900: "#3b0764",
+    brand: {
+      50: '#e3f9ff',
+      100: '#c8eaff',
+      200: '#a5dcff',
+      300: '#7fcdff',
+      400: '#5abfff',
+      500: '#31b0ff',
+      600: '#2390db',
+      700: '#186eb7',
+      800: '#0c4c93',
+      900: '#02326f',
     },
   },
+  // Optional: breakpoints, spacing, radii, etc.
 });
 
-export default theme;
+export default customTheme;
