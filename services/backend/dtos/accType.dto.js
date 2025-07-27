@@ -10,6 +10,7 @@ class AccTypeDTO {
         accessoryName,
         stock,
         isMatching=undefined,
+        AddEvent,
         remarks,
         AccTxns,
         AccLoans
@@ -21,6 +22,8 @@ class AccTypeDTO {
         if (remarks !== undefined) this.remarks = remarks;
         
         if (Number.isFinite(stock)) this.stock = stock;
+
+        if (AddEvent) this.addEvent = new EventDTO(AddEvent.dataValues);
 
         if (AccTxns && AccTxns.every(accTxn => accTxn.count)) {
             this.registeredCount = AccTxns.reduce((accCount, accTxn) => {

@@ -190,7 +190,7 @@ db.UsrTagMap.belongsTo(db.Event, { as: 'DeleteEvent', foreignKey: 'delEventId' }
 
 db.Event.hasOne(db.AccType, { foreignKey: 'addEventId' });
 db.Event.hasOne(db.AccTxn, { foreignKey: 'eventId' });
-db.AccType.belongsTo(db.Event, { foreignKey: 'addEventId', targetKey: 'id' });
+db.AccType.belongsTo(db.Event, { as: 'AddEvent', foreignKey: 'addEventId' });
 db.AccTxn.belongsTo(db.Event, { foreignKey: 'eventId', targetKey: 'id' });
 
 // Event and Admin

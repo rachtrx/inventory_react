@@ -1,4 +1,4 @@
-import { Box, Heading, Flex, Grid, VStack, Text } from '@chakra-ui/react';
+import { Box, Heading, Flex, Grid, VStack, Text, Stat, StatNumber } from '@chakra-ui/react';
 import { FormType } from '../../context/ModalProvider';
 import { UserLink } from '../buttons/ItemLink';
 import AccTimeline from '../timeline/accessories/AccTimeline';
@@ -23,20 +23,23 @@ const Accessory = ({ accType }) => {
         </Flex>
 
         <Grid
-					templateColumns="auto 1fr auto" // First column takes up as much space as possible, second column takes up as little space as necessary
+					templateColumns="auto 1fr" // First column takes up as much space as possible, second column takes up as little space as necessary
 					gap={1}  // This is the spacing between columns
 					p={4}
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-					<Text>Current Stock: {accType.stock}</Text>
+					<Text fontSize="md">Current Stock:</Text>
+					<Stat fontSize="md">
+            <StatNumber>{accType.stock}</StatNumber>
+          </Stat>
 
-          {/* {accType.addEvent ? (
+          {accType.addEvent ? (
             <>
               <Text fontSize="md">Added Date:</Text>
               <DateText colorScheme={"green"} event={accType.addEvent}/>
             </>
-          ) : undefined} */}
+          ) : undefined}
         </Grid>
       </Box>
 
