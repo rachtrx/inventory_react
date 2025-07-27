@@ -182,47 +182,44 @@ class AccessoryController extends BaseController{
 
             accType.history = await this.getAllEvents(accTypeId);
 
-            if (accType.history && accType.history.length > 0) {
+            accType.currentUsers = Array.from(
+                new Map( // IMPT ensuring no duplicate keys by creating a map before extracting users through values
+                    accType.history
+                        .filter(event => event.loan?.accLoans?.length && (
+                            event.loan.accLoans.some(accLoan => accLoan?.accType?.isMatching && accLoan.unreturned !== 0)
+                        ))
+                        .map(event => [
+                            event.loan.user.userId,
+                            event.loan.user
+                        ])
+                ).values()
+            )
 
-                accType.currentUsers = Array.from(
-                    new Map( // IMPT ensuring no duplicate keys by creating a map before extracting users through values
-                        accType.history
-                            .filter(event => event.loan?.accLoans?.length && (
-                                event.loan.accLoans.some(accLoan => accLoan?.accType?.isMatching && accLoan.unreturned !== 0)
-                            ))
-                            .map(event => [
-                                event.loan.user.userId,
-                                event.loan.user
-                            ])
-                    ).values()
-                )
+            accType.pastUsers = Array.from(
+                new Map(
+                    accType.history
+                        .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
+                            event.loan.accLoans.some(accLoan => accLoan?.accType?.isMatching && accLoan.unreturned === 0)
+                        ))
+                        .map(event => [
+                            event.loan.user.userId,
+                            event.loan.user
+                        ])
+                ).values()
+            )
 
-                accType.pastUsers = Array.from(
-                    new Map(
-                        accType.history
-                            .filter(event => event.loan?.accLoans && event.loan.accLoans.length > 0 && (
-                                event.loan.accLoans.some(accLoan => accLoan?.accType?.isMatching && accLoan.unreturned === 0)
-                            ))
-                            .map(event => [
-                                event.loan.user.userId,
-                                event.loan.user
-                            ])
-                    ).values()
-                )
-
-                accType.reservedUsers = Array.from(
-                    new Map(
-                        accType.history
-                            .filter(event => event.reservation?.accLoans && event.reservation.accLoans.length > 0 && !event.reservation.cancelEvent && (
-                                event.reservation.accLoans.some(accLoan => accLoan?.accType?.isMatching)
-                            ))
-                            .map(event => [
-                                event.loan.user.userId,
-                                event.loan.user
-                            ])
-                    ).values()
-                )
-            }
+            accType.reservedUsers = Array.from(
+                new Map(
+                    accType.history
+                        .filter(event => event.reservation?.accLoans && event.reservation.accLoans.length > 0 && !event.reservation.cancelEvent && (
+                            event.reservation.accLoans.some(accLoan => accLoan?.accType?.isMatching)
+                        ))
+                        .map(event => [
+                            event.loan.user.userId,
+                            event.loan.user
+                        ])
+                ).values()
+            )
 
             res.json(accType);
         } catch (error) {

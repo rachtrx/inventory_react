@@ -279,17 +279,14 @@ class UserController extends BaseController {
     
             user.history = await this.getAllEvents(user.userId);
 
-            if (user.history && user.history.length > 0) {
+            user.pastAssets = user.history
+                .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent)
+                .map(event => event.loan.astLoan.asset)
 
-                user.pastAssets = user.history
-                    .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent)
-                    .map(event => event.loan.astLoan.asset)
-
-                user.loans = user.history
-                    .filter(event => (event.loan?.astLoan && !event.loan.astLoan.returnEvent) || 
-                        (event.loan?.accLoans?.some(accLoan => accLoan.unreturned > 0))
-                    ).map(event => event.loan);
-            }
+            user.loans = user.history
+                .filter(event => (event.loan?.astLoan && !event.loan.astLoan.returnEvent) || 
+                    (event.loan?.accLoans?.some(accLoan => accLoan.unreturned > 0))
+                ).map(event => event.loan);
     
             logger.info('Details for Usr:', user);
     

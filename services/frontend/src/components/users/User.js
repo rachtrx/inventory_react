@@ -83,7 +83,7 @@ const User = ({ user }) => {
 						) : undefined}
 						{user.deleteEvent ? (
 							<>
-								<Text fontSize="md">Condemned Date:</Text>
+								<Text fontSize="md">Removed Date:</Text>
 								<DateText colorScheme={"red"} event={user.deleteEvent}/>
 								<Box></Box>
 							</>

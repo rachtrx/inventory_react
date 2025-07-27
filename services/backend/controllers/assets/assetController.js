@@ -299,22 +299,19 @@ class AssetController extends BaseController {
 
             asset.history = await this.getAllEvents(asset.assetId);
 
-            if (asset.history && asset.history.length > 0) {
+            asset.loanEventId = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
+                .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.eventId
 
-                asset.loanEventId = asset.history // TODO fixed loan.user, need to change all currentUsers to currentUser
-                    .find(event => event.loan?.astLoan && !event.loan.astLoan.returnEvent)?.eventId
+            asset.pastUsers = Array.from(
+                new Map(
+                    asset.history
+                        .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent) // Filter events with returnEvent
+                        .map(event => [event.loan.user.userId, event.loan.user])
+                ).values()
+            );
 
-                asset.pastUsers = Array.from(
-                    new Map(
-                        asset.history
-                            .filter(event => event.loan?.astLoan && event.loan.astLoan.returnEvent) // Filter events with returnEvent
-                            .map(event => [event.loan.user.userId, event.loan.user])
-                    ).values()
-                );
-
-                asset.reserveEventId = asset.history
-                    .find(event => event.reservation)?.eventId
-            }
+            asset.reserveEventId = asset.history
+                .find(event => event.reservation)?.eventId
 
             res.json(asset);
         } catch (error) {
