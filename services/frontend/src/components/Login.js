@@ -30,6 +30,7 @@ export default function Login() {
           <Image
             src="gos.png"
             alt="Profile image"
+            h="20vh"
           />
         </Box>
         <Button

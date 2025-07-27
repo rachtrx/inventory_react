@@ -36,7 +36,7 @@ const withSelect = (Component, isCreatable) => ({
       theme.semanticTokens?.colors?.["chakra-body-text"]?._light,
       theme.semanticTokens?.colors?.["chakra-body-text"]?._dark
     );
-    const bg = `var(--chakra-colors-chakra-subtle-bg)`;
+    const bg = useColorModeValue('white', `var(--chakra-colors-chakra-subtle-bg)`);
     console.log(color);
     newStyles = {
       input: (provided) => ({
@@ -78,7 +78,7 @@ const withSelect = (Component, isCreatable) => ({
         ...provided,
         fontSize,
         color,
-        backgroundColor: state.isFocused ? "blue" : "",
+        backgroundColor: state.isFocused ? "gray" : bg,
         cursor: "pointer",
       }),
     };

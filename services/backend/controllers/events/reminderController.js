@@ -81,7 +81,7 @@ class ReminderController extends EventFilterController {
                 {
                     model: Event,
                     required: true,
-					as: "LoanEvent",
+                    as: "LoanEvent",
                     // ...(filters?.startDate || filters?.endDate ? {
                     //     where: {
                     //         eventDate: {

@@ -87,7 +87,7 @@ export const SuggestedAccessories = ({ sTypeId, accessoryHelpers }) => {
                         transition="background-color 0.2s"
                     >
                         <VStack align="start" spacing={1}>
-                        <Text fontWeight="medium">
+                        <Text fontSize="sm">
                             {option.map(accType => `${accType.accessoryName} x${accType.count}`).join(", ")}
                         </Text>
                         <Badge colorScheme="blue">

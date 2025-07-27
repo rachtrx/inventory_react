@@ -60,6 +60,10 @@ const customTheme = extendTheme({
         default: 'purple.100',
         _dark: 'purple.900',
       },
+      teal: {
+        default: 'teal.100',
+        _dark: 'teal.900',
+      },
       gray: {
         default: 'gray.100',
         _dark: 'gray.900',

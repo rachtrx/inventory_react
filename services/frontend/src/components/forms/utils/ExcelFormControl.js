@@ -4,6 +4,11 @@ import {
   Icon,
   Grid,
   Text,
+  Flex,
+  AlertDescription,
+  Alert,
+  AlertIcon,
+  Highlight,
 } from '@chakra-ui/react';
 import { FaDownload } from 'react-icons/fa';
 import { useFormModal } from '../../../context/ModalProvider';
@@ -68,23 +73,37 @@ const ExcelFormControl = ({ templateCols, loadValues }) => {
   };
 
   return (
-    <Grid templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
-      <Button size="md" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
-        <Icon as={FaDownload} />
-          <Text>Get Template</Text>
-      </Button>
-      <Button onClick={handleButtonClick} height="32px" justifyContent={'space-around'}>
-        <Icon as={FaUpload} />
-          <Text>Fill with Template</Text>
-      </Button>
-      <input
-        type="file"
-        accept=".xlsx, .xls"
-        style={{ display: 'none' }}
-        ref={fileInputRef}
-        onChange={handleFileChange}
-      />
-    </Grid>
+    <Flex direction="column" gap={2}>
+      <Grid templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
+        <Button size="md" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
+          <Icon as={FaDownload} />
+            <Text>Get Template</Text>
+        </Button>
+        <Button onClick={handleButtonClick} height="32px" justifyContent={'space-around'}>
+          <Icon as={FaUpload} />
+            <Text>Fill with Template</Text>
+        </Button>
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
+      </Grid>
+      <Alert status='info' p={1}>
+        <AlertIcon h="15px"/>
+        <AlertDescription fontSize="sm">
+          Accepted Excel Date formats:&nbsp;
+          <Highlight
+            query={['Date', 'Text in dd/mm/yyyy']}
+            styles={{ px: '1', py: '1', bg: 'blue.500', rounded: 'md', color: 'white' }}
+          >
+            Date / Text in dd/mm/yyyy
+          </Highlight>
+        </AlertDescription>
+      </Alert>
+    </Flex>
   );
 };
 
