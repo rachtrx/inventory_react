@@ -1,8 +1,7 @@
 import { useEffect } from "react"
-import { Flex, Box, FormControl, FormErrorMessage, Card, SimpleGrid, CardHeader, CardBody, CardFooter, Button, Stack, StackDivider } from "@chakra-ui/react";
+import { Flex, Box, FormControl, FormErrorMessage, Card, SimpleGrid, CardHeader, CardBody, CardFooter, Button, Stack, StackDivider, Text } from "@chakra-ui/react";
 import { FieldArray } from "formik"
 import InputFormControl from "../utils/InputFormControl"
-import { ResponsiveText } from "../../utils/ResponsiveText"
 import { useFormikContext } from 'formik';
 import { AddButton } from "../utils/ItemButtons"
 import { createNewAccessory, createNewAsset } from "./helpers"
@@ -11,6 +10,7 @@ import LoanAccessory from "./LoanAccessory"
 import { LoanAsset } from "./LoanAsset";
 import get from 'lodash/get';
 import { SuggestedAccessories } from "./SuggestedAccessories";
+import RemarksFormControl from "../utils/RemarksFormControl";
 
 export const LoanItems = function({ field, loan, children }) {
 	
@@ -54,7 +54,7 @@ export const LoanItems = function({ field, loan, children }) {
 					>
 						<Card size="sm" border={isInvalid ? '1px solid red' : undefined} borderRadius="md">
 							<CardHeader>
-								<ResponsiveText size='sm' fontWeight="bold">Asset</ResponsiveText>
+								<Text fontSize='sm' fontWeight="bold">Asset</Text>
 							</CardHeader>
 							<CardBody>
 								{loan.asset ? 
@@ -80,7 +80,7 @@ export const LoanItems = function({ field, loan, children }) {
 						</Card>
 						<Card size="sm" border={isInvalid ? '1px solid red' : undefined} borderRadius="md">
 							<CardHeader>
-								<ResponsiveText size='sm' fontWeight="bold">Accessories</ResponsiveText>
+								<Text fontSize='sm' fontWeight="bold">Accessories</Text>
 							</CardHeader>
 							<CardBody>
 								<FieldArray name={`${field}.accessories`}>
@@ -127,7 +127,7 @@ export const LoanItems = function({ field, loan, children }) {
 					</FormControl>
 				
 				<DateInputControl label="Expected Return Date" name={`${field}.expectedReturnDate`} />
-				<InputFormControl name={`${field}.remarks`} label={`Loan Remarks`}/>
+				<RemarksFormControl name={`${field}.remarks`} label={`Loan Remarks`}/>
 				{children}
 			</Flex>
 		</>

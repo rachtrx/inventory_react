@@ -1,13 +1,13 @@
 import { CheckIcon } from "@chakra-ui/icons"
 import { Box, Button, Flex, Input, Textarea } from "@chakra-ui/react"
-import { useResponsive } from "../../../../context/ResponsiveProvider";
+import { useThemeFontSize } from "../../../timeline/utils/useThemeFontSize"
 
-export const EditControl = ({ isRemarks, handleUpdate, newValue, value, isFloat, size="md", setNewValue }) => {
+export const EditControl = ({ isRemarks, handleUpdate, newValue, value, isFloat, size="md", setNewValue, ...rest }) => {
 
-    const responsiveSizes = useResponsive();
+    const fontSize = useThemeFontSize(size)
 
     return (
-        <Box position="relative">
+        <Box position="relative" {...rest}>
             {isRemarks ? (
                 <Textarea
                     value={newValue}
@@ -16,32 +16,32 @@ export const EditControl = ({ isRemarks, handleUpdate, newValue, value, isFloat,
                 />) : (
                 <Input
                     value={newValue}
-                    size={responsiveSizes[size]}
+                    fontSize={fontSize}
                     onChange={e => setNewValue(e.target.value)}
                     type={isFloat ? "number": undefined}
                     flex="1"
                     autoFocus
                 />
             )}
-        <Flex
-            position="absolute"
-            direction="column"
-            left="0"
-            right="0"
-            mt="2"
-            style={{ top: '100%' }}
-            gap={2}
-        >
-            <Button
-                leftIcon={<CheckIcon />} 
-                colorScheme="green" 
-                onClick={handleUpdate}
-                alignSelf="start"
-                disabled={newValue === value}
+            <Flex
+                position="absolute"
+                direction="column"
+                left="0"
+                right="0"
+                mt="2"
+                style={{ top: '100%' }}
+                gap={2}
             >
-                Save
-            </Button>
-        </Flex>
-    </Box>
+                <Button
+                    leftIcon={<CheckIcon />} 
+                    colorScheme="green" 
+                    onClick={handleUpdate}
+                    alignSelf="start"
+                    disabled={newValue === value}
+                >
+                    Save
+                </Button>
+            </Flex>
+        </Box>
     )
 }

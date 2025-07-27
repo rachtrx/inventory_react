@@ -252,7 +252,7 @@ class AssetController extends BaseController {
                         include: [
                             {
                                 model: Rmk,
-                                attributes: ['id', 'text'],
+                                attributes: ['id', 'text', 'remarkDate'],
                                 include: {
                                     model: Admin,
                                     attributes: ['id', 'adminName'],
@@ -274,7 +274,7 @@ class AssetController extends BaseController {
                         include: [
                             {
                                 model: Rmk,
-                                attributes: ['id', 'text'],
+                                attributes: ['id', 'text', 'remarkDate'],
                                 include: {
                                     model: Admin,
                                     attributes: ['id', 'adminName'],
@@ -335,7 +335,7 @@ class AssetController extends BaseController {
             include: [
                 {
                     model: Rmk,
-                    attributes: ['id', 'text'],
+                    attributes: ['id', 'text', 'remarkDate'],
                     include: {
                         model: Admin,
                         attributes: ['id', 'adminName'],

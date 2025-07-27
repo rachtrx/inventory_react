@@ -1,7 +1,6 @@
-import { Table, Thead, Tbody, Tr, Th, Td, Flex } from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Flex, Text } from '@chakra-ui/react';
 import { useReturn } from './ReturnProvider';
 import InputFormControl from '../utils/InputFormControl';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 
 export const ManageReturn = () => {
   const { ret, returnIndex, expectedReturnDate } = useReturn();
@@ -11,7 +10,7 @@ export const ManageReturn = () => {
 
   return (
     <Flex direction="column" gap={2} overflowX="auto">
-      {expectedReturnDate && <ResponsiveText>Expected Return: {expectedReturnDate}</ResponsiveText>}
+      {expectedReturnDate && <Text>Expected Return: {expectedReturnDate}</Text>}
 
       <Table variant="simple">
         {/* Conditional Headers for Asset and Accessories */}
@@ -68,7 +67,7 @@ export const ManageReturn = () => {
             ))}
         </Tbody>
       </Table>
-      <ResponsiveText>User: {ret.userName}</ResponsiveText>
+      <Text>User: {ret.userName}</Text>
     </Flex>
   );
 };

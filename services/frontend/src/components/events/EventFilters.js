@@ -23,6 +23,11 @@ const EventFilters = () => {
                 label="Bookmarked"
             />
 
+            <InputFormControl 
+                name="remarks"
+                placeholder="Search Remarks"
+            />
+
             <DateInputControl
                 placeholder="Start Date" 
                 name={`startDate`} 

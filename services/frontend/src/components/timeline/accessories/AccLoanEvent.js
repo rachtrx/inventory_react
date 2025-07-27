@@ -1,18 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     Box,
     Text,
     Flex,
     VStack,
     HStack,
-    Collapse,
     Button,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import DateText from "../utils/DateText";
-import { ResponsiveText } from "../../utils/ResponsiveText";
 import { AssetLink, UserLink } from "../../buttons/ItemLink";
-import { useDrawer } from "../../../context/DrawerProvider";
 import { AccStatus, AstStatus } from "../utils/AccStatus";
 import { withEventBox } from "../utils/withEventBox";
 import ReturnEventTable from "../utils/ReturnEvents";
@@ -34,17 +31,17 @@ const AccLoanEvent = ({ event }) => {
             {/* Left Panel: Accessory Details */}
             <VStack spacing={4} align="stretch">
                 <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
+                    <Text fontWeight="bold" fontSize="lg" color="blue.600">
                         Loaned
-                    </ResponsiveText>
+                    </Text>
                     <DateText colorScheme="blue" event={event}/>
                 </HStack>
 
                 {!isOpen && accReturnEvents?.length && (
                     <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                             Returned
-                        </ResponsiveText>
+                        </Text>
                         {
                             
                             accReturnEvents.map(event => (
@@ -85,9 +82,9 @@ const AccLoanEvent = ({ event }) => {
             {isOpen && returnEvents?.length && (
                 <Box>
                 <VStack spacing={4} align="stretch">
-                    <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                    <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                         Returned
-                    </ResponsiveText>
+                    </Text>
                     {accLoans && accLoans.length > 0 && (
                         <HStack>
                             {astLoan && <AstStatus astLoan={astLoan}/>}
@@ -104,7 +101,7 @@ const AccLoanEvent = ({ event }) => {
             )}
 
             {returnEvents?.length && <Button
-                size="sm"
+                fontSize="sm"
                 variant="link"
                 onClick={() => setIsOpen(!isOpen)} // Toggle collapse
             >

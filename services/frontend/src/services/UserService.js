@@ -32,7 +32,7 @@ class UserService {
         return await this.axios.get(`${this.URL}/filters/all`);
     }
 
-    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
         console.log(filters)
         return await this.axios.get(`${this.URL}`, {
             params: {
@@ -76,6 +76,14 @@ class UserService {
         return await this.axios.get(`${this.URL}/del/user`, {
             params: {
                 userNames
+            }
+        });
+    }
+
+    fetchUserDelById = async (userIds) => {
+        return await this.axios.get(`${this.URL}/del/user`, {
+            params: {
+                userIds
             }
         });
     }

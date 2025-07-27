@@ -1,5 +1,4 @@
-import { Flex, HStack, Stat, StatLabel, StatNumber, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
+import { Flex, HStack, Stat, StatNumber, Text, VStack } from "@chakra-ui/react";
 import { withEventBox } from "../utils/withEventBox";
 import DateText from "../utils/DateText";
 
@@ -15,9 +14,9 @@ export const AccUpdateEvent = ({ event }) => {
             {/* Timeline Point */}
             <Flex align="center" position="relative">
                 <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="green.600">
+                    <Text fontWeight="bold" fontSize="lg" color="green.600">
                         Updated
-                    </ResponsiveText>
+                    </Text>
                     
                     <DateText colorScheme={isAdd ? "green" : "red"} event={event}/>
                     <Stat>

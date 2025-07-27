@@ -9,7 +9,7 @@ const withAssetAction = (ButtonComponent) => ({
 
 	return (
 		<ButtonComponent
-			initialValues={{serialNumbers: assetArray.map(ast => ast.serialNumber), user}}
+			initialValues={{assetIds: assetArray.map(ast => ast.assetId), user}}
 			{...rest}
 		/>
 	)

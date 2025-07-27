@@ -1,12 +1,7 @@
-import { VStack, Tooltip, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody, Box, Collapse, Text } from "@chakra-ui/react";
-import { AssetLink } from "../../buttons/ItemLink";
-import { FormType } from "../../../context/ModalProvider";
-import { ResponsiveText } from "../ResponsiveText";
-import { CircleText, CircleTextTooltip, OverlappingCircles } from "../CircleText";
+import { VStack, Wrap, WrapItem, Flex, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverHeader, PopoverBody, Text } from "@chakra-ui/react";
+import { CircleText, OverlappingCircles } from "../CircleText";
 import { ItemsLine } from "./ItemsLine";
 import { ReturnButton } from "../../buttons/actions/ReturnButton";
-import { useEffect, useState } from "react";
-import accessoryService from "../../../services/AccessoryService";
 
 const generateDataFromLoan = (loan) => {
 	const data = []
@@ -41,7 +36,7 @@ export const ItemsList = ({ loans, children }) => {
 				<PopoverHeader>
 					{/* RETURN BUTTONS */}
 					<Flex justifyContent="space-between">
-						<ResponsiveText size="sm" fontWeight="bold">Loans</ResponsiveText>
+						<Text fontSize="sm" fontWeight="bold">Loans</Text>
 						{/* RETURN ALL LOANS BUTTON */}
 						<ReturnButton
 							loanId={loans.map(loan => loan.loanId)}

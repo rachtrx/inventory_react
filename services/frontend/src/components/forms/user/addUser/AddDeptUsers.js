@@ -1,6 +1,5 @@
-import { Box, Button, Divider, Flex } from "@chakra-ui/react"
+import { Box, Button, Divider, Flex, Text } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
 import { useEffect } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
@@ -9,6 +8,7 @@ import InputFormControl from "../../utils/InputFormControl"
 import DateInputControl from "../../utils/DateInputControl"
 import WarningCard from "../../utils/WarningCard"
 import { createNewUser } from "./helpers"
+import RemarksFormControl from "../../utils/RemarksFormControl"
 
 export const AddDeptUsers = ({dept, deptIndex, children}) => {
 
@@ -64,7 +64,7 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                                         placeholder="Enter email"
                                     />
                                     <DateInputControl label="Added Date" name={`depts.${deptIndex}.users.${userIndex}.addDate`} />
-                                    <InputFormControl label={`Remarks for user`} name={`depts.${deptIndex}.users.${userIndex}.remarks`}/>
+                                    <RemarksFormControl label={`Remarks for user`} name={`depts.${deptIndex}.users.${userIndex}.remarks`}/>
                                     {/* User Control */}
                                     <Flex mt={2} gap={4} justifyContent="space-between">
                                         {userArray.length > 1 && (
@@ -74,7 +74,7 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                                                 alignSelf="flex-start"
                                                 colorScheme="red"
                                             >
-                                            <ResponsiveText>Remove User</ResponsiveText>
+                                            <Text>Remove User</Text>
                                             </Button>
                                         )}
                                     </Flex>

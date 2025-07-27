@@ -6,18 +6,14 @@ import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
 import PaginationControls from './Pagination';
 import CapsuleToggleButton from './buttons/CapsuleToggleButton';
-import { useSearchParams } from 'react-router-dom';
-import { FaDownload, FaSearch, FaTimes, FaTools } from 'react-icons/fa';
+import { FaDownload, FaSlidersH, FaTimes, FaTools } from 'react-icons/fa';
 import { useResponsive } from '../context/ResponsiveProvider';
 
 import { useItems } from '../context/ItemsProvider';
-import { useUI } from '../context/UIProvider';
 import { useLoading } from '../context/LoadingProvider';
 import { Form, Formik } from 'formik';
 import FilterSidebar from './utils/FilterSidebar';
 import ActionSidebar from './utils/ActionSidebar';
-import FloatingButtons from './buttons/FloatingButtons';
-import { useFormModal } from '../context/ModalProvider';
 import SearchBar from './utils/SearchBar';
 import { MdRefresh } from 'react-icons/md';
 
@@ -26,7 +22,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
   const { headerSize, isIpad } = useResponsive()
   const { loading } = useLoading();
 
-  const { data, totalCount, page, maxPage, next, prev, defaultFilters, setSearchFilters, downloadExcel } = useItems();
+  const { data, totalCount, defaultFilters, setSearchFilters, downloadExcel } = useItems();
 
   const [isGridView, setIsGridView] = useState(false);
 
@@ -69,7 +65,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
               <IconButton
                 onClick={onFilterOpen}
                 colorScheme="blue"
-                icon={<FaSearch />}
+                icon={<FaSlidersH />}
                 aria-label="Filter"
                 isRound
                 size="md"
@@ -135,12 +131,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
           isGridView ? <Cards items={data} /> : 
           <Table items={data}/>}
         
-        <PaginationControls 
-          currentPage={page} 
-          maxPage={maxPage} 
-          next={next} 
-          prev={prev}
-        />
+        <PaginationControls/>
       </>
   );
 }

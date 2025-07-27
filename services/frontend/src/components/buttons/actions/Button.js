@@ -1,6 +1,5 @@
 import { FaTools } from 'react-icons/fa';
-import { ResponsiveText } from '../../utils/ResponsiveText';
-import { Box, IconButton } from '@chakra-ui/react';
+import { Box, IconButton, Text } from '@chakra-ui/react';
 
 export const DefaultButton = ({ onClick, bg, text, isMulti, textSize, ...rest }) => (
 	<Box
@@ -13,7 +12,7 @@ export const DefaultButton = ({ onClick, bg, text, isMulti, textSize, ...rest })
 		_active={{ bg: `${bg.split(".")[0]}.250` }}
 		{...rest}
 	>
-	  	<ResponsiveText size={textSize}>{text}{isMulti && " All"}</ResponsiveText>
+	  	<Text fontSize={textSize}>{text}{isMulti && " All"}</Text>
 	</Box>
 );
 

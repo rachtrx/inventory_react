@@ -18,7 +18,7 @@ class AccessoryService {
         });
     }
 
-    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
         console.log(filters)
         return await this.axios.get(`${this.URL}`, {
             params: {

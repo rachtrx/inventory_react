@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
@@ -6,7 +6,6 @@ import { useUI } from "../../../../context/UIProvider";
 import { useDelAssets } from "./DelAssetsProvider";
 import { validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { DelAsset } from "./DelAsset";
 import { delNewAsset } from "./helpers";
@@ -90,7 +89,7 @@ export const DelAssetStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${asset.serialNumber ? ` ${asset.serialNumber}` : ''}`}</ResponsiveText>
+                            <Text>{`Remove ${asset.serialNumber ? ` ${asset.serialNumber}` : ''}`}</Text>
                             </Button>
                           )}
                         </Flex>

@@ -1,7 +1,6 @@
 import { components } from 'react-select';
-import { Badge, Flex } from '@chakra-ui/react';
+import { Badge, Flex, Text } from '@chakra-ui/react';
 import { SearchSingleSelectFormControl } from '../utils/SelectFormControl';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 
 const CustomOption = (props) => {
   console.log(props.data);
@@ -16,7 +15,7 @@ const CustomOption = (props) => {
                 <>
                     <Badge colorScheme='red'>On Loan  - {loan.user.userName}</Badge>
                     {loan?.accLoans?.length > 0 && 
-                        <ResponsiveText>{loan.accLoans.map(accLoan => accLoan.accType.accessoryName).join(", ")}</ResponsiveText>}
+                        <Text>{loan.accLoans.map(accLoan => accLoan.accType.accessoryName).join(", ")}</Text>}
                 </>
             )
         }
@@ -25,12 +24,12 @@ const CustomOption = (props) => {
                 <>
                     <Badge colorScheme='orange'>Reserved - {reservation.user.userName}</Badge>
                     {reservation?.accLoans?.length > 0 && 
-                        <ResponsiveText>{reservation.accLoans.map(accLoan => accLoan.accType.accessoryName).join(", ")}</ResponsiveText>}
+                        <Text>{reservation.accLoans.map(accLoan => accLoan.accType.accessoryName).join(", ")}</Text>}
                 </>
             )
         }
         {delEventId && <Badge colorScheme='red'>Condemned</Badge>}
-        <ResponsiveText>{`${serialNumber}${alias ? ` (${alias})` : ''}`}</ResponsiveText>
+        <Text>{`${serialNumber}${alias ? ` (${alias})` : ''}`}</Text>
       </Flex>
   </components.Option>
 )};

@@ -19,14 +19,15 @@ class EventService {
         "userName": "",
         // "assetTag": [],
         // "userTag": [],
-        // "admin": []
+        // "admin": [],
+        "remarks": ""
     }
 
     async getAllFilters() {
         return await this.axios.get(`${API_URL}/events/filters/all`);
     }
 
-    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
         console.log(filters)
         return await this.axios.get(`${API_URL}/events`, {
             params: {

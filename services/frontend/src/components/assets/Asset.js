@@ -1,4 +1,4 @@
-import { Box, Heading, Flex, Grid, VStack } from '@chakra-ui/react';
+import { Box, Heading, Flex, Grid, VStack, Text } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
 import { FormType } from '../../context/ModalProvider';
 import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
@@ -15,7 +15,6 @@ import { useEffect, useState } from 'react';
 import { useUI } from '../../context/UIProvider';
 import { EditToggleButton } from '../buttons/EditToggleButton';
 import DateText from '../timeline/utils/DateText';
-import { ResponsiveText } from '../utils/ResponsiveText';
 
 const Asset = ({ asset }) => {
   const { updateItem } = useDrawer();
@@ -56,7 +55,7 @@ const Asset = ({ asset }) => {
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
-        <Flex gap={2} justifyContent="space-between">
+        <Flex gap={2} justifyContent="center">
           <Flex gap={1}>
             <StarButton
               id={asset.assetId}
@@ -128,13 +127,13 @@ const Asset = ({ asset }) => {
           />
           {asset.addEvent ? (
             <>
-              <ResponsiveText>Added Date:</ResponsiveText>
+              <Text fontSize="md">Added Date:</Text>
               <DateText colorScheme={"green"} event={asset.addEvent}/>
             </>
           ) : undefined}
           {asset.deleteEvent ? (
             <>
-              <ResponsiveText>Condemned Date:</ResponsiveText>
+              <Text fontSize="md">Condemned Date:</Text>
               <DateText colorScheme={"red"} event={asset.deleteEvent}/>
             </>
           ) : undefined}

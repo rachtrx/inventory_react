@@ -1,10 +1,8 @@
-import { CheckIcon } from "@chakra-ui/icons";
-import { Box, Button, Flex, Heading, Input, Textarea } from "@chakra-ui/react";
+import { Flex, Heading, Text } from "@chakra-ui/react";
 import { useDrawer } from "../../../../context/DrawerProvider";
 import { useEffect, useState } from "react";
 import EditCancelButton from "../../../forms/utils/EditCancelButton";
 import { useEditMode } from "../../../../context/EditModeProvider";
-import { ResponsiveText } from "../../ResponsiveText";
 import { EditControl } from "./EditControl";
 
 const withTextEditableField = (WrappedComponent) => (props) => {
@@ -40,7 +38,7 @@ const HeadingField = ({ value, newValue, setNewValue, handleUpdate, name, ...pro
 	const { editable } = useEditMode();
 
 	return (
-		<>
+		<Flex gap={1}>
 			{editKey === name && editable ? (
 				<EditControl 
 					isRemarks={false} 
@@ -49,13 +47,14 @@ const HeadingField = ({ value, newValue, setNewValue, handleUpdate, name, ...pro
 					newValue={newValue} 
 					setNewValue={setNewValue}
 					isFloat={props?.isFloat} 
-					size="lg"
+					size="2xl"
+					mb={4}
 				/>
 			) : 
-				<Heading as="h1" size="lg" mb={4} {...props}>{value}</Heading> 
-				}
+				<Heading as="h1" mb={4} {...props}>{value}</Heading> 
+			}
 			<EditCancelButton size="md" name={name}/>
-		</>
+		</Flex>
 	)
 }
 
@@ -67,7 +66,7 @@ const TextField = ({ value, newValue, setNewValue, handleUpdate, name, ...props 
 
 	return (
 		<>
-			{label && <ResponsiveText size="md">{label}:</ResponsiveText>}
+			{label && <Text fontSize="md">{label}:</Text>}
 
 			{editKey === name && editable ? (
 				<EditControl 
@@ -77,10 +76,9 @@ const TextField = ({ value, newValue, setNewValue, handleUpdate, name, ...props 
 					newValue={newValue} 
 					setNewValue={setNewValue}
 					isFloat={props?.isFloat} 
-					size="md"
 				/>
 			) : 
-				<ResponsiveText size="md" {...rest}>{value}</ResponsiveText> 
+				<Text fontSize="md" {...rest}>{value}</Text> 
 				}
 			<EditCancelButton size="sm" name={name}/>
 		</>

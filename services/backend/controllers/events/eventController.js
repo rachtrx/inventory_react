@@ -209,6 +209,10 @@ class EventController extends EventFilterController {
             { '$DeletedUsrTag->Usr.user_name$': { [Op.iLike]: `%${filters.userName}%` } },
         ] : [];
 
+        const rmConditions = filters?.remarks?.trim() ? [
+            { '$Rmks.text$': { [Op.iLike]: `%${filters.remarks}%` } },
+        ] : [];
+
         const adminConditions = filters?.admin ? [
             { '$Admin.id$': { [Op.in]: filters.admin } },
         ] : []
@@ -224,7 +228,8 @@ class EventController extends EventFilterController {
             ...(adminConditions.length > 0 ? [{ [Op.or]: adminConditions }] : []),
             ...(eventTypeConditions.length > 0 ? [{ [Op.or]: eventTypeConditions }] : []),
             ...(snConditions.length > 0 ? [{ [Op.or]: snConditions }] : []),
-            ...(unConditions.length > 0 ? [{ [Op.or]: unConditions }] : [])
+            ...(unConditions.length > 0 ? [{ [Op.or]: unConditions }] : []),
+            ...(rmConditions.length > 0 ? [{ [Op.or]: rmConditions }] : [])
         ];
 
         const dateFilter = (filters?.startDate || filters?.endDate) && {
@@ -251,6 +256,11 @@ class EventController extends EventFilterController {
             logger: console.log,
             where: whereClause,
             include: [
+                {
+                    model: Rmk,
+                    attributes: ['id', 'text'],
+                    required: false
+                },
                 {
                     model: Admin,
                     attributes: ['id', 'adminName'],

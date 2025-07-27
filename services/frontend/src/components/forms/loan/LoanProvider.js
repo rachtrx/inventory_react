@@ -1,10 +1,9 @@
 import React, { createContext, useCallback } from 'react';
 import { useContext } from 'react';
 import { useFormikContext } from 'formik';
-import { Button, Divider, Flex } from '@chakra-ui/react';
+import { Button, Divider, Flex, Text } from '@chakra-ui/react';
 import { LoanUser } from './LoanUser';
 import { createNewUser } from './helpers';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 import { AddButton } from '../utils/ItemButtons';
 import { useFormModal } from '../../../context/ModalProvider';
 
@@ -39,7 +38,7 @@ export const LoanProvider = ({user, userIndex, userHelpers, isLast}) => {
             alignSelf="flex-start"
             colorScheme="red"
           >
-          <ResponsiveText>{`Remove ${user?.userName ? `all for ${user.userName}` : 'User'}`}</ResponsiveText>
+          <Text>{`Remove ${user?.userName ? `all for ${user.userName}` : 'User'}`}</Text>
           </Button>
         )}
       </Flex>

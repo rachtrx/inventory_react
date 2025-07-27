@@ -1,8 +1,7 @@
 import { createContext, useState, useCallback } from 'react';
 import { useContext } from 'react';
 import { useFormikContext } from 'formik';
-import { Button, Divider, Flex } from '@chakra-ui/react';
-import { ResponsiveText } from '../../utils/ResponsiveText';
+import { Button, Divider, Flex, Text } from '@chakra-ui/react';
 import { AddButton } from '../utils/ItemButtons';
 import { ReturnSearch } from './ReturnSearch';
 import { ManageReturn } from './ManageReturn';
@@ -37,12 +36,12 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
       currentLoan,
       setCurrentLoan
     }}>
-      <ResponsiveText size="md" fontWeight="bold" align="center">
+      <Text fontSize="md" fontWeight="bold" align="center">
         {`Loan #${returnIndex + 1}`}
-      </ResponsiveText>
+      </Text>
 
       {!initialValues?.length && <ReturnSearch/>}
-      
+
       {ret.loanId && (
           ret.asset.unreturned !== 0 || 
           ret.accessoryTypes.some(accType => accType.unreturned > 0) 
@@ -56,7 +55,7 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
             alignSelf="flex-start"
             colorScheme="red"
           >
-          <ResponsiveText>Remove</ResponsiveText>
+          <Text>Remove</Text>
           </Button>
         )}
       </Flex>

@@ -151,18 +151,29 @@ class AccessoryController extends BaseController{
                     'accessoryName',
                     'stock',
                 ],
-                where: { id: accTypeId } //,
-                // include: [
-                //     {
-                //         model: AstSType,
-                //         attributes: ['subTypeName'],
-                //         
-                //     },
-                    // include: {
-                    //             model: AstType,
-                    //             attributes: ['typeName']
-                    //         }
-                // ],
+                where: { id: accTypeId },
+                include: {
+                    model: Event,
+                    as: "AddEvent",
+                    required: true,
+                    include: [
+                        {
+                            model: Rmk,
+                            attributes: ['id', 'text', 'remarkDate'],
+                            include: {
+                                model: Admin,
+                                attributes: ['id', 'adminName'],
+                                required: false
+                            },
+                            required: false
+                        },
+                        {
+                            model: Admin,
+                            attributes: ['id', 'adminName'],
+                            required: false
+                        }
+                    ],
+                },
             });
             
             if (!accTypeDetails) return res.status(404).send({ error: "Ast not found" });
@@ -237,7 +248,7 @@ class AccessoryController extends BaseController{
                 include: [
                     {
                         model: Rmk,
-                        attributes: ['id', 'text'],
+                        attributes: ['id', 'text', 'remarkDate'],
                         include: {
                             model: Admin,
                             attributes: ['id', 'adminName'],

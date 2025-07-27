@@ -5,16 +5,13 @@ import {
     Flex,
     VStack,
     HStack,
-    Badge,
     Divider,
-    Icon,
     Collapse,
     Button,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import DateText from "./DateText";
 import BadgeGroup from "./BadgeGroup";
-import { ResponsiveText } from "../utils/ResponsiveText";
 import { UserLink } from "../buttons/ItemLink";
 import CheckBadge from "../badges/CheckBadge";
 import WarningBadge from "../badges/WarningBadge";
@@ -31,16 +28,16 @@ const FullLoanEvent = ({ event }) => {
             {/* Left Panel: Accessory Details */}
             <VStack spacing={4} align="stretch">
                 <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
+                    <Text fontWeight="bold" fontSize="lg" color="blue.600">
                         Loaned
-                    </ResponsiveText>
+                    </Text>
                     <DateText colorScheme="blue" event={event}/>
                 </HStack>
                 {!isOpen && returnEvents && (
                     <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                             Returned
-                        </ResponsiveText>
+                        </Text>
                         {Object.values(returnEvents).map((event) => (
                             <DateText 
                                 colorScheme={event.asset ? "yellow" : "gray"}
@@ -51,9 +48,9 @@ const FullLoanEvent = ({ event }) => {
                     </HStack>
                 )}
                 <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="black">
+                    <Text fontWeight="bold" fontSize="lg" color="black">
                         User
-                    </ResponsiveText>
+                    </Text>
                     <UserLink key={user.userId} user={user}/>
                 </HStack>
 
@@ -84,9 +81,9 @@ const FullLoanEvent = ({ event }) => {
             {isOpen && returnEvents && Object.keys(returnEvents).length > 0 && (
                 <Box>
                     <VStack spacing={4} align="stretch">
-                        <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                             Returned
-                        </ResponsiveText>
+                        </Text>
                         {Object.entries(returnEvents).map(([eventId, event], index) => (
                             <Box
                                 key={index}

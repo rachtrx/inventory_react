@@ -1,9 +1,8 @@
-import { Badge, Text, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText"
+import { Badge, Box, Divider, Flex, Text, VStack } from "@chakra-ui/react";
 import RemarksPopover from "./RemarksPopover";
-import AddRemark from "../AddRemark";
+import { RemarkInput } from "../RemarkInput";
 
-const DateText = ({ colorScheme, event }) => {
+const DateText = ({ colorScheme, event, ...props }) => {
 
     // console.log(event);
 
@@ -15,31 +14,45 @@ const DateText = ({ colorScheme, event }) => {
             alignItems="center"
             gap={0.5}
             borderRadius="md"
+            alignSelf="start"
+            justifySelf="start"
+            w="fit-content"
+            {...props}
         >
             <Text as="span" fontSize="sm" fontWeight="bold">{eventDate}</Text>
             <RemarksPopover>
                 {/* Existing Remarks */}
-                <VStack align="stretch" spacing={3} mb={4}>
+                <VStack align="stretch" spacing={3} mb={4} overflowY="auto">
                     {remarks.length > 0 ? (
                         remarks.map((remark, idx) => (
-                            <ResponsiveText
-                                key={idx}
-                                fontSize="sm"
-                                color="gray.700"
-                                borderLeft="2px solid"
-                                borderColor="blue.400"
-                                pl={2}
-                            >
-                                {remark.text || "No remark"}
-                            </ResponsiveText>
+                            <Flex key={idx} alignItems="stretch">
+                                <Text fontSize="sm" whiteSpace="nowrap">
+                                    {remark.remarkDate}
+                                </Text>
+
+                                <Box
+                                    width="1px"
+                                    bg="blue.400"
+                                    mx={1}
+                                    alignSelf="stretch"
+                                />
+
+                                <Text
+                                    fontSize="sm"
+                                    color="gray.700"
+                                    whiteSpace="normal"
+                                >
+                                    {remark.text || "No remark"}
+                                </Text>
+                            </Flex>
                         ))
                     ) : (
-                        <ResponsiveText fontSize="sm" color="gray.500">
+                        <Text fontSize="sm" color="gray.500">
                             No remarks yet.
-                        </ResponsiveText>
+                        </Text>
                     )}
                 </VStack>
-                <AddRemark eventId={eventId}/>
+                <RemarkInput eventId={eventId}/>
             </RemarksPopover>
         </Badge>
     );

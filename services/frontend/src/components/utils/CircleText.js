@@ -1,5 +1,4 @@
-import { Box, Circle, Tooltip } from "@chakra-ui/react";
-import { ResponsiveText } from "./ResponsiveText";
+import { Box, Circle, Text, Tooltip } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -31,7 +30,7 @@ export const CircleText = React.forwardRef(
         ref={ref} // Ensure ref is properly passed down
         {...rest}
       >
-        <ResponsiveText size={textSize}>{isNumber(text) ? text : getInitials(text)}</ResponsiveText>
+        <Text fontSize={textSize}>{isNumber(text) ? text : getInitials(text)}</Text>
       </Circle>
     );
   }

@@ -6,12 +6,10 @@ import {
   ModalBody,
   ModalFooter,
   ModalCloseButton,
-  useDisclosure,
   Input,
   Button,
+  Text,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import { ResponsiveText } from '../ResponsiveText';
 import { CheckIcon } from '@chakra-ui/icons';
 
 export const Confirmation = ({ email, setFieldValue, handleSubmit, isOpen, onClose }) => {
@@ -23,7 +21,7 @@ export const Confirmation = ({ email, setFieldValue, handleSubmit, isOpen, onClo
             <ModalHeader>Confirm Update</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-            <ResponsiveText mb={2}>Enter your email to confirm this action:</ResponsiveText>
+            <Text mb={2}>Enter your email to confirm this action:</Text>
             <Input
                 value={email}
                 onChange={(e) => setFieldValue('email', e.target.value)}

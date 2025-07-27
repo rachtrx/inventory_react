@@ -27,24 +27,31 @@ export const DelUsersProvider = () => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (!initialValues?.userNames?.length) return;
+    if (!initialValues?.userIds?.length) return;
 
     const fetchUsrDeletes = async () => {
-      const userResponse = await userService.fetchUserDel(initialValues.serialNumbers);
-      setUserOptions(userResponse.data);
+      try {
 
-      const userObjs = initialValues.userNames.map(userName => {
-        const matchedUserOption = userResponse.data.find(assetOption => assetOption.userName === userName);
-        if (!matchedUserOption || matchedUserOption.isDisabled) return { userName }
-        else return matchedUserOption;
-      })
-      const assets = userObjs.map(user => {
-        return delNewUser(user);
-      })
-      reinitializeForm({assets});
+        const userResponse = await userService.fetchUserDelById(initialValues.userIds);
+        setUserOptions(userResponse.data);
+  
+        const userObjs = initialValues.userIds.map(userId => {
+          const matchedUserOption = userResponse.data.find(assetOption => assetOption.userId === userId);
+          console.log(matchedUserOption);
+          if (!matchedUserOption) throw new Error(`User not found`)
+          else if (matchedUserOption.isDisabled) throw new Error(`User cannot be removed`)
+          else return matchedUserOption;
+        })
+        const users = userObjs.map(user => {
+          return delNewUser(user);
+        })
+        reinitializeForm({users});
+      } catch (err) {
+        handleError(err);
+      }
     }
     fetchUsrDeletes()
-  }, [initialValues, reinitializeForm]);
+  }, [initialValues, reinitializeForm, handleError]);
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE

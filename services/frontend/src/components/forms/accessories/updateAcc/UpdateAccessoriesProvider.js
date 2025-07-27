@@ -1,8 +1,6 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
-import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import accessoryService from "../../../../services/AccessoryService";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLoading } from "../../../../context/LoadingProvider";

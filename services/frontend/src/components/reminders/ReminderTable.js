@@ -18,9 +18,9 @@ import {
   Tbody,
   Td,
   useColorModeValue,
-  VStack
+  VStack,
+  Text
 } from "@chakra-ui/react";
-import { ResponsiveText } from "../utils/ResponsiveText.js";
 import { FiMoreVertical } from "react-icons/fi";
 import { UpdateReturnDate } from "../stats/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
@@ -157,7 +157,7 @@ function ReminderTable ({ items }) {
 												.filter(acc => acc.unreturned > 0)
 												.map((acc, index) => (
 													<Box key={`unreturned-${loanId}-${index}`} mb={1}>
-														<ResponsiveText>❌ {acc.accType.accessoryName} x{acc.unreturned}</ResponsiveText>
+														<Text>❌ {acc.accType.accessoryName} x{acc.unreturned}</Text>
 													</Box>
 												))}
 
@@ -166,7 +166,7 @@ function ReminderTable ({ items }) {
 												.filter(acc => acc.returned > 0)
 												.map((acc, index) => (
 													<Box key={`returned-${loanId}-${index}`} mb={1}>
-														<ResponsiveText>✅ {acc.accType.accessoryName} x{acc.returned}</ResponsiveText>
+														<Text>✅ {acc.accType.accessoryName} x{acc.returned}</Text>
 													</Box>
 												))}
 										</Box>

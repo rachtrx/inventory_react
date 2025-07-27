@@ -10,7 +10,7 @@ const withUserAction = (ButtonComponent) => ({
 
     return (
         <ButtonComponent
-            initialValues={{userNames: userArray.map(usr => usr.userName), grouped}}
+            initialValues={{userIds: userArray.map(usr => usr.userId), grouped}}
             {...rest}
         />
     )

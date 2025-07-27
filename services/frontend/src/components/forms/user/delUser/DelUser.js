@@ -1,10 +1,10 @@
-import InputFormControl from "../../utils/InputFormControl"
 import { useFormikContext } from 'formik';
 import { SearchSingleSelectFormControl } from "../../utils/SelectFormControl";
 import { useDelUsers } from "./DelUsersProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
 import userService from "../../../../services/UserService";
+import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const DelUser = function({ field, user, children }) {
 
@@ -34,7 +34,7 @@ export const DelUser = function({ field, user, children }) {
 				initialOptions={userOptions}
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
-			<InputFormControl label={`Remarks for user`} name={`${field}.remarks`}/>
+			<RemarksFormControl label={`Remarks for user`} name={`${field}.remarks`}/>
 			{children}
 		</Flex>
 	)

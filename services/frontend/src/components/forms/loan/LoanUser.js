@@ -1,6 +1,5 @@
-import { Box, Button, Divider, Flex } from "@chakra-ui/react"
+import { Box, Button, Divider, Flex, Text } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../utils/ResponsiveText"
 import { AddButton } from "../utils/ItemButtons"
 import { useLoan } from "./LoanProvider"
 import { LoanItems } from "./LoanItems";
@@ -28,9 +27,9 @@ export const LoanUser = () => {
 		<Box position='relative'>
 			<Flex direction="column" key={user.key} gap={2}>
 				<Flex justifyContent="space-between" gap={2} alignItems="center">
-					<ResponsiveText size="md" fontWeight="bold" align="center" display="block">
+					<Text fontSize="md" fontWeight="bold" align="center" display="block">
 						{`User #${userIndex + 1}`}
-					</ResponsiveText>
+					</Text>
 					<SearchSingleSelectFormControl
 						name={`users.${userIndex}.userName`}
 						searchFn={loanService.fetchUserLoan}
@@ -58,7 +57,7 @@ export const LoanUser = () => {
 											alignSelf="flex-start"
 											colorScheme="red"
 										>
-										<ResponsiveText>{`Remove loan for ${user.userName ? user.userName : `User #${userIndex+1}`}`}</ResponsiveText>
+										<Text>{`Remove loan for ${user.userName ? user.userName : `User #${userIndex+1}`}`}</Text>
 										</Button>
 									)}
 								</Flex>

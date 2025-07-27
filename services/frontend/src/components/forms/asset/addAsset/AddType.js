@@ -1,6 +1,5 @@
-import { Box, Button, Divider, Flex } from "@chakra-ui/react"
+import { Box, Button, Divider, Flex, Text } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
 import { useEffect } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
@@ -90,7 +89,7 @@ export const AddType = ({type, typeIndex, children}) => {
                                                 alignSelf="flex-start"
                                                 colorScheme="red"
                                             >
-                                            <ResponsiveText>{`Remove ${subType.subTypeName ? ` ${subType.subTypeName}` : ''}`}</ResponsiveText>
+                                            <Text>{`Remove ${subType.subTypeName ? ` ${subType.subTypeName}` : ''}`}</Text>
                                             </Button>
                                         )}
                                     </Flex>

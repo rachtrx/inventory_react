@@ -1,4 +1,3 @@
-import InputFormControl from "../../../utils/InputFormControl"
 import { FieldArray, useFormikContext } from 'formik';
 import { SearchSingleSelectFormControl, SingleSelectFormControl } from "../../../utils/SelectFormControl";
 import { Box, Divider, Flex } from "@chakra-ui/react";
@@ -6,6 +5,7 @@ import { useUserTags } from "../UserTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
 import userService from "../../../../../services/UserService";
 import { createNewUser } from "../helpers";
+import RemarksFormControl from "../../../utils/RemarksFormControl";
 
 export const DelTag = function({ tag, tagIndex, children }) {
 
@@ -66,7 +66,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
                                             handleClick={() => userHelpers.remove(userIndex)}
                                         />
                                     </Flex>
-                                    <InputFormControl name={`tags.${tagIndex}.users.${userIndex}.remarks`} label={`Tag Remarks`}/>
+                                    <RemarksFormControl name={`tags.${tagIndex}.users.${userIndex}.remarks`} label={`Tag Remarks`}/>
                                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                                     {userIndex === userArray.length - 1 && (
                                         <AddButton

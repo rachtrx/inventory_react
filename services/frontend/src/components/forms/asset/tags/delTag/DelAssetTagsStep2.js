@@ -7,12 +7,12 @@ import {
   Table,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
-import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { useAssetTags } from "../AssetTagsProvider";
 
 export const DelAssetTagsStep2 = () => {
@@ -38,9 +38,9 @@ export const DelAssetTagsStep2 = () => {
               mb={4}
               boxShadow="sm"
             >
-              <ResponsiveText size="lg" fontWeight="bold">
+              <Text fontSize="lg" fontWeight="bold">
                 Tag: {tag.tagName}
-              </ResponsiveText>
+              </Text>
 
               {tag.assets.length > 0 && (
                 <Box overflowX="auto" w="100%" mt={2}>

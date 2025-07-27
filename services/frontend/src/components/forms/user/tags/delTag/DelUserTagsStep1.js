@@ -1,11 +1,10 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
 import { validateUniqueValues } from "../../../utils/validation";
 import { setFieldError } from "../../../utils/validation";
-import { ResponsiveText } from "../../../../utils/ResponsiveText";
 import { AddButton } from "../../../utils/ItemButtons";
 import { DelTag } from "./DelTag";
 import { useUserTags } from "../UserTagsProvider";
@@ -101,7 +100,7 @@ export const DelUserTagsStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${tag.tagName ? ` ${tag.tagName}` : ''}`}</ResponsiveText>
+                            <Text>{`Remove ${tag.tagName ? ` ${tag.tagName}` : ''}`}</Text>
                             </Button>
                           )}
                         </Flex>

@@ -1,7 +1,5 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, UnorderedList, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../../utils/ResponsiveText";
-import { FormikSignatureField } from "../../../utils/SignatureField";
-import { FieldArray, Form, Formik } from "formik";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
+import { Form, Formik } from "formik";
 import { useUserTags } from "../UserTagsProvider";
 
 export const DelUserTagsStep2 = () => {
@@ -29,9 +27,9 @@ export const DelUserTagsStep2 = () => {
 						mb={4}
 						boxShadow="sm"
 						>
-						<ResponsiveText size="lg" fontWeight="bold">
+						<Text fontSize="lg" fontWeight="bold">
 							Tag: {tag.tagName}
-						</ResponsiveText>
+						</Text>
 
 						{tag.users.length > 0 && (
 							<Box overflowX="auto" w="100%" mt={2}>

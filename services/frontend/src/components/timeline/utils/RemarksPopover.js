@@ -11,11 +11,9 @@ import {
     PopoverCloseButton,
     PopoverHeader,
     PopoverBody,
-    Button,
-    Textarea,
-    useToast,
+
 } from "@chakra-ui/react";
-import { ChatIcon, AddIcon } from "@chakra-ui/icons";
+import { ChatIcon } from "@chakra-ui/icons";
 
 const RemarksPopover = ({ children }) => {
 

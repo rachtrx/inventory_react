@@ -3,6 +3,7 @@ import { useFormikContext } from 'formik';
 import { useLoans } from "./LoansProvider"
 import { AvailAstSelectFormControl } from "../options/AvailAssetOptions"
 import loanService from "../../../services/LoanService"
+import { Flex } from "@chakra-ui/react";
 
 export const LoanAsset = function({ field, asset }) {
     
@@ -17,7 +18,7 @@ export const LoanAsset = function({ field, asset }) {
     }
 
     return (
-        <>
+        <Flex direction="column" gap={1}>
             <AvailAstSelectFormControl
                 name={`${field}.serialNumber`}
                 searchFn={value => loanService.fetchAstLoan(value)}
@@ -32,6 +33,6 @@ export const LoanAsset = function({ field, asset }) {
                 placeholder="Select Location"
                 initialOptions={locationOptions}
             /> 
-        </>
+        </Flex>
     )
 }

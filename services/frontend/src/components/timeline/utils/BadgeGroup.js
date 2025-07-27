@@ -1,4 +1,5 @@
 import { Badge, HStack } from "@chakra-ui/react"
+import { useThemeFontSize } from "./useThemeFontSize";
 
 const BadgeGroup = ({ asset, accessories }) => {
 
@@ -14,13 +15,15 @@ const BadgeGroup = ({ asset, accessories }) => {
 
 const AccessoryBadge = ({ accessory }) => {
 
+    const fontSize = useThemeFontSize("sm");
+
     return (
         <Badge
             colorScheme={accessory.isMatching ? "purple" : "pink"}
             borderRadius="md"
             px={2}
             py={1}
-            fontSize="0.8em"
+            fontSize={fontSize}
         >
             {`${accessory.accessoryName}, X${accessory.count}`}
         </Badge>
@@ -29,13 +32,15 @@ const AccessoryBadge = ({ accessory }) => {
 
 const AssetBadge = ({ asset }) => {
 
+    const fontSize = useThemeFontSize("sm");
+
     return (
         <Badge
             colorScheme={"pink"}
             borderRadius="md"
             px={2}
             py={1}
-            fontSize="0.8em"
+            fontSize={fontSize}
         >
             {asset.serialNumber}
         </Badge>

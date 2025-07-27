@@ -13,7 +13,6 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { useDelAssets } from "./DelAssetsProvider";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 
 export const DelAssetStep2 = () => {
   const { formData, handleSubmit, prevStep } = useDelAssets();

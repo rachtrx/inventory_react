@@ -1,5 +1,4 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../../utils/ResponsiveText";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useAssetTags } from "../AssetTagsProvider";
 
@@ -28,9 +27,9 @@ export const AddAssetTagsStep2 = () => {
 				mb={4}
 				boxShadow="sm"
 				>
-				<ResponsiveText size="lg" fontWeight="bold">
+				<Text fontSize="lg" fontWeight="bold">
 					Tag: {tag.tagName}
-				</ResponsiveText>
+				</Text>
 
 				{tag.assets.length > 0 && (
 					<Box overflowX="auto" w="100%" mt={2}>

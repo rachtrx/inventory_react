@@ -1,7 +1,6 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import InputFormControl from '../../utils/InputFormControl';
 import { useFormikContext } from "formik";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { RemoveButton } from "../../utils/ItemButtons";
 import WarningCard from "../../utils/WarningCard";
 import { useEffect } from "react";
@@ -9,6 +8,7 @@ import loanService from "../../../../services/LoanService";
 import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
 import { AvailAccSelectFormControl } from "../../options/AvailAccessoryOptions";
 import { useFormModal } from "../../../../context/ModalProvider";
+import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const UpdateAccessory = ({
     accessory,
@@ -35,7 +35,7 @@ export const UpdateAccessory = ({
 
     return (
         <Box key={accessory.key}>
-            <ResponsiveText size="lg">{`Accessory #${index+1}`}</ResponsiveText>
+            <Text fontSize="lg">{`Accessory #${index+1}`}</Text>
             <Flex direction="column" gap={1}>
                 <Flex gap={4} alignItems="flex-start">
                     <AvailAccSelectFormControl
@@ -66,7 +66,7 @@ export const UpdateAccessory = ({
                         onCreate={async() => await addNewAccessory(accessory.accessoryName)}
                     />
                 }
-                <InputFormControl name={`accessories.${index}.remarks`} label={`Update Remarks`}/>
+                <RemarksFormControl name={`accessories.${index}.remarks`} label={`Update Remarks`}/>
             </Flex>
             {children}
         </Box>

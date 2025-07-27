@@ -55,24 +55,24 @@ export const LoansProvider = () => {
   useEffect(() => {
     console.log(initialValues);
     if (
-      !initialValues?.serialNumbers?.length && 
-      !initialValues?.userNames?.length &&
+      !initialValues?.assetIds?.length && 
+      !initialValues?.userIds?.length &&
       !initialValues?.accTypeIds?.length
     ) return;
 
     const fetchAstLoans = async () => {
-      const assetResponse = await loanService.fetchAstLoan(initialValues.serialNumbers);
+      const assetResponse = await loanService.fetchAstLoanById(initialValues.assetIds);
       console.log(assetResponse.data);
       setAssetOptions(assetResponse.data);
 
-      const assetObjs = initialValues.serialNumbers.map(serialNumber => {
-        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.serialNumber === serialNumber);
-        if (!matchedAssetOption) return { serialNumber }
+      const assetObjs = initialValues.assetIds.map(assetId => {
+        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.assetId === assetId);
+        if (!matchedAssetOption) throw new Error(`Asset with ID ${assetId} not found`)
         else return matchedAssetOption;
       })
       
       if (initialValues.user) {
-        const userResponse = await loanService.fetchUserLoan(initialValues.user.userName);
+        const userResponse = await loanService.fetchUserLoanById(initialValues.user.userId);
         setUserOptions(userResponse.data);
         const loans = assetObjs.map(asset => ({ asset }))
         reinitializeForm({
@@ -85,12 +85,12 @@ export const LoansProvider = () => {
     }
 
     const fetchUserLoans = async () => {
-      const userResponse = await loanService.fetchUserLoan(initialValues.userNames);
+      const userResponse = await loanService.fetchUserLoanById(initialValues.userIds);
       setUserOptions(userResponse.data);
       
-      const userObjs = initialValues.userNames.map(userName => {
-        const matchedUserOption = userResponse.data.find(userOption => userOption.userName === userName);
-        if (!matchedUserOption) return { userName }
+      const userObjs = initialValues.userIds.map(userId => {
+        const matchedUserOption = userResponse.data.find(userOption => userOption.userId === userId);
+        if (!matchedUserOption) throw new Error(`User with ID ${userId} not found`)
         else return matchedUserOption;
       })
       const users = userObjs.map(user => createNewUser(user));
@@ -112,9 +112,9 @@ export const LoansProvider = () => {
     }
 
     try {
-      if (initialValues.serialNumbers) {
+      if (initialValues.assetIds) {
         fetchAstLoans();
-      } else if (initialValues.userNames) {
+      } else if (initialValues.userIds) {
         fetchUserLoans();
       } else if (initialValues.accTypeIds) {
         fetchAccLoans();

@@ -1,8 +1,6 @@
 const logger = require('@/utils/logging.js');
 const { AccReturnSearch } = require('@services/search/accessory/accReturn.js');
 const { AccLoanSearch } = require('@services/search/accessory/accLoan.js');
-const { AccLoanByNameSearch } = require('@services/search/accessory/accLoanByName.js');
-const { AccLoanByIdSearch } = require('@services/search/accessory/accLoanById.js');
 
 class AccLoanController {
 
@@ -28,15 +26,8 @@ class AccLoanController {
 
     async loadAccLoan (req, res) {
         try {
-            let AccSearchClass;
-            if( ("accessoryNames" in req.query) && ("accTypeIds" in req.query))
-                throw new Error("Accessory Loan cannot search both IDs and names")
-            
-            if ("accessoryNames" in req.query) AccSearchClass = AccLoanByNameSearch;
-            else if ("accTypeIds" in req.query) AccSearchClass = AccLoanByIdSearch;
-            else AccSearchClass = AccLoanSearch;
 
-            const search = new AccSearchClass(req.query)
+            const search = new AccLoanSearch(req.query)
             const query = await search.run()
 
             const accessories = query.map(

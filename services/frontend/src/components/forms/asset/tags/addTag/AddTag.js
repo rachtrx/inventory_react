@@ -6,9 +6,9 @@ import { CreatableSingleSelectFormControl } from "../../../utils/SelectFormContr
 import { useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
 import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions"
-import InputFormControl from "../../../utils/InputFormControl"
 import WarningCard from "../../../utils/WarningCard"
 import { createNewAsset } from "../helpers"
+import RemarksFormControl from "../../../utils/RemarksFormControl"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 
@@ -85,7 +85,7 @@ export const AddTag = ({tag, tagIndex, children}) => {
                                             handleClick={() => assetHelpers.remove(assetIndex)}
                                         />
                                     </Flex>
-                                    <InputFormControl name={`tags.${tagIndex}.assets.${assetIndex}.remarks`} label={`Tag Remarks`}/>
+                                    <RemarksFormControl name={`tags.${tagIndex}.assets.${assetIndex}.remarks`} label={`Tag Remarks`}/>
                                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                                     {assetIndex === assetArray.length - 1 && (
                                         <AddButton

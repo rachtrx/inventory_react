@@ -1,7 +1,7 @@
 const AccLoanDTO = require('@/dtos/accLoan.dto');
 const { Loan, AstLoan, AccLoan, Event, AccType, Ast, Sequelize } = require('@/models');
 const logger = require('@/utils/logging.js');
-const { AssetLoan } = require('@services/search/asset/assetLoan.js');
+const { AssetLoan } = require('@/services/search/asset/assetLoan.js');
 const { AssetReturn } = require('@services/search/asset/assetReturn.js');
 
 class AstLoanController {

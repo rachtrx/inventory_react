@@ -1,11 +1,10 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useField } from 'formik';
 import Select from 'react-select';
-import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel } from '@chakra-ui/react';
+import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Text } from '@chakra-ui/react';
 import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 import { useThemeFontSize } from '../../timeline/utils/useThemeFontSize';
 
 const withSelect = (Component, isCreatable) => ({
@@ -20,9 +19,9 @@ const withSelect = (Component, isCreatable) => ({
   components = undefined,
   styles = undefined,
   errorAbove = false,
+  size="sm",
   ...props
 }) => {
-  const { size, ...rest } = props;
   console.log(size);
   const [{ value }, meta, { setValue, setTouched }] = useField(name);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -30,7 +29,7 @@ const withSelect = (Component, isCreatable) => ({
 
   let newStyles = undefined;
 
-  if (!styles && size) {
+  if (!styles) {
     const fontSize = useThemeFontSize(size); // fallback if not defined
     newStyles = {
       input: (provided) => ({ ...provided, fontSize }),
@@ -39,6 +38,7 @@ const withSelect = (Component, isCreatable) => ({
       placeholder: (provided) => ({ ...provided, fontSize }),
       control: (provided) => ({ ...provided, fontSize }),
       valueContainer: (provided) => ({ ...provided, fontSize }),
+      option: (provided) => ({ ...provided, fontSize })
     };
   }
 
@@ -110,7 +110,7 @@ const withSelect = (Component, isCreatable) => ({
   return (
     <FormControl id={name} isInvalid={meta.touched && !!meta.error}>
       {label && <FormLabel htmlFor={name}>
-        <ResponsiveText>{label}</ResponsiveText>
+        <Text fontSize={size}>{label}</Text>
       </FormLabel>}
       {errorAbove === true && <FormErrorMessage mt={0} mb={1}>{meta.error}</FormErrorMessage>}
       <Flex alignItems="center">
@@ -133,7 +133,7 @@ const withSelect = (Component, isCreatable) => ({
               width: '100%',
             }),
           }}
-          {...rest}
+          {...props}
         />
         {children}
       </Flex>

@@ -1,7 +1,6 @@
 import { components } from 'react-select';
-import { Box, HStack, Icon, VStack } from '@chakra-ui/react';
+import { Box, HStack, Icon, Text, VStack } from '@chakra-ui/react';
 import { SearchSingleSelectFormControl } from '../utils/SelectFormControl';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 import { FaUser } from 'react-icons/fa';
 import { MdDevices, MdCable } from 'react-icons/md';
 
@@ -9,7 +8,7 @@ import { MdDevices, MdCable } from 'react-icons/md';
 const InfoRow = ({ icon, children }) => (
   <HStack align="start" spacing={2}>
     <Box pt={1}><Icon as={icon} boxSize={4} /></Box>
-    <ResponsiveText size="sm">{children}</ResponsiveText>
+    <Text fontSize="sm">{children}</Text>
   </HStack>
 );
 

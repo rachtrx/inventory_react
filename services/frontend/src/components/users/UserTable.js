@@ -1,14 +1,8 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import { CircleUserActionButton, UserActionButton } from '../buttons/actions/UserActionButton';
-import { useDrawer } from '../../context/DrawerProvider';
-import { FormType, useFormModal } from '../../context/ModalProvider';
-import { ItemsList, UserItemsList } from "../utils/popovers/ItemsList";
-import { useResponsive } from '../../context/ResponsiveProvider';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import { useState } from 'react';
+import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Text } from '@chakra-ui/react';
+import { CircleUserActionButton } from '../buttons/actions/UserActionButton';
+import { FormType } from '../../context/ModalProvider';
+import { UserItemsList } from "../utils/popovers/ItemsList";
 import { ItemStarButton } from '../buttons/StarButton';
-import { useUI } from '../../context/UIProvider';
 import { useItems } from '../../context/ItemsProvider';
 import { UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
@@ -42,7 +36,7 @@ const UserTable = ({ items }) => {
           >
             <Td><ItemStarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><UserLink user={user} size={'lg'} fontWeight="bold"/></Td>
-            <Td><ResponsiveText>{user.deptName}</ResponsiveText></Td>
+            <Td><Text>{user.deptName}</Text></Td>
             
             <Td>
               {user.loans?.length > 0 && <UserItemsList loans={user.loans}/>}

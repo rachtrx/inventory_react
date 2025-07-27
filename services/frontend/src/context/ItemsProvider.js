@@ -20,7 +20,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = parseInt(searchParams.get('page'), 10) || 1;
-  const itemsPerPage = 30;
+  const [itemsPerPage, setItemsPerPage] = useState(100);
 
   const [filters, setFilters] = useState(service.defaultFilters);
   const [searchFilters, setSearchFilters] = useState(service.defaultFilters);
@@ -124,6 +124,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
     const reload = async () => {
       try {
         setLoading(true);
+        console.log(searchFilters);
         const response = await service.loadItems({
           filters: searchFilters,
           sort: sortField ? [sortField, sortOrder] : undefined,
@@ -143,7 +144,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
       }
     }
     reload();;
-  }, [searchFilters, page, service, sortOrder, sortField, handleError, setLoading, refreshKey]);
+  }, [searchFilters, page, itemsPerPage, service, sortOrder, sortField, handleError, setLoading, refreshKey]);
 
   const handleSort = (key) => {
     const isSameKey = key === sortField;
@@ -173,7 +174,9 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
       setPage,
       next,
       prev,
-      jump
+      jump,
+      itemsPerPage,
+      setItemsPerPage
     }}>
       {children}
     </ItemsContext.Provider>

@@ -2,7 +2,7 @@ const { Ast, AstType, AstSType, Vendor, Event, Rmk, AstLoan, sequelize } = requi
 const { Op } = require('sequelize');
 const { generateSecureID } = require('@utils/validation.js');
 const logger = require('@/utils/logging.js');
-const { AssetDelete } = require('@services/search/asset/assetDelete.js');
+const { AssetDelete } = require('@/services/search/asset/assetDelete.js');
 const { cleanString, cleanCost, cleanField } = require('@utils/common.js');
 // const { DateTime } = require("luxon");
 

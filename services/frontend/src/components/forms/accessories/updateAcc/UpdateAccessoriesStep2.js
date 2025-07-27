@@ -1,6 +1,5 @@
 
-import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
 
@@ -46,7 +45,7 @@ export const UpdateAccessoriesStep2 = () => {
 							</Table>
 						</Box>
 					) : (
-						<ResponsiveText>No accessories selected.</ResponsiveText>
+						<Text>No accessories selected.</Text>
 					)}
 				</ModalBody>
 

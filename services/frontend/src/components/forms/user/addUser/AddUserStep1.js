@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
@@ -7,7 +7,6 @@ import { useAddUsers } from "./AddUsersProvider";
 import { compareDates, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddDeptUsers } from "./AddDeptUsers";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { createNewDept } from "./helpers";
 
@@ -100,7 +99,7 @@ export const AddUserStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${dept.deptName ? ` ${dept.deptName}` : ''}`}</ResponsiveText>
+                            <Text>{`Remove ${dept.deptName ? ` ${dept.deptName}` : ''}`}</Text>
                             </Button>
                           )}
                         </Flex>

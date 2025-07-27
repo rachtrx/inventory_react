@@ -1,6 +1,5 @@
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
-import { Button, IconButton } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
+import { Button, IconButton, Text } from "@chakra-ui/react";
 import { FaEdit } from "react-icons/fa";
 
 export const withItemButton = (IconComponent, colorScheme) => ({ 
@@ -24,7 +23,7 @@ export const withItemButton = (IconComponent, colorScheme) => ({
             textAlign="left"
             {...props}
         >
-            <ResponsiveText>{label}</ResponsiveText>
+            <Text>{label}</Text>
         </Button>
     ) : (
         <IconButton

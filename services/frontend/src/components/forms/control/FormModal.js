@@ -4,12 +4,10 @@ import {
     ModalContent,
     ModalHeader,
     ModalCloseButton,
-    Divider
+    Divider,
+    Text
 } from '@chakra-ui/react';
-import { useCallback, useEffect } from 'react';
-import { Form, Formik } from 'formik';
 import { useFormModal, FormType } from '../../../context/ModalProvider';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 import { LoansProvider } from '../loan/LoansProvider';
 import { ReturnsProvider } from '../return/ReturnsProvider';
 import { AddAssetsProvider } from '../asset/addAsset/AddAssetsProvider';
@@ -19,6 +17,7 @@ import { DelUsersProvider } from '../user/delUser/DelUsersProvider';
 import { UpdateAccessoriesProvider } from '../accessories/updateAcc/UpdateAccessoriesProvider';
 import { AddAssetTagsProvider, DelAssetTagsProvider } from '../asset/tags/AssetTagsProvider';
 import { AddUserTagsProvider, DelUserTagsProvider } from '../user/tags/UserTagsProvider';
+import { useEffect } from 'react';
 
 const formMap = {
     [FormType.ADD_ASSET]: <AddAssetsProvider/>,
@@ -86,7 +85,7 @@ export default function FormModal() {
             >
                 <ModalCloseButton/>
                 <ModalHeader display="flex" alignItems="center" gap={1}>
-                    <ResponsiveText size='lg'>{headerMap[formType]}</ResponsiveText>
+                    <Text fontSize='lg'>{headerMap[formType]}</Text>
                     <Divider orientation="vertical" height='20px'/>
                 </ModalHeader>
                 {formMap[formType]}

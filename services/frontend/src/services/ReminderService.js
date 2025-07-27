@@ -34,7 +34,7 @@ class ReminderService {
         return await this.axios.get(`${this.URL}/filters/all`);
     }
 
-    async loadItems({ filters = this.defaultFilters, sort, page=1, pageSize=30 }) {
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
         console.log(filters)
         return await this.axios.get(`${this.URL}`, {
             params: {
@@ -45,13 +45,6 @@ class ReminderService {
             }
         });
     }
-
-    // async downloadExcel({ filters = this.defaultFilters, sort }) {
-    //     return await this.axios.get(`${this.URL}/excel`, {
-    //       params: { filters, sort },
-    //       responseType: 'blob',
-    //     });
-    // }
 
     async extendReturnDate(formData) {
         console.log(formData);

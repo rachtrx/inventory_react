@@ -2,11 +2,12 @@ const { Op } = require("sequelize");
 const { AccType, Sequelize, } = require("@models");
 const logger = require("@/utils/logging");
 const AccTypeDTO = require("@dtos/accType.dto");
+const { AccLoanCondition } = require("./accLoanCondition");
 
 class AccLoanSearch {
 
-    constructor() {
-        this.accessoryCondition = {}
+    constructor(condition) {
+        this.condition = new AccLoanCondition(condition)
     }
 
     async run() {
@@ -14,7 +15,7 @@ class AccLoanSearch {
             const query = await AccType.findAll({
                 attributes: ['id', 'accessoryName', 'stock'],
                 where: { [Op.and] : [
-                    this.accessoryCondition
+                    this.condition.query
                 ]},
                 order: Sequelize.literal(`"AccType"."stock" DESC`)
             })

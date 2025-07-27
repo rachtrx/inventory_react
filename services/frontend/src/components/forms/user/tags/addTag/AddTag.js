@@ -4,10 +4,10 @@ import { useEffect } from "react"
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl, SearchSingleSelectFormControl } from "../../../utils/SelectFormControl"
 import { useUserTags } from "../UserTagsProvider"
-import InputFormControl from "../../../utils/InputFormControl"
 import userService from "../../../../../services/UserService"
 import WarningCard from "../../../utils/WarningCard"
 import { createNewUser } from "../helpers"
+import RemarksFormControl from "../../../utils/RemarksFormControl"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 
@@ -84,7 +84,7 @@ export const AddTag = ({tag, tagIndex, children}) => {
                                             handleClick={() => userHelpers.remove(userIndex)}
                                         />
                                     </Flex>
-                                    <InputFormControl name={`tags.${tagIndex}.users.${userIndex}.remarks`} label={`Tag Remarks`}/>
+                                    <RemarksFormControl name={`tags.${tagIndex}.users.${userIndex}.remarks`} label={`Tag Remarks`}/>
                                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                                     {userIndex === userArray.length - 1 && (
                                         <AddButton

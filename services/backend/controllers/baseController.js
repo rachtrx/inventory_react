@@ -1,4 +1,5 @@
 const { generateExcel } = require("@/controllers/utils.js");
+const logger = require("@/utils/logging");
 
 class BaseController {
 
@@ -10,7 +11,8 @@ class BaseController {
 
     getAllItemsEndpoint = async (req, res, next) => {
         try {
-            const { filters, page = 1, limit = 30, sort } = req.query;
+            const { filters, page, limit, sort } = req.query;
+            console.log(req.query);
             const query = await this.getAllItems(filters, sort);
 
             const count = query.length;

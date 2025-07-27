@@ -4,11 +4,11 @@ import {
     Box,
     Flex,
     VStack,
+    Text,
 } from "@chakra-ui/react";
 import Cards from '../utils/Cards';
 import { ItemStarButton } from '../buttons/StarButton';
 import { AssetLink, UserLink } from '../buttons/ItemLink';
-import { ResponsiveText } from '../utils/ResponsiveText';
 import { CardActions } from './CardActions';
 import { Tags } from '../tags/Tags';
 
@@ -32,8 +32,8 @@ function AssetCards({items}) {
                             <VStack align="start" flex='1'>
                                 <AssetLink asset={asset} size={'lg'} fontWeight="bold"/>
                                 <Box>
-                                    <ResponsiveText fontWeight="semibold" size={'sm'}>{asset.typeName}</ResponsiveText>
-                                    <ResponsiveText size={'sm'}>{asset.subTypeName}</ResponsiveText>
+                                    <Text fontWeight="semibold" fontSize={'sm'}>{asset.typeName}</Text>
+                                    <Text fontSize={'sm'}>{asset.subTypeName}</Text>
                                 </Box>
                                 {asset.loan && <UserLink 
                                     user={asset.loan.user} 

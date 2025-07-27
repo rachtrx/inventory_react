@@ -3,21 +3,18 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardFooter,
-  Checkbox,
   Flex,
   IconButton,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  useColorModeValue,
-  VStack,
   Text,
   Tooltip,
   Heading,
-  HStack,
-	Box
+  Box,
+  Checkbox,
+  VStack,
 } from "@chakra-ui/react";
 import { FiMoreVertical } from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
@@ -25,7 +22,6 @@ import { useUI } from "../../context/UIProvider.js";
 import reminderService from "../../services/ReminderService.js";
 import { UpdateReturnDate } from "../stats/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
-import { ResponsiveText } from "../utils/ResponsiveText.js";
 import Cards from "../utils/Cards.js";
 
 function ReminderCards({ items }) {
@@ -145,7 +141,7 @@ function ReminderCards({ items }) {
 												.filter(acc => acc.unreturned > 0)
 												.map((acc, index) => (
 													<Box key={`unreturned-${loanId}-${index}`} mb={1}>
-														<ResponsiveText>❌ {acc.accType.accessoryName} x{acc.unreturned}</ResponsiveText>
+														<Text>❌ {acc.accType.accessoryName} x{acc.unreturned}</Text>
 													</Box>
 												))}
 
@@ -154,7 +150,7 @@ function ReminderCards({ items }) {
 												.filter(acc => acc.returned > 0)
 												.map((acc, index) => (
 													<Box key={`returned-${loanId}-${index}`} mb={1}>
-														<ResponsiveText>✅ {acc.accType.accessoryName} x{acc.returned}</ResponsiveText>
+														<Text>✅ {acc.accType.accessoryName} x{acc.returned}</Text>
 													</Box>
 												))}
 										</Box>

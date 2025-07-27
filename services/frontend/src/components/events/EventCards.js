@@ -1,10 +1,7 @@
-import { API_URL } from '../../config';
-
 import { 
     Card,
     CardBody,
     Text,
-    Button,
     Box,
     Flex,
     VStack,
@@ -12,7 +9,6 @@ import {
 import Cards from '../utils/Cards';
 import { ItemStarButton } from '../buttons/StarButton';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
-import { ResponsiveText } from '../utils/ResponsiveText';
 // import { CardActions } from './CardActions';
 import { Tags } from '../tags/Tags';
 import { ACTION_COLORS } from '../buttons/constants';
@@ -33,8 +29,8 @@ function EventCards({items}) {
                     <CardBody>
                         <Flex>
                             <VStack align="start" flex='1'>
-                                <ResponsiveText>{event.eventDate}</ResponsiveText>
-                                <ResponsiveText>{event.adminName}</ResponsiveText>
+                                <Text>{event.eventDate}</Text>
+                                <Text>{event.adminName}</Text>
                                 {event.asset && <AssetLink asset={event.asset} size='sm'/>}
                                 {event.user && <UserLink 
                                     user={event.user} 

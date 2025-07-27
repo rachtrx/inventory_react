@@ -3,9 +3,9 @@ import {
   Button,
   Icon,
   Grid,
+  Text,
 } from '@chakra-ui/react';
 import { FaDownload } from 'react-icons/fa';
-import { ResponsiveText } from '../../utils/ResponsiveText';
 import { useFormModal } from '../../../context/ModalProvider';
 import { useUI } from '../../../context/UIProvider';
 import { FaUpload } from "react-icons/fa";
@@ -71,11 +71,11 @@ const ExcelFormControl = ({ templateCols, loadValues }) => {
     <Grid templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
       <Button size="md" bg="white" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
         <Icon as={FaDownload} />
-          <ResponsiveText>Get Template</ResponsiveText>
+          <Text>Get Template</Text>
       </Button>
       <Button onClick={handleButtonClick} bg="white" height="32px" justifyContent={'space-around'}>
         <Icon as={FaUpload} />
-          <ResponsiveText>Fill with Template</ResponsiveText>
+          <Text>Fill with Template</Text>
       </Button>
       <input
         type="file"

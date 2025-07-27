@@ -5,12 +5,13 @@ import _ from 'lodash'; // for debounce (optional)
 import { useItems } from '../../context/ItemsProvider';
 import { MdClear } from "react-icons/md";
 
-export default function SearchBar({ attr, label, resetFlag }) {
+export default function SearchBar({ attr, label, resetFlag=null }) {
   const { setSearchFilters } = useItems(); // your function to trigger filtering
-  const [query, setQuery] = useState();
+  const [query, setQuery] = useState("");
   const skipDebounceRef = useRef(false);
 
   useEffect(() => {
+    if (!resetFlag) return;
     skipDebounceRef.current = true;
     setQuery('');
   }, [resetFlag]);

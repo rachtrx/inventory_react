@@ -6,6 +6,7 @@ import { useAddAssets } from "./AddAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
 import WarningCard from "../../utils/WarningCard";
+import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
@@ -67,7 +68,7 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				placeholder="Select Location"
 				initialOptions={locationOptions}
 			/>
-			<InputFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
+			<RemarksFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
 			{/* Include the helper functions */}
 			{children}
 		</Flex>

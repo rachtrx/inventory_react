@@ -5,16 +5,9 @@ import {
     Flex,
     VStack,
     HStack,
-    Badge,
-    Divider,
-    Icon,
-    Collapse,
     Button,
 } from "@chakra-ui/react";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import DateText from "../utils/DateText";
-import { BadgeGroup } from "../utils/BadgeGroup";
-import { ResponsiveText } from "../../utils/ResponsiveText";
 
 import { AccTypeLink, AssetLink, UserLink } from "../../buttons/ItemLink";
 import { AccStatus } from "../utils/AccStatus";
@@ -35,17 +28,17 @@ const UserLoanEvent = ({ event }) => {
             {/* Left Panel: Accessory Details */}
             <VStack spacing={4} align="stretch">
                 <HStack>
-                    <ResponsiveText fontWeight="bold" size="lg" color="blue.600">
+                    <Text fontWeight="bold" fontSize="lg" color="blue.600">
                         Loaned
-                    </ResponsiveText>
+                    </Text>
                     <DateText colorScheme="blue" event={event} />
                 </HStack>
 
                 {!isOpen && returnEvents?.length && (
                     <HStack>
-                        <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                             Returned
-                        </ResponsiveText>
+                        </Text>
                         {returnEvents.map((event) => (
                             <DateText 
                                 colorScheme={event.asset ? "yellow" : "gray"}
@@ -83,9 +76,9 @@ const UserLoanEvent = ({ event }) => {
             {isOpen && returnEvents?.length && (
                 <Box>
                     <VStack spacing={4} align="stretch">
-                        <ResponsiveText fontWeight="bold" size="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
                             Returned
-                        </ResponsiveText>
+                        </Text>
                         {accLoans && accLoans.length > 0 && (
                             <HStack>
                                 {

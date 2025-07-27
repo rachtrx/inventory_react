@@ -10,10 +10,8 @@ import {
     DrawerFooter,
     Grid,
     Flex,
-    useDisclosure,
-    IconButton,
 } from '@chakra-ui/react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { ChevronLeftIcon } from '@chakra-ui/icons';
 import { useItems } from '../../context/ItemsProvider';
 import { useFormikContext } from 'formik';
 

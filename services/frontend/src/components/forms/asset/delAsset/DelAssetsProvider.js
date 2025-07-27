@@ -27,24 +27,29 @@ export const DelAssetsProvider = () => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    if (!initialValues?.serialNumbers?.length) return;
+    if (!initialValues?.assetIds?.length) return;
 
     const fetchAstDeletes = async () => {
-      const assetResponse = await assetService.fetchAstDel(initialValues.serialNumbers);
-      setAssetOptions(assetResponse.data);
-
-      const assetObjs = initialValues.serialNumbers.map(serialNumber => {
-        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.serialNumber === serialNumber);
-        if (!matchedAssetOption || matchedAssetOption.isDisabled) return { serialNumber }
-        else return matchedAssetOption;
-      })
-      const assets = assetObjs.map(asset => {
-        return delNewAsset(asset);
-      })
-      reinitializeForm({assets});
+      try {
+        const assetResponse = await assetService.fetchAstDelById(initialValues.assetIds);
+        setAssetOptions(assetResponse.data);
+  
+        const assetObjs = initialValues.assetIds.map(assetId => {
+          const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.assetId === assetId);
+          if (!matchedAssetOption) throw new Error(`Asset not found`)
+          else if (matchedAssetOption.isDisabled) throw new Error(`Asset cannot be condemned`)
+          else return matchedAssetOption;
+        })
+        const assets = assetObjs.map(asset => {
+          return delNewAsset(asset);
+        })
+        reinitializeForm({assets});
+      } catch(err) {
+        handleError(err);
+      }
     }
     fetchAstDeletes()
-  }, [initialValues, reinitializeForm]);
+  }, [initialValues, reinitializeForm, handleError]);
 
   const setValuesExcel = async (records) => {
     // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE

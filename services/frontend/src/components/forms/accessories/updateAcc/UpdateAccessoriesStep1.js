@@ -1,12 +1,8 @@
 
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
-import accessoryService from "../../../../services/AccessoryService";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useLoading } from "../../../../context/LoadingProvider";
 import { UpdateAccessory } from "./UpdateAccessory";
 import { createNewAccessory } from "./helpers";
 import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
@@ -86,7 +82,7 @@ export const UpdateAccessoriesStep1 = () => {
                     <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
                       {index === array.length - 1 && !Object.values(initialValues || {}).length && (
                       <Button mt={4} type="button" onClick={() => accessoryHelpers.push(createNewAccessory())}>
-                        <ResponsiveText>Add Accessory</ResponsiveText>
+                        <Text>Add Accessory</Text>
                       </Button>
                       )}
                     </Flex>

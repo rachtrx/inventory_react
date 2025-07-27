@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react"
 import loanService from "../../../services/LoanService";
 import { useLoans } from "./LoansProvider";
-import { Badge, Box, VStack } from "@chakra-ui/react";
+import { Badge, Box, Text, VStack } from "@chakra-ui/react";
 import { createNewAccessory } from "./helpers";
 import { useUI } from "../../../context/UIProvider";
-import { ResponsiveText } from "../../utils/ResponsiveText";
 import { formatDistanceToNow } from 'date-fns';
 
 export const SuggestedAccessories = ({ sTypeId, accessoryHelpers }) => {
@@ -88,9 +87,9 @@ export const SuggestedAccessories = ({ sTypeId, accessoryHelpers }) => {
                         transition="background-color 0.2s"
                     >
                         <VStack align="start" spacing={1}>
-                        <ResponsiveText fontWeight="medium">
+                        <Text fontWeight="medium">
                             {option.map(accType => `${accType.accessoryName} x${accType.count}`).join(", ")}
-                        </ResponsiveText>
+                        </Text>
                         <Badge colorScheme="blue">
                             {formatDistanceToNow(new Date(option[0].eventDate), { addSuffix: true })}
                         </Badge>

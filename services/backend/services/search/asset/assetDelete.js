@@ -2,26 +2,18 @@ const { Op } = require("sequelize");
 const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event } = require("@models");
 const AssetDTO = require("@dtos/ast.dto");
 const logger = require("@utils/logging");
+const { AssetCondition } = require("./assetCondition");
 
 class AssetDelete {
 
     constructor({
-        serialNumbers = "",
         subTypeId = null,
         typeId = null,
+        ...identifiers
     }) {
-        this.serialNumbers = serialNumbers
+        this.assetCondition = new AssetCondition(identifiers);
         this.subTypeId = subTypeId
         this.typeId = typeId
-
-        const isBulkSearch = Array.isArray(serialNumbers) 
-        logger.info(serialNumbers)
-
-        this.assetCondition = isBulkSearch
-            ? { serialNumber: { [Op.in]: serialNumbers } }
-            : { serialNumber: { [Op.iLike]: `%${serialNumbers}%` } };
-
-        this.isBulkSearch = isBulkSearch
     }
 
     async run() {
@@ -43,7 +35,7 @@ class AssetDelete {
                     ]
                 ],
                 where: { [Op.and] : [
-                    this.assetCondition
+                    this.assetCondition.query
                 ]},
                 include: [
                     {

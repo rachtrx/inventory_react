@@ -10,9 +10,7 @@ const AccTimeline = ({ events }) => {
         <VStack spacing={2} align="stretch">
             {events.map((ev, id, arr) => {
                 return (
-                    ev.addedAccType ? (
-                        <AddEventBox event={ev} key={id} />
-                    ) : ev.accTxn ? (
+                    ev.accTxn ? (
                         <AccUpdateEventBox event={ev} key={id} />
                     ) : ev.loan ? (
                         <AccLoanEventBox event={ev} key={id} />

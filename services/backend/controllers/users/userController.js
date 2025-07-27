@@ -225,6 +225,50 @@ class UserController extends BaseController {
                     {
                         model: Dept,
                         attributes: ['id', 'deptName']
+                    },
+                    {
+                        model: Event,
+                        as: "AddEvent",
+                        required: true,
+                        include: [
+                            {
+                                model: Rmk,
+                                attributes: ['id', 'text', 'remarkDate'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['id', 'adminName'],
+                                    required: false
+                                },
+                                required: false
+                            },
+                            {
+                                model: Admin,
+                                attributes: ['id', 'adminName'],
+                                required: false
+                            }
+                        ],
+                    },
+                    {
+                        model: Event,
+                        as: "DeleteEvent",
+                        required: false,
+                        include: [
+                            {
+                                model: Rmk,
+                                attributes: ['id', 'text', 'remarkDate'],
+                                include: {
+                                    model: Admin,
+                                    attributes: ['id', 'adminName'],
+                                    required: false
+                                },
+                                required: false
+                            },
+                            {
+                                model: Admin,
+                                attributes: ['id', 'adminName'],
+                                required: false
+                            }
+                        ],
                     }
                 ],
             });
@@ -261,8 +305,6 @@ class UserController extends BaseController {
             attributes: ['id', 'adminId', 'eventDate'],
             where: {
                 [Op.or]: [
-                    { '$AddedUser.id$': userId },
-                    { '$DeletedUser.id$': userId },
                     { '$Loan.user_id$': userId },
                     { '$Reservation.user_id$': userId } // TODO is it possible to extract out other users of that loan?
                 ]
@@ -270,7 +312,7 @@ class UserController extends BaseController {
             include: [
                 {
                     model: Rmk,
-                    attributes: ['id', 'text'],
+                    attributes: ['id', 'text', 'remarkDate'],
                     required: false,
                     include: {
                         model: Admin,
@@ -281,18 +323,6 @@ class UserController extends BaseController {
                 {
                     model: Admin,
                     attributes: ['id', 'adminName'],
-                    required: false
-                },
-                {
-                    model: Usr,
-                    as: 'AddedUser',
-                    attributes: ['id'],
-                    required: false
-                },
-                {
-                    model: Usr,
-                    as: 'DeletedUser',
-                    attributes: ['id'],
                     required: false
                 },
                 {
@@ -415,19 +445,7 @@ class UserController extends BaseController {
                     ]
                 }
             ],
-            order: [
-                [
-                  Sequelize.literal(`
-                    CASE
-                      WHEN "DeletedUser"."id" IS NOT NULL THEN 0
-                      WHEN "AddedUser"."id" IS NOT NULL THEN 2
-                      ELSE 1
-                    END
-                  `),
-                  'ASC'
-                ],
-                ['eventDate', 'DESC']
-            ]
+            order: [['eventDate', 'DESC']]
         });
 
         const events = eventRows.map(row => new EventDTO(row)); // Converts Sequelize instances to plain objects

@@ -5,6 +5,7 @@ import { useEditMode } from "../../../context/EditModeProvider";
 
 const EditCancelButton = ({name, ...props}) => {
 
+    const { size, ...rest } = props
     const { editKey, setEditKey } = useDrawer();
     const { editable } = useEditMode();
 
@@ -12,7 +13,7 @@ const EditCancelButton = ({name, ...props}) => {
         <>
             {!editable || !editKey || editKey !== name ? (
                 <IconButton
-                    size="sm"
+                    size={size || "sm"}
                     colorScheme="yellow" 
                     icon={<EditIcon />}
                     onClick={() => setEditKey(name)}
@@ -20,11 +21,11 @@ const EditCancelButton = ({name, ...props}) => {
                 />
             ) : (
                 <IconButton
-                    size="sm"
+                    size={size || "sm"}
                     colorScheme="red" 
                     icon={<CloseIcon />}
                     onClick={() => setEditKey(null)}
-                    {...props}
+                    {...rest}
                 />
             )}
         </>

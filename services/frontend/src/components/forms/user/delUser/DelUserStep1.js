@@ -1,13 +1,11 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
 import { useFormModal } from "../../../../context/ModalProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
-import { useEffect, useRef } from "react";
 import { useDelUsers } from "./DelUsersProvider";
 import { validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { DelUser } from "./DelUser";
 import { delNewUser } from "./helpers";
@@ -15,14 +13,11 @@ import { delNewUser } from "./helpers";
 export const DelUserStep1 = () => {
 
     const { nextStep, formData, setValuesExcel } = useDelUsers();
-    const { setFormType, reinitializeForm } = useFormModal();
+    const { setFormType, formRef } = useFormModal();
     const { handleError } = useUI();
-    const formRef = useRef(null);
   
     console.log('add user form rendered');
 		console.log(formData);
-
-    useEffect(() => reinitializeForm(formRef, formData), [formData, reinitializeForm]);
     
     const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
       if (fieldValue && !idValue) return `${fieldName} not found`;
@@ -92,7 +87,7 @@ export const DelUserStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${user.userName ? ` ${user.userName}` : ''}`}</ResponsiveText>
+                            <Text>{`Remove ${user.userName ? ` ${user.userName}` : ''}`}</Text>
                             </Button>
                           )}
                         </Flex>

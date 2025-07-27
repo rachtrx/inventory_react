@@ -25,6 +25,15 @@ class LoanService {
         });
     }
 
+    fetchAstLoanById = async (assetIds) => {
+        console.log(assetIds);
+        return await this.axios.get(`${this.URL}/loan/asset`, {
+            params: {
+                assetIds,
+            }
+        });
+    }
+
     fetchSuggestedAccessories = async (astSTypeId) => {
         return await this.axios.get(`${this.URL}/loan/asset/${astSTypeId}`, {
             params: {
@@ -37,6 +46,14 @@ class LoanService {
         return await this.axios.get(`${this.URL}/loan/user`, {
             params: {
                 userNames
+            }
+        });
+    }
+
+    fetchUserLoanById = async (userIds) => {
+        return await this.axios.get(`${this.URL}/loan/user`, {
+            params: {
+                userIds
             }
         });
     }

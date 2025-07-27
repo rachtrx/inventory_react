@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, ModalBody, ModalFooter } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
@@ -6,7 +6,6 @@ import { useAddAssets } from "./AddAssetsProvider";
 import { compareDates, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddType } from "./AddType";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
 import { AddButton } from "../../utils/ItemButtons";
 import { useFormModal } from "../../../../context/ModalProvider";
 import { createNewType } from "./helpers";
@@ -119,7 +118,7 @@ export const AddAssetStep1 = () => {
                               alignSelf="flex-start"
                               colorScheme="red"
                             >
-                            <ResponsiveText>{`Remove ${type.typeName ? ` ${type.typeName}` : ''}`}</ResponsiveText>
+                            <Text>{`Remove ${type.typeName ? ` ${type.typeName}` : ''}`}</Text>
                             </Button>
                           )}
                         </Flex>

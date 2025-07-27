@@ -1,5 +1,4 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../../utils/ResponsiveText";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useAddAssets } from "./AddAssetsProvider";
 
@@ -26,15 +25,15 @@ export const AddAssetStep2 = () => {
               mb={4}
               boxShadow="sm"
             >
-              <ResponsiveText size="lg" fontWeight="bold">
+              <Text fontSize="lg" fontWeight="bold">
                 Type: {type.typeName}
-              </ResponsiveText>
+              </Text>
 
               {type.subTypes.map((subType, subTypeIndex) => (
                 <VStack key={subType.key}>
-                  <ResponsiveText fontWeight="semibold">
+                  <Text fontWeight="semibold">
                     SubType: {subType.subTypeName}
-                  </ResponsiveText>
+                  </Text>
 
                   {subType.assets.length > 0 && (
                     <Box overflowX="auto" w="100%">

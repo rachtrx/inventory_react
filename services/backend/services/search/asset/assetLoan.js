@@ -2,33 +2,25 @@ const { Op } = require("sequelize");
 const { Loan, AstLoan, Ast, Usr, Dept, Sequelize, AstSType, AstType } = require("@models");
 const AssetDTO = require("@dtos/ast.dto");
 const logger = require("@/utils/logging");
+const { AssetCondition } = require("./assetCondition");
 
 class AssetLoan {
 
     constructor({
-        serialNumbers = "",
         subTypeId = null,
         typeId = null,
+        ...identifiers
     }) {
-        this.serialNumbers = serialNumbers
-        this.subTypeId = subTypeId
-        this.typeId = typeId
-
-        const isBulkSearch = Array.isArray(serialNumbers) 
-        logger.info(serialNumbers)
-
-        this.assetCondition = isBulkSearch
-            ? { serialNumber: { [Op.in]: serialNumbers } }
-            : { serialNumber: { [Op.iLike]: `%${serialNumbers}%` } };
-
-        this.isBulkSearch = isBulkSearch
+        this.assetCondition = new AssetCondition(identifiers);
+        this.subTypeId = subTypeId;
+        this.typeId = typeId;
     }
 
     async run() {
         try {
             const query = await Ast.findAll({
                 attributes: ['id', 'serialNumber', 'alias', 'delEventId', 'subTypeId'],
-                where: this.assetCondition,
+                where: this.assetCondition.query,
                 include: [
                     {
                         model: AstLoan,

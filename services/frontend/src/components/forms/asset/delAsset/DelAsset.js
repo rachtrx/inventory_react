@@ -5,6 +5,7 @@ import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
 import { AvailAstSelectFormControl } from "../../options/AvailAssetOptions";
 import assetService from "../../../../services/AssetService";
+import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const DelAsset = function({ field, asset, children }) {
 
@@ -29,7 +30,7 @@ export const DelAsset = function({ field, asset, children }) {
 				initialOptions={assetOptions}
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
-			<InputFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
+			<RemarksFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
 			{/* Include the helper functions */}
 			{children}
 		</Flex>

@@ -1,5 +1,4 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { FormikSignatureField } from "../utils/SignatureField";
 import { Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -51,9 +50,9 @@ export const LoanStep2 = () => {
 							mb={4}
 							boxShadow="sm"
 						>
-							<ResponsiveText size='lg' fontWeight="bold">
+							<Text fontSize='lg' fontWeight="bold">
 								{user.userName}
-							</ResponsiveText>
+							</Text>
 
 							{user.loans.length > 0 && (
 								<Box overflowX="auto" w="100%" mt={2}>

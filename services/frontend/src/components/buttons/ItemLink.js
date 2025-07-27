@@ -1,6 +1,5 @@
-import { Flex } from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
-import { ResponsiveText } from "../utils/ResponsiveText";
 import { IoCopyOutline } from "react-icons/io5";
 import { useUI } from "../../context/UIProvider";
 import { Tooltip } from "@chakra-ui/react";
@@ -96,13 +95,13 @@ const ItemLink = forwardRef(({
       display={display}
       {...props}
     >
-      <ResponsiveText
-        size={textSize}
+      <Text
+        fontSize={textSize}
         onClick={() => handleClick(item)}
         _hover={{ color: "blue.500" }}
       >
         {text}
-      </ResponsiveText>
+      </Text>
       {isCopy && (
         <IoCopyOutline
           onClick={handleCopyClick}

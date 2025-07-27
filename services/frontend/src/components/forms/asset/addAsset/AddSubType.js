@@ -1,7 +1,6 @@
-import { Box, Button, Divider, Flex, Grid } from "@chakra-ui/react"
+import { Box, Button, Divider, Flex, Grid, Text } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { ResponsiveText } from "../../../utils/ResponsiveText"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { AddAsset } from "./AddAsset";
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
@@ -88,7 +87,7 @@ export const AddSubType = ({
 												alignSelf="flex-start"
 												colorScheme="red"
 											>
-											<ResponsiveText>Remove Asset</ResponsiveText>
+											<Text>Remove Asset</Text>
 											</Button>
 										)}
 									</Flex>

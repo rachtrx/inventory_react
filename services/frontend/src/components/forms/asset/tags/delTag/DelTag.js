@@ -1,4 +1,3 @@
-import InputFormControl from "../../../utils/InputFormControl"
 import { FieldArray, useFormikContext } from 'formik';
 import { SingleSelectFormControl } from "../../../utils/SelectFormControl";
 import { Box, Divider, Flex } from "@chakra-ui/react";
@@ -7,6 +6,7 @@ import assetService from "../../../../../services/AssetService";
 import { useAssetTags } from "../AssetTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
 import { createNewAsset } from "../helpers";
+import RemarksFormControl from "../../../utils/RemarksFormControl";
 
 export const DelTag = function({ tag, tagIndex, children }) {
 
@@ -67,7 +67,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
                                             handleClick={() => assetHelpers.remove(assetIndex)}
                                         />
                                     </Flex>
-                                    <InputFormControl name={`tags.${tagIndex}.assets.${assetIndex}.remarks`} label={`Tag Remarks`}/>
+                                    <RemarksFormControl name={`tags.${tagIndex}.assets.${assetIndex}.remarks`} label={`Tag Remarks`}/>
                                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                                     {assetIndex === assetArray.length - 1 && (
                                         <AddButton

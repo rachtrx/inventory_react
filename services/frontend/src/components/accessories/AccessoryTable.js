@@ -1,13 +1,11 @@
-import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Flex } from '@chakra-ui/react';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import { ItemStarButton } from '../buttons/StarButton';
+import { Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Flex, Text } from '@chakra-ui/react';
 import { useItems } from '../../context/ItemsProvider';
 import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import accessoryService from '../../services/AccessoryService';
 import { LoansPopover } from './LoansPopover';
-import { AccTypeActionButton, CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
+import { CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
 import { FormType } from '../../context/ModalProvider';
 
 const AccessoryTable = ({ items }) => {
@@ -46,13 +44,13 @@ const AccessoryTable = ({ items }) => {
               <CircleText
                 text={accessoryType.stock || 0}
               />
-              <ResponsiveText>Available</ResponsiveText>
+              <Text>Available</Text>
             </Td>
             <Td>
               <CircleText
                 text={accessoryType.registeredCount || 0}
               />
-              <ResponsiveText>Registered</ResponsiveText>
+              <Text>Registered</Text>
             </Td>
             <Td>
               <LoansPopover
@@ -60,7 +58,7 @@ const AccessoryTable = ({ items }) => {
                 searchFunc={(id) => accessoryService.getLoanDetails(id)}
                 count={accessoryType.loanCount}
               />
-              <ResponsiveText>Loaned</ResponsiveText>
+              <Text>Loaned</Text>
             </Td>
             <Td>
               <LoansPopover
@@ -68,7 +66,7 @@ const AccessoryTable = ({ items }) => {
                 searchFunc={(id) => accessoryService.getReservationDetails(id)}
                 count={accessoryType.reserveCount}
               />
-              <ResponsiveText>Reserved</ResponsiveText>
+              <Text>Reserved</Text>
             </Td>
           </Tr>
         ))}

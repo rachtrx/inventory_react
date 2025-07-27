@@ -7,12 +7,9 @@ import {
   Container,
 	Button
 } from '@chakra-ui/react';
-import { ResponsiveText } from './utils/ResponsiveText';
 import { useAuth } from '../context/AuthProvider';
-import { useCallback, useEffect } from 'react';
 import { MdLogout } from 'react-icons/md'; // react-icons
 import PasswordSetup from './PasswordSetup';
-import { useUI } from '../context/UIProvider';
 import { eventBus } from '../config';
 
 const Profile = () => {
@@ -30,7 +27,7 @@ const Profile = () => {
           <Text mt={2}><b>Authentication Types:</b> {admin.authType.map(type => <Tag key={type} ml={1}>{type}</Tag>)}</Text>
 					{admin.authType.every(authType => authType === "SSO") && <PasswordSetup/>}
 					<Button onClick={() => eventBus.emit('logout')} leftIcon={<MdLogout />}>
-						<ResponsiveText>Logout</ResponsiveText>
+						<Text>Logout</Text>
 					</Button>
         </Box>
       </VStack>

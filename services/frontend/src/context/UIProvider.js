@@ -1,6 +1,5 @@
-import { Alert, AlertIcon, CloseButton, useToast } from '@chakra-ui/react';
-import React, { createContext, useCallback, useContext, useState } from 'react';
-import { ResponsiveText } from '../components/utils/ResponsiveText';
+import { Alert, AlertIcon, CloseButton, Text, useToast } from '@chakra-ui/react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 const UIContext = createContext(false);
 
@@ -72,7 +71,7 @@ export const UIProvider = ({ children }) => {
     return show ? (
       <Alert status="error">
         <AlertIcon />
-        <ResponsiveText>{text}</ResponsiveText>
+        <Text>{text}</Text>
         <CloseButton position="absolute" right="8px" top="8px" onClick={() => setShow(false)} />
       </Alert>
     ) : null;

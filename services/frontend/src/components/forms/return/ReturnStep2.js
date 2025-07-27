@@ -1,8 +1,5 @@
-import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, UnorderedList, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
-import { FormikSignatureField } from "../utils/SignatureField";
-import { FieldArray, Form, Formik } from "formik";
-import { useLayoutEffect, useRef, useState } from "react";
+import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Text, UnorderedList } from "@chakra-ui/react";
+import { Form, Formik } from "formik";
 import { useReturns } from "./ReturnsProvider";
 
 export const ReturnStep2 = () => {
@@ -31,17 +28,17 @@ export const ReturnStep2 = () => {
 						boxShadow="sm"
 					>
 						{/* Display Asset Information */}
-						{_return.asset.count > 0 && <ResponsiveText size="lg" fontWeight="bold">
+						{_return.asset.count > 0 && <Text fontSize="lg" fontWeight="bold">
 						Serial Number: {_return.asset.serialNumber}
-						</ResponsiveText>}
+						</Text>}
 
 						{/* Display Users Associated with This Asset */}
-						<ResponsiveText key={_return.userId}>{_return.userName}</ResponsiveText>
+						<Text key={_return.userId}>{_return.userName}</Text>
 
 						{/* Display Accessories Associated with This Asset */}
 						{_return.accessoryTypes.length > 0 && (
 						<Box mt={2}>
-							<ResponsiveText fontWeight="bold">Accessories Returned:</ResponsiveText>
+							<Text fontWeight="bold">Accessories Returned:</Text>
 							<UnorderedList>
 							{_return.accessoryTypes.map(accessoryType => (
 								<ListItem key={accessoryType.accessoryTypeId}>

@@ -1,7 +1,5 @@
 import { Box, Text, Button, VStack, SimpleGrid } from "@chakra-ui/react";
 import { WarningIcon } from "@chakra-ui/icons";
-import React from "react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
 
 const WarningCard = ({ message, items, itemAttr, onCreate }) => {
   return (
@@ -22,9 +20,9 @@ const WarningCard = ({ message, items, itemAttr, onCreate }) => {
         </Text>
         <SimpleGrid columns={4} spacing={2} overflowY="auto">
             {items.map((item, index) => (
-                <ResponsiveText key={index} size="xs">
-                {item[itemAttr]}
-                </ResponsiveText>
+                <Text key={index} fontSize="xs">
+                  {item[itemAttr]}
+                </Text>
             ))}
         </SimpleGrid>
         <Button colorScheme="red" onClick={onCreate}>

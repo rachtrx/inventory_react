@@ -16,9 +16,9 @@ import {
   Image,
   Center,
   useColorModeValue,
-  VStack
+  VStack,
+  Text
 } from '@chakra-ui/react';
-import { ResponsiveText } from './utils/ResponsiveText';
 import { useLoading } from '../context/LoadingProvider';
 import { useNavigate } from 'react-router-dom';
 
@@ -106,7 +106,7 @@ export default function Login() {
             )}
           </Formik>
           <Button colorScheme="blue" onClick={handleSSOLogin}>
-            <ResponsiveText>Login with Microsoft</ResponsiveText>
+            <Text>Login with Microsoft</Text>
           </Button>
           </Box>
       </Center>

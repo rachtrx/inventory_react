@@ -1,10 +1,9 @@
-import { Box, Heading, Flex, Grid, VStack } from '@chakra-ui/react';
-import { useDrawer } from '../../context/DrawerProvider';
-import { FormType, useFormModal } from '../../context/ModalProvider';
-import { ResponsiveText } from '../utils/ResponsiveText';
+import { Box, Heading, Flex, Grid, VStack, Text } from '@chakra-ui/react';
+import { FormType } from '../../context/ModalProvider';
 import { UserLink } from '../buttons/ItemLink';
 import AccTimeline from '../timeline/accessories/AccTimeline';
 import { CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
+import DateText from '../timeline/utils/DateText';
 
 const Accessory = ({ accType }) => {
 
@@ -30,7 +29,14 @@ const Accessory = ({ accType }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-					<ResponsiveText>Current Stock: {accType.stock}</ResponsiveText>
+					<Text>Current Stock: {accType.stock}</Text>
+
+          {/* {accType.addEvent ? (
+            <>
+              <Text fontSize="md">Added Date:</Text>
+              <DateText colorScheme={"green"} event={accType.addEvent}/>
+            </>
+          ) : undefined} */}
         </Grid>
       </Box>
 

@@ -1,4 +1,4 @@
-import { Box, Heading, Flex, Grid, SimpleGrid } from '@chakra-ui/react';
+import { Box, Heading, Flex, Grid, SimpleGrid, Text } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
 import { FormType } from '../../context/ModalProvider';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
@@ -12,6 +12,7 @@ import userService from '../../services/UserService';
 import SelectEditableField from '../utils/editing/SelectEditableField';
 import { StarButton } from '../buttons/StarButton';
 import { EditToggleButton } from '../buttons/EditToggleButton';
+import DateText from '../timeline/utils/DateText';
 
 const User = ({ user }) => {
 
@@ -39,7 +40,7 @@ const User = ({ user }) => {
     return (
 			<Box p={4}>
 				<Box mb={4}>
-					<Flex gap={2} justifyContent="space-between">
+					<Flex gap={2} justifyContent="center">
 						<Flex gap={1}>
 							<StarButton
 								id={user.userId}
@@ -72,6 +73,19 @@ const User = ({ user }) => {
 							id={user.deptId}
 							createFn={async (value) => await userService.createNewDept(value)}
 						/>
+
+						{user.addEvent ? (
+							<>
+								<Text fontSize="md">Added Date:</Text>
+								<DateText colorScheme={"green"} event={user.addEvent}/>
+							</>
+						) : undefined}
+						{user.deleteEvent ? (
+							<>
+								<Text fontSize="md">Condemned Date:</Text>
+								<DateText colorScheme={"red"} event={user.deleteEvent}/>
+							</>
+						) : undefined}
 					</Grid>
 				</Box>
 			
