@@ -1,5 +1,4 @@
-import React from 'react';
-import { ChakraProvider, Box, Button, Flex, IconButton, useColorMode } from '@chakra-ui/react';
+import { Box, Button } from '@chakra-ui/react';
 import { FaThLarge, FaList } from 'react-icons/fa';
 
 export default function CapsuleToggleButton({ isGridView, setIsGridView }) {

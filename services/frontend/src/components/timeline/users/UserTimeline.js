@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { AddEventBox } from "../AddEvent";
 import { DeleteEventBox } from "../DeleteEvent";
 import { UserLoanEventBox } from "./UserLoanEvent";
-import AssetReserveEvent from "../assets/AssetReserveEvent";
-import Timeline from "../Timeline";
 import { VStack } from "@chakra-ui/react";
 
 const UserTimeline = ({events}) => {

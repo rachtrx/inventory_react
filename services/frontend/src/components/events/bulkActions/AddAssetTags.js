@@ -6,15 +6,29 @@ import { useUI } from "../../../context/UIProvider";
 import { useForm } from "../../../context/FormProvider";
 import { CreatableSingleSelectFormControl } from "../../forms/utils/SelectFormControl";
 import { Formik } from "formik";
+import { useAssetTags } from '../../forms/asset/tags/AssetTagsProvider';
+import { useEffect, useState } from 'react';
 
 export const AddAssetTags = () => {
 
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { handleError, showToast } = useUI();
     const { selectedItems } = useItems();
-    const { triggerRefresh } = useForm();
+    const { formType, setFormType, initialValues, triggerRefresh, reinitializeForm } = useForm();
+    const { tagOptions } = useAssetTags();
+    const [ newTagOptions, setNewTagOptions ] = useState(tagOptions);
+    const [ isDisabled, setIsDisabled ] = useState(true)
+    
+    useEffect(() => {
+        if (!selectedItems?.length) setNewTagOptions(tagOptions);
 
-    const { filters } = useItems();
+        const tagIdsSet = new Set();
+
+        for (const event of selectedItems) {
+            // if (event.)
+        }
+    }, [selectedItems])
+
 
     const handleUpdateReturn = () => {
         onOpen();
@@ -61,9 +75,9 @@ export const AddAssetTags = () => {
                 onSubmit={handleSubmit}
                 validationSchema={validationSchema}
             >
-            <CreatableSingleSelectFormControl
+            {/* <CreatableSingleSelectFormControl
 
-            />
+            /> */}
             </Formik>
         </>
     )

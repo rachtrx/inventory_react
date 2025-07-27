@@ -2,6 +2,7 @@ import {
   Text,
   Box,
   VStack,
+  Badge,
 } from "@chakra-ui/react";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import SelectableCards from "../utils/SelectableCards.js";
@@ -13,9 +14,8 @@ function ReminderCards({ items }) {
 
   const renderCard = (reminder) => {
     const { loanId, user, astLoan, accLoans, expectedReturnDate, overdue } = reminder;
-    const bg = overdue ? `${overdue}` : undefined;
-    const hoverBg = overdue ? `${overdue}Hover` : 'gray.50';
-    const assetType = astLoan?.asset?.typeName || "N/A";
+    const bg = overdue ? `${overdue}` : 'gray';
+    const hoverBg = overdue ? `${overdue}Hover` : 'subtle';
 
     return {
       props: { 
@@ -24,9 +24,9 @@ function ReminderCards({ items }) {
       },
       body: (
         <VStack align="start" spacing={1}>
-          <Text fontSize="sm" color="gray.500">
+          <Badge fontSize="sm" colorScheme="gray">
             Expected Return: {expectedReturnDate || "N/A"}
-          </Text>
+          </Badge>
           <Text fontSize="sm">
             Serial: {astLoan?.asset ? <AssetLink asset={astLoan.asset} withTooltip={true}/> : "N/A"}
           </Text>

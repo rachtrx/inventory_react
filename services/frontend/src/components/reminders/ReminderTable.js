@@ -11,7 +11,8 @@ import {
   VStack,
   Text,
   HStack,
-  Button
+  Button,
+  Badge
 } from "@chakra-ui/react";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
@@ -36,15 +37,17 @@ function ReminderTable () {
       ]}
       renderRow={(item) => {
         const { loanId, user, astLoan, accLoans, expectedReturnDate, overdue } = item;
-        const bg = overdue ? `${overdue}` : undefined;
-        const hoverBg = overdue ? `${overdue}Hover` : 'gray.50';
+        const bg = overdue ? `${overdue}` : 'gray';
+        const hoverBg = overdue ? `${overdue}Hover` : 'subtle';
 
         return {
           props: { bg, _hover: { bg: hoverBg } },
           cells: [
             <Td>{astLoan?.asset ? <AssetLink asset={astLoan.asset} withTooltip={true}/> : ""}</Td>,
             <Td>{user ? <UserLink user={user} withTooltip={true}/> : ""}</Td>,
-            <Td>{expectedReturnDate || "N/A"}</Td>,
+            <Td><Badge fontSize="sm" colorScheme="gray">
+              {expectedReturnDate || "N/A"}
+            </Badge></Td>,
             <Td>
               {accLoans?.length ? (
                 <Box>
