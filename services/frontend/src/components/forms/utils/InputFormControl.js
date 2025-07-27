@@ -33,7 +33,6 @@ export default function InputFormControl({
         type={type}
         max={max}
         min={min}
-        bg="white"
       />
       {meta.error && <FormErrorMessage>{meta.error}</FormErrorMessage>}
     </FormControl>
