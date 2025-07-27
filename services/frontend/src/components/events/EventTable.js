@@ -1,60 +1,58 @@
+// EventTable.jsx
 import React from 'react';
 import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
   Th,
   Td,
-  useColorModeValue
 } from '@chakra-ui/react';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
 import { useItems } from '../../context/ItemsProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-const EventTable = ({ items }) => {
+import { SelectableTable } from '../utils/SelectableTable';
 
+const EventTable = () => {
   const { handleSort, sortField, sortOrder } = useItems();
 
   return (
-    <Table variant="simple" size="sm">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
-        <Tr>
-          <Th>Event Type</Th>
-          <Th onClick={() => handleSort("eventDate")} cursor="pointer">
-            Event Date {sortField === "eventDate" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
-          </Th>
-          <Th>Asset</Th>
-          <Th>User</Th>
-          <Th>Accessories</Th>
-          <Th>Tag</Th>
-          <Th onClick={() => handleSort("admin")} cursor="pointer">
-            Admin {sortField === "admin" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
-          </Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {items.map((event, index) => (
-          <Tr key={index} bg={event.type}>
-            <Td>{event.type}</Td>
-            <Td>{event.eventDate}</Td>
-            <Td>{event.asset ? <AssetLink asset={event.asset}/> : ""}</Td>
-            <Td>{event.user ? <UserLink user={event.user}/> : ""}</Td>
-            <Td>
+    <SelectableTable
+      columns={[
+        <Th key="type">Event Type</Th>,
+        <Th key="eventDate" onClick={() => handleSort("eventDate")} cursor="pointer">
+          Event Date {sortField === "eventDate" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="asset">Asset</Th>,
+        <Th key="user">User</Th>,
+        <Th key="accessories">Accessories</Th>,
+        <Th key="tags">Tag</Th>,
+        <Th key="admin" onClick={() => handleSort("admin")} cursor="pointer">
+          Admin {sortField === "admin" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+      ]}
+      renderRow={(event) => {
+        return {
+          props: { bg: event.type },
+          cells: [
+            <Td key="type">{event.type}</Td>,
+            <Td key="eventDate">{event.eventDate}</Td>,
+            <Td key="asset">{event.asset ? <AssetLink asset={event.asset} withTooltip={true}/> : ""}</Td>,
+            <Td key="user">{event.user ? <UserLink user={event.user} withTooltip={true}/> : ""}</Td>,
+            <Td key="accessories">
               {event.accessories && Array.isArray(event.accessories) ? (
-                event.accessories.map(({ accessoryType, count }, idx) => (
+                event.accessories.map(({ accessoryType }, idx) => (
                   <AccTypeLink key={idx} accType={accessoryType} />
                 ))
               ) : (
                 ""
               )}
-            </Td>
-            <Td>{event.tags && <Tags tags={event.tags} textSize="xs"/>}</Td>
-            <Td>{event.adminName}</Td>
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+            </Td>,
+            <Td key="tags">
+              {event.tags && <Tags tags={event.tags} textSize="xs" />}
+            </Td>,
+            <Td key="admin">{event.adminName}</Td>
+          ]
+        };
+      }}
+    />
   );
 };
 

@@ -1,23 +1,88 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { useDelUsers } from "./DelUsersProvider";
-import { validateUniqueValues } from "../../utils/validation";
+import { compareStrings, convertExcelDate, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddButton } from "../../utils/ItemButtons";
 import { DelUser } from "./DelUser";
 import { delNewUser } from "./helpers";
+import { useStep } from "../../../../context/StepProvider";
+import userService from "../../../../services/UserService";
 
 export const DelUserStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useDelUsers();
-    const { setFormType, formRef } = useFormModal();
+    const { setUserOptions } = useDelUsers();
+    const { nextStep, formData } = useStep();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
+
+    const initialFormValues = {
+        users: [delNewUser()],
+      }
   
     console.log('add user form rendered');
 		console.log(formData);
+
+    const setValuesExcel = async (records) => {
+      // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
+      try {
+        const userNames = new Set();
+        // const serialNumbers = new Set();
+
+        records.forEach((record) => {
+
+          Object.keys(record).forEach(field => {
+            record[field] = field !== 'delDate'
+              ? record[field]?.toString().trim()
+              : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
+          });
+
+          ['userName'].forEach(field => {
+            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+          });
+          
+          if (userNames.has(record.userName)) throw new Error(`Duplicate records for userName: ${record.userName} were found`);
+          else userNames.add(record.userName);
+        });
+
+        if (userNames.size === 0) throw new Error("No user names found!")
+
+        const userResponse = await userService.fetchUserDel([...userNames]);
+        const newUserOptions = userResponse.data;
+        setUserOptions(newUserOptions);
+
+        const users = records.map((record) => {
+          const { userName, remarks, delDate } = record;
+          const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
+          
+          if (!matchedUserOption || matchedUserOption.isDisabled) {
+            return {
+              userName, // Pass userName regardless of whether id is found
+              delDate,
+              remarks,
+          };
+          } else {
+            return {
+                userId: matchedUserOption ? matchedUserOption.userId : null,
+                lastEventDate: matchedUserOption ? matchedUserOption.lastEventDate : null,
+                userName,
+                delDate,
+                remarks,
+            };
+          }
+        })
+      
+        reinitializeForm({
+          users: users.map(user => delNewUser(user))
+        });
+
+      } catch (error) {
+        handleError(error);
+      }
+    };
     
     const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
       if (fieldValue && !idValue) return `${fieldName} not found`;
@@ -55,7 +120,7 @@ export const DelUserStep1 = () => {
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}

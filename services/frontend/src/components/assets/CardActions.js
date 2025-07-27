@@ -1,5 +1,5 @@
 import { Flex } from "@chakra-ui/react";
-import { FormType } from "../../context/ModalProvider";
+import { FormType } from "../../context/FormProvider";
 import { AssetActionButton } from "../buttons/actions/AssetActionButton";
 import { ReturnButton } from "../buttons/actions/ReturnButton";
 

@@ -5,7 +5,7 @@ import { Button, Divider, Flex, Text } from '@chakra-ui/react';
 import { LoanUser } from './LoanUser';
 import { createNewUser } from './helpers';
 import { AddButton } from '../utils/ItemButtons';
-import { useFormModal } from '../../../context/ModalProvider';
+import { useForm } from '../../../context/FormProvider';
 
 // Create a context for assets
 const LoanContext = createContext();
@@ -14,7 +14,7 @@ const LoanContext = createContext();
 export const LoanProvider = ({user, userIndex, userHelpers, isLast}) => {
   // console.log('loan provider');
   const { values } = useFormikContext();
-  const { initialValues } = useFormModal();
+  const { initialValues } = useForm();
   // console.log(values);
 
   // useEffect(() => console.log(values), [values]);

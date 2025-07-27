@@ -1,12 +1,14 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useAssetTags } from "../AssetTagsProvider";
+import { useStep } from "../../../../../context/StepProvider";
 
 export const AddAssetTagsStep2 = () => {
 
-  const { formData, handleAddTagsSubmit, prevStep } = useAssetTags();
+  const { handleAddTagsSubmit } = useAssetTags();
+  const { formData, prevStep } = useStep();
 
-	return (
+	return ( formData?.tags ?
 		<Formik
 			initialValues={formData}
 			onSubmit={handleAddTagsSubmit}
@@ -62,6 +64,6 @@ export const AddAssetTagsStep2 = () => {
 				</Button>
 			</ModalFooter>
 		</Form>
-		</Formik>
+		</Formik> : undefined
 	);
 }

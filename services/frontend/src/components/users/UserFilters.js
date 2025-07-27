@@ -3,7 +3,6 @@ import { Field, Form, Formik } from 'formik';
 import { useContext } from 'react';
 import InputFormControl from '../forms/utils/InputFormControl';
 import SelectFormControl from '../forms/utils/SelectFormControl';
-import ToggleButton from '../buttons/ToggleButton';
 import { useItems } from '../../context/ItemsProvider';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import userService from '../../services/UserService';

@@ -5,7 +5,7 @@ import { Button, Divider, Flex, Text } from '@chakra-ui/react';
 import { AddButton } from '../utils/ItemButtons';
 import { ReturnSearch } from './ReturnSearch';
 import { ManageReturn } from './ManageReturn';
-import { useFormModal } from '../../../context/ModalProvider';
+import { useForm } from '../../../context/FormProvider';
 import { createNewReturn } from './helpers';
 
 // Create a context for assets
@@ -16,7 +16,7 @@ export const ReturnProvider = ({ret, returnIndex, returnHelpers, isLast}) => {
   // console.log('loan provider');
 
   const { values } = useFormikContext();
-  const { initialValues } = useFormModal();
+  const { initialValues } = useForm();
 
   const [ currentLoan, setCurrentLoan ] = useState(null);
   const [ expectedReturnDate, setExpectedReturnDate ] = useState(null);

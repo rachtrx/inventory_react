@@ -11,7 +11,7 @@ import {
   Highlight,
 } from '@chakra-ui/react';
 import { FaDownload } from 'react-icons/fa';
-import { useFormModal } from '../../../context/ModalProvider';
+import { useForm } from '../../../context/FormProvider';
 import { useUI } from '../../../context/UIProvider';
 import { FaUpload } from "react-icons/fa";
 
@@ -19,7 +19,7 @@ import * as XLSX from 'xlsx';
 
 const ExcelFormControl = ({ templateCols, loadValues }) => {
 
-  const { formType } = useFormModal();
+  const { formType } = useForm();
   const fileInputRef = useRef(null);
   const { showToast, handleError } = useUI();
 

@@ -9,7 +9,7 @@ import accessoryService from "../../services/AccessoryService";
 export const AccessoriesPage = () => {
 
   return (
-    <ItemsProvider service={accessoryService}>
+    <ItemsProvider service={accessoryService} itemKey="accessoryTypeId">
       <RecordsLayout
         header="Accessories"
         Filters={AccessoryFilters}

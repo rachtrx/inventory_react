@@ -1,4 +1,4 @@
-import { FormType } from '../context/ModalProvider';
+import { FormType } from '../context/FormProvider';
 import { API_URL } from '../config';
 import { api } from '../config';
 
@@ -99,10 +99,29 @@ class UserService {
         return options;
     }
 
+    fetchTagUserById = async(userIds, tagId=null) => {
+        const options = await this.axios.get(`${this.URL}/tag/user`, {
+            params: {
+                userIds,
+                tagId,
+            }
+        });
+        return options;
+    }
+
     fetchUntagUser = async (userNames, tagId=null) => {
         return await this.axios.get(`${this.URL}/untag/user`, {
             params: {
                 userNames,
+                tagId,
+            }
+        });
+    }
+
+    fetchUntagUserById = async (userIds, tagId=null) => {
+        return await this.axios.get(`${this.URL}/untag/user`, {
+            params: {
+                userIds,
                 tagId,
             }
         });

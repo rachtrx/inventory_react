@@ -4,7 +4,7 @@ import { AddAssetStep1 } from "./AddAssetStep1";
 import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
 import { createNewSubType, createNewType } from "./helpers";
@@ -13,20 +13,15 @@ import { createNewSubType, createNewType } from "./helpers";
 const AddAssetsContext = createContext();
 
 // Create a provider component
-export const AddAssetsProvider = () => {
+export const AddAssetsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
+  const { setFormType, triggerRefresh } = useForm();
 
   const [vendorOptions, setVendorOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
   const [locationOptions, setLocationOptions] = useState([]);
   const [subTypeOptionsDict, setSubTypeOptionsDict] = useState([]);
-
-  const [formData, setFormData] = useState({
-    types: [createNewType()],
-  });
-  const [step, setStep] = useState(1);
 
   useEffect(() => {
     // console.log(typeOptions);
@@ -66,125 +61,6 @@ export const AddAssetsProvider = () => {
           value: option.label,
           label: option.label
       }));
-  };
-
-  const setValuesExcel = async (records) => {
-    // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
-    try {
-      const aliases = new Set();
-      const serialNumbers = new Set();
-      const subTypeSet = new Set();
-
-      const recordsMap = {};
-
-      records.forEach((record) => {
-
-        Object.keys(record).forEach(field => {
-          record[field] = field !== 'addDate'
-            ? record[field]?.toString().trim()
-            : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
-        });
-
-        ['type', 'subType', 'serialNumber'].forEach(field => {
-          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
-        });
-
-        const { type, subType, alias, serialNumber, vendorName, cost, location, remarks, addDate } = record;
-        
-        if (alias && aliases.has(alias)) throw new Error(`Duplicate records for asset tag: ${alias} were found`);
-        else if (alias) aliases.add(alias);
-        
-        if (serialNumbers.has(serialNumber)) throw new Error(`Duplicate records for Serial Number: ${serialNumber} were found`);
-        else serialNumbers.add(serialNumber);     
-
-        if (!recordsMap[type]) {
-          recordsMap[type] = {};
-        }
-        
-        if (!recordsMap[type][subType]) {
-          if (subTypeSet.has(subType)) throw new Error(`Error for ${subType}: Subtype names must be different across types`)
-          else subTypeSet.add(subType);
-          recordsMap[type][subType] = [];
-        }
-        
-        recordsMap[type][subType].push({
-          alias,
-          serialNumber,
-          vendorName,
-          cost,
-          addDate,
-          location,
-          remarks
-        });
-      });
-
-      const typeIds = typeOptions.map(option => option.typeId); // type options loaded upon form creation
-
-      const subTypesResponse = await assetService.getSubTypeFilters(typeIds);
-      const subTypeOptionsMap = subTypesResponse.data;
-
-      const types = [];
-
-      Object.entries(recordsMap).forEach(([typeName, subTypeObjs]) => {
-        let typeId = '';
-        const type = typeOptions.find(option => compareStrings(option.value, typeName));
-        if (type) {
-          typeId = type.typeId;
-          typeName = type.value; // update the typename
-        }
-
-        const subTypes = [];
-
-        Object.entries(subTypeObjs).forEach(([subTypeName, assetObjs]) => {
-          let subTypeId = '';
-          if (typeId) {
-            const subType = subTypeOptionsMap[typeId].find(option => compareStrings(option.value, subTypeName));
-            if (subType) {
-              subTypeId = subType.subTypeId;
-              subTypeName = subType.value;
-            }
-          }
-
-          const assets = assetObjs.map(asset => {
-            let vendorId = '';
-            let vendorName = asset.vendorName;
-            const vendor = vendorOptions.find(option => compareStrings(option.value, vendorName));
-            if (vendor) {
-              vendorId = vendor.vendorId;
-              vendorName = vendor.value; // update the typename
-            }
-            return {
-              ...asset,
-              vendorId,
-              vendorName
-            }
-          })
-          
-          subTypes.push(createNewSubType({
-            subTypeId: subTypeId,
-            subTypeName: subTypeName,
-            assets: assets,
-          }));
-        })
-
-        types.push(createNewType({
-          typeId: typeId,
-          typeName: typeName,
-          subTypes: subTypes,
-        }))
-      })
-
-      // console.log(subTypeOptionsMap);
-
-      setSubTypeOptionsDict(subTypeOptionsMap);
-    
-      reinitializeForm({
-        types: types
-      });
-
-    } catch (error) {
-      handleError(error);
-    }
   };
 
   const addNewType = async (typeName) => {
@@ -249,18 +125,6 @@ export const AddAssetsProvider = () => {
     }
   }
 
-  const prevStep = () => {
-    setStep(step - 1)
-  };
-
-  const nextStep = (values) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values
-    }));
-    setStep(step + 1);
-  };
-
   const handleSubmit = async (values, actions) => {
     setLoading(true);
     // console.log('Manual Form Values:', values);
@@ -286,27 +150,16 @@ export const AddAssetsProvider = () => {
     locationOptions,
     subTypeOptionsDict,
     setSubTypeOptionsDict,
+    createNewSubType,
     addNewSubType,
     addNewType,
     addNewVendor,
-    formData,
-    step,
-    setFormData,
-    setStep,
-    setValuesExcel,
-    prevStep,
-    nextStep,
     handleSubmit
   };
 
   return (
     <AddAssetsContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <AddAssetStep1/>
-      </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <AddAssetStep2/>
-      </Box>
+      {children}
     </AddAssetsContext.Provider>
   )
 };

@@ -1,4 +1,4 @@
-import { FormType } from "../../../context/ModalProvider"
+import { FormType } from "../../../context/FormProvider"
 import { ActionButton, CircleActionButton } from "./ActionButton"
 
 export const withReturnAction = (ButtonComponent) => ({

@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../../utils/ExcelFormControl';
-import { useFormModal } from "../../../../../context/ModalProvider";
+import { useForm } from "../../../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
 import { validateUniqueValues } from "../../../utils/validation";
@@ -8,13 +8,20 @@ import { setFieldError } from "../../../utils/validation";
 import { AddButton } from "../../../utils/ItemButtons";
 import { DelTag } from "./DelTag";
 import { useUserTags } from "../UserTagsProvider";
-import { createNewTag } from "../helpers";
+import { createNewTag, setValuesExcel } from "../helpers";
+import { useStep } from "../../../../../context/StepProvider";
+import userService from "../../../../../services/UserService";
 
 export const DelUserTagsStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useUserTags();
-    const { setFormType, formRef } = useFormModal();
+    const { tagOptions, setUserOptions } = useUserTags();
+    const { nextStep } = useStep();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
+
+    const initialFormValues = {
+      tags: [createNewTag()],
+    }
   
     // console.log('User Tag Del Form');
 		// console.log(formData);
@@ -63,11 +70,22 @@ export const DelUserTagsStep1 = () => {
       console.log(errors);
       return errors;
     };
+
+    const onUpload = async (records) => {
+      await setValuesExcel({
+        records,
+        tagOptions,
+        fetchUsrForTagsFunc: userService.fetchUntagUser,
+        setUserOptions,
+        reinitializeForm,
+        handleError
+      });
+    };
   
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}
@@ -79,7 +97,7 @@ export const DelUserTagsStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['tag', 'userName', 'remarks']}/>
+                  <ExcelFormControl loadValues={onUpload} templateCols={['tag', 'userName', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="tags">
                   {tagHelpers => (

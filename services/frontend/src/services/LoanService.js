@@ -1,4 +1,4 @@
-import { FormType } from '../context/ModalProvider';
+import { FormType } from '../context/FormProvider';
 import { API_URL } from '../config';
 import { api } from '../config';
 import qs from 'qs';

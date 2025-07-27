@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Flex,
   ModalBody,
   ModalFooter,
   Table,
@@ -13,11 +12,13 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { useDelAssets } from "./DelAssetsProvider";
+import { useStep } from "../../../../context/StepProvider";
 
 export const DelAssetStep2 = () => {
-  const { formData, handleSubmit, prevStep } = useDelAssets();
+  const { handleSubmit } = useDelAssets();
+  const { formData, prevStep } = useStep();
 
-  return (
+  return formData?.assets ? (
     <Formik
       initialValues={formData}
       onSubmit={handleSubmit}
@@ -60,5 +61,5 @@ export const DelAssetStep2 = () => {
         </ModalFooter>
       </Form>
     </Formik>
-  );
+  ) : undefined;
 };

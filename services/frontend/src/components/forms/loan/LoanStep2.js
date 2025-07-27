@@ -3,10 +3,12 @@ import { FormikSignatureField } from "../utils/SignatureField";
 import { Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useLoans } from "./LoansProvider";
+import { useStep } from "../../../context/StepProvider";
 
 export const LoanStep2 = () => {
 
-	const {prevStep, handleSubmit, formData} = useLoans()
+	const {handleSubmit} = useLoans();
+	const { prevStep, formData } = useStep();
 	const parentRef = useRef(null);
     const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
@@ -29,7 +31,7 @@ export const LoanStep2 = () => {
 		};
 	}, []);
 
-	return (
+	return formData?.users ? (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
@@ -101,5 +103,5 @@ export const LoanStep2 = () => {
 				</ModalFooter>
 			</Form>
 		</Formik>
-	);
+	) : undefined;
 }

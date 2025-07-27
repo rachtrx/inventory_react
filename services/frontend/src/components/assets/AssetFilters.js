@@ -3,7 +3,6 @@ import { Form, Formik, useFormikContext } from 'formik';
 import { useItems } from '../../context/ItemsProvider';
 import InputFormControl from '../forms/utils/InputFormControl';
 import SelectFormControl from '../forms/utils/SelectFormControl';
-import ToggleButton from '../buttons/ToggleButton';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import { useUI } from '../../context/UIProvider';
 import assetService from '../../services/AssetService';

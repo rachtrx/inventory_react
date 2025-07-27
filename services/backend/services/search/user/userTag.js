@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const { Usr, Dept, Sequelize, Event, UsrTagMap, UsrTag } = require("@models");
 const logger = require("@/utils/logging");
 const UserDTO = require("@dtos/usr.dto");
+const { UserCondition } = require("./userCondition");
 
 class UserTagSearch {
 
@@ -9,17 +10,10 @@ class UserTagSearch {
         tagId = null,
         userNames = [],
         deptId = null,
+        ...identifiers
     }) {
-        this.userNames = userNames;
+        this.userCondition = new UserCondition(identifiers);
 
-        const isBulkSearch = Array.isArray(userNames) 
-        logger.info(userNames)
-
-        this.userCondition = isBulkSearch
-            ? { userName: { [Op.in]: userNames } }
-            : { userName: { [Op.iLike]: `%${userNames}%` } };
-            
-        this.isBulkSearch = isBulkSearch;
         this.tagId = tagId;
 
         this.includeArray = [
@@ -80,7 +74,7 @@ class UserTagSearch {
         try {
             const query = await Usr.findAll({
                 attributes: ['id', 'userName'],
-                where: this.userCondition,
+                where: this.userCondition.query,
                 include: this.includeArray,
                 order: orderByArr
             })

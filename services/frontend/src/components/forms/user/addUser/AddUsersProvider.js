@@ -1,30 +1,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { AddUserStep2 } from "./AddUserStep2";
-import { AddUserStep1 } from "./AddUserStep1";
 import { useUI } from "../../../../context/UIProvider";
-import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import userService from "../../../../services/UserService";
-import { compareStrings, convertExcelDate } from "../../utils/validation";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { createNewDept } from "./helpers";
 
 // Create a context
 const AddUsersContext = createContext();
 
 // Create a provider component
-export const AddUsersProvider = () => {
+export const AddUsersProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
-
+  const { setFormType, triggerRefresh } = useForm();
   const [deptOptions, setDeptOptions] = useState([]);
-
-  const [formData, setFormData] = useState({
-    depts: [createNewDept()],
-  });
-  const [step, setStep] = useState(1);
 
   useEffect(() => {
     console.log(deptOptions);
@@ -47,76 +35,6 @@ export const AddUsersProvider = () => {
           value: option.label,
           label: option.label
       }));
-  };
-
-  const setValuesExcel = async (records) => {
-    // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
-    try {
-      const userNames = new Set();
-
-      const recordsMap = {};
-
-      records.forEach((record) => {
-
-        console.log(record);
-
-        Object.keys(record).forEach(field => {
-          record[field] = field !== 'addDate'
-            ? record[field].toString().trim()
-            : convertExcelDate(record[field], record.__rowNum__);
-        });
-        
-        ['deptName', 'userName'].forEach(field => {
-          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
-        });
-        
-        const { deptName, userName, addDate, remarks } = record;
-
-        if (userNames.has(userName)) throw new Error(`Duplicate usernames found: ${userName}`);
-        else userNames.add(userName);
-
-        if (!recordsMap[deptName]) {
-          recordsMap[deptName] = [];
-        }
-        
-        recordsMap[deptName].push({
-          userName,
-          addDate,
-          remarks
-        });
-      });
-
-      const depts = [];
-
-      Object.entries(recordsMap).forEach(([deptName, users]) => {
-        const dept = deptOptions.find(option => compareStrings(option.value, deptName)) || '';
-
-        depts.push(createNewDept({
-          deptId: dept?.deptId || '',
-          deptName: dept?.deptName || deptName,
-          users: users,
-        }))
-      })
-    
-      reinitializeForm({
-        depts: depts
-      });
-
-    } catch (error) {
-      handleError(error);
-    }
-  };
-
-  const prevStep = () => {
-    setStep(step - 1)
-  };
-
-  const nextStep = (values) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values
-    }));
-    setStep(step + 1);
   };
 
   const addNewDept = async (deptName) => {
@@ -147,7 +65,7 @@ export const AddUsersProvider = () => {
       setLoading(false);
       showToast('Users successfully added', 'success', 500);
       setFormType(null);
-      triggerRefresh();;
+      triggerRefresh();
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -160,26 +78,12 @@ export const AddUsersProvider = () => {
   const value = {
     deptOptions,
     addNewDept,
-    formData,
-    step,
-    setFormData,
-    setStep,
-    setValuesExcel,
-    prevStep,
-    nextStep,
-    handleSubmit,
-    warnings,
-    setWarnings
+    handleSubmit
   };
 
   return (
     <AddUsersContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <AddUserStep1/>
-      </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <AddUserStep2/>
-      </Box>
+      {children}
     </AddUsersContext.Provider>
   )
 };

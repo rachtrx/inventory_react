@@ -1,23 +1,85 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { useDelAssets } from "./DelAssetsProvider";
-import { validateUniqueValues } from "../../utils/validation";
+import { compareStrings, convertExcelDate, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddButton } from "../../utils/ItemButtons";
 import { DelAsset } from "./DelAsset";
 import { delNewAsset } from "./helpers";
+import { useStep } from "../../../../context/StepProvider";
+import assetService from "../../../../services/AssetService";
 
 export const DelAssetStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useDelAssets();
-    const { setFormType, formRef } = useFormModal();
+    const { setAssetOptions } = useDelAssets();
+    const { nextStep } = useStep();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
+    const initialFormValues = {
+      assets: [delNewAsset()],
+    }
   
     // console.log('add asset form rendered');
 		// console.log(formData);
+
+    const setValuesExcel = async (records) => {
+      // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
+      try {
+        const serialNumbers = new Set();
+
+        records.forEach((record) => {
+
+          Object.keys(record).forEach(field => {
+            record[field] = field !== 'delDate'
+              ? record[field]?.toString().trim()
+              : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
+          });
+
+          ['serialNumber'].forEach(field => {
+            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+          });
+          
+          if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
+          else serialNumbers.add(record.serialNumber);
+        });
+
+        const assetResponse = await assetService.fetchAstDel([...serialNumbers]);
+        // console.log(assetResponse.data);
+        const newAssetOptions = assetResponse.data;
+        setAssetOptions(newAssetOptions);
+
+        const assets = records.map((record) => {
+          const { serialNumber, remarks, delDate } = record;
+          const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
+
+          if (!matchedAssetOption || matchedAssetOption.isDisabled) {
+            return {
+              serialNumber, // Pass serialNumber regardless of whether id is found
+              delDate,
+              remarks,
+            }
+          } else {  
+            return {
+              assetId: matchedAssetOption ? matchedAssetOption.assetId : null,
+              lastEventDate: matchedAssetOption ? matchedAssetOption.lastEventDate : null,
+              serialNumber,
+              delDate,
+              remarks,
+            }
+          }
+        })
+      
+        reinitializeForm({
+          assets: assets.map(asset => delNewAsset(asset))
+        });
+
+      } catch (error) {
+        handleError(error);
+      }
+    };
 
     const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
       if (fieldValue && !idValue) return `${fieldName} not found`;
@@ -57,7 +119,7 @@ export const DelAssetStep1 = () => {
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}

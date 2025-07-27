@@ -3,18 +3,144 @@ import ExcelFormControl from '../../utils/ExcelFormControl';
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { useAddAssets } from "./AddAssetsProvider";
-import { compareDates, validateUniqueValues } from "../../utils/validation";
+import { compareDates, compareStrings, convertExcelDate, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddType } from "./AddType";
 import { AddButton } from "../../utils/ItemButtons";
-import { useFormModal } from "../../../../context/ModalProvider";
-import { createNewType } from "./helpers";
+import { useForm } from "../../../../context/FormProvider";
+import { createNewSubType, createNewType } from "./helpers";
+import { useStep } from "../../../../context/StepProvider";
+import assetService from "../../../../services/AssetService";
 
 export const AddAssetStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useAddAssets();
-    const { setFormType, formRef } = useFormModal();
+    const { setFormType, formRef, reinitializeForm } = useForm();
+    const { nextStep } = useStep();
     const { handleError } = useUI();
+    const { typeOptions, vendorOptions, setSubTypeOptionsDict } = useAddAssets();
+
+    const initialFormValues = {
+      types: [createNewType()],
+    }
+
+    const setValuesExcel = async (records) => {
+      // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
+      try {
+        const aliases = new Set();
+        const serialNumbers = new Set();
+        const subTypeSet = new Set();
+
+        const recordsMap = {};
+
+        records.forEach((record) => {
+
+          Object.keys(record).forEach(field => {
+            record[field] = field !== 'addDate'
+              ? record[field]?.toString().trim()
+              : record[field] ? convertExcelDate(record[field], record.__rowNum__) : new Date();
+          });
+
+          ['type', 'subType', 'serialNumber'].forEach(field => {
+            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+          });
+
+          const { type, subType, alias, serialNumber, vendorName, cost, location, remarks, addDate } = record;
+          
+          if (alias && aliases.has(alias)) throw new Error(`Duplicate records for asset tag: ${alias} were found`);
+          else if (alias) aliases.add(alias);
+          
+          if (serialNumbers.has(serialNumber)) throw new Error(`Duplicate records for Serial Number: ${serialNumber} were found`);
+          else serialNumbers.add(serialNumber);     
+
+          if (!recordsMap[type]) {
+            recordsMap[type] = {};
+          }
+          
+          if (!recordsMap[type][subType]) {
+            if (subTypeSet.has(subType)) throw new Error(`Error for ${subType}: Subtype names must be different across types`)
+            else subTypeSet.add(subType);
+            recordsMap[type][subType] = [];
+          }
+          
+          recordsMap[type][subType].push({
+            alias,
+            serialNumber,
+            vendorName,
+            cost,
+            addDate,
+            location,
+            remarks
+          });
+        });
+
+        const typeIds = typeOptions.map(option => option.typeId); // type options loaded upon form creation
+
+        const subTypesResponse = await assetService.getSubTypeFilters(typeIds);
+        const subTypeOptionsMap = subTypesResponse.data;
+
+        const types = [];
+
+        Object.entries(recordsMap).forEach(([typeName, subTypeObjs]) => {
+          let typeId = '';
+          const type = typeOptions.find(option => compareStrings(option.value, typeName));
+          if (type) {
+            typeId = type.typeId;
+            typeName = type.value; // update the typename
+          }
+
+          const subTypes = [];
+
+          Object.entries(subTypeObjs).forEach(([subTypeName, assetObjs]) => {
+            let subTypeId = '';
+            if (typeId) {
+              const subType = subTypeOptionsMap[typeId].find(option => compareStrings(option.value, subTypeName));
+              if (subType) {
+                subTypeId = subType.subTypeId;
+                subTypeName = subType.value;
+              }
+            }
+
+            const assets = assetObjs.map(asset => {
+              let vendorId = '';
+              let vendorName = asset.vendorName;
+              const vendor = vendorOptions.find(option => compareStrings(option.value, vendorName));
+              if (vendor) {
+                vendorId = vendor.vendorId;
+                vendorName = vendor.value; // update the typename
+              }
+              return {
+                ...asset,
+                vendorId,
+                vendorName
+              }
+            })
+            
+            subTypes.push(createNewSubType({
+              subTypeId: subTypeId,
+              subTypeName: subTypeName,
+              assets: assets,
+            }));
+          })
+
+          types.push(createNewType({
+            typeId: typeId,
+            typeName: typeName,
+            subTypes: subTypes,
+          }))
+        })
+
+        // console.log(subTypeOptionsMap);
+
+        setSubTypeOptionsDict(subTypeOptionsMap);
+      
+        reinitializeForm({
+          types: types
+        });
+
+      } catch (error) {
+        handleError(error);
+      }
+    };
 
     // useEffect(() => {
     //   console.log("Asset Add Form");
@@ -85,7 +211,7 @@ export const AddAssetStep1 = () => {
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}

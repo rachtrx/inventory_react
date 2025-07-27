@@ -5,7 +5,6 @@ import UserTable from './UserTable'
 import RecordsLayout from '../RecordsLayout';
 import { ItemsProvider } from "../../context/ItemsProvider";
 import userService from "../../services/UserService";
-import SearchBar from "../utils/SearchBar";
 
 export const UsersPage = () => {
 

@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from "../../../utils/ExcelFormControl";
-import { useFormModal } from "../../../../../context/ModalProvider";
+import { useForm } from "../../../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../../context/UIProvider";
 import { validateUniqueValues } from "../../../utils/validation";
@@ -8,13 +8,17 @@ import { setFieldError } from "../../../utils/validation";
 import { AddButton } from "../../../utils/ItemButtons";
 import { DelTag } from "./DelTag";
 import { useAssetTags } from "../AssetTagsProvider";
-import { createNewTag } from "../helpers";
+import { createNewTag, setValuesExcel } from "../helpers";
+import assetService from "../../../../../services/AssetService";
+import { useStep } from "../../../../../context/StepProvider";
 
 export const DelAssetTagsStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useAssetTags();
-    const { setFormType, formRef } = useFormModal();
+    const { tagOptions, setAssetOptions } = useAssetTags();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
+    const { nextStep } = useStep();
+    const initialValues = { tags: [createNewTag()] };
   
     // console.log('add asset form rendered');
 		// console.log(formData);
@@ -63,11 +67,22 @@ export const DelAssetTagsStep1 = () => {
       // console.log(errors);
       return errors;
     };
+
+    const onUpload = async (records) => {
+      await setValuesExcel({
+        records,
+        tagOptions,
+        fetchAstForTagsFunc: assetService.fetchUntagAsset,
+        setAssetOptions,
+        reinitializeForm,
+        handleError
+      });
+    };
   
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}
@@ -79,7 +94,7 @@ export const DelAssetTagsStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['tag', 'serialNumber', 'remarks']}/>
+                  <ExcelFormControl loadValues={onUpload} templateCols={['tag', 'serialNumber', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="tags">
                   {tagHelpers => (

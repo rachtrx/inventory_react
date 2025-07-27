@@ -1,4 +1,4 @@
-import { FormType } from '../../context/ModalProvider';
+import { FormType } from '../../context/FormProvider';
 import { CircleUserActionButton } from '../buttons/actions/UserActionButton';
 import { CircleReturnButton } from '../buttons/actions/ReturnButton';
 

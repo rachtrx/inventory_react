@@ -1,22 +1,22 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { dateTimeObject } from '../config';
 import { useContext, useMemo } from 'react';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
 import { useSearchParams } from 'react-router-dom';
 import { useModal } from '@chakra-ui/react';
-import { useFormModal } from './ModalProvider';
+import { useForm } from './FormProvider';
 
 // Create a context for assets
 const ItemsContext = createContext();
 
 // Devices Provider component
-export const ItemsProvider = ({ children, service, idField, initSortField, initSortOrder="asc" }) => {
+export const ItemsProvider = ({ children, service, itemKey, initSortField, initSortOrder="asc" }) => {
   console.log("rendering items provider");
   const [data, setData] = useState([]);
   const { handleError } = useUI();
   const { setLoading } = useLoading();
-  const { refreshKey, triggerRefresh } = useFormModal();
+  const { refreshKey, triggerRefresh } = useForm();
   
   const [searchParams, setSearchParams] = useSearchParams();
   const initialPage = parseInt(searchParams.get('page'), 10) || 1;
@@ -31,17 +31,26 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   const [sortField, setSortField] = useState(initSortField);
   const [sortOrder, setSortOrder] = useState(initSortOrder);
 
-  // useEffect(() => {
-  //   console.log(filters);
-  // }, [filters]);
+  const [selectedItems, setSelectedItems] = useState([]);
 
-  // useEffect(() => {
-  //   console.log(searchFilters);
-  // }, [searchFilters]);
-  
-  // useEffect(() => {
-  //   console.log(data);
-  // }, [data]);
+  const handleSelectOne = (item) => {
+    const id = item[itemKey];
+
+    setSelectedItems((prev) => {
+      const exists = prev.some(i => i[itemKey] === id);
+      return exists
+        ? prev.filter(i => i[itemKey] !== id) // remove it
+        : [...prev, item]; // add full item
+    });
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedItems(data);
+    } else {
+      setSelectedItems([]);
+    }
+  }
 
   const updateUrl = useCallback((page) => {
     searchParams.set('page', page);
@@ -134,6 +143,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
         console.log(response.data.totalPages);
         console.log(response.data.totalCount);
         console.log(response.data?.data?.slice(0, 10));
+        setSelectedItems([]);
         setData(response.data.data);
         setMaxPage(response.data.totalPages);
         setTotalCount(response.data.totalCount);
@@ -176,7 +186,12 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
       prev,
       jump,
       itemsPerPage,
-      setItemsPerPage
+      setItemsPerPage,
+      selectedItems,
+      setSelectedItems,
+      handleSelectOne,
+      handleSelectAll,
+      itemKey
     }}>
       {children}
     </ItemsContext.Provider>

@@ -3,7 +3,7 @@ import { AccTypeLink, AssetLink } from "../../buttons/ItemLink"
 import { CircleText, OverlappingCircles } from "../CircleText"
 import { AssetActionButton } from "../../buttons/actions/AssetActionButton"
 import { ReturnButton } from "../../buttons/actions/ReturnButton"
-import { FormType } from "../../../context/ModalProvider"
+import { FormType } from "../../../context/FormProvider"
 
 
 export const ItemsLine = ({ data, loanId, astLoan={}, accLoans }) => {

@@ -1,22 +1,164 @@
 import { Box, Button, Divider, ModalBody, ModalFooter } from "@chakra-ui/react";
 import ExcelFormControl from "../utils/ExcelFormControl";
-import { useFormModal } from "../../../context/ModalProvider";
+import { useForm } from "../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { LoanProvider } from "./LoanProvider";
 import { useLoans } from "./LoansProvider";
-import { setFieldError } from "../utils/validation";
+import { compareStrings, convertExcelDate, setFieldError } from "../utils/validation";
 import { useUI } from "../../../context/UIProvider";
+import loanService from "../../../services/LoanService";
+import { useStep } from "../../../context/StepProvider";
+import { createNewAccessory, createNewAsset, createNewUser } from "./helpers";
+import { useLocation } from "react-router-dom";
 
 export const LoanStep1 = () => {
-
-    const { nextStep, formData, setValuesExcel } = useLoans();
-    const { setFormType, formRef } = useFormModal();
+  
+    const { nextStep, formData } = useStep();
+    const { setAssetOptions, setUserOptions, setAccessoryOptions } = useLoans();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
   
     useEffect(() => console.log('loan form rendered'))
 		
     useEffect(() => console.log(formData), [formData]);
+
+    const location = useLocation();
+    const initialUser = useMemo(() => {
+      if (location.pathname.includes('assets')) {
+        return createNewUser({loans: [{ asset: createNewAsset(), accessories: [] }]});
+      } else if (location.pathname.includes('accessories')) {
+        return createNewUser({loans: [{ asset: null, accessories: [createNewAccessory()] }]});
+      } else {
+        return createNewUser();
+      }
+    }, [location.pathname]);
+    
+    const initialFormValues = {
+      users: [initialUser]
+    };
+
+    const processAccessories = (accessoryTypesStr) => {
+      if (!accessoryTypesStr) return {};
+      return accessoryTypesStr.split(',').map(accessoryType => accessoryType.trim()).reduce((acc, accessoryType) => {
+        if (acc[accessoryType]) {
+          acc[accessoryType] += 1;
+        } else {
+          acc[accessoryType] = 1;
+        }
+        return acc;
+      }, {});
+    };
+
+    const setValuesExcel = async (records) => {
+      // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
+      try {
+        const serialNumbers = new Set();
+        const userNames = new Set();
+        const accessoryNames = new Set();
+
+        const userToRowMap = {};
+
+        records.forEach((record, idx) => {
+          // Process and add user names to the set
+          if (!record.userName) throw new Error (`Username required at line ${record.__rowNum__}`)
+          record.userName = record.userName.trim();
+          userNames.add(record.userName);
+
+          if (!record.serialNumber) throw new Error (`Serial Number required at line ${record.__rowNum__}`)
+
+          if (typeof record.serialNumber === 'number') {
+            record.serialNumber = record.serialNumber.toString();
+          }
+          record.serialNumber = record.serialNumber.trim();
+          if (record.serialNumber) {
+              if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
+              else serialNumbers.add(record.serialNumber);
+          } else throw new Error (`Serial Number required at line ${record.__rowNum__}`)
+      
+          // Process accessoryTypes
+          const accessoryTypes = processAccessories(record.accessoryTypes);
+          record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
+              accessoryNames.add(name);
+              return { accessoryName: name, count: count };
+          });
+          
+          if (record.expectedReturnDate) {
+            record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
+          }
+
+          if (!userToRowMap[record.userName]) userToRowMap[record.userName] = [idx];
+          else userToRowMap[record.userName].push(idx);
+        });
+
+        const assetResponse = await loanService.fetchAstLoan([...serialNumbers]);
+        console.log(assetResponse.data);
+        const userResponse = await loanService.fetchUserLoan([...userNames]);
+        const newAssetOptions = assetResponse.data;
+        const newUserOptions = userResponse.data;
+
+        let newAccessoryoptions = [];
+        console.log(accessoryNames);
+        if (accessoryNames.size !== 0) {
+          const accessoryResponse = await loanService.fetchAccLoan([...accessoryNames]);
+          newAccessoryoptions = accessoryResponse.data;
+          console.log(newAccessoryoptions);
+        }
+    
+        // Convert grouped records into loans
+        const users = Object.entries(userToRowMap).map(([userName, rowIdxs]) => {
+
+          // Find the user IDs based on userNames (assuming userNames is an array of names)
+          const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
+          console.log(matchedUserOption);
+          let userObj;
+          if (!matchedUserOption || matchedUserOption.isDisabled) userObj = {userName}
+          else userObj = matchedUserOption;
+
+          userObj.loans = []
+          
+          for (const rowIdx of rowIdxs) {
+            const { serialNumber, accessoryTypes, expectedReturnDate, location, remarks } = records[rowIdx];
+
+            const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
+            console.log(matchedAssetOption);
+            
+            let assetObj;
+            
+            if (!matchedAssetOption || matchedAssetOption.isDisabled) assetObj = {serialNumber: serialNumber}
+            else assetObj = matchedAssetOption; // Pass serialNumber regardless of whether id is found
+            assetObj.location = location || "";
+
+            const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
+              const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
+              return matchedAccessoryOption || {
+                accessoryName, // Pass accessoryName regardless of whether id is found
+                count: count
+              }
+            });
+            console.log(accessoryObjs);
+
+            userObj.loans.push({
+              asset: assetObj,
+              accessories: accessoryObjs,
+              expectedReturnDate: expectedReturnDate,
+              remarks: remarks
+            })
+          }
+          return userObj;
+        })
+
+        setAssetOptions(newAssetOptions.filter(option => !option.isDisabled));
+        setUserOptions(newUserOptions.filter(option => !option.isDisabled));
+        setAccessoryOptions(newAccessoryoptions);
+      
+        reinitializeForm({
+          users: users.map(user => createNewUser(user))
+        });
+      } catch (error) {
+        handleError(error);
+      }
+    };
         
     const validateUniqueAssetIDs = (assets) => {
       const assetIDSet = new Set();
@@ -120,7 +262,7 @@ export const LoanStep1 = () => {
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}

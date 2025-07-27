@@ -105,11 +105,14 @@ class FormUserTagController {
         try {
             for (const { tagId, tagName, users } of newTags) {
 
+                let tag;
+
                 try {
                     tag = await UsrTag.findByPk(tagId, { transaction }); // Ensure it's inside transaction
                     if (!tag) throw new Error()
                 } catch (error) {
-                    res.status(500).send(`No Matching User Type for ${tagName} Found!`);
+                    res.status(500).json({message: `No Matching User Type for ${tagName} Found!`});
+                    return;
                 }
                 
                 for (const { userId, remarks, userName } of users) {

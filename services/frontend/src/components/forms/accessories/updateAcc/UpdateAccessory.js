@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import loanService from "../../../../services/LoanService";
 import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
 import { AvailAccSelectFormControl } from "../../options/AvailAccessoryOptions";
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const UpdateAccessory = ({
@@ -17,7 +17,7 @@ export const UpdateAccessory = ({
     children
 }) => {
 
-    const { initialValues } = useFormModal();
+    const { initialValues } = useForm();
     const { values, setFieldValue } = useFormikContext();
     const { addNewAccessory, accessoryOptions } = useUpdateAccessories(); 
 

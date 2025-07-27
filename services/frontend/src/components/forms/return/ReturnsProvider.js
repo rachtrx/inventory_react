@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../context/UIProvider";
 import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../context/ModalProvider";
+import { useForm } from "../../../context/FormProvider";
 import ReturnStep1 from "./ReturnStep1";
 import { ReturnStep2 } from "./ReturnStep2";
 import { compareStrings } from "../utils/validation";
@@ -13,20 +13,12 @@ import { createNewReturn } from "./helpers";
 const ReturnsContext = createContext();
 
 // Create a provider component
-export const ReturnsProvider = () => {
+export const ReturnsProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useForm();
   const [ returnOptions, setReturnOptions ] = useState([]);
   const [ userOptions, setUserOptions ] = useState([]);
-  const [step, setStep] = useState(1);
-
-  const [formData, setFormData] = useState({
-    returns: [createNewReturn()],
-  });
-
-  useEffect(() => console.log(formData), [formData])
 
   useEffect(() => {
     console.log(initialValues);
@@ -69,85 +61,6 @@ export const ReturnsProvider = () => {
     loadPresetValues()
   }, [initialValues, handleError, reinitializeForm]);
 
-  const setValuesExcel = useCallback(async (records) => {
-    // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
-    try {
-
-      const serialNumbers = new Set();
-
-      records.forEach(record => {
-          // Trim and add asset tags to the set
-
-        Object.keys(record).forEach(field => {
-          record[field] = record[field]?.toString().trim();
-        });
-
-        ['serialNumber'].forEach(field => {
-          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
-        });
-        
-        if (serialNumbers.has(record.serialNumber)) throw new Error(`Duplicate records for serialNumber: ${record.serialNumber} were found`);
-        else serialNumbers.add(record.serialNumber);
-      });
-
-      const assetResponse = await loanService.fetchAstReturn([...serialNumbers])
-      console.log(assetResponse);
-
-      const assetOptions = assetResponse.data; // gets all possible asset tags, some possibly missing
-      const userOptions = assetOptions
-        .filter(assetOption => assetOption.user)
-        .map(assetOption => ({
-          ...assetOption.user,
-          value: assetOption.user.userName,
-          label: assetOption.user.userName,
-        })
-      )
-
-      const returns = records.map(({serialNumber, remarks}) => {
-        const matchedAssetOption = assetOptions.find(option => compareStrings(option.label, serialNumber)); 
-        // unlike other forms, dont need to check for isDisabled since this only fills the "search" input
-        console.log(matchedAssetOption);
-
-        return {
-          loanId: matchedAssetOption?.loanId,
-          astLoan: matchedAssetOption?.astLoan,
-          user: matchedAssetOption?.user,
-          accLoans: matchedAssetOption?.accLoans,
-          remarks,
-          search: serialNumber
-        }
-      })
-
-      setReturnOptions(assetOptions);
-      setUserOptions(userOptions); 
-    
-      console.log(userOptions);
-    
-      reinitializeForm({
-        returns: returns.map(_return => createNewReturn(_return))
-      });
-    } catch (error) {
-      handleError(error);
-    }
-  }, [handleError, reinitializeForm]); 
-
-  const prevStep = () => {
-    setStep(Math.min(step - 1, 1))
-  };
-
-  const nextStep = (values, actions) => {
-    console.log('Manual Form Values:', values);
-
-    const newUserReturns = {}
-
-    values.returns.forEach((ret) => {
-      // If serialNumber doesn't exist in newUserReturns, initialize it
-      if (newUserReturns[ret.asset.serialNumber]) throw Error(`Duplicate Serial Number ${ret.serialNumber} found`)
-    });
-    setStep(Math.max(step + 1, 2));
-    setFormData(values);
-  };
-
   const handleSubmit = async (values, actions) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
@@ -168,29 +81,16 @@ export const ReturnsProvider = () => {
 
   // The context value includes all the states and functions to be shared
   const value = {
-    formData,
     userOptions,
     setUserOptions,
     returnOptions,
     setReturnOptions,
-    step,
-    setFormData,
-    setStep,
-    setValuesExcel,
-    prevStep,
-    nextStep,
-    handleSubmit,
-    warnings,
-    setWarnings
+    handleSubmit
   };
 
   return (
     <ReturnsContext.Provider value={value}>
-      <Box hidden={step !== 1}>
-        <ReturnStep1/>
-      </Box>
-      
-      {step === 2 && <ReturnStep2 />}
+      {children}
     </ReturnsContext.Provider>
   );
 };

@@ -1,11 +1,13 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useAddAssets } from "./AddAssetsProvider";
+import { useStep } from "../../../../context/StepProvider";
 
 export const AddAssetStep2 = () => {
-  const { formData, handleSubmit, prevStep } = useAddAssets();
+  const { handleSubmit } = useAddAssets();
+  const { prevStep, formData } = useStep();
 
-  return (
+  return formData?.types ? (
     <Formik
       initialValues={formData}
       onSubmit={handleSubmit}
@@ -77,5 +79,5 @@ export const AddAssetStep2 = () => {
         </ModalFooter>
       </Form>
     </Formik>
-  );
+  ) : undefined;
 };

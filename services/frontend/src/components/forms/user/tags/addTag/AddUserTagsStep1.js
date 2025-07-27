@@ -6,20 +6,28 @@ import { validateUniqueValues } from "../../../utils/validation";
 import { setFieldError } from "../../../utils/validation";
 import { AddTag } from "./AddTag";
 import { AddButton } from "../../../utils/ItemButtons";
-import { useFormModal } from "../../../../../context/ModalProvider";
+import { useForm } from "../../../../../context/FormProvider";
 import { useUserTags } from "../UserTagsProvider";
-import { createNewTag } from "../helpers";
+import { createNewTag, setValuesExcel } from "../helpers";
+import { useStep } from "../../../../../context/StepProvider";
+import userService from "../../../../../services/UserService";
 
 export const AddUserTagsStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useUserTags();
-    const { setFormType, formRef } = useFormModal();
+    const { tagOptions, setUserOptions } = useUserTags();
+    const { nextStep } = useStep();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
 
+    const initialFormValues = {
+      tags: [createNewTag()],
+    }
+    
     // useEffect(() => {
     //   console.log("User Tag Add Form");
     //   console.log(formData);
     // }, [formData]);
+
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -65,11 +73,22 @@ export const AddUserTagsStep1 = () => {
       console.log(errors);  
       return errors;
     };
+
+    const onUpload = async (records) => {
+      await setValuesExcel({
+        records,
+        tagOptions,
+        fetchUsrForTagsFunc: userService.fetchTagUser,
+        setUserOptions,
+        reinitializeForm,
+        handleError
+      });
+    };
   
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}
@@ -81,7 +100,7 @@ export const AddUserTagsStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['tag', 'userName', 'remarks']}/>
+                  <ExcelFormControl loadValues={onUpload} templateCols={['tag', 'userName', 'remarks']}/>
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="tags">
                   {tagHelpers => (

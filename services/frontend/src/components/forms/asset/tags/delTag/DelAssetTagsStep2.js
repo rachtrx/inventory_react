@@ -14,11 +14,14 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { useAssetTags } from "../AssetTagsProvider";
+import { useStep } from "../../../../../context/StepProvider";
 
 export const DelAssetTagsStep2 = () => {
-  const { formData, handleDelTagsSubmit, prevStep } = useAssetTags();
 
-  return (
+  const { handleDelTagsSubmit } = useAssetTags();
+  const { formData, prevStep } = useStep();
+
+  return formData?.tags ? (
     <Formik
       initialValues={formData}
       onSubmit={handleDelTagsSubmit}
@@ -74,5 +77,5 @@ export const DelAssetTagsStep2 = () => {
         </ModalFooter>
       </Form>
     </Formik>
-  );
+  ) : undefined;
 };

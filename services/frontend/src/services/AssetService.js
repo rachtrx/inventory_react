@@ -1,4 +1,4 @@
-import { FormType } from '../context/ModalProvider';
+import { FormType } from '../context/FormProvider';
 import { API_URL } from '../config';
 import { api } from '../config';
 import qs from 'qs';
@@ -109,6 +109,15 @@ class AssetService {
             }
         });
     }
+
+    fetchTagAssetById = async(assetIds, tagId=null) => {
+        return await this.axios.get(`${this.URL}/tag/asset`, {
+            params: {
+                assetIds,
+                tagId,
+            }
+        });
+    }
     
     tagAsset = async (formData) => {
         // downloadFormData(formData);
@@ -120,6 +129,15 @@ class AssetService {
         return await this.axios.get(`${this.URL}/untag/asset`, {
             params: {
                 serialNumbers,
+                tagId,
+            }
+        });
+    }
+
+    fetchUntagAssetById = async (assetIds, tagId=null) => {
+        return await this.axios.get(`${this.URL}/untag/asset`, {
+            params: {
+                assetIds,
                 tagId,
             }
         });

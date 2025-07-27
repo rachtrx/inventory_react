@@ -11,7 +11,7 @@ export const AssetsPage = () => {
   // console.log(process.env.NODE_ENV)
 
   return (
-    <ItemsProvider service={assetService} idField="assetId" initSortField="serialNumber">
+    <ItemsProvider service={assetService} itemKey="assetId" initSortField="serialNumber">
       <RecordsLayout
         header="Assets"
         Filters={AssetFilters}

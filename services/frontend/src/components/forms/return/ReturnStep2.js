@@ -1,12 +1,14 @@
 import { Box, Button, Flex, ListItem, ModalBody, ModalFooter, Text, UnorderedList } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useReturns } from "./ReturnsProvider";
+import { useStep } from "../../../context/StepProvider";
 
 export const ReturnStep2 = () => {
 
-  const { formData, handleSubmit, prevStep } = useReturns();
+  const { handleSubmit } = useReturns();
+  const { formData, prevStep } = useStep();
 
-	return (
+	return formData?.returns ? (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
@@ -58,5 +60,5 @@ export const ReturnStep2 = () => {
 				</ModalFooter>
 			</Form>
 		</Formik>
-	);
+	) : undefined;
 }

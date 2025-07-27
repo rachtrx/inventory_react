@@ -1,6 +1,6 @@
 import { Box, Heading, Flex, Grid, SimpleGrid, Text } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { FormType } from '../../context/ModalProvider';
+import { FormType } from '../../context/FormProvider';
 import { AssetActionButton } from '../buttons/actions/AssetActionButton';
 import { UserActionButton } from '../buttons/actions/UserActionButton';
 import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
@@ -78,12 +78,14 @@ const User = ({ user }) => {
 							<>
 								<Text fontSize="md">Added Date:</Text>
 								<DateText colorScheme={"green"} event={user.addEvent}/>
+								<Box></Box>
 							</>
 						) : undefined}
 						{user.deleteEvent ? (
 							<>
 								<Text fontSize="md">Condemned Date:</Text>
 								<DateText colorScheme={"red"} event={user.deleteEvent}/>
+								<Box></Box>
 							</>
 						) : undefined}
 					</Grid>

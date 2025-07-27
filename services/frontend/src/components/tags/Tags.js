@@ -1,6 +1,6 @@
 import { Tag, TagCloseButton, Text, Wrap, WrapItem } from "@chakra-ui/react";
 import { AssetActionButton } from "../buttons/actions/AssetActionButton";
-import { FormType } from "../../context/ModalProvider";
+import { FormType } from "../../context/FormProvider";
 import { UserActionButton } from "../buttons/actions/UserActionButton";
 import { FaPlus } from "react-icons/fa";
 

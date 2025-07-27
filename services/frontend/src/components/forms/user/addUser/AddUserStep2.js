@@ -1,12 +1,14 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useAddUsers } from "./AddUsersProvider";
+import { useStep } from "../../../../context/StepProvider";
 
 export const AddUserStep2 = () => {
 
-  const { formData, handleSubmit, prevStep } = useAddUsers();
+  const { handleSubmit } = useAddUsers();
+	const { formData, prevStep } = useStep();
 
-	return (
+	return formData?.depts ? (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
@@ -71,5 +73,5 @@ export const AddUserStep2 = () => {
 				</ModalFooter>
 			</Form>
 		</Formik>
-	);
+	) : undefined;
 }

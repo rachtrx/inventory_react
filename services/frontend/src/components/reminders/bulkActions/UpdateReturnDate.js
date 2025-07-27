@@ -10,7 +10,7 @@ import {
   ModalFooter, 
 } from "@chakra-ui/react";
 import { Form, Formik } from 'formik';
-import DateInputControl from '../forms/utils/DateInputControl';
+import DateInputControl from '../../forms/utils/DateInputControl';
 
 export const UpdateReturnDate = ({ isOpen, onClose, handleSubmit }) => {
 

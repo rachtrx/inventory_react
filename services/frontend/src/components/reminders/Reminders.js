@@ -6,16 +6,18 @@ import RecordsLayout from '../RecordsLayout';
 import ReminderCards from './ReminderCards';
 import reminderService from '../../services/ReminderService';
 import ReminderActions from './ReminderActions';
+import { ReminderBulkActions } from './bulkActions/ReminderBulkActions';
 
 export const RemindersPage = () => {
 
   return (
-    <ItemsProvider service={reminderService} initSortField="expectedReturnDate">
+    <ItemsProvider service={reminderService} initSortField="expectedReturnDate" itemKey="loanId">
       <RecordsLayout
         header="Reminders"
         Filters={ReminderFilters}
         Actions={ReminderActions}
         Cards={ReminderCards}
+        BulkActions={ReminderBulkActions}
         Table={ReminderTable}
         defaultSearches={[
           { attr: "serialNumber", label: "asset"},

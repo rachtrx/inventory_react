@@ -1,9 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { useUI } from "../../../../context/UIProvider";
-import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../../context/ModalProvider";
-import { compareStrings } from "../../utils/validation";
+import { useForm } from "../../../../context/FormProvider";
 
 import { AddUserTagsStep2 } from "./addTag/AddUserTagsStep2";
 import { AddUserTagsStep1 } from "./addTag/AddUserTagsStep1";
@@ -11,33 +9,22 @@ import { DelUserTagsStep1 } from "./delTag/DelUserTagsStep1";
 import { DelUserTagsStep2 } from "./delTag/DelUserTagsStep2";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
-import { createNewTag } from "./helpers";
 
 // Create a context
 const UserTagsContext = createContext();
 
 // Create a provider component
-export const UserTagsFormProvider = ({
-	fetchUsrForTagsFunc,
-	Step1,
-	Step2
-}) => {
+export const UserTagsFormProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh, reinitializeForm } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
+  const { setFormType, triggerRefresh } = useForm();
 
   const [ tagOptions, setTagOptions ] = useState([]);
   const [ userOptions, setUserOptions ] = useState({});
 
-  const [formData, setFormData] = useState({
-    tags: [createNewTag()],
-  });
-  const [step, setStep] = useState(1);
-
-  useEffect(() => {
-    console.log(tagOptions);
-  }, [tagOptions])
+  // useEffect(() => {
+  //   console.log(tagOptions);
+  // }, [tagOptions])
 
   useEffect(() => { 
     const fetchFilters = async () => {
@@ -58,72 +45,6 @@ export const UserTagsFormProvider = ({
       }));
   };
 
-  const setValuesExcel = async (records) => {
-    // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
-    try {
-      const recordsMap = {};
-      const unDict = {}; // username dictionary for <tag: usernames>
-
-      records.forEach((record) => {
-        ['tag', 'userName'].forEach(field => {
-          if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
-        });
-
-        const { tag, userName, remarks="" } = record;
-
-        if (!unDict[tag]) {
-          unDict[tag] = new Set();
-        }
-
-        if (unDict[tag].has(userName)) throw new Error(`Duplicate records for UserName: ${userName} were found`);
-        else unDict[tag].add(userName);
-
-        if (!recordsMap[tag]) {
-          recordsMap[tag] = [];
-        }
-        
-        recordsMap[tag].push({userName, remarks});
-      });
-      const tags = [];
-
-      for (const [ tagName, userRows ] of Object.entries(recordsMap)) {
-        const userNames = unDict[tagName]
-
-        let tagOption = tagOptions.find(option => compareStrings(option.value, tagName));
-        let newUserOptions;
-        let response;
-
-        if (!tagOption) {
-          tagOption = { tagName }
-          response = await fetchUsrForTagsFunc([...userNames])
-        } else {
-          response = await fetchUsrForTagsFunc([...userNames], tagOption.tagId) 
-        }
-        newUserOptions = response.data;
-        setUserOptions({ ...userOptions, [tagName]: newUserOptions });
-        console.log(newUserOptions);
-
-        const userObjs = userRows.map(({userName, remarks}) => {
-          const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
-          console.log(matchedUserOption);
-          if (matchedUserOption) return { ...matchedUserOption, remarks};
-          return {userName, remarks};
-        })
-
-        tags.push(createNewTag(tagOption, userObjs));
-      }
-
-      console.log(tags);
-    
-      reinitializeForm({
-        tags: tags
-      });
-
-    } catch (error) {
-      handleError(error);
-    }
-  };
-
   const addNewTag = async (tagName) => {
     try {
       setLoading(true);
@@ -142,20 +63,6 @@ export const UserTagsFormProvider = ({
       handleError(error);
     }
   }
-
-  const prevStep = () => {
-    setStep(step - 1)
-  };
-
-  const nextStep = (values) => {
-    console.log(values);
-    setStep(step + 1);
-
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values
-    }));
-  };
 
   const handleAddTagsSubmit = async (values, actions) => {
     setLoading(true);
@@ -197,29 +104,15 @@ export const UserTagsFormProvider = ({
   const value = {
     tagOptions,
     addNewTag,
-    formData,
     userOptions, 
     setUserOptions,
-    step,
-    setFormData,
-    setStep,
-    setValuesExcel,
-    prevStep,
-    nextStep,
     handleAddTagsSubmit,
     handleDelTagsSubmit,
-    warnings,
-    setWarnings
   };
 
   return (
     <UserTagsContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <Step1/>
-      </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <Step2/>
-      </Box>
+      {children}
     </UserTagsContext.Provider>
   )
 };
@@ -228,23 +121,3 @@ export const UserTagsFormProvider = ({
 export const useUserTags = () => {
   return useContext(UserTagsContext);
 };
-
-export const AddUserTagsProvider = ({ children }) => (
-  <UserTagsFormProvider
-    fetchUsrForTagsFunc={userService.fetchTagUser}
-		Step1={AddUserTagsStep1}
-		Step2={AddUserTagsStep2}
-  >
-    {children}
-  </UserTagsFormProvider>
-);
-
-export const DelUserTagsProvider = ({ children }) => (
-  <UserTagsFormProvider
-    fetchUsrForTagsFunc={userService.fetchUntagUser}
-		Step1={DelUserTagsStep1}
-		Step2={DelUserTagsStep2}
-  >
-    {children}
-  </UserTagsFormProvider>
-);

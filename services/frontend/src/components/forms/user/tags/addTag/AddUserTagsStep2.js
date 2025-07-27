@@ -14,11 +14,13 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form } from "formik";
 import { useUserTags } from "../UserTagsProvider";
+import { useStep } from "../../../../../context/StepProvider";
 
 export const AddUserTagsStep2 = () => {
-  const { formData, handleAddTagsSubmit, prevStep } = useUserTags();
+  const { handleAddTagsSubmit } = useUserTags();
+  const { formData, prevStep } = useStep();
 
-  return (
+  return formData?.tags ? (
     <Formik
       initialValues={formData}
       onSubmit={handleAddTagsSubmit}
@@ -75,5 +77,5 @@ export const AddUserTagsStep2 = () => {
         </ModalFooter>
       </Form>
     </Formik>
-  );
+  ) : undefined;
 };

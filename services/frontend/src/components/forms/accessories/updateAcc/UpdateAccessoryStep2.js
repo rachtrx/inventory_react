@@ -2,13 +2,15 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useUpdateAccessories } from "./UpdateAccessoriesProvider";
+import { useStep } from "../../../../context/StepProvider";
 
-export const UpdateAccessoriesStep2 = () => {
-  const { formData, handleSubmit, prevStep } = useUpdateAccessories();
+export const UpdateAccessoryStep2 = () => {
+  const { handleSubmit } = useUpdateAccessories();
+  const { prevStep, formData } = useStep();
 
 	const getColor = (total) => total >= 0 ? "green" : "red"
 
-  return (
+  return (formData?.accessories ?
     <Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
@@ -54,6 +56,6 @@ export const UpdateAccessoriesStep2 = () => {
 					<Button colorScheme="blue" type="submit">Submit</Button>
 				</ModalFooter>
 			</Form>
-		</Formik>
-  );
+		</Formik> : undefined
+  	);
 };

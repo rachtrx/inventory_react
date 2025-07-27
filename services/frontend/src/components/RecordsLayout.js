@@ -17,7 +17,7 @@ import ActionSidebar from './utils/ActionSidebar';
 import SearchBar from './utils/SearchBar';
 import { MdRefresh } from 'react-icons/md';
 
-export default function RecordsLayout({ header, Filters, Actions, Cards, Table, defaultSearches=[] }) {
+export default function RecordsLayout({ header, Filters, Actions, Cards, Table, BulkActions, defaultSearches=[] }) {
 
   const { headerSize, isIpad } = useResponsive()
   const { loading } = useLoading();
@@ -84,8 +84,8 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
 
         <Box>
           <Formik
-              initialValues={defaultFilters}
-              onSubmit={(values) => setSearchFilters(values)}
+            initialValues={defaultFilters}
+            onSubmit={(values) => setSearchFilters(values)}
           >
             <Form>
               <FilterSidebar isOpen={isFilterOpen} onClose={onFilterClose}>
@@ -126,11 +126,21 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
           <InfoBar count={totalCount}/>
           <CapsuleToggleButton isGridView={isGridView} setIsGridView={setIsGridView} />
         </Flex>
-        {loading ? <CardSkeleton /> : 
-          totalCount === 0 ? <NoDataBox /> : 
-          isGridView ? <Cards items={data} /> : 
-          <Table items={data}/>}
+        <Flex direction="column" gap={1}>
+          {/* TODO add select all button for cards? */}
+          { BulkActions ? <BulkActions/> : undefined }
+          {loading ? <CardSkeleton /> : 
+            totalCount === 0 ? <NoDataBox /> : 
+            isGridView ? <Cards items={data} /> : 
+            <Table items={data}/>}
+        </Flex>
         <PaginationControls/>
       </>
   );
 }
+
+// const allSelected = data.length > 0 && selectedItems.length === data.length;
+
+// <Checkbox isChecked={allSelected} onChange={handleSelectAll}>
+//           Select All
+//         </Checkbox>

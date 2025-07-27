@@ -1,4 +1,3 @@
-import { FaTools } from 'react-icons/fa';
 import { Box, IconButton, Text } from '@chakra-ui/react';
 
 export const DefaultButton = ({ onClick, bg, text, isMulti, textSize, ...rest }) => (

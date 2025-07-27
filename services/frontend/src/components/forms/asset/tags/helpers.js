@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { compareStrings } from "../../utils/validation";
 
 export const createNewTag = (tag=null, assets=[]) => ({
     'key': uuidv4(),
@@ -14,3 +15,63 @@ export const createNewAsset = (asset={}) => ({
     'remarks': asset.remarks || '',
     'assetTagId': asset.tags?.find(tag => tag.isMatching)?.assetTagId || '',
 })
+
+export const setValuesExcel = async ({
+  records,
+  tagOptions,
+  fetchAstForTagsFunc,
+  setAssetOptions,
+  reinitializeForm,
+  handleError
+}) => {
+  try {
+    const recordsMap = {};
+    const snDict = {};
+
+    records.forEach((record) => {
+      ['tag', 'serialNumber'].forEach(field => {
+        if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+      });
+
+      const { tag, serialNumber, remarks = "" } = record;
+
+      if (!snDict[tag]) snDict[tag] = new Set();
+      if (snDict[tag].has(serialNumber)) throw new Error(`Duplicate Serial Number: ${serialNumber}`);
+      else snDict[tag].add(serialNumber);
+
+      if (!recordsMap[tag]) recordsMap[tag] = [];
+      recordsMap[tag].push({ serialNumber, remarks });
+    });
+
+    const tags = [];
+
+    for (const [tagName, assetRows] of Object.entries(recordsMap)) {
+      const serialNumbers = snDict[tagName];
+      let tagOption = tagOptions.find(option => compareStrings(option.value, tagName));
+      let response;
+
+      // TODO not sure if can select items before tag or if it will refresh
+      if (!tagOption) {
+        tagOption = { tagName };
+        response = await fetchAstForTagsFunc([...serialNumbers]);
+      } else {
+        response = await fetchAstForTagsFunc([...serialNumbers], tagOption.tagId);
+      }
+
+      const newAssetOptions = response.data;
+      setAssetOptions(prev => ({ ...prev, [tagName]: newAssetOptions }));
+
+      const assetObjs = assetRows.map(({ serialNumber, remarks }) => {
+        const match = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
+        return match ? { ...match, remarks } : { serialNumber, remarks };
+      });
+
+      tags.push(createNewTag(tagOption || { tagName }, assetObjs));
+    }
+
+    reinitializeForm({ tags });
+
+  } catch (error) {
+    handleError(error);
+  }
+};

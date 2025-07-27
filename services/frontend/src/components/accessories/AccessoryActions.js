@@ -1,6 +1,5 @@
 import React from 'react';
-import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useFormModal, FormType } from '../../context/ModalProvider';
+import { FormType } from '../../context/FormProvider';
 import { AccTypeActionButton, CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
 import { CircleReturnButton } from '../buttons/actions/ReturnButton';
 

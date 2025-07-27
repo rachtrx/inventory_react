@@ -1,25 +1,87 @@
 import { Box, Button, Divider, Flex, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import ExcelFormControl from '../../utils/ExcelFormControl';
-import { useFormModal } from "../../../../context/ModalProvider";
+import { useForm } from "../../../../context/FormProvider";
 import { FieldArray, Form, Formik } from "formik";
 import { useUI } from "../../../../context/UIProvider";
 import { useAddUsers } from "./AddUsersProvider";
-import { compareDates, validateUniqueValues } from "../../utils/validation";
+import { compareDates, compareStrings, convertExcelDate, validateUniqueValues } from "../../utils/validation";
 import { setFieldError } from "../../utils/validation";
 import { AddDeptUsers } from "./AddDeptUsers";
 import { AddButton } from "../../utils/ItemButtons";
 import { createNewDept } from "./helpers";
+import { useStep } from "../../../../context/StepProvider";
 
 export const AddUserStep1 = () => {
 
-    const { nextStep, formData, setValuesExcel } = useAddUsers();
-    const { setFormType, formRef } = useFormModal();
+    const { nextStep, formData } = useStep();
+    const { deptOptions } = useAddUsers();
+    const { setFormType, formRef, reinitializeForm } = useForm();
     const { handleError } = useUI();
+    const initialFormValues = {
+      depts: [createNewDept()],
+    }
   
     console.log('add user form rendered');
 		console.log(formData);
 
-    
+    const setValuesExcel = async (records) => {
+      // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
+      try {
+        const userNames = new Set();
+
+        const recordsMap = {};
+
+        records.forEach((record) => {
+
+          console.log(record);
+
+          Object.keys(record).forEach(field => {
+            record[field] = field !== 'addDate'
+              ? record[field].toString().trim()
+              : convertExcelDate(record[field], record.__rowNum__);
+          });
+          
+          ['deptName', 'userName'].forEach(field => {
+            if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+          });
+          
+          const { deptName, userName, addDate, remarks } = record;
+
+          if (userNames.has(userName)) throw new Error(`Duplicate usernames found: ${userName}`);
+          else userNames.add(userName);
+
+          if (!recordsMap[deptName]) {
+            recordsMap[deptName] = [];
+          }
+          
+          recordsMap[deptName].push({
+            userName,
+            addDate,
+            remarks
+          });
+        });
+
+        const depts = [];
+
+        Object.entries(recordsMap).forEach(([deptName, users]) => {
+          const dept = deptOptions.find(option => compareStrings(option.value, deptName)) || '';
+
+          depts.push(createNewDept({
+            deptId: dept?.deptId || '',
+            deptName: dept?.deptName || deptName,
+            users: users,
+          }))
+        })
+      
+        reinitializeForm({
+          depts: depts
+        });
+
+      } catch (error) {
+        handleError(error);
+      }
+    };
+
     const validateField = (fieldDuplicates, fieldValue, fieldName) => {
       if (fieldDuplicates.has(fieldValue)) return `${fieldName}s should be unique`;
       if (!fieldValue) return `${fieldName} is Required`;
@@ -66,7 +128,7 @@ export const AddUserStep1 = () => {
     return (
       <Box>
         <Formik
-          initialValues={formData}
+          initialValues={initialFormValues}
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}

@@ -111,7 +111,8 @@ class FormAssetTagController {
                     tag = await AstTag.findByPk(tagId, { transaction }); // Ensure it's inside transaction
                     if (!tag) throw new Error()
                 } catch (error) {
-                    res.status(500).send(`No Matching Asset Type for ${tagName} Found!`);
+                    res.status(500).json({message: `No Matching Asset Type for ${tagName} Found!`});
+                    return;
                 }
                 
                 for (const { assetId, remarks, serialNumber } of assets) {

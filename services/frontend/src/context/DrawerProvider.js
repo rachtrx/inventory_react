@@ -5,7 +5,7 @@ import { useDisclosure } from '@chakra-ui/react';
 import accessoryService from '../services/AccessoryService';
 import { useUI } from './UIProvider';
 import { useLoading } from './LoadingProvider';
-import { useFormModal } from './ModalProvider';
+import { useForm } from './FormProvider';
 
 const DrawerContext = createContext();
 
@@ -23,7 +23,7 @@ export const DrawerProvider = ({ children }) => {
 	const { setLoading } = useLoading();
   	const [state, setState] = useState(initialState);
 	const [editKey, setEditKey] = useState(null);  // Track which field is in edit mode
-	const { refreshKey, triggerRefresh } = useFormModal();
+	const { refreshKey, triggerRefresh } = useForm();
 
   	const { isOpen: isDrawerOpen, onOpen: onDrawerOpen, onClose: onDrawerClose } = useDisclosure();
 

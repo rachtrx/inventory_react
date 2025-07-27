@@ -1,6 +1,6 @@
 import { Box, Heading, Flex, Grid, VStack, Text } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { FormType } from '../../context/ModalProvider';
+import { FormType } from '../../context/FormProvider';
 import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
 import { UserLink } from '../buttons/ItemLink';
 import { AssetStatus } from './utils/AssetStatus';
@@ -129,12 +129,14 @@ const Asset = ({ asset }) => {
             <>
               <Text fontSize="md">Added Date:</Text>
               <DateText colorScheme={"green"} event={asset.addEvent}/>
+              <Box></Box>
             </>
           ) : undefined}
           {asset.deleteEvent ? (
             <>
               <Text fontSize="md">Condemned Date:</Text>
               <DateText colorScheme={"red"} event={asset.deleteEvent}/>
+              <Box></Box>
             </>
           ) : undefined}
         </Grid>

@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useContext, useState, useCallback, useRef } from 'react';
 import { useDisclosure } from '@chakra-ui/react';
 
-const ModalContext = createContext();
+const FormContext = createContext();
 
 export const FormType = {
   ADD_ASSET: 'ADD_ASSET',
@@ -23,13 +23,12 @@ export const FormType = {
   RESERVE: 'RESERVE',
 }
 
-export const ModalProvider = ({ children }) => {
+export const FormProvider = ({ children }) => {
 
   // to refresh items
   const [refreshKey, setRefreshKey] = useState(0);
   const triggerRefresh = () => setRefreshKey(k => k + 1);
 
-  const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
   const [ formType, setFormType ] = useState(null);
   const [ initialValues, setInitialValues ] = useState(null);
 
@@ -70,22 +69,19 @@ export const ModalProvider = ({ children }) => {
   };
 
   return (
-    <ModalContext.Provider value={{
+    <FormContext.Provider value={{
       formRef,
       formType,
       setFormType, 
       initialValues, 
-      setInitialValues, 
-      isModalOpen, 
-      onModalOpen, 
-      onModalClose, 
+      setInitialValues,  
       reinitializeForm,
       refreshKey,
       triggerRefresh
     }}>
       {children}
-    </ModalContext.Provider>
+    </FormContext.Provider>
   );
 };
 
-export const useFormModal = () => useContext(ModalContext);
+export const useForm = () => useContext(FormContext);

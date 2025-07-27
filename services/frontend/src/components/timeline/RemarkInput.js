@@ -7,14 +7,14 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { AddIcon } from "@chakra-ui/icons";
-import { useFormModal } from "../../context/ModalProvider";
+import { useForm } from "../../context/FormProvider";
 import eventService from "../../services/EventService";
 import { useUI } from "../../context/UIProvider";
 
 export const RemarkInput = ({ eventId }) => {
   const [remark, setRemark] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-	const { triggerRefresh } = useFormModal();
+	const { triggerRefresh } = useForm();
 	const { handleError } = useUI();
 
   const handleSubmit = async () => {

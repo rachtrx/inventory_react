@@ -1,12 +1,14 @@
 import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { useUserTags } from "../UserTagsProvider";
+import { useStep } from "../../../../../context/StepProvider";
 
 export const DelUserTagsStep2 = () => {
 
-  const { formData, handleDelTagsSubmit, prevStep } = useUserTags();
+  const { handleDelTagsSubmit } = useUserTags();
+  const { formData, prevStep } = useStep();
 
-	return (
+	return formData?.tags ? (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleDelTagsSubmit}
@@ -63,5 +65,5 @@ export const DelUserTagsStep2 = () => {
 				</ModalFooter>
 			</Form>
 		</Formik>
-	);
+	) : undefined;
 }

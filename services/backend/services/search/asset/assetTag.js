@@ -2,26 +2,18 @@ const { Op } = require("sequelize");
 const { Loan, AstLoan, AccLoan, Ast, Usr, Dept, AccType, AccReturn, Sequelize, AstSType, AstType, Event, AstTagMap, AstTag } = require("@models");
 const AssetDTO = require("@dtos/ast.dto");
 const logger = require("@/utils/logging");
+const { AssetCondition } = require("./assetCondition");
 
 class AssetTagSearch {
 
     constructor({
         tagId = null,
-        serialNumbers = [],
         isAdd,
         subTypeId = null,
         typeId = null,
+        ...identifiers
     }) {
-        this.serialNumbers = serialNumbers;
-
-        const isBulkSearch = Array.isArray(serialNumbers) 
-        logger.info(serialNumbers)
-
-        this.assetCondition = isBulkSearch
-            ? { serialNumber: { [Op.in]: serialNumbers } }
-            : { serialNumber: { [Op.iLike]: `%${serialNumbers}%` } };
-            
-        this.isBulkSearch = isBulkSearch;
+        this.assetCondition = new AssetCondition(identifiers);
         
         if (tagId) {
             this.attributes = ['id', [
@@ -59,7 +51,7 @@ class AssetTagSearch {
         try {
             const query = await Ast.findAll({
                 attributes: ['id', 'serialNumber', 'alias'],
-                where: this.assetCondition,
+                where: this.assetCondition.query,
                 include: [
                     {
                         model: Event,
