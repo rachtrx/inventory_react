@@ -8,108 +8,55 @@ import authService from '../services/AuthService';
 
 import {
   Box,
-  FormControl,
-  FormLabel,
-  Input,
-  FormErrorMessage,
   Button,
   Image,
   Center,
   useColorModeValue,
   VStack,
-  Text
+  Text,
+  Badge
 } from '@chakra-ui/react';
-import { useLoading } from '../context/LoadingProvider';
-import { useNavigate } from 'react-router-dom';
-
-const validationSchema = Yup.object().shape({
-  email: Yup.string().required("Email is required"),
-  password: Yup.string().required("Password is required"),
-});
 
 export default function Login() {
-  const { setAdmin } = useAuth();
-  const { setLoading } = useLoading();
-  const navigate = useNavigate();
 
   const handleSSOLogin = () => {
     window.location.href = `${process.env.REACT_APP_API_BASE_URL}/auth/microsoft`; // Backend route
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      setLoading(true); // Assuming setLoading is defined elsewhere in your component
-      const response = await authService.login(values.email, values.password);
-      const validatedAdmin = response.data;
-      setAdmin(validatedAdmin);
-      navigate('/reminders', {replace: true});
-    } catch (err) {
-      console.error('Login failed:', err.response ? err.response.data : err);
-    } finally {
-      setSubmitting(false);
-      setLoading(false); // Ensure this doesn't cause an additional rerender if it's not necessary
-    }
-  };
-
   return (
-    <Box className="col-md-12">
-      <Center py={12}>
-        <Box
-          maxW={'40vw'}
-          w={'full'}
-          bg={useColorModeValue('white', 'gray.900')}
-          boxShadow={'2xl'}
-          rounded={'lg'}
-          p={6}
-          textAlign={'center'}
+    <Center p={2} flex="1">
+      <VStack spacing={5}>
+        <Box mb={4}>
+          <Image
+            src="gos.png"
+            alt="Profile image"
+          />
+        </Box>
+        <Button
+          colorScheme="blue"
+          onClick={handleSSOLogin}
+          bgGradient="linear(to-r, blue.500, blue.600)"
+          color="white"
+          fontWeight="semibold"
+          letterSpacing="wide"
+          size="lg"
+          px={8}
+          py={6}
+          borderRadius="xl"
+          transition="all 0.2s ease-in-out"
+          _hover={{
+            transform: "scale(1.05)",
+            boxShadow: "lg",
+            bgGradient: "linear(to-r, blue.600, blue.700)",
+          }}
+          _active={{
+            transform: "scale(0.98)",
+            boxShadow: "sm",
+          }}
         >
-          <Box mb={4} display={'flex'} justifyContent={'center'}>
-            <Image
-              borderRadius={'full'}
-              boxSize={'100px'}
-              src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
-              alt="Profile image"
-            />
-          </Box>
-          <Formik
-            initialValues={{
-              email: "", // Changed from username to email
-              password: "",
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ isSubmitting, errors, touched }) => (
-              <Form>
-                <VStack spacing={5}>
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.email && touched.email} position="relative">
-                    <FormLabel htmlFor="email">Email</FormLabel>
-                    <Field name="email" as={Input} id="email"/>
-                    <FormErrorMessage position="absolute" mt={1}>
-                      <ErrorMessage name="email"/>
-                    </FormErrorMessage>
-                  </FormControl>
-
-                  <FormControl isRequired mt="4" mb="5" isInvalid={errors.password && touched.password} position="relative">
-                    <FormLabel htmlFor="password">Password</FormLabel>
-                    <Field name="password" as={Input} id="password" type="password"/>
-                    <FormErrorMessage position="absolute" mt={1}>
-                      <ErrorMessage name="password"/>
-                    </FormErrorMessage>
-                  </FormControl>
-
-                  <Button colorScheme="blue" type="submit" isLoading={isSubmitting}>
-                    {isSubmitting ? "Logging in..." : "Login"}
-                  </Button>
-                </VStack>
-              </Form>
-            )}
-          </Formik>
-          <Button colorScheme="blue" onClick={handleSSOLogin}>
-            <Text>Login with Microsoft</Text>
-          </Button>
-          </Box>
-      </Center>
-    </Box>
+          <Text>LOGIN TO ICT INVENTORY</Text>
+        </Button>
+      </VStack>
+    </Center>
   );
 }

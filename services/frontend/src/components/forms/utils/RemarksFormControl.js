@@ -44,7 +44,6 @@ export default function RemarksFormControl({
           as={Textarea}
           placeholder={placeholder}
           disabled={disabled}
-          bg="white"
         />
       </Collapse>
 

@@ -14,7 +14,7 @@ const UserTable = ({ items }) => {
 
   return (
     <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
+      <Thead position="sticky" top="0" zIndex="1" bg={'gray'}>
         <Tr>
           <Th></Th>
           <Th onClick={() => handleSort("userName")} cursor="pointer">
@@ -32,7 +32,7 @@ const UserTable = ({ items }) => {
         {items.map((user) => (
           <Tr 
             key={user.userId} 
-            _hover={{ bg: 'gray.100' }}
+            _hover={{ bg: 'gray' }}
           >
             <Td><ItemStarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
             <Td><UserLink user={user} size={'lg'} fontWeight="bold"/></Td>

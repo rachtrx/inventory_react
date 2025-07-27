@@ -11,9 +11,9 @@ export default function NoDataBox() {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          bg="gray.100" // Or any color you prefer
+          bg="gray" // Or any color you prefer
         >
-          <Text fontSize="xl" color="gray.500">
+          <Text fontSize="xl" color="subtle">
             No data to show
           </Text>
         </Box>

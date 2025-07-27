@@ -4,18 +4,22 @@ import {
     IconButton,
     Menu,
     Tooltip,
+    useColorMode,
     useColorModeValue,
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
 import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdAlarm } from 'react-icons/md'; // react-icons
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
-import { useUI } from '../context/UIProvider';
+// import { useUI } from '../context/UIProvider';
 
+import { FaMoon, FaSun } from 'react-icons/fa';
+  
 const Nav = () => {
   const navigate = useNavigate();
+  const { colorMode, toggleColorMode } = useColorMode();
   const linkHoverColor = useColorModeValue('gray.800', 'white');
-  const {handleDevError} = useUI();
+  // const {handleDevError} = useUI();
 
   return (
     <Flex
@@ -69,6 +73,16 @@ const Nav = () => {
               aria-label="Profile"
               variant="ghost"
               onClick={() => navigate('/profile')}
+            />
+          </Box>
+        </Tooltip>
+        <Tooltip label="Theme" hasArrow placement="bottom">
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              aria-label="Toggle color mode"
+              icon={colorMode === "light" ? <FaMoon /> : <FaSun />}
+              onClick={toggleColorMode}
+              variant="ghost"
             />
           </Box>
         </Tooltip>

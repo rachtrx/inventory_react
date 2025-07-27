@@ -22,25 +22,6 @@ export const ACTION_TEXT = {
   // [FormType.RESTORE_USER]: 'Restore',
 }
 
-export const ACTION_COLORS = {
-  [FormType.LOAN]: 'blue',         
-  [FormType.RELOAN]: 'blue',         
-  [FormType.RETURN]: 'orange',     
-  [FormType.ADD_ASSET]: 'green',   
-  [FormType.DEL_ASSET]: 'red',     
-  [FormType.TAG_ASSET]: 'purple',  
-  [FormType.UNTAG_ASSET]: 'pink',
-  [FormType.ADD_USER]: 'green',     
-  [FormType.DEL_USER]: 'red',     
-  [FormType.TAG_USER]: 'purple',  
-  [FormType.UNTAG_USER]: 'pink',   
-  [FormType.UPDATE_ACC]: 'cyan',   
-  [FormType.RESERVE]: 'yellow',    
-  // [FormType.RESTORE_ASSET]: 'amber'
-  // [FormType.RESTORE_USER]: 'lime'
-};
-
-
 export const ICON_MAP = {
   [FormType.LOAN]: <FaArrowRight />,       
   [FormType.RETURN]: <FaArrowLeft />,      

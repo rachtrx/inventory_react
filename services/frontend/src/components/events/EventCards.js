@@ -11,7 +11,6 @@ import { ItemStarButton } from '../buttons/StarButton';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 // import { CardActions } from './CardActions';
 import { Tags } from '../tags/Tags';
-import { ACTION_COLORS } from '../buttons/constants';
 
 function EventCards({items}) {
     
@@ -22,8 +21,8 @@ function EventCards({items}) {
                 <Card 
                     h="100%"
                     w="100%" 
-                    bg={`${ACTION_COLORS[event.type]}.100`}
-                    _hover={{ bg:  'gray.100' }}
+                    bg={event.type}
+                    _hover={{ bg:  'gray' }}
                     overflow="hidden"
                 >
                     <CardBody>
@@ -56,7 +55,5 @@ function EventCards({items}) {
         </Cards>
     );
 }
-
-
 
 export default EventCards;

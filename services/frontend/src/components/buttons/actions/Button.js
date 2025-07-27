@@ -8,8 +8,6 @@ export const DefaultButton = ({ onClick, bg, text, isMulti, textSize, ...rest })
 		bg={bg}
 		borderRadius="md"
 		p={2}
-		_hover={{ bg: `${bg.split(".")[0]}.200`, cursor: "pointer" }}
-		_active={{ bg: `${bg.split(".")[0]}.250` }}
 		{...rest}
 	>
 	  	<Text fontSize={textSize}>{text}{isMulti && " All"}</Text>

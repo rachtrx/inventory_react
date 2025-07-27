@@ -5,13 +5,12 @@ import _ from 'lodash'; // for debounce (optional)
 import { useItems } from '../../context/ItemsProvider';
 import { MdClear } from "react-icons/md";
 
-export default function SearchBar({ attr, label, resetFlag=null }) {
+export default function SearchBar({ attr, label, resetFlag }) {
   const { setSearchFilters } = useItems(); // your function to trigger filtering
   const [query, setQuery] = useState("");
   const skipDebounceRef = useRef(false);
 
   useEffect(() => {
-    if (!resetFlag) return;
     skipDebounceRef.current = true;
     setQuery('');
   }, [resetFlag]);
@@ -45,7 +44,6 @@ export default function SearchBar({ attr, label, resetFlag=null }) {
         onChange={(e) => setQuery(e.target.value)}
         borderRadius="md"
         focusBorderColor="blue.400"
-        bg="white"
         pr="2.5rem" // make space for the right icon
       />
 
@@ -56,7 +54,7 @@ export default function SearchBar({ attr, label, resetFlag=null }) {
             icon={<MdClear />}
             size="xs"
             variant="ghost"
-            color="gray.500"
+            color="gray"
             onClick={() => setQuery('')}
           />
         </InputRightElement>

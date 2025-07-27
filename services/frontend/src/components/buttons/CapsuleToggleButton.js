@@ -22,13 +22,12 @@ export default function CapsuleToggleButton({ isGridView, setIsGridView }) {
 				flex="1"
 				p="0"
 				borderRadius="0"
-				bg={!isGridView ? "black" : "white"}
-				color={!isGridView ? "white" : "black"}
-				_hover={{ bg: !isGridView ? "blue.600" : "gray.100" }}
+				bg={!isGridView ? "subtle" : "white"}
+				color={!isGridView ? "white" : "subtle"}
 				onClick={() => setIsGridView(false)}
-				fontSize={{ base: "10px", sm: "12px" }}
+				fontSize="sm"
 			>
-				<FaList mr={2} size="1em" />
+				<FaList />
 			</Button>
 			<Button
 				aria-label="Grid View"
@@ -37,15 +36,12 @@ export default function CapsuleToggleButton({ isGridView, setIsGridView }) {
 				flex="1"
 				p="0"
 				borderRadius="0"
-				borderRightWidth="1px"
-				borderColor="gray.200"
-				bg={isGridView ? "black" : "white"}
-				color={isGridView ? "white" : "black"}
-				_hover={{ bg: isGridView ? "blue.600" : "gray.100" }}
+				bg={isGridView ? "subtle" : "white"}
+				color={isGridView ? "white" : "subtle"}
 				onClick={() => setIsGridView(true)}
-				fontSize={{ base: "10px", sm: "12px" }}
+				fontSize="sm"
 			>
-				<FaThLarge mr={2} size="1em" /> {/* When em is used for dimensions like size, it bases its calculation on the fontSize of its parent element. So 1em would mean the size is the same as the fontSize of the element where the icon is placed. */}
+				<FaThLarge /> {/* When em is used for dimensions like size, it bases its calculation on the fontSize of its parent element. So 1em would mean the size is the same as the fontSize of the element where the icon is placed. */}
 			</Button>
 		</Box>
   );

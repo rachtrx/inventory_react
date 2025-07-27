@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useField } from 'formik';
 import Select from 'react-select';
-import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Text } from '@chakra-ui/react';
+import { Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Text, useColorModeValue, useTheme } from '@chakra-ui/react';
 import CreatableSelect from 'react-select/creatable';
 import useDebounce from '../../../hooks/useDebounce';
 import { useUI } from '../../../context/UIProvider';
@@ -30,15 +30,57 @@ const withSelect = (Component, isCreatable) => ({
   let newStyles = undefined;
 
   if (!styles) {
+    const theme = useTheme();
     const fontSize = useThemeFontSize(size); // fallback if not defined
+    const color = useColorModeValue(
+      theme.semanticTokens?.colors?.["chakra-body-text"]?._light,
+      theme.semanticTokens?.colors?.["chakra-body-text"]?._dark
+    );
+    const bg = `var(--chakra-colors-chakra-subtle-bg)`;
+    console.log(color);
     newStyles = {
-      input: (provided) => ({ ...provided, fontSize }),
-      singleValue: (provided) => ({ ...provided, fontSize }),
-      multiValueLabel: (provided) => ({ ...provided, fontSize }),
-      placeholder: (provided) => ({ ...provided, fontSize }),
-      control: (provided) => ({ ...provided, fontSize }),
-      valueContainer: (provided) => ({ ...provided, fontSize }),
-      option: (provided) => ({ ...provided, fontSize })
+      input: (provided) => ({
+        ...provided,
+        fontSize,
+        color,
+      }),
+      singleValue: (provided) => ({
+        ...provided,
+        fontSize,
+        color,
+      }),
+      multiValueLabel: (provided) => ({
+        ...provided,
+        fontSize,
+        color,
+      }),
+      placeholder: (provided) => ({
+        ...provided,
+        fontSize,
+        color: `var(--chakra-colors-chakra-placeholder-color)`,
+      }),
+      control: (provided) => ({
+        ...provided,
+        fontSize,
+        color,
+        backgroundColor: bg,
+      }),
+      menu: (provided) => ({
+        ...provided,
+        backgroundColor: bg,
+      }),
+      valueContainer: (provided) => ({
+        ...provided,
+        fontSize,
+        color,
+      }),
+      option: (provided, state) => ({
+        ...provided,
+        fontSize,
+        color,
+        backgroundColor: state.isFocused ? "blue" : "",
+        cursor: "pointer",
+      }),
     };
   }
 

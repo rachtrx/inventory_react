@@ -16,13 +16,13 @@ const isNumber = (text) => {
 
 // CircleText component that displays text inside a circular button
 export const CircleText = React.forwardRef(
-  ({ text, textSize = "sm", circleSize = "25px", isButton = true, bg = "gray.500", ...rest }, ref) => {
+  ({ text, textSize = "sm", circleSize = "25px", isButton = true, bg = "subtle", ...rest }, ref) => {
     return (
       <Circle
         as={isButton ? "button" : "div"}
         bg={bg} // Background color of the circle
         size={circleSize}
-        color="white" // Text color
+        color="alphaWhite" // Text color
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -80,10 +80,9 @@ export const OverlappingCircles = React.forwardRef(
             >
               <CircleText
                 text={text}
-                boxShadow="0 0 0 2px white"
+                boxShadow="0 0 0 2px alphaWhite"
                 pointerEvents="auto"
-                _groupHover={{ boxShadow: "0 0 0 2px gray.100" }}
-                bg="gray.600"
+                bg="subtle"
                 circleSize={circleSize}
                 ref={ref}
                 {...rest}

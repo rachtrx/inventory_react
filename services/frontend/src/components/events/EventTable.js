@@ -8,7 +8,6 @@ import {
   Td,
   useColorModeValue
 } from '@chakra-ui/react';
-import { ACTION_COLORS } from '../buttons/constants';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
 import { useItems } from '../../context/ItemsProvider';
@@ -36,7 +35,7 @@ const EventTable = ({ items }) => {
       </Thead>
       <Tbody>
         {items.map((event, index) => (
-          <Tr key={index} bg={`${ACTION_COLORS[event.type]}.100`}>
+          <Tr key={index} bg={event.type}>
             <Td>{event.type}</Td>
             <Td>{event.eventDate}</Td>
             <Td>{event.asset ? <AssetLink asset={event.asset}/> : ""}</Td>

@@ -14,7 +14,7 @@ const AccessoryTable = ({ items }) => {
 
   return (
     <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
+      <Thead position="sticky" top="0" zIndex="1" bg='gray'>
         <Tr>
           {/* <Th></Th> */}
           <Th onClick={() => handleSort("accessoryName")} cursor="pointer">
@@ -30,7 +30,7 @@ const AccessoryTable = ({ items }) => {
         {items.map((accessoryType) => (
           <Tr 
             key={accessoryType.accessoryTypeId} 
-            _hover={{ bg: 'gray.100' }}
+            _hover={{ bg: 'gray' }}
            >
             {/* <Td><ItemStarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td> */}
             <Td>

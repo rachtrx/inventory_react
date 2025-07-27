@@ -7,7 +7,7 @@ export const withEventBox = (Component) => {
                 {/* Event Content */}
                 <Box
                     p={2}
-                    bg="gray.50"
+                    bg="gray"
                     borderRadius="lg"
                     boxShadow="md"
                     border="1px solid"

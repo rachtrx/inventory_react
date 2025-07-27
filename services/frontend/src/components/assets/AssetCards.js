@@ -24,7 +24,7 @@ function AssetCards({items}) {
                     h="100%"
                     w="100%" 
                     bg="transparent" 
-                    _hover={{ bg:  'gray.100' }}
+                    _hover={{ bg:  'gray' }}
                     overflow="hidden"
                 >
                     <CardBody>

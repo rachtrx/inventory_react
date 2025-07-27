@@ -15,6 +15,7 @@ import {
   Box,
   Checkbox,
   VStack,
+  Button,
 } from "@chakra-ui/react";
 import { FiMoreVertical } from "react-icons/fi";
 import { useDisclosure } from "@chakra-ui/react";
@@ -72,20 +73,14 @@ function ReminderCards({ items }) {
         <Checkbox isChecked={allSelected} onChange={handleSelectAll}>
           Select All
         </Checkbox>
-        <Menu>
-          <Tooltip label="Actions" hasArrow>
-            <MenuButton
-              as={IconButton}
-              icon={<FiMoreVertical />}
-              variant="outline"
-              aria-label="Actions"
-              isDisabled={selectedLoanIds.length === 0}
-            />
-          </Tooltip>
-          <MenuList>
-            <MenuItem onClick={handleUpdateReturn}>Update Return Date</MenuItem>
-          </MenuList>
-        </Menu>
+        <Button
+          variant="outline"
+          aria-label="Actions"
+          disabled={selectedLoanIds.length === 0}
+          onClick={handleUpdateReturn}
+        >
+          Update Return Date
+        </Button>
       </Flex>
 
       {/* Reminder Cards */}
@@ -99,25 +94,25 @@ function ReminderCards({ items }) {
 						<Card
 							key={loanId}
 							position="relative"
-							bg={overdue ? `${overdue}.100` : "transparent"}
-							_hover={{ bg: overdue ? `${overdue}.200` : 'gray.100' }}
+							bg={overdue ? `${overdue}` : "transparent"}
+							_hover={{ bg: overdue ? `${overdue}Hover` : 'gray' }}
 							role="group"
 						>
 							{/* Hover-only Checkbox */}
-							<Checkbox
-								isChecked={isSelected}
-								onChange={() => handleCheckboxChange(loanId)}
-								position="absolute"
-								top="1rem"
-								left="1rem"
-								opacity={isSelected ? 1 : 0}
-								_groupHover={{ opacity: 1 }}
-								transition="opacity 0.2s"
-							/>
 
 							<CardHeader pb={0}>
+                <Checkbox
+                  isChecked={isSelected}
+                  onChange={() => handleCheckboxChange(loanId)}
+                  position="absolute"
+                  top="1rem"
+                  left="1rem"
+                  opacity={isSelected ? 1 : 0}
+                  _groupHover={{ opacity: 1 }}
+                  transition="opacity 0.2s"
+                />
 								<Flex justify="space-between" align="center">
-									<Heading size="sm">Loan ID: {loanId}</Heading>
+									{/* <Heading size="sm">Loan ID: {loanId}</Heading> */}
 									<Text fontSize="sm" color="gray.500">
 										Expected Return: {expectedReturnDate || "N/A"}
 									</Text>
@@ -134,7 +129,7 @@ function ReminderCards({ items }) {
 										User: <UserLink user={user} />
 									</Text>
 
-									{accLoans?.length && (
+									{accLoans?.length ? (
 										<Box>
 											{/* Unreturned Accessories */}
 											{accLoans
@@ -154,7 +149,7 @@ function ReminderCards({ items }) {
 													</Box>
 												))}
 										</Box>
-									)}
+									) : undefined}
 								</VStack>
 							</CardBody>
 						</Card>

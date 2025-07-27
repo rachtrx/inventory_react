@@ -69,11 +69,11 @@ const ExcelFormControl = ({ templateCols, loadValues }) => {
 
   return (
     <Grid templateColumns="repeat(2, 1fr)" gap={4} w={"100%"}>
-      <Button size="md" bg="white" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
+      <Button size="md" h="32px" onClick={handleDownloadTemplate} justifyContent={'space-around'}>
         <Icon as={FaDownload} />
           <Text>Get Template</Text>
       </Button>
-      <Button onClick={handleButtonClick} bg="white" height="32px" justifyContent={'space-around'}>
+      <Button onClick={handleButtonClick} height="32px" justifyContent={'space-around'}>
         <Icon as={FaUpload} />
           <Text>Fill with Template</Text>
       </Button>

@@ -23,21 +23,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
     },
-    pwd: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    authType: {
-        type: DataTypes.JSON,
-        allowNull: false
-    },
     preferences: {
         type: DataTypes.JSON,
         defaultValue: {
-            dashboard: {
-                theme: 'light',
-                layout: 'grid',
-            }
+            theme: 'dark'
         }
     }
     }, {

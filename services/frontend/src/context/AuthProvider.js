@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api, eventBus } from '../config';
 import authService from '../services/AuthService';
+import { Footer } from '../components/Footer';
+import { Box, Flex } from '@chakra-ui/react';
 
 const AuthContext = createContext(null);
 
@@ -59,7 +61,12 @@ export const AuthProvider = () => {
 
   return (
     <AuthContext.Provider value={{ admin, setAdmin }}>
-      <Outlet /> {/* Renders child components inside AuthProvider */}
+      <Flex direction="column" minH="100vh">
+        <Flex flex="1" direction="column">
+          <Outlet /> {/* Renders child components inside AuthProvider */}
+        </Flex>
+        <Footer/>
+      </Flex>
     </AuthContext.Provider>
   );
 };

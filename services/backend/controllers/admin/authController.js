@@ -9,8 +9,6 @@ const createAdminObject = (admin) => ({
     adminName: admin.adminName,
     email: admin.email,
     displayName: admin.displayName,
-    authType: admin.authType,
-    canSetupPassword: !admin.authType.includes('local')
 })
 class AuthController {
   /*
@@ -67,20 +65,6 @@ class AuthController {
         return res.status(403).send("Access denied: not in required security group");
       }
 
-      // logger.info(decoded, { depth: null });
-      // logger.info(decoded.name);
-      // logger.info("Groups:", decoded.groups);
-      // console.log(access_token);
-
-      // Fetch user profile from Microsoft Graph
-      // const profileResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
-      //   headers: { Authorization: `Bearer ${access_token}` },
-      // });
-
-      // const profile = profileResponse.data;
-
-      // logger.info(profile)
-
       // Authenticate user in database
       let admin = await Admin.findOne({ where: { id: decoded.oid } });
 
@@ -89,7 +73,6 @@ class AuthController {
             id: decoded.oid,
             email: decoded.email,
             adminName: decoded.name,
-            authType: ["SSO"],
         });
       }
 
@@ -104,46 +87,12 @@ class AuthController {
           httpOnly: true, secure: true, sameSite: 'strict', maxAge: DAYS_30
       });
 
-      if (admin.pwd) return res.redirect(`${process.env.FRONTEND_URL}/reminders`); // Redirect user to frontend
-      return res.redirect(`${process.env.FRONTEND_URL}/profile`);
+      return res.redirect(`${process.env.FRONTEND_URL}/reminders`); // Redirect user to frontend
     } catch (error) {
       logger.error("OAuth Login Error:", error);
       return res.status(500).send("Authentication failed");
     }
   }
-
-  async login (req, res) {
-    const { email, password } = req.body;
-  
-    try {
-      const admin = await Admin.findOne({ where: { email } });
-      if (!admin) {
-        return res.status(404).json({ error: "Usr not found" });
-      }
-  
-      if (admin.authType.includes('local') && bcrypt.compareSync(password, admin.pwd)) {
-        const jwtToken = generateToken(admin); // Generate JWT for frontend
-        const refreshToken = generateRefreshToken(admin);
-
-        res.cookie("INVENTORY", jwtToken, {
-            httpOnly: true, secure: true, sameSite: 'strict', maxAge: MIN_15
-        });
-
-        res.cookie("INVENTORY_REFRESH", refreshToken, {
-            httpOnly: true, secure: true, sameSite: 'strict', maxAge: DAYS_30
-        });
-        
-        return res.json(createAdminObject(admin)); // Redirect user to frontend
-      } else if (admin.authType.includes('SSO')) {
-        return res.status(401).json({ error: "SSO login required" });
-      } else {
-        return res.status(401).json({ error: "Invalid credentials or login method" });
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).send({ error: error.message });
-    }
-  };
   
   async checkAuth(req, res) {
     
@@ -157,62 +106,6 @@ class AuthController {
     } catch (error) {
       console.error('Check auth error:', error);
       res.status(500).json({ error: error.message, error: error.message });
-    }
-  };
-  
-  async register (req, res) {
-    const { adminName, email, password } = req.body;
-  
-    try {
-      // Hash password
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-  
-      // Create user
-      const newUser = await Admin.create({
-        adminName,
-        email,
-        pwd: hashedPassword,
-        authType: ['local']
-      });
-  
-      res.status(201).json({ message: "Usr created successfully", userId: newUser.id });
-    } catch (error) {
-      console.error('Registration error:', error);
-      if (error.name === 'SequelizeUniqueConstraintError') {
-        res.status(409).send({error: 'Usr with this email already exists.'});
-      } else {
-        res.status(500).send({ error: error.message });
-      }
-    }
-  };
-  
-  async chgPw (req, res) {
-    const { password } = req.body;
-  
-    try {
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      logger.info(req.auth)
-  
-      const admin = await Admin.findOne({ where: { id: req.auth.id } });
-      if (!admin) {
-        return res.status(404).json({ error: "Admin not found" });
-      }
-  
-      admin.pwd = hashedPassword;
-      if (!admin.authType.includes('local')) {
-        admin.authType.push('local');
-        admin.changed('authType', true);
-      }
-  
-      await admin.save();
-  
-      res.status(200).json({ message: "Password updated successfully" });
-    } catch (error) {
-      console.error('Change password error:', error);
-      res.status(500).json({ error: error.message });
     }
   };
 

@@ -26,7 +26,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
   const [searchFilters, setSearchFilters] = useState(service.defaultFilters);
   const [page, setPage] = useState(initialPage || 1);
   const [maxPage, setMaxPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(null);
 
   const [sortField, setSortField] = useState(initSortField);
   const [sortOrder, setSortOrder] = useState(initSortOrder);
@@ -143,7 +143,7 @@ export const ItemsProvider = ({ children, service, idField, initSortField, initS
         handleError(error);
       }
     }
-    reload();;
+    reload();
   }, [searchFilters, page, itemsPerPage, service, sortOrder, sortField, handleError, setLoading, refreshKey]);
 
   const handleSort = (key) => {

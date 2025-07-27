@@ -4,7 +4,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from "react-router-dom";
 import { App } from './App';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { UIProvider } from './context/UIProvider';
 import { ResponsiveProvider } from './context/ResponsiveProvider';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -24,7 +24,6 @@ const root = ReactDOM.createRoot(rootElement);
 const GlobalStyles = () => (
   <Global
     styles={css`
-          
 			.chakra-collapse {
 				overflow: visible !important;
 			}
@@ -68,6 +67,7 @@ const GlobalStyles = () => (
 root.render(
   <>
     <GlobalStyles/>
+    <ColorModeScript initialColorMode={theme.config.initialColorMode} />
     <ChakraProvider theme={theme}>
       <ResponsiveProvider>
         <LoadingProvider> 

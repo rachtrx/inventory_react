@@ -12,7 +12,7 @@ const AssetTable = ({ items }) => {
 
   return (
     <Table size="sm" variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg="gray.200">
+      <Thead position="sticky" top="0" zIndex="1" bg="gray">
         <Tr>
           <Th></Th>
           <Th onClick={() => handleSort("typeName")} cursor="pointer">
@@ -33,7 +33,7 @@ const AssetTable = ({ items }) => {
         {items.map((asset) => (
           <Tr 
             key={asset.assetId}
-            _hover={{ bg: 'gray.100' }}
+            _hover={{ bg: 'gray' }}
           >
             <Td>
               <ItemStarButton
@@ -44,7 +44,7 @@ const AssetTable = ({ items }) => {
             </Td>
             <Td><Text>{asset.typeName}</Text></Td>
             <Td><Text>{asset.subTypeName}</Text></Td>
-            <Td><AssetLink item={asset} fontWeight="bold"/></Td>
+            <Td><AssetLink item={asset} size={'lg'} fontWeight="bold"/></Td>
             <Td><Tags tags={asset.tags} textSize="xs"/></Td>
             <Td>
               <CardActions asset={asset}/>

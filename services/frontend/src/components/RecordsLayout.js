@@ -1,6 +1,6 @@
 // RecordsLayout.js
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Button, Collapse, Flex, Heading, IconButton, SimpleGrid, Tooltip, useBreakpointValue, useDisclosure } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Box, Button, Flex, Heading, IconButton, Tooltip, useDisclosure } from '@chakra-ui/react';
 import InfoBar from './utils/InfoBar';
 import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
@@ -42,7 +42,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
 
   return (
       <>
-        <Box p={8} boxShadow="lg" bg="white">
+        <Box p={8} boxShadow="lg">
           <Flex 
             justifyContent="space-between" 
             alignItems="center" 
@@ -130,7 +130,6 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
           totalCount === 0 ? <NoDataBox /> : 
           isGridView ? <Cards items={data} /> : 
           <Table items={data}/>}
-        
         <PaginationControls/>
       </>
   );

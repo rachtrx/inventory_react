@@ -19,13 +19,13 @@ import {
   Td,
   useColorModeValue,
   VStack,
-  Text
+  Text,
+  HStack,
+  Button
 } from "@chakra-ui/react";
-import { FiMoreVertical } from "react-icons/fi";
 import { UpdateReturnDate } from "../stats/updateReturnDate.js";
 import { AssetLink, UserLink } from "../buttons/ItemLink.js";
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { ACTION_COLORS } from '../buttons/constants'; 
 import { useItems } from "../../context/ItemsProvider.js";
 import { ReturnButton } from "../buttons/actions/ReturnButton.js";
 import { FormType } from "../../context/ModalProvider.js";
@@ -83,26 +83,18 @@ function ReminderTable ({ items }) {
   return (
     <VStack>
       <Flex gap={1} alignSelf="end" p={1}>
-        {/* Select All Checkbox */}
-        <Checkbox onChange={handleSelectAll} isChecked={allSelected}>
-          Select All
-        </Checkbox>
 
         {/* Three Dots Menu */}
-        <Menu>
-          <MenuButton
-            as={IconButton}
-            icon={<FiMoreVertical />}
+        <HStack>
+          <Button
             variant="outline"
             aria-label="Actions"
             disabled={selectedLoanIds.length === 0}
-          />
-          <MenuList>
-            <MenuItem onClick={handleUpdateReturn}>
-              Update Return Date
-            </MenuItem>
-          </MenuList>
-        </Menu>
+            onClick={handleUpdateReturn}
+          >
+            Update Return Date
+          </Button>
+        </HStack>
       </Flex>
 
       {/* Reminder Items Table */}
@@ -117,7 +109,7 @@ function ReminderTable ({ items }) {
 						<Th>
 							<Checkbox onChange={handleSelectAll} isChecked={allSelected} />
 						</Th>
-						<Th>Loan ID</Th>
+						{/* <Th>Loan ID</Th> */}
 						<Th>Asset Type</Th>
 						<Th>Serial Number</Th>
 						<Th>User</Th>
@@ -130,13 +122,13 @@ function ReminderTable ({ items }) {
 					{items.map((reminder) => {
 						const { loanId, user, astLoan, accLoans, expectedReturnDate, overdue } = reminder;
 						const assetType = astLoan?.asset?.typeName || "N/A";
-						const rowColor = overdue ? `${overdue}.100` : "transparent";
+						const rowColor = overdue ? `${overdue}` : "transparent";
 
 						return (
 							<Tr
 								key={loanId}
 								bg={`${rowColor}`} // softly colour background
-								_hover={{ bg: overdue ? `${overdue}.200` : 'gray.100' }}
+								_hover={{ bg: overdue ? `${overdue}Hover` : 'gray' }}
 							>
 								<Td>
 									<Checkbox
@@ -144,13 +136,13 @@ function ReminderTable ({ items }) {
 										isChecked={selectedLoanIds.includes(loanId)}
 									/>
 								</Td>
-								<Td>{loanId}</Td>
+								{/* <Td>{loanId}</Td> */}
 								<Td>{assetType}</Td>
 								<Td>{astLoan?.asset ? <AssetLink asset={astLoan.asset}/> : ""}</Td>
 								<Td>{user ? <UserLink user={user}/> : ""}</Td>
 								<Td>{expectedReturnDate || "N/A"}</Td>
 								<Td>
-									{accLoans?.length && (
+									{accLoans?.length ? (
 										<Box>
 											{/* Unreturned Accessories */}
 											{accLoans
@@ -170,7 +162,7 @@ function ReminderTable ({ items }) {
 													</Box>
 												))}
 										</Box>
-									)}
+									) : undefined}
 								</Td>
 								<Td>
 									<ReturnButton 

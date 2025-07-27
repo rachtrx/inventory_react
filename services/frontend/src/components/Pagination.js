@@ -14,7 +14,7 @@ export default function PaginationControls() {
       justify="center" 
       position="sticky"  // Makes it sticky
       bottom={0}         // Sticks to the bottom
-      bg="white"         // Adds background color to prevent overlap issues
+      bg="gray"         // Adds background color to prevent overlap issues
       py={2}             // Adds some padding for spacing
       zIndex={2}        // Ensures it stays above other elements
       boxShadow="md"     // Optional: Adds shadow for better visibility

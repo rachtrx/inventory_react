@@ -83,7 +83,7 @@ export const SuggestedAccessories = ({ sTypeId, accessoryHelpers }) => {
                         borderWidth="1px"
                         borderRadius="md"
                         p={4}
-                        _hover={{ bg: 'gray.50' }}
+                        _hover={{ bg: 'gray' }}
                         transition="background-color 0.2s"
                     >
                         <VStack align="start" spacing={1}>
