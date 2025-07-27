@@ -148,8 +148,7 @@ class AuthController {
   async checkAuth(req, res) {
     
     try {
-      // const admin = await Admin.findOne({ where: { id: req.auth.id } });
-      const admin = await Admin.findOne({ where: { email: "rachmielteo@go.edu.sg" } });
+      const admin = await Admin.findOne({ where: { id: req.auth.id } });
       if (admin) {
         return res.json(createAdminObject(admin));
       } else {

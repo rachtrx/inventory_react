@@ -31,18 +31,18 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    req.auth={id: "238519b7-980c-42c9-b7c4-be3078dc7306"}
+    // req.auth={id: "238519b7-980c-42c9-b7c4-be3078dc7306"}
     next();
-    // console.log(req.path);
-    // if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
-    //     jwt({
-    //         secret: process.env.JWT_SECRET,
-    //         algorithms: ['HS256'],
-    //         getToken: req => req.cookies.INVENTORY
-    //     })(req, res, next);
-    // } else {
-    //     next();
-    // }
+    console.log(req.path);
+    if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
+        jwt({
+            secret: process.env.JWT_SECRET,
+            algorithms: ['HS256'],
+            getToken: req => req.cookies.INVENTORY
+        })(req, res, next);
+    } else {
+        next();
+    }
 });
 
 // Body parser middleware
