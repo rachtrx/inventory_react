@@ -32,8 +32,8 @@ app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
     // req.auth={id: "238519b7-980c-42c9-b7c4-be3078dc7306"}
-    next();
-    console.log(req.path);
+    // next();
+    // console.log(req.path);
     if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth' || req.path === '/inventory/auth/chgpw') {
         jwt({
             secret: process.env.JWT_SECRET,
