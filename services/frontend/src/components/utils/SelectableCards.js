@@ -40,7 +40,6 @@ export default function SelectableCards({ items, renderCard }) {
               role="group"
               h="100%"
 							w="100%"
-							overflow="hidden"
 							bg="transparent"
         			_hover={{ bg: 'gray' }}
               {...props}
