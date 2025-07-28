@@ -17,6 +17,7 @@ export default function RemarksFormControl({
   label,
   placeholder,
   disabled = false,
+  isCollapsible = true
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [, meta] = useField(name);
@@ -29,23 +30,33 @@ export default function RemarksFormControl({
             <Text>{label}</Text>
           </FormLabel>
         )}
-        <IconButton
-          aria-label={isCollapsed ? "Expand remarks" : "Collapse remarks"}
-          icon={isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
-          size="xs"
-          variant="ghost"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        />
+        {isCollapsible ? 
+          <IconButton
+            aria-label={isCollapsed ? "Expand remarks" : "Collapse remarks"}
+            icon={isCollapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
+            size="xs"
+            variant="ghost"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          /> 
+        : undefined}
       </Flex>
-
-      <Collapse in={!isCollapsed}>
-        <Field
+      
+      {isCollapsible ? 
+        <Collapse in={!isCollapsed}>
+          <Field
+            name={name}
+            as={Textarea}
+            placeholder={placeholder}
+            disabled={disabled}
+          />
+        </Collapse> 
+      : <Field
           name={name}
           as={Textarea}
           placeholder={placeholder}
           disabled={disabled}
         />
-      </Collapse>
+      }
 
       {meta.error && <FormErrorMessage>{meta.error}</FormErrorMessage>}
     </FormControl>

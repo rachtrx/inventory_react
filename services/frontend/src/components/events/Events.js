@@ -19,7 +19,7 @@ export const EventsPage = () => {
         Actions={EventActions}
         Cards={EventCards}
         Table={EventTable}
-        // BulkActions={EventBulkActions}
+        BulkActions={EventBulkActions}
         defaultSearches={[
           { attr: "serialNumber", label: "asset"},
           { attr: "userName", label: "user"}

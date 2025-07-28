@@ -56,8 +56,8 @@ class EventService {
         return await this.axios.patch(`${API_URL}/events/update`, {id, field, newValue});
     }
 
-    async addRemark(eventId, remark, dateTime) {
-        return await this.axios.post(`${API_URL}/events/add/remark`, {eventId, remark, dateTime});
+    async addRemark(eventIds, remark) {
+        return await this.axios.post(`${API_URL}/events/add/remark`, {eventIds, remark, dateTime: Date.now()});
     }
 }
 

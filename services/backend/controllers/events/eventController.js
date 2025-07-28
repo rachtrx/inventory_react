@@ -19,33 +19,36 @@ class EventController extends EventFilterController {
     }
 
     async addRemark(req, res) {
+        const t = await sequelize.transaction();
         try {
-            const t = await sequelize.transaction();
-
-            const {eventId, remark, dateTime} = req.body;
+            const { eventIds, remark, dateTime } = req.body;
             const adminId = req.auth.id;
 
-            if (remark && remark !== "") {
-                await Rmk.create(
-                    {
-                        id: generateSecureID(),
-                        eventId: eventId,
-                        text: remark,
-                        remarkDate: dateTime,
-                        adminId: adminId,
-                    },
-                    { transaction: t }
-                );
-            } else {
+            if (!remark || remark.trim() === "") {
                 throw new Error("Remark is required");
             }
+
+            const eventIdList = Array.isArray(eventIds) ? eventIds : [eventIds];
+
+            const createPayload = eventIdList.map(eventId => ({
+                id: generateSecureID(),
+                eventId,
+                text: remark,
+                remarkDate: dateTime,
+                adminId,
+            }));
+
+            await Rmk.bulkCreate(createPayload, { transaction: t });
+
             await t.commit();
-            return res.json({ message: 'Remark added successfully.' });
+            return res.json({ message: 'Remark(s) added successfully.' });
+
         } catch (err) {
-            logger.error(err)
+            await t.rollback();
+            logger.error(err);
             console.error("Remark failed to add:", err);
             return res.status(400).json({ error: err.message });
-        }   
+        }
     }
 
     getAllItems = async (filters, sort) => {
@@ -258,7 +261,7 @@ class EventController extends EventFilterController {
             include: [
                 {
                     model: Rmk,
-                    attributes: ['id', 'text'],
+                    attributes: ['id', 'text', 'remarkDate'],
                     required: false
                 },
                 {

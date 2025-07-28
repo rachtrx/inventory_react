@@ -3,12 +3,15 @@ import React from 'react';
 import {
   Th,
   Td,
+  Flex,
+  Text,
 } from '@chakra-ui/react';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
 import { useItems } from '../../context/ItemsProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { SelectableTable } from '../utils/SelectableTable';
+import RemarksPopover from '../timeline/utils/RemarksPopover';
 
 const EventTable = () => {
   const { handleSort, sortField, sortOrder } = useItems();
@@ -32,7 +35,15 @@ const EventTable = () => {
         return {
           props: { bg: event.type },
           cells: [
-            <Td key="type">{event.type}</Td>,
+            <Td key="type">
+              <Flex gap={1} alignItems="center">
+                <Text fontSize="sm">{event.type}</Text>
+                <RemarksPopover 
+                  remarks={event.remarks}
+                  eventId={event.eventId}
+                />
+              </Flex>
+            </Td>,
             <Td key="eventDate">{event.eventDate}</Td>,
             <Td key="asset">{event.asset ? <AssetLink asset={event.asset} withTooltip={true}/> : ""}</Td>,
             <Td key="user">{event.user ? <UserLink user={event.user} withTooltip={true}/> : ""}</Td>,

@@ -20,9 +20,11 @@ export const RemarkInput = ({ eventId }) => {
   const handleSubmit = async () => {
     if (!remark.trim()) return;
 
+    console.log(eventId);
+
     setSubmitting(true);
     try {
-      await eventService.addRemark(eventId, remark, Date.now());
+      await eventService.addRemark(eventId, remark);
       setRemark(""); // clear input
       triggerRefresh(); // if passed
     } catch (err) {

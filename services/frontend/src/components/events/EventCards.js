@@ -9,6 +9,7 @@ import { ItemStarButton } from '../buttons/StarButton';
 import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
 import SelectableCards from "../utils/SelectableCards";
+import RemarksPopover from "../timeline/utils/RemarksPopover";
 
 function EventCards({ items }) {
   const renderCard = (event) => {
@@ -20,7 +21,13 @@ function EventCards({ items }) {
       body: (
         <Flex>
 					<VStack align="start" flex="1">
-						<Text>{event.type}</Text>
+						<Flex gap={1} alignItems="center">
+							<Text fontSize="sm">{event.type}</Text>
+							<RemarksPopover
+								remarks={event.remarks}
+								eventId={event.eventId}
+							/>
+						</Flex>
 						<Text>{event.eventDate}</Text>
 						{event.asset && <AssetLink asset={event.asset} withTooltip={true}/>}
 						{event.user && <UserLink user={event.user} withTooltip={true}/>}
