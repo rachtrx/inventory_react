@@ -31,7 +31,7 @@ export const ReturnStep2 = () => {
 					>
 						{/* Display Asset Information */}
 						{_return.asset.count > 0 && <Text fontSize="lg" fontWeight="bold">
-						Serial Number: {_return.asset.serialNumber}
+							Serial Number: {_return.asset.serialNumber}
 						</Text>}
 
 						{/* Display Users Associated with This Asset */}

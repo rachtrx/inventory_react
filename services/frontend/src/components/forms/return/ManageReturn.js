@@ -5,7 +5,7 @@ import InputFormControl from '../utils/InputFormControl';
 export const ManageReturn = () => {
   const { ret, returnIndex, expectedReturnDate } = useReturn();
 
-  const showAsset = ret.asset.assetId
+  const showAsset = !!ret.asset?.assetId
   const showAccessories = ret.accessoryTypes?.length > 0
 
   return (

@@ -12,12 +12,12 @@ export const createNewAccessory = (accLoan) => ({
 export const createNewAsset = (assetLoan={}) => ({
     assetId: assetLoan.asset?.assetId || '',
     serialNumber: assetLoan.asset?.serialNumber || '',
-    unreturned: assetLoan.returnEventId ? 0 : 1,
-    count: assetLoan.returnEventId ? 0 : 1,
+    unreturned: !assetLoan.asset || assetLoan.returnEventId ? 0 : 1,
+    count: !assetLoan.asset || assetLoan.returnEventId ? 0 : 1,
 })
 
 export const createNewReturn = ({
-    loanId = null, 
+    loanId = null,
     astLoan = {}, 
     user = {},
     // newUser = {},
@@ -27,7 +27,7 @@ export const createNewReturn = ({
 } = {}) => ({
     key: uuidv4(),
     loanId: loanId || null,
-    asset: createNewAsset(astLoan || {}),
+    asset: astLoan?.asset ? createNewAsset(astLoan) : {},
     accessoryTypes: accLoans?.map((accLoan) => createNewAccessory(accLoan)) || [],
     userId: user.userId || user.userId || '',
     userName: user.userName || '',

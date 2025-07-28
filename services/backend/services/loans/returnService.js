@@ -43,12 +43,12 @@ class ReturnService {
             include: [
                 {
                     model: AstLoan,
-                    where: { returnEventId: { [Op.eq]: null } }, // find the loaned device
                     include: {
                         model: Ast,
                         required: true,
                         attributes: ['id', 'alias', 'serialNumber', 'delEventId'],
-                    }
+                    },
+                    required: false
                 },
                 {
                     model: Usr,
@@ -62,7 +62,8 @@ class ReturnService {
                     },
                     required: false,
                 }
-            ]
+            ],
+            where: [Loan.TOP_LEVEL_ON_LOAN_WHERE_CLAUSE]
         });
     }
 
