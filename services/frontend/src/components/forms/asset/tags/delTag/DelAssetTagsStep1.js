@@ -43,17 +43,20 @@ export const DelAssetTagsStep1 = () => {
       const tagDuplicates = validateUniqueValues(values.tags, ['tagName']);
 
       values.tags.forEach((tag, tagIndex) => {
-        const tagError = validateFieldName(tagDuplicates, tag['tagId'], "Tag");
-        if (tagError) {
-          setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
+        if (tag.tagName && !tag.tagId) setFieldError(errors, ['tags', tagIndex, 'tagName'], `Tag ${tag.tagName} not found`);
+        else {
+          const tagError = validateFieldName(tagDuplicates, tag['tagId'], "Tag");
+          if (tagError) {
+            setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
+          }
         }
 
-        const snDuplicates = validateUniqueValues(values.tags, ['assets', 'assetTagId']);
+        const snDuplicates = validateUniqueValues(tag.assets, ['serialNumber']);
   
         tag.assets.forEach((asset, assetIndex) => {
           if (asset.serialNumber && asset.assetId === '') {
             setFieldError(errors, ['tags', tagIndex, 'assets', assetIndex, 'serialNumber'], `${asset.serialNumber} does not exist!`);
-          } else if (tag.tagId && asset.serialNumber && !asset.assetTagId) { // shouldnt happen
+          } else if (tag.tagId && asset.serialNumber && !asset.tagIds.includes(tag.tagId)) { // shouldnt happen
             setFieldError(errors, ['tags', tagIndex, 'assets', assetIndex, 'serialNumber'], `${tag.tagName} Tag not found for ${asset.serialNumber}`);
           } else {
             const snError = validateField(snDuplicates, asset['serialNumber'], "Serial Number");

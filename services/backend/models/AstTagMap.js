@@ -7,30 +7,30 @@ module.exports = (sequelize) => {
     AstTagMap.init({
       id: {
         type: DataTypes.STRING,
-              primaryKey: true,
+        primaryKey: true,
       },
       assetId: {
         type: DataTypes.STRING,
         allowNull: false,
-              references: {
-                  model: 'asts',
-                  key: 'id'
-              }
+        references: {
+          model: 'asts',
+          key: 'id'
+        }
       },
       tagId: {
-              type: DataTypes.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
-              references: {
-                  model: 'ast_tags',
-                  key: 'id'
-              }
+        references: {
+            model: 'ast_tags',
+            key: 'id'
+        }
       },
       addEventId: {
-          type: DataTypes.STRING,
-          references: {
-            model: 'events',
-            key: 'id',
-          },
+        type: DataTypes.STRING,
+        references: {
+          model: 'events',
+          key: 'id',
+        },
       },
       delEventId: {
           type: DataTypes.STRING,
@@ -42,6 +42,15 @@ module.exports = (sequelize) => {
     }, {
       sequelize,
       modelName: 'AstTagMap',
+      indexes: [
+        {
+          unique: true,
+          fields: ['asset_id', 'tag_id'],
+          where: {
+            'del_event_id': null,
+          },
+        },
+      ],
     });
     return AstTagMap;
   }

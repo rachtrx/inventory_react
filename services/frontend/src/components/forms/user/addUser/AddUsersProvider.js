@@ -41,15 +41,13 @@ export const AddUsersProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await userService.createNewDept(deptName);
-      setDeptOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === deptName && !item.deptId)),
-        { 
+      const newDept = { 
           deptId: response.data.data.id, 
           value: response.data.data.deptName, 
           label: response.data.data.deptName 
         }
-      ]);
       setLoading(false);
+      return newDept;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -77,6 +75,7 @@ export const AddUsersProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     deptOptions,
+    setDeptOptions,
     addNewDept,
     handleSubmit
   };

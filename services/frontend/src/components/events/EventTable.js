@@ -12,6 +12,7 @@ import { useItems } from '../../context/ItemsProvider';
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { SelectableTable } from '../utils/SelectableTable';
 import RemarksPopover from '../timeline/utils/RemarksPopover';
+import { formStyleMap } from '../forms/control/helpers';
 
 const EventTable = () => {
   const { handleSort, sortField, sortOrder } = useItems();
@@ -33,7 +34,7 @@ const EventTable = () => {
       ]}
       renderRow={(event) => {
         return {
-          props: { bg: event.type },
+          props: { ...formStyleMap[event.type] },
           cells: [
             <Td key="type">
               <Flex gap={1} alignItems="center">

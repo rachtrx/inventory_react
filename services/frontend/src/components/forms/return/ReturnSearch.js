@@ -12,8 +12,8 @@ import { createNewAccessory, createNewAsset } from "./helpers"
 
 export const ReturnSearch = () => {
 
-	const { setUserOptions } = useReturns();
-	const { returnIndex, currentLoan, returnOptions } = useReturn();
+	const { setUserOptions, returnOptions } = useReturns();
+	const { returnIndex, currentLoan } = useReturn();
 	const { setFieldValue } = useFormikContext();
 	const { handleError } = useUI();
 	
@@ -36,6 +36,7 @@ export const ReturnSearch = () => {
 	const updateDetailsFromLoan = useCallback(async (returnIndex, selected) => {
 		try {
 			console.log(selectedType);
+			console.log(selected);
 			if (!selected?.value) {
 				console.log(selectedType);
 				setFieldValue(`returns.${returnIndex}.loanId`, "")
@@ -49,6 +50,8 @@ export const ReturnSearch = () => {
 
 			console.log(selected.value);
 
+			if (selected.isDisabled || !selected.user) return;
+
 			setUserOptions((prevOptions) => [
 				...prevOptions, // Include previous user options
 				{
@@ -56,7 +59,7 @@ export const ReturnSearch = () => {
 				  value: selected.user.userName,
 				  label: selected.user.userName,
 				},
-			  ]);
+			]);
 			  
 	
 			setFieldValue(`returns.${returnIndex}.loanId`, selected.value)
@@ -76,33 +79,33 @@ export const ReturnSearch = () => {
 			return (
 			  <ReturnAstSelectFormControl
 				name={`returns.${returnIndex}.search`}
-				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
+				handleClick={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => loanService.fetchAstReturn(value)}
 				placeholder="Serial Number"
 				isDisabled={currentLoan}
-				initialOptions={returnOptions}
+				options={returnOptions}
 			  />
 			);
 		  case "user":
 			return (
 			  <ReturnUsrSelectFormControl
 				name={`returns.${returnIndex}.search`}
-				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
+				handleClick={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => loanService.fetchUserReturn(value)}
 				placeholder="User(s)"
 				isDisabled={currentLoan}
-				initialOptions={returnOptions}
+				options={returnOptions}
 			  />
 			);
 		  case "accessory":
 			return (
 			  <ReturnAccSelectFormControl
 				name={`returns.${returnIndex}.search`}
-				updateFields={(selected) => updateDetailsFromLoan(returnIndex, selected)}
+				handleClick={(selected) => updateDetailsFromLoan(returnIndex, selected)}
 				searchFn={(value) => loanService.fetchAccReturn(value)}
 				placeholder="Accessory"
 				isDisabled={currentLoan}
-				initialOptions={returnOptions}
+				options={returnOptions}
 			  />
 			);
 		  default:

@@ -1,6 +1,6 @@
 import { CheckIcon } from "@chakra-ui/icons"
 import { Box, Button, Flex, Input, Textarea } from "@chakra-ui/react"
-import { useThemeFontSize } from "../../../timeline/utils/useThemeFontSize"
+import { useThemeFontSize } from "../../useThemeFontSize"
 
 export const EditControl = ({ isRemarks, handleUpdate, newValue, value, isFloat, size="md", setNewValue, ...rest }) => {
 

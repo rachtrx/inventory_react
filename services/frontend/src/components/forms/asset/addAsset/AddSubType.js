@@ -5,27 +5,22 @@ import { AddButton } from "../../utils/ItemButtons"
 import { AddAsset } from "./AddAsset";
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useAddAssets } from "./AddAssetsProvider"
-import WarningCard from "../../utils/WarningCard"
 import { createNewAsset } from "./helpers"
 
 export const AddSubType = ({
 	field,
 	typeId,
 	subType,
-	subTypeOptions,
+	options,
+	setOptions,
 	children
 }) => {
 
-	const { setFieldValue } = useFormikContext();
-	const { addNewSubType } = useAddAssets()
-	const [ cost, setCost ] = useState(0);
+	useEffect(() => {console.log(`Type ID changed: ${typeId}`)}, [typeId])
 
-	useEffect(() => {
-		console.log(subTypeOptions);
-		if (!subType.subTypeName || subType.subTypeId) return;
-		const matchedOption = subTypeOptions.find(option => option.subTypeId && option.value === subType.subTypeName);
-		if(matchedOption) setFieldValue(`${field}.subTypeId`, matchedOption.subTypeId);
-	}, [subTypeOptions, setFieldValue, subType, field]);
+	const { setFieldValue } = useFormikContext();
+	const { addNewSubType } = useAddAssets();
+	const [ cost, setCost ] = useState(0);
 
 	useEffect(() => {
 		if (subType.subTypeId === "" || cost !== 0) return;
@@ -40,12 +35,20 @@ export const AddSubType = ({
 	}, [subType.subTypeId, cost])
 
 	const handleSubTypeUpdate = async (selected) => {
-		// IMPT dont update for new created sub Types
-		if (!selected || selected?.subTypeId) {
+
+		if (!selected || selected.subTypeId) { // IMPT dont update for new created sub types
+		
 			setFieldValue(`${field}.subTypeId`, selected?.subTypeId || '');
-        	setFieldValue(`${field}.assets`, [createNewAsset()]);
+
+			if (!selected || subType?.subTypeName !== selected.value) {
+				setFieldValue(`${field}.assets`, [createNewAsset()]);
+			}
 		}
     };
+
+	const onCreate = async (subTypeName) => {
+		return await addNewSubType(subTypeName, typeId);
+	}
 
 	return (
 		<Flex direction="column">
@@ -55,17 +58,13 @@ export const AddSubType = ({
 						label={`Sub Type`}
 						name={`${field}.subTypeName`}
 						placeholder="Select Sub Type"
-						updateFields={handleSubTypeUpdate}
-						initialOptions={subTypeOptions}
+						handleClick={handleSubTypeUpdate}
+						options={options}
+						setOptions={setOptions}
+						onCreate={onCreate}
+						displayWarning={!!typeId}
+						trueKey="subTypeId"
 					/>
-					{typeId && subType.subTypeName && !subType.subTypeId && 
-						<WarningCard
-							message={`Create ${subType.subTypeName}?`}
-							items={subTypeOptions}
-							itemAttr="value"
-							onCreate={() => addNewSubType(subType.subTypeName, typeId)}
-						/>
-					}
 				</Flex>
 				<Box>
 					<FieldArray name={`${field}.assets`}>

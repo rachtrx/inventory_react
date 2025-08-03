@@ -4,6 +4,7 @@ import reminderService from "../../../services/ReminderService";
 import { useUI } from "../../../context/UIProvider";
 import { UpdateReturnDate } from "./UpdateReturnDate";
 import { useForm } from "../../../context/FormProvider";
+import { BulkActionButton } from "../../buttons/BulkActionButton";
 
 export const UpdateExpectedReturn = () => {
 
@@ -32,13 +33,12 @@ export const UpdateExpectedReturn = () => {
 
     return (
         <>
-            <Button
-                variant="outline"
+            <BulkActionButton
                 disabled={selectedItems.length === 0}
                 onClick={handleUpdateReturn}
             >
                 Update Return Date
-            </Button>
+            </BulkActionButton>
             <UpdateReturnDate
                 isOpen={isOpen}
                 onClose={onClose} 

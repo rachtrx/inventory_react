@@ -1,6 +1,5 @@
-const { generateExcel } = require("@/controllers/utils.js");
 const logger = require("@/utils/logging");
-
+const ExcelJS = require('exceljs');
 class BaseController {
 
     constructor() {
@@ -39,7 +38,7 @@ class BaseController {
             const query = await this.getAllItems(filters, sort);
             let result = query.map(this.dtoCallback);
 
-            const workbook = generateExcel(result, this.excelName, this.excludedHeaders)
+            const workbook = this.generateExcel(result, this.excelName, this.excludedHeaders)
 
             // Prepare response headers
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -56,12 +55,12 @@ class BaseController {
         if (Array.isArray(obj)) {
             obj.forEach((item, index) => {
             const newPrefix = isRoot ? `${index}` : `${prefix}.${index}`;
-            flattenObject(item, newPrefix, res, false);
+            this.flattenObject(item, newPrefix, res, false);
             });
         } else if (obj && typeof obj === 'object') {
             for (const key in obj) {
             const newPrefix = isRoot ? key : `${prefix}.${key}`;
-            flattenObject(obj[key], newPrefix, res, false);
+            this.flattenObject(obj[key], newPrefix, res, false);
             }
         } else {
             res[prefix] = obj;

@@ -5,7 +5,7 @@ export const createNewTag = (tag=null, users=[]) => ({
     'key': uuidv4(),
     'tagId': tag?.tagId || '',
     'tagName': tag?.tagName || '',
-    'users': users.length !== 0 ? users.map(user => createNewUser(user)) : []
+    'users': users.length !== 0 ? users.map(user => createNewUser(user)) : [createNewUser()]
 })
 
 export const createNewUser = (user={}) => ({
@@ -13,7 +13,7 @@ export const createNewUser = (user={}) => ({
     'userName': user.userName || '',
     'userId': user.userId || '',
     'remarks': user.remarks || '',
-    'userTagId': user.tags?.find(tag => tag.isMatching)?.userTagId || '',
+    'tagIds': user.tags?.map(tag => tag.tagId) || [],
 })
 
 export const setValuesExcel = async ({
@@ -52,15 +52,11 @@ export const setValuesExcel = async ({
       let response;
 
       // TODO not sure if can select items before tag or if it will refresh
-      if (!tagOption) {
-        tagOption = { tagName };
-        response = await fetchUsrForTagsFunc([...userNames]);
-      } else {
-        response = await fetchUsrForTagsFunc([...userNames], tagOption.tagId);
-      }
+      if (!tagOption) tagOption = { tagName };
+      response = await fetchUsrForTagsFunc([...userNames]);
 
       const newUserOptions = response.data;
-      setUserOptions((prev) => ({ ...prev, [tagName]: newUserOptions }));
+      setUserOptions((prev) => ([...prev, ...newUserOptions.filter(u => !prev.some(someU => someU.userId === u.userId))]));
 
       const userObjs = userRows.map(({ userName, remarks }) => {
         const match = newUserOptions.find((option) => compareStrings(option.value, userName));

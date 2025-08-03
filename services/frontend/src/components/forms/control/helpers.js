@@ -147,7 +147,58 @@ export const headerMap = {
     [FormType.DEL_USER]: "Remove User",
     [FormType.UPDATE_ACC]: "Update Accessory",
     [FormType.TAG_ASSET]: "Tag Assets",
-    [FormType.UNTAG_ASSET]: "UnTag Assets",
+    [FormType.UNTAG_ASSET]: "Untag Assets",
     [FormType.TAG_USER]: "Tag Users",
-    [FormType.UNTAG_USER]: "UnTag Users",
+    [FormType.UNTAG_USER]: "Untag Users",
 }
+
+export const formStyleMap = {
+  [FormType.ADD_ASSET]: {
+    bg: 'bgGreen',
+    _hover: { bg: 'bgGreenHover' },
+  },
+  [FormType.LOAN]: {
+    bg: 'bgBlue',
+    _hover: { bg: 'bgBlueHover' },
+  },
+  [FormType.RELOAN]: {
+    bg: 'bgBlue',
+    _hover: { bg: 'bgBlueHover' },
+  },
+  [FormType.RETURN]: {
+    bg: 'bgOrange',
+    _hover: { bg: 'bgOrangeHover' },
+  },
+  [FormType.DEL_ASSET]: {
+    bg: 'bgRed',
+    _hover: { bg: 'bgRedHover' },
+  },
+  [FormType.ADD_USER]: {
+    bg: 'bgGreen',
+    _hover: { bg: 'bgGreenHover' },
+  },
+  [FormType.DEL_USER]: {
+    bg: 'bgRed',
+    _hover: { bg: 'bgRedHover' },
+  },
+  [FormType.UPDATE_ACC]: {
+    bg: 'bgCyan',
+    _hover: { bg: 'bgCyanHover' },
+  },
+  [FormType.TAG_ASSET]: {
+    bg: 'bgPurple',
+    _hover: { bg: 'bgPurpleHover' },
+  },
+  [FormType.UNTAG_ASSET]: {
+    bg: 'bgPink',
+    _hover: { bg: 'bgPinkHover' }, // corrected
+  },
+  [FormType.TAG_USER]: {
+    bg: 'bgPurple',
+    _hover: { bg: 'bgPurpleHover' },
+  },
+  [FormType.UNTAG_USER]: {
+    bg: 'bgPink',
+    _hover: { bg: 'bgPinkHover' },
+  },
+};

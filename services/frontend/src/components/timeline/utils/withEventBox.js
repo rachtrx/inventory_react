@@ -1,4 +1,4 @@
-import { Box, HStack } from "@chakra-ui/react"
+import { Box } from "@chakra-ui/react"
 
 export const withEventBox = (Component) => {
     return (props) => {
@@ -7,7 +7,7 @@ export const withEventBox = (Component) => {
                 {/* Event Content */}
                 <Box
                     p={2}
-                    bg="gray"
+                    bg="bgGray"
                     borderRadius="lg"
                     boxShadow="md"
                     border="1px solid"

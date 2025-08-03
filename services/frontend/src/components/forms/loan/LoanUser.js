@@ -7,12 +7,15 @@ import { SearchSingleSelectFormControl } from "../utils/SelectFormControl"
 import { useLoans } from "./LoansProvider"
 import loanService from "../../../services/LoanService"
 import { createNewLoan } from "./helpers"
+import { useEffect } from "react";
 
 export const LoanUser = () => {
 
 	const { user, userIndex } = useLoan();
 	const { userOptions } = useLoans();
-	const { setFieldValue } = useFormikContext();
+	const { values, setFieldValue } = useFormikContext();
+
+	useEffect(() => { console.log(values)}, [values])
 
 	const updateUserFields = (userIndex, selected) => {
 		if (!selected?.value) {
@@ -20,7 +23,7 @@ export const LoanUser = () => {
             setFieldValue(`users.${userIndex}.userName`, '');
             return;
 		}
-		setFieldValue(`users.${userIndex}.userId`, selected.userId || "");
+		setFieldValue(`users.${userIndex}.userId`, selected?.userId || "");
 	}
 
 	return (
@@ -34,8 +37,8 @@ export const LoanUser = () => {
 						name={`users.${userIndex}.userName`}
 						searchFn={loanService.fetchUserLoan}
 						placeholder="Select user"
-						updateFields={(selected) => updateUserFields(userIndex, selected)}
-						initialOptions={userOptions}
+						handleClick={(selected) => updateUserFields(userIndex, selected)}
+						options={userOptions}
 					/>
 				</Flex>
 				

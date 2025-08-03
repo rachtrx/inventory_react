@@ -3,6 +3,7 @@ import { useUI } from "../../../../context/UIProvider";
 import assetService from "../../../../services/AssetService";
 import { FormType, useForm } from "../../../../context/FormProvider";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { createNewTag } from "./helpers";
 
 // Create a context
 const AssetTagsContext = createContext();
@@ -14,26 +15,42 @@ export const AssetTagsFormProvider = ({ children }) => {
   const { formType, setFormType, initialValues, triggerRefresh, reinitializeForm } = useForm();
 
   const [ tagOptions, setTagOptions ] = useState([]);
-  const [ assetOptions, setAssetOptions ] = useState({});
+  const [ newTagOptions, setNewTagOptions ] = useState([]);
+
+  const [ assetOptions, setAssetOptions ] = useState([]);
+
 
   useEffect(() => {
-    if (!initialValues.tagId || !initialValues?.assetIds) return;
-    const loadAssets = async (assetIds) => {
+    if (!initialValues?.tagIds || !initialValues?.assetIds || !tagOptions.length ) return;
+    if (formType !== FormType.TAG_ASSET && formType !== FormType.UNTAG_ASSET) return;
+    
+    const loadAssets = async () => {
+      const tagMap = Object.fromEntries(tagOptions.map(tag => [tag.tagId, tag]));
+
+      const tags = [];
       let response;
-      if (formType === FormType.TAG_ASSET) response = await assetService.fetchTagAssetById([...assetIds], initialValues.tagId)
-      else if (formType === FormType.UNTAG_ASSET) response = await assetService.fetchTagAssetById([...assetIds], initialValues.tagId)
-      else throw new Error(`Invalid Form Type`)
+      if (formType === FormType.TAG_ASSET) response = await assetService.fetchTagAssetById(initialValues.assetIds);
+      else response = await assetService.fetchUntagAssetById(initialValues.assetIds);
+
       const newAssetOptions = response.data;
-      setAssetOptions({ ...assetOptions, "": newAssetOptions });
-      reinitializeForm()
-    }
-    loadAssets(initialValues.assetIds)
-  }, [initialValues, assetOptions, reinitializeForm, formType])
+
+      for (const tagId of initialValues.tagIds) {
+        const tagOption = tagMap[tagId];
+        console.log(response.data);
+        tags.push(createNewTag(tagOption, newAssetOptions));
+      }
+
+      setAssetOptions(newAssetOptions);
+      reinitializeForm({ tags });
+    };
+    loadAssets()
+  }, [initialValues, reinitializeForm, formType, tagOptions])
 
   useEffect(() => {
     const fetchFilters = async () => {
       const tagFilters = await getTagFilters();
       setTagOptions(tagFilters);
+      console.log(tagFilters);
     };
     fetchFilters();
   }, []);
@@ -53,15 +70,13 @@ export const AssetTagsFormProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewTag(tagName);
-      setTagOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === tagName && !item.tagId)),
-        { 
-          tagId: response.data.data.id,
-          value: response.data.data.tagName,
-          label: response.data.data.tagName
-        }
-      ]);
       setLoading(false);
+      const newTag = { 
+        tagId: response.data.data.id,
+        value: response.data.data.tagName,
+        label: response.data.data.tagName
+      }
+      return newTag
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -105,6 +120,9 @@ export const AssetTagsFormProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     tagOptions,
+    setTagOptions,
+    newTagOptions, 
+    setNewTagOptions,
     addNewTag,
     assetOptions, 
     setAssetOptions,

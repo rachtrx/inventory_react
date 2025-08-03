@@ -133,7 +133,7 @@ export const LoanStep1 = () => {
               const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
               return matchedAccessoryOption || {
                 accessoryName, // Pass accessoryName regardless of whether id is found
-                count: count
+                count: count,
               }
             });
             console.log(accessoryObjs);
@@ -251,7 +251,7 @@ export const LoanStep1 = () => {
             if (accessoryError) {
               setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], accessoryError);
             }
-            console.log(accessory);
+            // console.log(accessory);
             if (accessory['accessoryName'] && !accessory['accessoryTypeId']) setFieldError(errors, ['users', userIndex, 'loans', loanIndex, 'accessories', accessoryIndex, 'accessoryName'], `Please create new accessory type ${accessory['accessoryName']}`);
           });
         })
@@ -268,7 +268,7 @@ export const LoanStep1 = () => {
           validateOnChange={true}
           // validateOnBlur={true}
           innerRef={formRef}
-          // enableReinitialize={true}
+          // enableReinitialize={false}
         >
           {({ values, errors }) => {
             return (

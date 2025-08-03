@@ -28,10 +28,10 @@ export const DelUser = function({ field, user, children }) {
 			<SearchSingleSelectFormControl
 				name={`${field}.userName`}
 				searchFn={value => userService.fetchUserDel(value)}
-				updateFields={(selected) => updateUserFields(selected)}
+				handleClick={(selected) => updateUserFields(selected)}
 				label={`User Name`}
 				placeholder="User Name"
-				initialOptions={userOptions}
+				options={userOptions}
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
 			<RemarksFormControl label={`Remarks for user`} name={`${field}.remarks`}/>

@@ -27,7 +27,7 @@ class AccLoanController {
     async loadAccLoan (req, res) {
         try {
 
-            const search = new AccLoanSearch(req.query)
+            const search = new AccLoanSearch()
             const query = await search.run()
 
             const accessories = query.map(

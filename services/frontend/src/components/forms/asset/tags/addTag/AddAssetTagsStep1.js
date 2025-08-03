@@ -51,12 +51,12 @@ export const AddAssetTagsStep1 = () => {
 
         if (tag['tagName'] && !tag['tagId']) setFieldError(errors, ['tags', tagIndex, 'tagName'], `Please create new tag ${tag['tagName']}`);
 
-        const snDuplicates = validateUniqueValues(values.tags, ['assets', 'serialNumber']);
+        const snDuplicates = validateUniqueValues(tag.assets, ['serialNumber']);
   
         tag.assets.forEach((asset, assetIndex) => {
           if (asset.serialNumber && asset.assetId === '') {
             setFieldError(errors, ['tags', tagIndex, 'assets', assetIndex, 'serialNumber'], `${asset.serialNumber} does not exist!`);
-          } else if (asset.assetTagId) {
+          } else if (asset.tagIds.includes(tag.tagId)) {
             setFieldError(errors, ['tags', tagIndex, 'assets', assetIndex, 'serialNumber'], `${asset.serialNumber} already has ${tag.tagName} tag`);
           } else {
             const snError = validateField(snDuplicates, asset['serialNumber'], "Serial Number");
@@ -67,7 +67,7 @@ export const AddAssetTagsStep1 = () => {
         });
       });
 
-      console.log(errors);  
+      // console.log(errors);  
       return errors;
     };
 

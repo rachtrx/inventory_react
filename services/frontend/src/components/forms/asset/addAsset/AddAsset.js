@@ -5,13 +5,14 @@ import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useAddAssets } from "./AddAssetsProvider";
 import { Flex } from "@chakra-ui/react";
 import DateInputControl from "../../utils/DateInputControl";
-import WarningCard from "../../utils/WarningCard";
 import RemarksFormControl from "../../utils/RemarksFormControl";
 
 export const AddAsset = function({ field, asset, cost, setCost, children }) {
 
 	const { setFieldValue } = useFormikContext();
-	const { vendorOptions, addNewVendor, locationOptions } = useAddAssets();
+	const { vendorOptions, addNewVendor, locationOptions, setVendorOptions, setLocationOptions } = useAddAssets();
+
+	console.log(asset);
 
 	useEffect(() => {
 		//  dont do anything if cost doesnt change or cost is 0 (would have been handled by SubType)
@@ -21,12 +22,9 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 		setCost(asset.cost);
 	}, [asset.cost, cost, setCost])
 
-	useEffect(() => {
-		console.log(vendorOptions);
-		if (!asset.vendorName || asset.vendorId) return;
-		const matchedOption = vendorOptions.find(option => option.vendorId && option.value === asset.vendorName);
-		if(matchedOption) setFieldValue(`${field}.vendorId`, matchedOption.vendorId);
-	}, [vendorOptions, setFieldValue, asset, field]);
+	const updateVendor = (selected) => {
+		setFieldValue(`${field}.vendorId`, selected?.vendorId || '')
+	}
 
 	return (
 		<Flex direction="column" gap={2}>
@@ -36,25 +34,20 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				placeholder="Enter Asset Tag"
 			/>
 			<InputFormControl
-				label={`Serial Number`} 
-				name={`${field}.serialNumber`} 
+				label={`Serial Number`}
+				name={`${field}.serialNumber`}
 				placeholder="Enter serial number" 
 			/>
 			<CreatableSingleSelectFormControl
+				name={`${field}.vendorName`}
 				label={`Vendor`} 
-				name={`${field}.vendorName`} 
-				updateFields={(selected) => setFieldValue(`${field}.vendorId`, selected?.vendorId || '')}
-				initialOptions={vendorOptions} 
-				placeholder="Enter vendor" 
+				placeholder="Enter vendor"
+				handleClick={updateVendor}
+				options={vendorOptions}
+				setOptions={setVendorOptions}
+				onCreate={addNewVendor}
+				trueKey="vendorId"
 			/>
-			{asset.vendorName && !asset.vendorId && 
-				<WarningCard
-					message={`Create ${asset.vendorName}?`}
-					items={vendorOptions}
-					itemAttr="value"
-					onCreate={() => addNewVendor(asset.vendorName)}
-				/>
-			}
 			<InputFormControl
 				label={`Cost`} 
 				name={`${field}.cost`} 
@@ -66,7 +59,8 @@ export const AddAsset = function({ field, asset, cost, setCost, children }) {
 				name={`${field}.location`}
 				label={`Location`}
 				placeholder="Select Location"
-				initialOptions={locationOptions}
+				options={locationOptions}
+				setOptions={setLocationOptions}
 			/>
 			<RemarksFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>
 			{/* Include the helper functions */}

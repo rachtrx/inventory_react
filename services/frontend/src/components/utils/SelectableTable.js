@@ -10,7 +10,7 @@ export function SelectableTable({ columns, renderRow }) {
 
   return (
     <Table size="sm" variant="simple">
-      <Thead bg="gray" position="sticky" top={0} zIndex={1}>
+      <Thead position="sticky" bg="bgGray" top={0} zIndex={1}>
         <Tr>
           <Th>
             <Checkbox isChecked={allSelected} onChange={handleSelectAll} />

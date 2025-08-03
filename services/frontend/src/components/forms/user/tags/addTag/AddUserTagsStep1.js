@@ -54,15 +54,15 @@ export const AddUserTagsStep1 = () => {
         }
         if (tag['tagName'] && !tag['tagId']) setFieldError(errors, ['tags', tagIndex, 'tagName'], `Please create new tag ${tag['tagName']}`);
 
-        const snDuplicates = validateUniqueValues(values.tags, ['users', 'userName']);
+        const unDuplicates = validateUniqueValues(tag.users, ['userName']);
   
         tag.users.forEach((user, userIndex) => {
           if (user.userName && user.userId === '') {
             setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], `${user.userName} does not exist!`);
-          } else if (user.userTagId) {
+          } else if (user.tagIds.includes(tag.tagId)) {
             setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], `${user.userName} already has ${tag.tagName} tag`);
           } else {
-            const unError = validateField(snDuplicates, user['userName'], "User Name");
+            const unError = validateField(unDuplicates, user['userName'], "User Name");
             if (unError) {
               setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], unError);
             }

@@ -28,7 +28,7 @@ const UserLoanEvent = ({ event }) => {
             {/* Left Panel: Accessory Details */}
             <VStack spacing={4} align="stretch">
                 <HStack>
-                    <Text fontWeight="bold" fontSize="lg" color="blue.600">
+                    <Text fontWeight="bold" fontSize="lg" color="textBlue">
                         Loaned
                     </Text>
                     <DateText colorScheme="blue" event={event} />
@@ -36,7 +36,7 @@ const UserLoanEvent = ({ event }) => {
 
                 {!isOpen && returnEvents?.length && (
                     <HStack>
-                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="textYellow">
                             Returned
                         </Text>
                         {returnEvents.map((event) => (
@@ -76,7 +76,7 @@ const UserLoanEvent = ({ event }) => {
             {isOpen && returnEvents?.length && (
                 <Box>
                     <VStack spacing={4} align="stretch">
-                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
+                        <Text fontWeight="bold" fontSize="lg" color="textYellow">
                             Returned
                         </Text>
                         {accLoans && accLoans.length > 0 && (

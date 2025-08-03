@@ -69,7 +69,7 @@ const Asset = ({ asset }) => {
 						value={asset.serialNumber}
 					/>
         </Flex>
-				<Heading as="h2" size="md" mb="2">Status: {status}</Heading>	
+				<Heading as="h2" size="md">Status: {status}</Heading>	
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
@@ -150,7 +150,7 @@ const Asset = ({ asset }) => {
           width="100%"
           alignItems="center"
         >
-            <Heading as="h2" size="sm" mb="2">Current User</Heading>
+            <Heading as="h2" size="sm">Current User</Heading>
             <Box>
             {loan && (
               <>
@@ -162,7 +162,7 @@ const Asset = ({ asset }) => {
             )}
             </Box>
 
-            <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
+            <Heading as="h2" size="sm">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
                 <Flex gap={1}>
@@ -176,14 +176,14 @@ const Asset = ({ asset }) => {
               ))}
             </Flex>
 
-            <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
+            <Heading as="h2" size="sm">Reserved for:</Heading>
             <Box>
               {reservation && (
                 <UserLink key={reservation.user.userId} isCopy={false} user={reservation.user} withTooltip={true}/>
               )}
             </Box>
 
-            <Heading as="h2" size="sm" mb="2">Tags</Heading>
+            <Heading as="h2" size="sm">Tags</Heading>
             <AssetTags asset={asset} tags={asset.tags}/>
         </Grid>
       </Flex>

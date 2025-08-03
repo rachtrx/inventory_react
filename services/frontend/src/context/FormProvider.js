@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useContext, useState, useCallback, useRef } from 'react';
-import { useDisclosure } from '@chakra-ui/react';
 
 const FormContext = createContext();
 
@@ -30,7 +29,7 @@ export const FormProvider = ({ children }) => {
   const triggerRefresh = () => setRefreshKey(k => k + 1);
 
   const [ formType, setFormType ] = useState(null);
-  const [ initialValues, setInitialValues ] = useState(null);
+  const [ initialValues, setInitialValues ] = useState();
 
   const formRef = useRef(null);
 
@@ -38,33 +37,43 @@ export const FormProvider = ({ children }) => {
     if (!formType) setInitialValues(null);
   }, [formType]);
 
+  useEffect(() => {
+    console.log("Initial Values");
+    console.log(initialValues);
+  }, [initialValues]);
+
   console.log("Modal rendered");
 
-  const createTouchedStructure = useCallback((values) => {
+  const createFullyTouched = (values) => {
     if (Array.isArray(values)) {
-      return values.map((item) => createTouchedStructure(item));
-    } else if (typeof values === 'object' && values !== null && values !== '') {
-      return Object.keys(values).reduce((acc, key) => {
-        acc[key] = createTouchedStructure(values[key]);
-        return acc;
-      }, {});
+      return values.map(createFullyTouched);
+    } else if (values !== null && typeof values === 'object') {
+      return Object.fromEntries(
+        Object.entries(values).map(([key, val]) => [key, createFullyTouched(val)])
+      );
     } else {
-      return values !== '';
+      return true;
     }
-  }, []);
+  };
 
   const reinitializeForm = (newValues) => {
 
     console.log("reinitializing");
     
     if (formRef.current) {
-      console.log(newValues);
-      formRef.current.setValues(newValues)
+      console.log("Before setValues:", formRef.current);
+      formRef.current.setValues(newValues);
 
-      const touchedFields = createTouchedStructure(formRef.current.values);
-      console.log(touchedFields);
-      formRef.current.setTouched(touchedFields, true);
+      // const touchedFields = createTouchedStructure(formRef.current.values);
+      // console.log(touchedFields);
+      // formRef.current.setTouched(touchedFields, true);
       formRef.current.validateForm();
+
+      requestAnimationFrame(() => {
+        const touchedFields = createFullyTouched(formRef.current.values);
+        formRef.current.setTouched(touchedFields, true);
+      });
+      console.log("Form Validated");
     } else console.log("No form found");
   };
 
@@ -85,3 +94,18 @@ export const FormProvider = ({ children }) => {
 };
 
 export const useForm = () => useContext(FormContext);
+
+// prev function that does not immediately set all fields as touched
+
+// const createTouchedStructure = useCallback((values) => {
+//     if (Array.isArray(values)) {
+//       return values.map((item) => createTouchedStructure(item));
+//     } else if (typeof values === 'object' && values !== null && values !== '') {
+//       return Object.keys(values).reduce((acc, key) => {
+//         acc[key] = createTouchedStructure(values[key]);
+//         return acc;
+//       }, {});
+//     } else {
+//       return values !== '';
+//     }
+//   }, []);

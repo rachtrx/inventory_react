@@ -68,7 +68,7 @@ export const AddUserStep1 = () => {
 
           depts.push(createNewDept({
             deptId: dept?.deptId || '',
-            deptName: dept?.deptName || deptName,
+            deptName: dept?.value || deptName,
             users: users,
           }))
         })

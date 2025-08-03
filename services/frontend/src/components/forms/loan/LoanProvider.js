@@ -1,4 +1,4 @@
-import React, { createContext, useCallback } from 'react';
+import React, { createContext, useCallback, useEffect } from 'react';
 import { useContext } from 'react';
 import { useFormikContext } from 'formik';
 import { Button, Divider, Flex, Text } from '@chakra-ui/react';
@@ -13,11 +13,11 @@ const LoanContext = createContext();
 // Devices Provider component
 export const LoanProvider = ({user, userIndex, userHelpers, isLast}) => {
   // console.log('loan provider');
-  const { values } = useFormikContext();
+  const { values, touched } = useFormikContext();
   const { initialValues } = useForm();
   // console.log(values);
 
-  // useEffect(() => console.log(values), [values]);
+  useEffect(() => console.log(touched), [touched]);
 
   const removeUser = useCallback(() => userHelpers.remove(userIndex), [userHelpers, userIndex])
 

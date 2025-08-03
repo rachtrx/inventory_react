@@ -11,39 +11,23 @@ import RemarksFormControl from "../../../utils/RemarksFormControl"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 
-    const { tagOptions, userOptions, addNewTag } = useUserTags();
+    const { tagOptions, setTagOptions, userOptions, addNewTag } = useUserTags();
 	const { setFieldValue } = useFormikContext();
-
-    useEffect(() => {
-        console.log(tagOptions);
-        if (!tag.tagName || tag.tagId) return;
-        const matchedOption = tagOptions.find(option => option.tagId && option.value === tag.tagName);
-        if(matchedOption) setFieldValue(`tags.${tagIndex}.tagId`, matchedOption.tagId);
-    }, [tagOptions, setFieldValue, tag, tagIndex]);
 
     const updateUserFields = (userIndex, selected) => {
 
 		if (!selected?.value) {
 			setFieldValue(`tags.${tagIndex}.users.${userIndex}.userId`, '');
-			setFieldValue(`tags.${tagIndex}.users.${userIndex}.userTagId`, '');
+			setFieldValue(`tags.${tagIndex}.users.${userIndex}.tagIds`, []);
             return;
 		}
 		
         console.log(selected);
         setFieldValue(`tags.${tagIndex}.users.${userIndex}.userId`, selected?.userId || '');
-		setFieldValue(`tags.${tagIndex}.users.${userIndex}.userTagId`, selected.tags?.find(tag => tag.isMatching)?.userTagId || '');
+		setFieldValue(`tags.${tagIndex}.users.${userIndex}.tagIds`, selected?.tags?.map(tag => tag.tagId) || []);
     }
 
     const updateTagFields = (selected, tagIndex) => {
-
-        console.log(selected);
-
-        if (!selected?.value) {
-			setFieldValue(`tags.${tagIndex}.users`, []);
-            return;
-		}
-        
-        setFieldValue(`tags.${tagIndex}.users`, [createNewUser()]);
         setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
     }
 
@@ -55,17 +39,12 @@ export const AddTag = ({tag, tagIndex, children}) => {
                         name={`tags.${tagIndex}.tagName`}
                         label={`Tag`}
                         placeholder="Select Tag"
-                        updateFields={(selected) => updateTagFields(selected, tagIndex)}
-                        initialOptions={tagOptions}
+                        handleClick={(selected) => updateTagFields(selected, tagIndex)}
+                        options={tagOptions}
+                        setOptions={setTagOptions}
+                        onCreate={addNewTag}
+                        trueKey="tagId"
                     />
-                    {tag.tagName && !tag.tagId && 
-                        <WarningCard
-                            message={`Create ${tag.tagName}?`}
-                            items={tagOptions}
-                            itemAttr="value"
-                            onCreate={() => addNewTag(tag.tagName)}
-                        />
-                    }
                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                     <FieldArray name={`tags.${tagIndex}.users`}>
                         {userHelpers => (
@@ -75,9 +54,9 @@ export const AddTag = ({tag, tagIndex, children}) => {
                                         <SearchSingleSelectFormControl
                                             name={`tags.${tagIndex}.users.${userIndex}.userName`}
                                             searchFn={value => userService.fetchTagUser(value, tag.tagId)}
-                                            updateFields={(selected) => updateUserFields(userIndex, selected)}
+                                            handleClick={(selected) => updateUserFields(userIndex, selected)}
                                             placeholder="User Name"
-                                            initialOptions={userOptions?.[tag.tagName] || []}
+                                            options={userOptions}
                                         />
                                         <RemoveButton
                                             ariaLabel="Remove User"
@@ -89,7 +68,7 @@ export const AddTag = ({tag, tagIndex, children}) => {
                                     {userIndex === userArray.length - 1 && (
                                         <AddButton
                                             handleClick={() => userHelpers.push(createNewUser())}
-                                            label="Add Asset"
+                                            label="Add User"
                                         />
                                     )}
                                 </Flex>

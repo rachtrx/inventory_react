@@ -6,7 +6,8 @@ import RecordsLayout from '../RecordsLayout';
 import ReminderCards from './ReminderCards';
 import reminderService from '../../services/ReminderService';
 import ReminderActions from './ReminderActions';
-import { ReminderBulkActions } from './bulkActions/ReminderBulkActions';
+import { UpdateExpectedReturn } from './bulkActions/UpdateExpectedReturn';
+import { ReturnAll } from './bulkActions/ReturnAll';
 
 export const RemindersPage = () => {
 
@@ -17,7 +18,7 @@ export const RemindersPage = () => {
         Filters={ReminderFilters}
         Actions={ReminderActions}
         Cards={ReminderCards}
-        BulkActions={ReminderBulkActions}
+        BulkActions={[UpdateExpectedReturn, ReturnAll]}
         Table={ReminderTable}
         defaultSearches={[
           { attr: "serialNumber", label: "asset"},

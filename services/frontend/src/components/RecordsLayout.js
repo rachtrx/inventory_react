@@ -1,6 +1,6 @@
 // RecordsLayout.js
 import React, { useState } from 'react';
-import { Box, Button, Flex, Heading, IconButton, Tooltip, useDisclosure } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, HStack, IconButton, Tooltip, useDisclosure } from '@chakra-ui/react';
 import InfoBar from './utils/InfoBar';
 import NoDataBox from './utils/NoDataBox';
 import CardSkeleton from './utils/CardSkeleton';
@@ -42,7 +42,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
 
   return (
       <>
-        <Box p={8} boxShadow="lg">
+        <Box p={5} boxShadow="lg">
           <Flex 
             justifyContent="space-between" 
             alignItems="center" 
@@ -95,7 +95,7 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
           </Formik>
         </Box>
         
-        <Flex spacing={2} p={4} gap={1} justifyContent="space-around" alignItems="center">
+        <Flex px={4} py={2} gap={1} justifyContent="space-around" alignItems="center">
 
           <Tooltip label="Reset All Filters">
             <IconButton
@@ -128,7 +128,13 @@ export default function RecordsLayout({ header, Filters, Actions, Cards, Table, 
         </Flex>
         <Flex direction="column" gap={1}>
           {/* TODO add select all button for cards? */}
-          { BulkActions ? <BulkActions/> : undefined }
+          {BulkActions ? (
+            <HStack p={2}>
+              {BulkActions.map((ActionComponent, index) => (
+                <ActionComponent key={index} />
+              ))}
+            </HStack>
+          ) : null}
           {loading ? <CardSkeleton /> : 
             totalCount === 0 ? <NoDataBox /> : 
             isGridView ? <Cards items={data} /> : 

@@ -7,34 +7,31 @@ import { useAssetTags } from "../AssetTagsProvider";
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
 import { createNewAsset } from "../helpers";
 import RemarksFormControl from "../../../utils/RemarksFormControl";
+import { useEffect } from 'react';
 
 export const DelTag = function({ tag, tagIndex, children }) {
 
 	const { tagOptions, assetOptions } = useAssetTags();
-	const { setFieldValue } = useFormikContext();
+	const { values, setFieldValue } = useFormikContext();
+
+    useEffect(() => {
+        console.log(values);
+    }, [values])
 
 	const updateAssetFields = (assetIndex, selected) => {
 
 		if (!selected?.value) {
 			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, '');
-			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, '');
+			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, []);
             return;
 		}
 		
         // console.log(selected);
         setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, selected?.assetId || '');
-		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, selected.tags?.find(tag => tag.isMatching)?.assetTagId || '');
+		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, selected?.tags?.map(tag => tag.tagId) || []);
     }
 
     const updateTagFields = (selected, tagIndex) => {
-
-		if (!selected?.value) {
-			setFieldValue(`tags.${tagIndex}.assets`, []);
-            return;
-		}
-
-        // console.log(selected);
-		setFieldValue(`tags.${tagIndex}.assets`, [createNewAsset()]);
         setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
     }
 
@@ -46,8 +43,8 @@ export const DelTag = function({ tag, tagIndex, children }) {
                         name={`tags.${tagIndex}.tagName`}
                         label={`Tag`}
                         placeholder="Select Tag"
-                        updateFields={(selected) => updateTagFields(selected, tagIndex)}
-                        initialOptions={tagOptions}
+                        handleClick={(selected) => updateTagFields(selected, tagIndex)}
+                        options={tagOptions}
                     />
                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                     <FieldArray name={`tags.${tagIndex}.assets`}>
@@ -58,9 +55,9 @@ export const DelTag = function({ tag, tagIndex, children }) {
                                         <AvailAstSelectFormControl
                                             name={`tags.${tagIndex}.assets.${assetIndex}.serialNumber`}
                                             searchFn={value => assetService.fetchUntagAsset(value, tag.tagId)} // TODO handle shareds
-                                            updateFields={(selected) => updateAssetFields(assetIndex, selected)}
+                                            handleClick={(selected) => updateAssetFields(assetIndex, selected)}
                                             placeholder="Serial Number"
-                                            initialOptions={assetOptions?.[tag.tagName] || []}
+                                            options={assetOptions}
                                         />
                                         <RemoveButton
                                             ariaLabel="Remove Asset"

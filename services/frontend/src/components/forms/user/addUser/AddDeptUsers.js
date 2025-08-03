@@ -12,20 +12,16 @@ import RemarksFormControl from "../../utils/RemarksFormControl"
 
 export const AddDeptUsers = ({dept, deptIndex, children}) => {
 
-    const { deptOptions, addNewDept } = useAddUsers();
+    const { deptOptions, setDeptOptions, addNewDept } = useAddUsers();
 	const { setFieldValue } = useFormikContext();
 
-    useEffect(() => {
-        console.log(deptOptions);
-        if (!dept.deptName || dept.deptId) return;
-        const matchedOption = deptOptions.find(option => option.deptId && option.value === dept.deptName);
-        if(matchedOption) setFieldValue(`depts.${deptIndex}.deptId`, matchedOption.deptId);
-    }, [deptOptions, setFieldValue, dept, deptIndex]);
-
     const handleDeptUpdate = (selected) => {
-        if (!selected || selected.typeId) { // IMPT dont update for new created types
+        if (!selected || selected.deptId) { // IMPT dont update for new created types
             setFieldValue(`depts.${deptIndex}.deptId`, selected?.deptId || '');
-            setFieldValue(`depts.${deptIndex}.users`, [createNewUser()]);
+
+            if (!selected || dept?.deptName !== selected.value) {
+                setFieldValue(`depts.${deptIndex}.users`, [createNewUser()]);
+            }
         } 
     };
 
@@ -37,17 +33,12 @@ export const AddDeptUsers = ({dept, deptIndex, children}) => {
                         name={`depts.${deptIndex}.deptName`}
                         label={`Department`} 
                         placeholder="Select Department"
-                        updateFields={handleDeptUpdate}
-                        initialOptions={deptOptions}
+                        handleClick={handleDeptUpdate}
+                        options={deptOptions}
+                        setOptions={setDeptOptions}
+                        onCreate={addNewDept}
+                        trueKey="deptId"
                     />
-                    {dept.deptName && !dept.deptId && 
-                        <WarningCard
-                            message={`Create ${dept.deptName}?`}
-                            items={deptOptions}
-                            itemAttr="value"
-                            onCreate={() => addNewDept(dept.deptName)}
-                        />
-                    }
                     <FieldArray name={`depts.${deptIndex}.users`}>
                         {userHelpers => (
                             dept.users.map((user, userIndex, userArray) => (

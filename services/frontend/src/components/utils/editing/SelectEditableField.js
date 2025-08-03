@@ -132,7 +132,7 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
                                 <CreatableSingleSelectFormControl
                                     size="sm"
                                     name={'newValue'}
-                                    updateFields={(selected) => handleOption(selected, setFieldValue)}
+                                    handleClick={(selected) => handleOption(selected, setFieldValue)}
                                     initialOptions={options}
                                     placeholder={`Enter new ${name}`}
                                 />

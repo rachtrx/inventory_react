@@ -16,24 +16,16 @@ export const DelTag = function({ tag, tagIndex, children }) {
 
 		if (!selected?.value) {
 			setFieldValue(`tags.${tagIndex}.users.${assetIndex}.userId`, '');
-			setFieldValue(`tags.${tagIndex}.users.${assetIndex}.userTagId`, '');
+			setFieldValue(`tags.${tagIndex}.users.${assetIndex}.tagIds`, []);
             return;
 		}
 		
         console.log(selected);
         setFieldValue(`tags.${tagIndex}.users.${assetIndex}.userId`, selected?.userId || '');
-		setFieldValue(`tags.${tagIndex}.users.${assetIndex}.userTagId`, selected.tags?.find(tag => tag.isMatching)?.userTagId || '');
+		setFieldValue(`tags.${tagIndex}.users.${assetIndex}.tagIds`, selected?.tags?.map(tag => tag.tagId) || []);
     }
 
     const updateTagFields = (selected, tagIndex) => {
-
-		if (!selected?.value) {
-			setFieldValue(`tags.${tagIndex}.users`, []);
-            return;
-		}
-
-        console.log(selected);
-		setFieldValue(`tags.${tagIndex}.users`, [createNewUser()]);
         setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
     }
 
@@ -45,8 +37,8 @@ export const DelTag = function({ tag, tagIndex, children }) {
                         name={`tags.${tagIndex}.tagName`}
                         label={`Tag`}
                         placeholder="Select Tag"
-                        updateFields={(selected) => updateTagFields(selected, tagIndex)}
-                        initialOptions={tagOptions}
+                        handleClick={(selected) => updateTagFields(selected, tagIndex)}
+                        options={tagOptions}
                     />
                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                     <FieldArray name={`tags.${tagIndex}.users`}>
@@ -57,9 +49,9 @@ export const DelTag = function({ tag, tagIndex, children }) {
                                         <SearchSingleSelectFormControl
                                             name={`tags.${tagIndex}.users.${userIndex}.userName`}
                                             searchFn={value => userService.fetchUntagUser(value, tag.tagId)} // TODO handle shareds
-                                            updateFields={(selected) => updateUserFields(userIndex, selected)}
+                                            handleClick={(selected) => updateUserFields(userIndex, selected)}
                                             placeholder="User Name"
-                                            initialOptions={userOptions?.[tag.tagName] || []}
+                                            options={userOptions}
                                         />
                                         <RemoveButton
                                             ariaLabel="Remove Asset"
@@ -71,7 +63,7 @@ export const DelTag = function({ tag, tagIndex, children }) {
                                     {userIndex === userArray.length - 1 && (
                                         <AddButton
                                             handleClick={() => userHelpers.push(createNewUser())}
-                                            label="Add Asset"
+                                            label="Add User"
                                         />
                                     )}
                                 </Flex>

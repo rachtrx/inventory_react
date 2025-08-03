@@ -90,7 +90,7 @@ const ItemLink = forwardRef(({
       alignItems="center"
       gap={1}
       cursor="pointer"
-      bg={bg || 'gray'}
+      bg={bg || 'bgGray'}
       p={2}
       display={display}
       {...props}

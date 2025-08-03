@@ -185,9 +185,9 @@ class FormUserTagController {
         const delDate = new Date();
 
         try {
-            for (const { users } of removeTags) {
+            for (const { tagId, users } of removeTags) {
                 
-                for (const { userTagId, remarks } of users) {
+                for (const { userId, remarks } of users) {
                     const delEventId = generateSecureID();
 
                     await Event.create({
@@ -211,7 +211,11 @@ class FormUserTagController {
                             delEventId: delEventId
                         },
                         { 
-                            where: { id: userTagId },
+                            where: { 
+                                userId,
+                                tagId,
+                                delEventId: { [Op.eq]: null }
+                            },
                             transaction: transaction
                         }
                     );

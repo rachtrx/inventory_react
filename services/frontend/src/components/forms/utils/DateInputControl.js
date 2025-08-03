@@ -6,16 +6,22 @@ import { useField } from 'formik';
 const DateInputControl = ({ label, name, placeholder }) => {
 
   const [field, meta] = useField(name);
-
-  // useEffect(() => {
-  //   console.log(meta.error);
-  //   console.log(meta.touched);
-  // }, [meta])
+  const { value, ...rest } = field;
 
   return (
     <FormControl isInvalid={meta.touched && !!meta.error}>
       {label && <FormLabel><Text>{label}</Text></FormLabel>}
-      <Input {...field} placeholder='Select Date and Time' size='md' type='date' />
+      <Input
+        {...rest}
+        value={
+          field.value
+            ? new Date(field.value).toISOString().split('T')[0] // Format to "YYYY-MM-DD"
+            : ''
+        }
+        placeholder='Select Date and Time'
+        size='md'
+        type='date'
+      />
       {meta.error && (
         <FormErrorMessage>{meta.error}</FormErrorMessage>
       )}

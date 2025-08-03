@@ -21,52 +21,52 @@ if (process.env.NODE_ENV !== "development") {
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
 
-const GlobalStyles = () => (
-  <Global
-    styles={css`
-			.chakra-collapse {
-				overflow: visible !important;
-			}
-      .react-select__value-container {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        padding-bottom: 20px;
-        -ms-overflow-style: -ms-autohiding-scrollbar !important; /* For Internet Explorer and Edge */
-      }
+// const GlobalStyles = () => (
+//   <Global
+//     styles={css`
+// 			.chakra-collapse {
+// 				overflow: visible !important;
+// 			}
+//       .react-select__value-container {
+//         display: flex !important;
+//         flex-wrap: nowrap !important;
+//         overflow-x: auto !important;
+//         padding-bottom: 20px;
+//         -ms-overflow-style: -ms-autohiding-scrollbar !important; /* For Internet Explorer and Edge */
+//       }
 
-      .react-select__value-container::-webkit-scrollbar {
-        height: 8px !important; /* Horizontal scrollbar height */
-        width: 12px; /* Vertical scrollbar width, though usually not applicable here */
-        background-color: #f4f4f4; /* Light grey background for the scrollbar track */
-      }
+//       .react-select__value-container::-webkit-scrollbar {
+//         height: 8px !important; /* Horizontal scrollbar height */
+//         width: 12px; /* Vertical scrollbar width, though usually not applicable here */
+//         background-color: #f4f4f4; /* Light grey background for the scrollbar track */
+//       }
 
-      .react-select__value-container::-webkit-scrollbar-track {
-        background: #f1f1f1 !important; /* Background of the scrollbar track */
-      }
+//       .react-select__value-container::-webkit-scrollbar-track {
+//         background: #f1f1f1 !important; /* Background of the scrollbar track */
+//       }
 
-      .react-select__value-container::-webkit-scrollbar-thumb {
-        background: #888 !important; /* Color of the scrollbar thumb */
-        border-radius: 10px !important; /* Rounded corners for the thumb */
-      }
+//       .react-select__value-container::-webkit-scrollbar-thumb {
+//         background: #888 !important; /* Color of the scrollbar thumb */
+//         border-radius: 10px !important; /* Rounded corners for the thumb */
+//       }
 
-      .react-select__menu {
-        z-index: 9999 !important;
-      }
+//       .react-select__menu {
+//         z-index: 9999 !important;
+//       }
 
-      .react-select__value-container::-webkit-scrollbar-thumb:hover {
-        background: #555 !important; /* Color when hovering over the scrollbar thumb */
-      }
-      .react-select__multi-value {
-        min-width: auto !important
-      }
-    `}
-  />
-);
+//       .react-select__value-container::-webkit-scrollbar-thumb:hover {
+//         background: #555 !important; /* Color when hovering over the scrollbar thumb */
+//       }
+//       .react-select__multi-value {
+//         min-width: auto !important
+//       }
+//     `}
+//   />
+// );
 
 root.render(
   <>
-    <GlobalStyles/>
+    {/* <GlobalStyles/> */}
     <ColorModeScript initialColorMode={theme.config.initialColorMode} />
     <ChakraProvider theme={theme}>
       <ResponsiveProvider>

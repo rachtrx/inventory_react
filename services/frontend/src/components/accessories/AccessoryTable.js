@@ -31,7 +31,7 @@ const AccessoryTable = () => {
       ]}
       renderRow={(accessoryType) => {
         return {
-          props: { _hover: { bg: 'gray' } },
+          props: { _hover: { bg: 'bgGray' } },
           cells: [
             <Td key="name">
               <Flex gap={1}>

@@ -89,18 +89,6 @@ db.AstTagMap.belongsTo(db.Ast, { foreignKey: 'assetId', targetKey: 'id' })
 db.AstTag.hasMany(db.AstTagMap, { foreignKey: 'tagId' })
 db.AstTagMap.belongsTo(db.AstTag, { foreignKey: 'tagId', targetKey: 'id' })
 
-db.Ast.belongsToMany(db.AstTag, {
-  through: db.AstTagMap,
-  foreignKey: 'assetId',  
-  otherKey: 'tagId',
-});
-
-db.AstTag.belongsToMany(db.Ast, {
-  through: db.AstTagMap,  
-  foreignKey: 'tagId',  
-  otherKey: 'assetId',
-});
-
 db.Usr.hasMany(db.UsrTagMap, { foreignKey: 'userId' })
 db.UsrTagMap.belongsTo(db.Usr, { foreignKey: 'userId', targetKey: 'id' })
 
@@ -212,3 +200,33 @@ db.syncAll = async (options = {}) => {
 }; // IMPT sync the database (in server.js)
 
 module.exports = db;
+
+// The code below updates the db schema to expose useful functions. But it is not applied since I did not use them.
+
+// db.Ast.belongsToMany(db.AstTag, {
+//   through: db.AstTagMap,
+//   foreignKey: 'assetId',  
+//   otherKey: 'tagId',
+//   uniqueKey: false
+// });
+
+// db.AstTag.belongsToMany(db.Ast, {
+//   through: db.AstTagMap,  
+//   foreignKey: 'tagId',  
+//   otherKey: 'assetId',
+//   uniqueKey: false
+// });
+
+// db.Usr.belongsToMany(db.UsrTag, {
+//   through: db.UsrTagMap,
+//   foreignKey: 'userId',  
+//   otherKey: 'tagId',
+//   uniqueKey: false
+// });
+
+// db.UsrTag.belongsToMany(db.Usr, {
+//   through: db.UsrTagMap,
+//   foreignKey: 'tagId',  
+//   otherKey: 'userId',
+//   uniqueKey: false
+// });

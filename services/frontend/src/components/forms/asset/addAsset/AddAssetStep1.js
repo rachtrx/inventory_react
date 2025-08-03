@@ -11,6 +11,7 @@ import { useForm } from "../../../../context/FormProvider";
 import { createNewSubType, createNewType } from "./helpers";
 import { useStep } from "../../../../context/StepProvider";
 import assetService from "../../../../services/AssetService";
+import { useMemo } from "react";
 
 export const AddAssetStep1 = () => {
 
@@ -19,9 +20,9 @@ export const AddAssetStep1 = () => {
     const { handleError } = useUI();
     const { typeOptions, vendorOptions, setSubTypeOptionsDict } = useAddAssets();
 
-    const initialFormValues = {
-      types: [createNewType()],
-    }
+    const initialFormValues = useMemo(() => ({
+      types: [createNewType()]
+    }), []);
 
     const setValuesExcel = async (records) => {
       // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
@@ -141,11 +142,6 @@ export const AddAssetStep1 = () => {
         handleError(error);
       }
     };
-
-    // useEffect(() => {
-    //   console.log("Asset Add Form");
-    //   console.log(formData);
-    // }, [formData]);
     
     const validateFieldName = (nameDuplicates, field, fieldName) => {
       if (nameDuplicates.has(field)) return `${fieldName} names should be unique`;
@@ -215,11 +211,12 @@ export const AddAssetStep1 = () => {
           onSubmit={nextStep}
           validate={validate}
           validateOnChange={true}
-          // validateOnBlur={true}
+          validateOnBlur={true}
           innerRef={formRef}
-          // enableReinitialize={true}
+          enableReinitialize={false}
         >
           {({ values, errors }) => {
+            console.log("Formik values changed:", values);
             return (
               <Form>
                 <ModalBody>

@@ -65,6 +65,7 @@ export const DelAssetsProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     assetOptions,
+    setAssetOptions,
     handleSubmit
   };
 

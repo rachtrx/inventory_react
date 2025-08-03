@@ -54,11 +54,11 @@ class FormAssetTagController {
                 asset.label = asset.serialNumber;
                 if (req.query.tagId) {
                     asset.tags.sort((a, b) => {
-                        return b.isMatching - a.isMatching;;
+                        return b.isMatching - a.isMatching;
                     });
                 }
                 // IMPT allow deleted assets to be tagged
-                asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.isMatching)
+                // asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.isMatching)
             })
             // console.log(assets);
             res.json(assets);
@@ -78,7 +78,7 @@ class FormAssetTagController {
                 asset.label = asset.serialNumber;
                 if (req.query.tagId) {
                     asset.tags.sort((a, b) => {
-                        return b.isMatching - a.isMatching;;
+                        return b.isMatching - a.isMatching;
                     });
                 }
                 asset.isDisabled = req.query.tagId && !asset.tags?.some(tag => tag.isMatching)
@@ -173,9 +173,9 @@ class FormAssetTagController {
         const delDate = new Date();
 
         try {
-            for (const { assets } of removeTags) {
+            for (const { tagId, assets } of removeTags) {
                 
-                for (const { assetTagId, remarks } of assets) {
+                for (const { assetId, remarks } of assets) {
                     const delEventId = generateSecureID();
 
                     await Event.create({
@@ -199,7 +199,11 @@ class FormAssetTagController {
                             delEventId: delEventId
                         },
                         { 
-                            where: { id: assetTagId },
+                            where: { 
+                                assetId,
+                                tagId,
+                                delEventId: { [Op.eq]: null }
+                            },
                             transaction: transaction
                         }
                     );

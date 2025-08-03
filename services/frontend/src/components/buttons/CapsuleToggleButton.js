@@ -21,8 +21,8 @@ export default function CapsuleToggleButton({ isGridView, setIsGridView }) {
 				flex="1"
 				p="0"
 				borderRadius="0"
-				bg={!isGridView ? "subtle" : "white"}
-				color={!isGridView ? "white" : "subtle"}
+				bg={!isGridView ? "bgSubtle" : "bgGray"}
+				color={!isGridView ? "bgGray" : "bgSubtle"}
 				onClick={() => setIsGridView(false)}
 				fontSize="sm"
 			>
@@ -35,8 +35,8 @@ export default function CapsuleToggleButton({ isGridView, setIsGridView }) {
 				flex="1"
 				p="0"
 				borderRadius="0"
-				bg={isGridView ? "subtle" : "white"}
-				color={isGridView ? "white" : "subtle"}
+				bg={isGridView ? "bgSubtle" : "bgGray"}
+				color={isGridView ? "bgGray" : "bgSubtle"}
 				onClick={() => setIsGridView(true)}
 				fontSize="sm"
 			>

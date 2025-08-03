@@ -23,7 +23,7 @@ const LoadingSpinner = () => {
         zIndex: 9999,
       }}
     >
-      <Spinner thickness="4px" speed="0.65s" emptyColor="gray" color="blue" size="xl" />
+      <Spinner thickness="4px" speed="0.65s" emptyColor="bgGray" color="bgBlue" size="xl" />
     </div>
   );
 };

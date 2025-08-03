@@ -7,7 +7,7 @@ import RecordsLayout from '../RecordsLayout';
 import EventCards from './EventCards';
 import eventService from '../../services/EventService';
 import EventActions from './EventActions';
-import { EventBulkActions } from './bulkActions/EventBulkActions';
+import { AddRemarks } from './bulkActions/AddRemarks';
 
 export const EventsPage = () => {
 
@@ -19,7 +19,7 @@ export const EventsPage = () => {
         Actions={EventActions}
         Cards={EventCards}
         Table={EventTable}
-        BulkActions={EventBulkActions}
+        BulkActions={[AddRemarks]}
         defaultSearches={[
           { attr: "serialNumber", label: "asset"},
           { attr: "userName", label: "user"}

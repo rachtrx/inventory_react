@@ -59,6 +59,7 @@ export const DelUserStep1 = () => {
           const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
           
           if (!matchedUserOption || matchedUserOption.isDisabled) {
+            console.log(userName);
             return {
               userName, // Pass userName regardless of whether id is found
               delDate,
@@ -85,7 +86,7 @@ export const DelUserStep1 = () => {
     };
     
     const validateFieldWithId = (fieldDuplicates, fieldValue, idValue, fieldName) => {
-      if (fieldValue && !idValue) return `${fieldName} not found`;
+      if (fieldValue && !idValue) return `${fieldValue} not found`;
       if (fieldDuplicates.has(fieldValue)) return `${fieldName}s should be unique`;
       if (!fieldValue || fieldValue === '') return `${fieldName} is Required`;
       return null;

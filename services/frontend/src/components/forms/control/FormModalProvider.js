@@ -19,9 +19,9 @@ export const FormModalProvider = ({ children }) => {
   const { formType, setFormType } = useForm(); // e.g. "asset", "user", "loan"
 
   useEffect(() => {
-    if (!isOpen) return;
     if (!formType) onClose();
-  }, [isOpen, formType, onClose])
+    else onOpen();
+  }, [formType, onClose, onOpen])
 
   return (
     <FormModalContext.Provider value={{ isOpen, onOpen, onClose }}>

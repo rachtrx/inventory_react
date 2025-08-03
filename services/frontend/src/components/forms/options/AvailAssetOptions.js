@@ -3,7 +3,7 @@ import { Badge, Flex, Text } from '@chakra-ui/react';
 import { SearchSingleSelectFormControl } from '../utils/SelectFormControl';
 
 const CustomOption = (props) => {
-  console.log(props.data);
+  // console.log(props.data);
 
   const { serialNumber, alias=null, loan=null, reservation=null, delEventId=null } = props.data || {};
 

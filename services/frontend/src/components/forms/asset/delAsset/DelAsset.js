@@ -20,14 +20,14 @@ export const DelAsset = function({ field, asset, children }) {
     };
 
 	return (
-		<Flex direction="column" gap={2}>	
+		<Flex direction="column" gap={2}>
 			<AvailAstSelectFormControl
 				name={`${field}.serialNumber`}
 				searchFn={value => assetService.fetchAstDel(value)}
-				updateFields={(selected) => updateAssetFields(selected)}
+				handleClick={(selected) => updateAssetFields(selected)}
 				label={`Serial Number`}
 				placeholder="Serial Number"
-				initialOptions={assetOptions}
+				options={assetOptions}
 			/>
 			<DateInputControl label="Delete Date" name={`${field}.delDate`} />
 			<RemarksFormControl label={`Remarks for asset`} name={`${field}.remarks`}/>

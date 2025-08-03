@@ -2,11 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
 import { createNewLoan, createNewUser } from "./helpers";
-import { Box } from "@chakra-ui/react";
 import { useForm } from "../../../context/FormProvider";
 import accessoryService from "../../../services/AccessoryService";
 import { useLoading } from "../../../context/LoadingProvider";
 import loanService from "../../../services/LoanService";
+import { use } from "react";
 
 // Create a context
 const LoansContext = createContext();
@@ -22,6 +22,7 @@ export const LoansProvider = ({ children }) => {
   const [assetOptions, setAssetOptions] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
+  const [accessoryOptionsReady, setAccessoryOptionsReady] = useState(false);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -33,12 +34,24 @@ export const LoansProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    const fetchAccessories = async() => {
+      const response = await loanService.fetchAccLoan();
+      const options = response.data;
+      setAccessoryOptions(options);
+      setAccessoryOptionsReady(true);
+    }
+    fetchAccessories();
+  }, [])
+
+  useEffect(() => {
     console.log(initialValues);
     if (
       !initialValues?.assetIds?.length && 
       !initialValues?.userIds?.length &&
       !initialValues?.accTypeIds?.length
     ) return;
+
+    if (!accessoryOptionsReady && initialValues?.accTypeIds?.length) return;
 
     const fetchAstLoans = async () => {
       const assetResponse = await loanService.fetchAstLoanById(initialValues.assetIds);
@@ -77,12 +90,10 @@ export const LoansProvider = ({ children }) => {
       reinitializeForm({ users });
     }
 
-    const fetchAccLoans = async() => {
-      const accResponse = await loanService.fetchAccLoanById(initialValues.accTypeIds);
-      setAccessoryOptions(accResponse.data);
-
+    const fetchAccLoans = () => {
       const accessories = initialValues.accTypeIds.map(accTypeId => {
-        const matchedAccOption = accResponse.data.find(accTypeOption => accTypeOption.accessoryTypeId === accTypeId);
+        console.log(accessoryOptions);
+        const matchedAccOption = accessoryOptions.find(accTypeOption => accTypeOption.accessoryTypeId === accTypeId);
         if (!matchedAccOption) throw new Error(`Accessory with ID ${accTypeId} not found`)
         else return matchedAccOption;
       })
@@ -103,23 +114,21 @@ export const LoansProvider = ({ children }) => {
       handleError(err);
     }
     
-  }, [initialValues, handleError, reinitializeForm]);
+  }, [initialValues, handleError, reinitializeForm, accessoryOptions]);
 
   const addNewAccessory = async (accessoryName) => {
     try {
       setLoading(true);
       const response = await accessoryService.createAccessory(accessoryName);
-      setAccessoryOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === accessoryName && !item.accessoryTypeId)),
-        { 
-          accessoryTypeId: response.data.newAccType.accessoryTypeId,
-          accessoryName: response.data.newAccType.accessoryName,
-          stock: response.data.newAccType.stock,
-          value: response.data.newAccType.accessoryName,
-          label: response.data.newAccType.accessoryName
-        }
-      ]);
+      const newOption = { 
+        accessoryTypeId: response.data.newAccType.accessoryTypeId,
+        accessoryName: response.data.newAccType.accessoryName,
+        stock: response.data.newAccType.stock,
+        value: response.data.newAccType.accessoryName,
+        label: response.data.newAccType.accessoryName
+      }
       setLoading(false);
+      return newOption;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -154,6 +163,7 @@ export const LoansProvider = ({ children }) => {
     setAssetOptions,
     setUserOptions,
     setAccessoryOptions,
+    setLocationOptions,
     handleSubmit,
     sTypeAccMap,
     setSTypeAccMap

@@ -19,19 +19,12 @@ export const UpdateAccessory = ({
 
     const { initialValues } = useForm();
     const { values, setFieldValue } = useFormikContext();
-    const { addNewAccessory, accessoryOptions } = useUpdateAccessories(); 
+    const { addNewAccessory, accessoryOptions, setAccessoryOptions } = useUpdateAccessories(); 
 
     const updateAccessoryFields = (selected) => {
 		setFieldValue(`accessories.${index}.accessoryTypeId`, selected?.accessoryTypeId || '');
 		setFieldValue(`accessories.${index}.stock`, selected?.stock || 0);
 	}
-
-    useEffect(() => {
-        console.log(accessoryOptions);
-        if (!accessory.accessoryName || accessory.accessoryTypeId) return;
-        const matchedOption = accessoryOptions.find(option => option.accessoryTypeId && option.value === accessory.accessoryName);
-        if(matchedOption) setFieldValue(`accessories.${index}.accessoryTypeId`, matchedOption.accessoryTypeId);
-    }, [accessoryOptions, setFieldValue, accessory, index]);
 
     return (
         <Box key={accessory.key}>
@@ -39,11 +32,13 @@ export const UpdateAccessory = ({
             <Flex direction="column" gap={1}>
                 <Flex gap={4} alignItems="flex-start">
                     <AvailAccSelectFormControl
-                        isDisabled={!!Object.values(initialValues || {}).length}
+                        isDisabled={!!Object.values(initialValues?.accTypeIds || {}).length && accessory.accessoryTypeId}
                         name={`accessories.${index}.accessoryName`}
-                        searchFn={loanService.fetchAccLoan} // TODO create a shared name?
-                        updateFields={(selected) => updateAccessoryFields(selected)}
-                        initialOptions={accessoryOptions}
+                        handleClick={(selected) => updateAccessoryFields(selected)}
+                        options={accessoryOptions}
+                        setOptions={setAccessoryOptions}
+                        onCreate={addNewAccessory}
+                        trueKey="accessoryTypeId"
                     />
                     <Flex gap={1} alignItems="center">
                         <InputFormControl
@@ -58,14 +53,6 @@ export const UpdateAccessory = ({
                         />
                     </Flex>
                 </Flex>
-                {accessory.accessoryName && !accessory.accessoryTypeId && 
-                    <WarningCard
-                        message={`Create ${accessory.accessoryName}?`}
-                        items={accessoryOptions}
-                        itemAttr="value"
-                        onCreate={async() => await addNewAccessory(accessory.accessoryName)}
-                    />
-                }
                 <RemarksFormControl name={`accessories.${index}.remarks`} label={`Update Remarks`}/>
             </Flex>
             {children}

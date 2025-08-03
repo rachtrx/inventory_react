@@ -8,7 +8,7 @@ import { createNewAccessory, createNewAsset } from "./helpers"
 import DateInputControl from "../utils/DateInputControl"
 import LoanAccessory from "./LoanAccessory"
 import { LoanAsset } from "./LoanAsset";
-import get from 'lodash/get';
+import { get, set, cloneDeep } from 'lodash';
 import { SuggestedAccessories } from "./SuggestedAccessories";
 import RemarksFormControl from "../utils/RemarksFormControl";
 
@@ -37,11 +37,17 @@ export const LoanItems = function({ field, loan, children }) {
 	useEffect(() => {
 		if (get(touched, `${field}.valid`)) return;
 
-		if (get(touched, `${field}.asset.serialNumber`) || get(touched, `${field}.accessories.0.accessoryName`)) {
-			setTouched({ [`${field}.valid`]: true });
+		if (
+			get(touched, `${field}.asset.serialNumber`) ||
+			get(touched, `${field}.accessories.0.accessoryName`)
+		) {
+			const newTouched = cloneDeep(touched);
+			set(newTouched, `${field}.valid`, true);
+			setTouched(newTouched);
 		}
+
 		console.log(touched);
-	}, [field, touched, setTouched])
+	}, [field, touched, setTouched]);
 
 	return (
 		<>
@@ -99,7 +105,7 @@ export const LoanItems = function({ field, loan, children }) {
 														field={`${field}.accessories.${accessoryIndex}`}
 														index={accessoryIndex}
 														helpers={accessoryHelpers}
-														autoFocus={accessoryIndex === loan.accessories.length - 1}
+														autoFocus={accessoryIndex === loan.accessories.length - 1 && !accessory.accessoryName}
 													/>)
 												)}
 											</Stack>

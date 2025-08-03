@@ -1,5 +1,5 @@
 import { Badge, HStack } from "@chakra-ui/react"
-import { useThemeFontSize } from "./useThemeFontSize";
+import { useThemeFontSize } from "../../utils/useThemeFontSize";
 
 const BadgeGroup = ({ asset, accessories }) => {
 

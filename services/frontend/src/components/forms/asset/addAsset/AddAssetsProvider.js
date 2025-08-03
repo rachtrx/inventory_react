@@ -21,7 +21,7 @@ export const AddAssetsProvider = ({ children }) => {
   const [vendorOptions, setVendorOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
   const [locationOptions, setLocationOptions] = useState([]);
-  const [subTypeOptionsDict, setSubTypeOptionsDict] = useState([]);
+  const [subTypeOptionsDict, setSubTypeOptionsDict] = useState({});
 
   useEffect(() => {
     // console.log(typeOptions);
@@ -67,15 +67,12 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewType(typeName);
-      setTypeOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === typeName && !item.typeId)),
-        { 
-          typeId: response.data.data.id, 
-          value: response.data.data.typeName, 
-          label: response.data.data.typeName 
-        }
-      ]);
       setLoading(false);
+      return { 
+        typeId: response.data.data.id, 
+        value: response.data.data.typeName, 
+        label: response.data.data.typeName 
+      }
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -86,15 +83,12 @@ export const AddAssetsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await assetService.createNewVendor(vendorName);
-      setVendorOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === vendorName && !item.vendorId)),
-        { 
-          vendorId: response.data.data.id, 
-          value: response.data.data.vendorName, 
-          label: response.data.data.vendorName 
-        }
-      ]);
       setLoading(false);
+      return { 
+        vendorId: response.data.data.id, 
+        value: response.data.data.vendorName, 
+        label: response.data.data.vendorName 
+      }
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -106,19 +100,12 @@ export const AddAssetsProvider = ({ children }) => {
       setLoading(true);
       const response = await assetService.createNewSubType(subTypeName, typeId);
       const { data: newSubType } = response.data;
-
-      setSubTypeOptionsDict((oldDict) => ({
-        ...oldDict,
-        [typeId]: [
-          ...(oldDict[typeId] || []), // Preserve existing subtypes for the typeId
-          { 
-            subTypeId: newSubType.id,
-            value: newSubType.subTypeName, 
-            label: newSubType.subTypeName 
-          }
-        ]
-      }));
       setLoading(false);
+      return { 
+        subTypeId: newSubType.id,
+        value: newSubType.subTypeName, 
+        label: newSubType.subTypeName
+      }
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -146,8 +133,11 @@ export const AddAssetsProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     typeOptions,
+    setTypeOptions,
     vendorOptions,
+    setVendorOptions,
     locationOptions,
+    setLocationOptions,
     subTypeOptionsDict,
     setSubTypeOptionsDict,
     createNewSubType,

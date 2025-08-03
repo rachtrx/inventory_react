@@ -31,39 +31,40 @@ const AccLoanEvent = ({ event }) => {
             {/* Left Panel: Accessory Details */}
             <VStack spacing={4} align="stretch">
                 <HStack>
-                    <Text fontWeight="bold" fontSize="lg" color="blue.600">
+                    <Text fontWeight="bold" fontSize="lg" color="textBlue">
                         Loaned
                     </Text>
                     <DateText colorScheme="blue" event={event}/>
                 </HStack>
 
                 {!isOpen && accReturnEvents?.length && (
-                    <HStack>
-                        <Text fontWeight="bold" fontSize="lg" color="yellow.600">
-                            Returned
-                        </Text>
-                        {
-                            
-                            accReturnEvents.map(event => (
-                                <DateText 
-                                    key={event.eventId}
-                                    colorScheme={"yellow"}
-                                    event={event}
-                                /> 
-                            ))
-                        }
-                    </HStack>
-                )}
-
-                {accLoans?.length && (
-                    <HStack>
-                        {astLoan && <AstStatus astLoan={astLoan}/>}
-                        {
-                            accLoans.map(accLoan => (
-                                <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
-                            ))
-                        }
-                    </HStack>
+                    <>
+                        <HStack>
+                            <Text fontWeight="bold" fontSize="lg" color="textYellow">
+                                Returned
+                            </Text>
+                            {
+                                
+                                accReturnEvents.map(event => (
+                                    <DateText 
+                                        key={event.eventId}
+                                        colorScheme={"yellow"}
+                                        event={event}
+                                    /> 
+                                ))
+                            }
+                        </HStack>
+                        {accLoans?.length && (
+                            <HStack>
+                                {astLoan && <AstStatus astLoan={astLoan}/>}
+                                {
+                                    accLoans.map(accLoan => (
+                                        <AccStatus key={accLoan.accessoryLoanId} accLoan={accLoan}></AccStatus>
+                                    ))
+                                }
+                            </HStack>
+                        )}
+                    </>
                 )}
                 <Flex
                     position="absolute"
@@ -82,7 +83,7 @@ const AccLoanEvent = ({ event }) => {
             {isOpen && returnEvents?.length && (
                 <Box>
                 <VStack spacing={4} align="stretch">
-                    <Text fontWeight="bold" fontSize="lg" color="yellow.600">
+                    <Text fontWeight="bold" fontSize="lg" color="textYellow">
                         Returned
                     </Text>
                     {accLoans && accLoans.length > 0 && (

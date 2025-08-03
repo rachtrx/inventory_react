@@ -106,6 +106,8 @@ export const UpdateAccessoryStep1 = () => {
 
     return errors;
   };
+
+  console.log(initialValues);
   
   return (
     <Box>
@@ -130,10 +132,11 @@ export const UpdateAccessoryStep1 = () => {
                     index={index}
                   >
                     <Flex alignSelf="flex-end" gap={2} marginBottom={4}>
-                      {index === array.length - 1 && !Object.values(initialValues || {}).length && (
-                      <Button mt={4} type="button" onClick={() => accessoryHelpers.push(createNewAccessory())}>
-                        <Text>Add Accessory</Text>
-                      </Button>
+                      {index === array.length - 1 &&
+                        Object.values(initialValues || {}).every(val => Array.isArray(val) && val.length === 0) && (
+                          <Button mt={4} type="button" onClick={() => accessoryHelpers.push(createNewAccessory())}>
+                            <Text>Add Accessory</Text>
+                          </Button>
                       )}
                     </Flex>
                   </UpdateAccessory>

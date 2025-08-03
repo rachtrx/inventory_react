@@ -33,7 +33,7 @@ const UserTable = () => {
       ]}
       renderRow={(user) => {
         return {
-          props: { _hover: { bg: 'gray' } },
+          props: { _hover: { bg: 'bgGray' } },
           cells: [
             <Td key="star">
               <ItemStarButton

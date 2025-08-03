@@ -5,6 +5,7 @@ import AccessoryTable from "./AccessoryTable";
 import RecordsLayout from '../RecordsLayout';
 import { ItemsProvider, useItems } from "../../context/ItemsProvider";
 import accessoryService from "../../services/AccessoryService";
+import { UpdateAll } from "./bulkActions/UpdateAll";
 
 export const AccessoriesPage = () => {
 
@@ -16,6 +17,7 @@ export const AccessoriesPage = () => {
         Actions={AccessoryActions}
         Cards={AccessoryCards}
         Table={AccessoryTable}
+        BulkActions={[UpdateAll]}
         defaultSearches={[
           { attr: "accessoryName", label: "accessory"},
         ]}

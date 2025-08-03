@@ -6,6 +6,7 @@ import { useForm } from "../../../context/FormProvider";
 import { Form, Formik } from "formik";
 import eventService from '../../../services/EventService';
 import RemarksFormControl from '../../forms/utils/RemarksFormControl';
+import { BulkActionButton } from '../../buttons/BulkActionButton';
 
 export const AddRemarks = () => {
 
@@ -37,13 +38,12 @@ export const AddRemarks = () => {
     return (
 			<Popover isOpen={isOpen} onClose={onClose} placement="right" closeOnBlur={true}>
 				<PopoverTrigger>
-					<Button
-						variant="outline"
+					<BulkActionButton
 						disabled={selectedItems.length === 0}
 						onClick={onOpen}
 					>
 						Add Remarks {selectedItems.length ? `for ${selectedItems.length} item(s)` : ""} 
-					</Button>
+					</BulkActionButton>
 				</PopoverTrigger>
 
 				<PopoverContent p={4} boxShadow="lg">

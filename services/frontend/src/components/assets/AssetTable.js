@@ -35,7 +35,7 @@ const AssetTable = () => {
       renderRow={(asset) => {
         return {
           props: {
-            _hover: { bg: "gray" }
+            _hover: { bg: "bgGray" }
           },
           cells: [
             <Td key="star">

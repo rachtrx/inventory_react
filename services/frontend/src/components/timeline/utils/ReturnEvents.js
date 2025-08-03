@@ -13,8 +13,8 @@ const ReturnEventTable = ({returnEvents}) => {
             {/* Table Headers */}
             <Thead>
                 <Tr>
-                    <Th fontSize="xs" color="gray.600">Date</Th>
-                    <Th fontSize="xs" color="gray.600">Returned Items</Th>
+                    <Th fontSize="xs" color="gray">Date</Th>
+                    <Th fontSize="xs" color="gray">Returned Items</Th>
                 </Tr>
             </Thead>
             <Tbody>

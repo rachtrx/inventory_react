@@ -1,6 +1,5 @@
 // EventCards.jsx
 import {
-  CardBody,
   Text,
   Flex,
   VStack,
@@ -10,14 +9,12 @@ import { AccTypeLink, AssetLink, UserLink } from '../buttons/ItemLink';
 import { Tags } from '../tags/Tags';
 import SelectableCards from "../utils/SelectableCards";
 import RemarksPopover from "../timeline/utils/RemarksPopover";
+import { formStyleMap } from "../forms/control/helpers";
 
 function EventCards({ items }) {
   const renderCard = (event) => {
     return {
-      props: {
-        bg: event.type,
-				_hover: undefined
-      },
+      props: formStyleMap[event.type],
       body: (
         <Flex>
 					<VStack align="start" flex="1">

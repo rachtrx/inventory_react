@@ -5,7 +5,7 @@ export const createNewTag = (tag=null, assets=[]) => ({
     'key': uuidv4(),
     'tagId': tag?.tagId || '',
     'tagName': tag?.tagName || '',
-    'assets': assets.length !== 0 ? assets.map(asset => createNewAsset(asset)) : []
+    'assets': assets.length !== 0 ? assets.map(asset => createNewAsset(asset)) : [createNewAsset()]
 })
 
 export const createNewAsset = (asset={}) => ({
@@ -13,7 +13,7 @@ export const createNewAsset = (asset={}) => ({
     'serialNumber': asset.serialNumber || '',
     'assetId': asset.assetId || '',
     'remarks': asset.remarks || '',
-    'assetTagId': asset.tags?.find(tag => tag.isMatching)?.assetTagId || '',
+    'tagIds': asset.tags?.map(tag => tag.tagId) || [],
 })
 
 export const setValuesExcel = async ({
@@ -30,7 +30,7 @@ export const setValuesExcel = async ({
 
     records.forEach((record) => {
       ['tag', 'serialNumber'].forEach(field => {
-        if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
+			if (!record[field]) throw new Error(`Missing ${field} at line ${record.__rowNum__}`);
       });
 
       const { tag, serialNumber, remarks = "" } = record;
@@ -45,21 +45,20 @@ export const setValuesExcel = async ({
 
     const tags = [];
 
+		console.log(recordsMap);
+
     for (const [tagName, assetRows] of Object.entries(recordsMap)) {
       const serialNumbers = snDict[tagName];
       let tagOption = tagOptions.find(option => compareStrings(option.value, tagName));
+			console.log(tagOption);
       let response;
 
       // TODO not sure if can select items before tag or if it will refresh
-      if (!tagOption) {
-        tagOption = { tagName };
-        response = await fetchAstForTagsFunc([...serialNumbers]);
-      } else {
-        response = await fetchAstForTagsFunc([...serialNumbers], tagOption.tagId);
-      }
+      if (!tagOption) tagOption = { tagName };
+			response = await fetchAstForTagsFunc([...serialNumbers]);
 
       const newAssetOptions = response.data;
-      setAssetOptions(prev => ({ ...prev, [tagName]: newAssetOptions }));
+      setAssetOptions(prev => ([...prev, ...newAssetOptions.filter(a => !prev.some(someA => someA.assetId === a.assetId))]));
 
       const assetObjs = assetRows.map(({ serialNumber, remarks }) => {
         const match = newAssetOptions.find(option => compareStrings(option.value, serialNumber));
@@ -68,6 +67,8 @@ export const setValuesExcel = async ({
 
       tags.push(createNewTag(tagOption || { tagName }, assetObjs));
     }
+
+		console.log(tags);
 
     reinitializeForm({ tags });
 

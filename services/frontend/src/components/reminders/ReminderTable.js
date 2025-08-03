@@ -36,12 +36,11 @@ function ReminderTable () {
         <Th></Th>
       ]}
       renderRow={(item) => {
-        const { loanId, user, astLoan, accLoans, expectedReturnDate, overdue } = item;
-        const bg = overdue ? `${overdue}` : 'gray';
-        const hoverBg = overdue ? `${overdue}Hover` : 'subtle';
+        const { loanId, user, astLoan, accLoans, expectedReturnDate, daysLeft } = item;
+        const bg = daysLeft < 0 ? `bgRed` : daysLeft === 0 ? 'bgYellow' : "bgGray";
 
         return {
-          props: { bg, _hover: { bg: hoverBg } },
+          props: { bg, _hover: { bg: `${bg}Hover` } },
           cells: [
             <Td>{astLoan?.asset ? <AssetLink asset={astLoan.asset} withTooltip={true}/> : ""}</Td>,
             <Td>{user ? <UserLink user={user} withTooltip={true}/> : ""}</Td>,

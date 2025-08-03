@@ -1,14 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { useUI } from "../../../../context/UIProvider";
-import { useForm } from "../../../../context/FormProvider";
+import { FormType, useForm } from "../../../../context/FormProvider";
 
-import { AddUserTagsStep2 } from "./addTag/AddUserTagsStep2";
-import { AddUserTagsStep1 } from "./addTag/AddUserTagsStep1";
-import { DelUserTagsStep1 } from "./delTag/DelUserTagsStep1";
-import { DelUserTagsStep2 } from "./delTag/DelUserTagsStep2";
 import userService from "../../../../services/UserService";
 import { useLoading } from "../../../../context/LoadingProvider";
+import { createNewTag } from "./helpers";
 
 // Create a context
 const UserTagsContext = createContext();
@@ -17,14 +14,40 @@ const UserTagsContext = createContext();
 export const UserTagsFormProvider = ({ children }) => {
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const { setFormType, triggerRefresh } = useForm();
+  const { formType, setFormType, initialValues, triggerRefresh, reinitializeForm } = useForm();
 
   const [ tagOptions, setTagOptions ] = useState([]);
-  const [ userOptions, setUserOptions ] = useState({});
+  const [ userOptions, setUserOptions ] = useState([]);
 
   // useEffect(() => {
   //   console.log(tagOptions);
   // }, [tagOptions])
+
+  useEffect(() => {
+    if (!initialValues?.tagIds || !initialValues?.userIds || !tagOptions.length ) return;
+    if (formType !== FormType.TAG_USER && formType !== FormType.UNTAG_USER) return;
+    
+    const loadUsers = async () => {
+      const tagMap = Object.fromEntries(tagOptions.map(tag => [tag.tagId, tag]));
+
+      const tags = [];
+      let response;
+      if (formType === FormType.TAG_USER) response = await userService.fetchTagUserById(initialValues.userIds);
+      else response = await userService.fetchUntagUserById(initialValues.userIds);
+
+      const newUserOptions = response.data;
+
+      for (const tagId of initialValues.tagIds) {
+        const tagOption = tagMap[tagId];
+        console.log(response.data);
+        tags.push(createNewTag(tagOption, newUserOptions));
+      }
+
+      setUserOptions(newUserOptions);
+      reinitializeForm({ tags });
+    };
+    loadUsers()
+  }, [initialValues, reinitializeForm, formType, tagOptions])
 
   useEffect(() => { 
     const fetchFilters = async () => {
@@ -49,15 +72,13 @@ export const UserTagsFormProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await userService.createNewTag(tagName);
-      setTagOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === tagName && !item.tagId)),
-        { 
+      const newTag = { 
           tagId: response.data.data.id, 
           value: response.data.data.tagName, 
           label: response.data.data.tagName 
         }
-      ]);
       setLoading(false);
+      return newTag;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -103,6 +124,7 @@ export const UserTagsFormProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     tagOptions,
+    setTagOptions,
     addNewTag,
     userOptions, 
     setUserOptions,

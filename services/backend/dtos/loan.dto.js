@@ -37,12 +37,10 @@ class LoanDTO {
         
             // Construct new Date in Singapore timezone (local midnight)
             const today = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
-        
             expected.setHours(0, 0, 0, 0);
+            const daysDiff = Math.floor((expected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
-            if (expected < today) this.overdue = "red";
-            else if (expected.getTime() === today.getTime()) this.overdue = "yellow";
-            else this.overdue = null;
+            this.daysLeft = daysDiff;
         
             this.expectedReturnDate = expected.toLocaleDateString("en-GB", {
                 day: "2-digit",

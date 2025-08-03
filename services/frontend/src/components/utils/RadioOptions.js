@@ -11,8 +11,9 @@ const RadioOptions = ({ name, updateOptions }) => {
             onBlur={field.onBlur}
             value={field.value}
             name={name}
+            zIndex={1}
         >
-            <Stack direction="row" bg="white" p={4} borderRadius="md" boxShadow="md">
+            <Stack direction="row" bg="bgRed" p={4} borderRadius="md" boxShadow="md">
             {updateOptions.map((opt) => (
                 <Radio key={opt.value} value={opt.value}>
                     <Text fontSize='xs'>{opt.label}</Text>

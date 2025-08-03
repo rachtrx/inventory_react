@@ -20,28 +20,33 @@ export const UpdateAccessoriesProvider = ({ children }) => {
   const { setFormType, initialValues, reinitializeForm, triggerRefresh } = useForm()
   const { showToast, handleError } = useUI();
   const { setLoading } = useLoading();
-  const [accessoryOptions, setAccessoryOptions] = useState([]);
+  const [accessoryOptions, setAccessoryOptions] = useState(null);
+
+  useEffect(() => {
+    const fetchAccessories = async() => {
+      const response = await loanService.fetchAccLoan();
+      const options = response.data;
+      setAccessoryOptions(options);
+    }
+    fetchAccessories();
+  }, [])
   
   useEffect(() => {
     console.log(initialValues);
-    if (!initialValues?.accTypeIds?.length) return;
+    if (!initialValues?.accTypeIds?.length || !accessoryOptions) return;
 
     const setValues = async() => {
-      const response = await loanService.fetchAccLoanById([...initialValues.accTypeIds]);
-      const options = response.data;
 
       const accTypes = initialValues.accTypeIds.map(accTypeId => {
-        const matchedOption = options.find(option => compareStrings(option.accessoryTypeId, accTypeId))
+        const matchedOption = accessoryOptions.find(option => compareStrings(option.accessoryTypeId, accTypeId))
         if (!matchedOption) throw new Error("Accessory not found");
         else return matchedOption;
       })
 
-      setAccessoryOptions(options);
       reinitializeForm({accessories: accTypes.map(accType => createNewAccessory(accType))})
     }
     setValues();
-    
-  }, [initialValues, reinitializeForm])
+  }, [initialValues, reinitializeForm, accessoryOptions])
 
   const handleSubmit = async (values, actions) => {
     setLoading(true);
@@ -65,17 +70,15 @@ export const UpdateAccessoriesProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await accessoryService.createAccessory(accessoryName);
-      setAccessoryOptions(oldArray => [
-        ...oldArray.filter(item => !(item.value === accessoryName && !item.accessoryTypeId)),
-        { 
-          accessoryTypeId: response.data.newAccType.accessoryTypeId,
-          accessoryName: response.data.newAccType.accessoryName,
-          stock: response.data.newAccType.stock,
-          value: response.data.newAccType.accessoryName,
-          label: response.data.newAccType.accessoryName
-        }
-      ]);
+      const newAcc = {
+        accessoryTypeId: response.data.newAccType.accessoryTypeId,
+        accessoryName: response.data.newAccType.accessoryName,
+        stock: response.data.newAccType.stock,
+        value: response.data.newAccType.accessoryName,
+        label: response.data.newAccType.accessoryName
+      }
       setLoading(false);
+      return newAcc;
     } catch (error) {
       setLoading(false);
       handleError(error);
@@ -84,6 +87,7 @@ export const UpdateAccessoriesProvider = ({ children }) => {
 
   const value = {
     accessoryOptions,
+    setAccessoryOptions,
     addNewAccessory,
     handleSubmit
   };

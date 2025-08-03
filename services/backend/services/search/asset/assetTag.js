@@ -19,7 +19,7 @@ class AssetTagSearch {
             this.attributes = ['id', [
                 Sequelize.literal(`
                     CASE
-                        WHEN "AstTagMaps"."tag_id" = '${this.tagId}' THEN true
+                        WHEN "AstTagMaps"."tag_id" = '${tagId}' THEN true
                         ELSE false
                     END
                 `),
@@ -27,7 +27,7 @@ class AssetTagSearch {
             ]]
         } else this.attributes = ['id']
 
-        if (this.tagId) {
+        if (tagId) {
             this.orderByArr = [[
                 Sequelize.literal(`EXISTS (
                     SELECT 1

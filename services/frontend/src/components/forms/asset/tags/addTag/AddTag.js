@@ -1,52 +1,39 @@
 import { Box, Divider, Flex } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { AddButton, RemoveButton } from "../../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../../utils/SelectFormControl"
 import { useAssetTags } from "../AssetTagsProvider"
 import assetService from "../../../../../services/AssetService"
 import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions"
-import WarningCard from "../../../utils/WarningCard"
 import { createNewAsset } from "../helpers"
 import RemarksFormControl from "../../../utils/RemarksFormControl"
 
 export const AddTag = ({tag, tagIndex, children}) => {
 
-    const { tagOptions, assetOptions, addNewTag } = useAssetTags();
-	const { setFieldValue } = useFormikContext();
+    const { tagOptions, setTagOptions, assetOptions, addNewTag } = useAssetTags();
+	const { values, setFieldValue } = useFormikContext();
 
     useEffect(() => {
-        console.log(tagOptions);
-        if (!tag.tagName || tag.tagId) return;
-        const matchedOption = tagOptions.find(option => option.tagId && option.value === tag.tagName);
-        if(matchedOption) setFieldValue(`tags.${tagIndex}.tagId`, matchedOption.tagId);
-    }, [tagOptions, setFieldValue, tag, tagIndex]);
+        console.log(values);
+    }, [values]);
 
     const updateAssetFields = (assetIndex, selected) => {
 
 		if (!selected?.value) {
 			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, '');
-			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, '');
+			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, []);
             return;
 		}
 		
         // console.log(selected);
         setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, selected?.assetId || '');
-		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetTagId`, selected.tags?.find(tag => tag.isMatching)?.assetTagId || '');
+		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, selected?.tags?.map(tag => tag.tagId) || []);
     }
 
-    const updateTagFields = (selected, tagIndex) => {
-
-        // console.log(selected);
-
-        if (!selected?.value) {
-			setFieldValue(`tags.${tagIndex}.assets`, []);
-            return;
-		}
-        
-        setFieldValue(`tags.${tagIndex}.assets`, [createNewAsset()]);
+    const updateTagFields = (selected) => {
         setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
-    }
+    };
 
 	return (
         <>
@@ -56,17 +43,12 @@ export const AddTag = ({tag, tagIndex, children}) => {
                         name={`tags.${tagIndex}.tagName`}
                         label={`Tag`}
                         placeholder="Select Tag"
-                        updateFields={(selected) => updateTagFields(selected, tagIndex)}
-                        initialOptions={tagOptions}
+                        handleClick={updateTagFields}
+                        options={tagOptions}
+                        setOptions={setTagOptions}
+                        onCreate={addNewTag}
+                        trueKey="tagId"
                     />
-                    {tag.tagName && !tag.tagId && 
-                        <WarningCard
-                            message={`Create ${tag.tagName}?`}
-                            items={tagOptions}
-                            itemAttr="value"
-                            onCreate={() => addNewTag(tag.tagName)}
-                        />
-                    }
                     <Divider borderColor="black" borderWidth="0.5px" my={4} />
                     <FieldArray name={`tags.${tagIndex}.assets`}>
                         {assetHelpers => (
@@ -76,9 +58,9 @@ export const AddTag = ({tag, tagIndex, children}) => {
                                         <AvailAstSelectFormControl
                                             name={`tags.${tagIndex}.assets.${assetIndex}.serialNumber`}
                                             searchFn={value => assetService.fetchTagAsset(value, tag.tagId)} // TODO handle shareds
-                                            updateFields={(selected) => updateAssetFields(assetIndex, selected)}
+                                            handleClick={(selected) => updateAssetFields(assetIndex, selected)}
                                             placeholder="Serial Number"
-                                            initialOptions={assetOptions?.[tag.tagName] || []}
+                                            options={assetOptions}
                                         />
                                         <RemoveButton
                                             ariaLabel="Remove Asset"

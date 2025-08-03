@@ -1,9 +1,10 @@
 require('dotenv').config();
+require('module-alias/register');
 
-const db = require('./models');
+const db = require('@models');
 const data = require('./data_export.json');
 const fs = require('fs');
-const { generateSecureID } = require('./utils/validation');
+const { generateSecureID } = require('@utils/validation');
 
 // console.log(Object.keys(data));
 
@@ -222,6 +223,13 @@ async function main(data) {
         await db.Rmk.bulkCreate(remarksArr);
         await db.Loan.bulkCreate(loansArr);
         await db.AstLoan.bulkCreate(assetLoansArr);
+        await db.Admin.create({
+            id: process.env.DEV_ADMIN_ID,
+            adminName: 'rachmielteo',
+            displayName: 'Rachmiel Teo',
+            email: 'rachmielteo@go.edu.sg',
+            preferences: { theme: 'dark' }
+        });
     }
     
     importData().then(() => {

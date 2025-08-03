@@ -1,7 +1,6 @@
 const { Op } = require('sequelize');
 const logger = require('@/utils/logging');
 const { Ast, AstType, AstSType, Vendor, Usr, Loan, Sequelize, sequelize, AstTag, UsrTag, AstLoan, Dept, AstTagMap, UsrTagMap } = require('@models');
-const ExcelJS = require('exceljs');
 
 exports.createSelection = (arr, labelField, valueField) => {
     return arr

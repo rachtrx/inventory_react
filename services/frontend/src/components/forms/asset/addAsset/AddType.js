@@ -1,26 +1,25 @@
 import { Box, Button, Divider, Flex, Text } from "@chakra-ui/react"
 import { FieldArray, useFormikContext } from "formik"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { AddButton } from "../../utils/ItemButtons"
 import { CreatableSingleSelectFormControl } from "../../utils/SelectFormControl"
 import { useAddAssets } from "./AddAssetsProvider"
 import { AddSubType } from "./AddSubType"
 import assetService from "../../../../services/AssetService"
-import WarningCard from "../../utils/WarningCard"
 import { createNewSubType } from "./helpers"
 
 export const AddType = ({type, typeIndex, children}) => {
 
-    const { typeOptions, addNewType, subTypeOptionsDict, setSubTypeOptionsDict } = useAddAssets();
+    const { typeOptions, setTypeOptions, addNewType, subTypeOptionsDict, setSubTypeOptionsDict } = useAddAssets();
 	const { values, setFieldValue } = useFormikContext();
+
+    const [subTypeOptions, setSubTypeOptions] = useState(() => subTypeOptionsDict?.[type?.typeId] || []);
 
     useEffect(() => console.log(values), [values]);
 
     const handleTypeUpdate = async (selected) => {
-        // console.log(selected?.typeId);
-        // console.log(type?.typeId);
-
-        console.log(selected);
+        console.log(selected?.typeId);
+        console.log(type?.typeId);
 
         if (!selected || selected.typeId) { // IMPT dont update for new created types
 
@@ -29,27 +28,29 @@ export const AddType = ({type, typeIndex, children}) => {
             if (!selected || selected.value !== type.typeName) {
                 setFieldValue(`types.${typeIndex}.subTypes`, [createNewSubType()]);
             }
-
-            if (!selected) return;
-
-            const getSubTypeFilters = async (typeId) => {
-                const response = await assetService.getSubTypeFilters([typeId]);
-                return response.data;
-            }
-            const subTypeOptions = await getSubTypeFilters(selected.typeId);
-            setSubTypeOptionsDict(oldDict => ({
-                ...oldDict,
-                [selected.typeId]: subTypeOptions[selected.typeId]
-            }));
         }
     };
 
     useEffect(() => {
-        console.log(typeOptions);
-        if (!type.typeName || type.typeId) return;
-        const matchedOption = typeOptions.find(option => option.typeId && option.value === type.typeName);
-        if(matchedOption) setFieldValue(`types.${typeIndex}.typeId`, matchedOption.typeId);
-    }, [typeOptions, setFieldValue, type, typeIndex]);
+        if (!type.typeId) setSubTypeOptions([])
+        else if (Array.isArray(subTypeOptionsDict[type.typeId])) setSubTypeOptions(subTypeOptionsDict[type.typeId]);
+        else {
+            const getSubTypeFilters = async () => {
+                const response = await assetService.getSubTypeFilters([type.typeId]);
+                const subTypeDict = response.data;
+                setSubTypeOptions(subTypeDict[type.typeId]);
+            }
+            getSubTypeFilters();
+        }
+    }, [type?.typeId, subTypeOptionsDict])
+
+    useEffect(() => {
+        if (!type.typeId || !subTypeOptions?.length) return;
+        setSubTypeOptionsDict((oldDict) => ({
+            ...oldDict,
+            [type.typeId]: subTypeOptions
+        }));
+    }, [type, subTypeOptions, setSubTypeOptionsDict]);
 
 	return (
         <>
@@ -59,17 +60,12 @@ export const AddType = ({type, typeIndex, children}) => {
                         name={`types.${typeIndex}.typeName`}
                         label={`Type`} 
                         placeholder="Select Type"
-                        updateFields={handleTypeUpdate}
-                        initialOptions={typeOptions}
+                        handleClick={handleTypeUpdate}
+                        options={typeOptions}
+                        setOptions={setTypeOptions}
+                        trueKey="typeId"
+                        onCreate={addNewType}
                     />
-                    {type.typeName && !type.typeId && 
-                        <WarningCard
-                            message={`Create ${type.typeName}?`}
-                            items={typeOptions}
-                            itemAttr="value"
-                            onCreate={async() => await addNewType(type.typeName)}
-                        />
-                    }
                     <FieldArray name={`types.${typeIndex}.subTypes`}>
                         {subTypeHelpers => (
                             type.subTypes.map((subType, subTypeIndex, subTypeArray) => (
@@ -78,7 +74,8 @@ export const AddType = ({type, typeIndex, children}) => {
                                     typeId={type.typeId}
                                     field={`types.${typeIndex}.subTypes.${subTypeIndex}`}
                                     subType={subType}
-                                    subTypeOptions={subTypeOptionsDict[type.typeId] || []}
+                                    options={subTypeOptions}
+                                    setOptions={setSubTypeOptions}
                                 >
                                     {/* chilften are the helper functions */}
                                     <Flex mt={2} gap={4} justifyContent="space-between">

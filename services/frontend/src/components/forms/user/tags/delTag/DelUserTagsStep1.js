@@ -46,20 +46,24 @@ export const DelUserTagsStep1 = () => {
       const tagDuplicates = validateUniqueValues(values.tags, ['tagName']);
 
       values.tags.forEach((tag, tagIndex) => {
-        const tagError = validateFieldName(tagDuplicates, tag['tagId'], "Tag");
-        if (tagError) {
-          setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
+        if (tag.tagName && !tag.tagId) {
+          setFieldError(errors, ['tags', tagIndex, 'tagName'], `Tag ${tag['tagName']} not found`);
+        } else {
+          const tagError = validateFieldName(tagDuplicates, tag['tagId'], "Tag");
+          if (tagError) {
+            setFieldError(errors, ['tags', tagIndex, 'tagName'], tagError);
+          }
         }
-
-        const snDuplicates = validateUniqueValues(values.tags, ['users', 'userTagId']);
+        
+        const unDuplicates = validateUniqueValues(tag.users, ['userName']);
   
         tag.users.forEach((user, userIndex) => {
           if (user.userName && user.userId === '') {
             setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], `${user.userName} does not exist!`);
-          } else if (tag.tagId && user.userName && !user.userTagId) { // shouldnt happen
+          } else if (tag.tagId && user.userName && !user.tagIds.includes(tag.tagId)) { // shouldnt happen
             setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], `${tag.tagName} Tag not found for ${user.userName}`);
           } else {
-            const unError = validateField(snDuplicates, user['userName'], "User Name");
+            const unError = validateField(unDuplicates, user['userName'], "User Name");
             if (unError) {
               setFieldError(errors, ['tags', tagIndex, 'users', userIndex, 'userName'], unError);
             }

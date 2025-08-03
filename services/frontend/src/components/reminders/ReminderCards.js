@@ -13,14 +13,13 @@ function ReminderCards({ items }) {
 	today.setHours(0, 0, 0, 0);
 
   const renderCard = (reminder) => {
-    const { loanId, user, astLoan, accLoans, expectedReturnDate, overdue } = reminder;
-    const bg = overdue ? `${overdue}` : 'gray';
-    const hoverBg = overdue ? `${overdue}Hover` : 'subtle';
+    const { loanId, user, astLoan, accLoans, expectedReturnDate, daysLeft } = reminder;
+    const bg = daysLeft < 0 ? `bgRed` : daysLeft === 0 ? 'bgYellow' : "bgGray";
 
     return {
       props: { 
         bg, 
-        _hover: { bg: hoverBg } 
+        _hover: { bg: `${bg}Hover` } 
       },
       body: (
         <VStack align="start" spacing={1}>

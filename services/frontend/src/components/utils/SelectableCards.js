@@ -41,7 +41,7 @@ export default function SelectableCards({ items, renderCard }) {
               h="100%"
 							w="100%"
 							bg="transparent"
-        			_hover={{ bg: 'gray' }}
+        			_hover={{ bg: 'bgGray' }}
               {...props}
             >
               <CardHeader pb={0}>

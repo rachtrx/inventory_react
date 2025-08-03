@@ -4,7 +4,7 @@ import { WarningIcon } from "@chakra-ui/icons";
 const WarningCard = ({ message, items, itemAttr, onCreate }) => {
   return (
     <Box
-      bg="red.50" // Pale red background
+      bg="bgRed"
       border="1px solid"
       borderColor="red.300"
       borderRadius="md"
@@ -15,12 +15,12 @@ const WarningCard = ({ message, items, itemAttr, onCreate }) => {
     >
       <VStack spacing={3} align="center">
         <WarningIcon boxSize={6} color="red.500" />
-        <Text fontSize="md" fontWeight="semibold" color="red.700">
+        <Text fontSize="md" fontWeight="semibold" color="textRed">
           {message || "This item does not exist."}
         </Text>
-        <SimpleGrid columns={4} spacing={2} overflowY="auto">
+        <SimpleGrid columns={4} spacing={2} overflowY="auto" align="center">
             {items.map((item, index) => (
-                <Text key={index} fontSize="xs">
+                <Text key={index} fontSize="xs" color="textRed">
                   {item[itemAttr]}
                 </Text>
             ))}

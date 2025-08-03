@@ -68,6 +68,7 @@ export const DelUsersProvider = ({ children }) => {
   // The context value includes all the states and functions to be shared
   const value = {
     userOptions,
+    setUserOptions,
     handleSubmit,
   };
 

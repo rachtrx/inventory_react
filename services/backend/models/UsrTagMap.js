@@ -42,6 +42,15 @@ module.exports = (sequelize) => {
     }, {
       sequelize,
       modelName: 'UsrTagMap',
+      indexes: [
+        {
+          unique: true,
+          fields: ['user_id', 'tag_id'],
+          where: {
+            'del_event_id': null,
+          },
+        },
+      ],
     });
     return UsrTagMap;
 }
