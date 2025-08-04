@@ -80,12 +80,12 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
     
             const newOption = {
                 id: itemData.id,
-                value: itemData.id,
+                value: itemData[name],
                 label: itemData[name]
             };
     
             setOptions(oldArray => [
-                ...oldArray.filter(item => !(item.value === newValue && !item.id)),
+                ...oldArray.filter(o => !(o.value === newValue && !o.id)),
                 newOption
             ]);
     
@@ -133,8 +133,10 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
                                     size="sm"
                                     name={'newValue'}
                                     handleClick={(selected) => handleOption(selected, setFieldValue)}
-                                    initialOptions={options}
+                                    options={options}
+                                    setOptions={setOptions}
                                     placeholder={`Enter new ${name}`}
+                                    trueKey="id"
                                 />
 
                                 <Flex
@@ -156,7 +158,7 @@ const SelectEditableField = ({label, name, id, value, createFn, getUpdateOptions
                                     {values.updateType && values.updateType !== "update-delete" && !values.newId && (
                                         <WarningCard
                                             message={`Create ${values.newValue}?`}
-                                            items={options}
+                                            items={options.filter(o => o.id)}
                                             itemAttr="value"
                                             onCreate={() => createItemFn(values.newValue, setFieldValue)}
                                         />

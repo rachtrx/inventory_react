@@ -14,6 +14,10 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
+		displayName: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
 		pid: {
 			type: DataTypes.STRING,
 			allowNull: true

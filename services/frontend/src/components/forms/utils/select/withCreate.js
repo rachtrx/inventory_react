@@ -15,7 +15,7 @@ export const withCreate = (Component) => ({
 	...props
 }) => {
 
-	// console.log(`${name}, ${JSON.stringify(availableOptions, null, 2)}`);
+	console.log(`${name}, ${JSON.stringify(availableOptions, null, 2)}`);
 	if (!Array.isArray(availableOptions)) return <></>;
 
 	const { handleError } = useUI();
@@ -35,11 +35,11 @@ export const withCreate = (Component) => ({
 		const newOption = {value: newValue, label: newValue};
 		if (!isMulti) setValue(newValue);
 		else setValue([...formikValue, newValue])
+		setOptions(prev => [...prev, newOption])
 		if (!onCreate) {
-			setAvailableOptions(newOption)
+			setAvailableOptions(prev => [...prev, newOption])
 			return;
 		}
-		setOptions(prev => [...prev, newOption])
 	}, [setOptions, setValue, isMulti, onCreate, formikValue, setAvailableOptions])
 
 	// Update newOptions and newValues when selected option (react-select value) changes 
