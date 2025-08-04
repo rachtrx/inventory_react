@@ -39,7 +39,7 @@ export const AddUserStep2 = () => {
 								<Thead>
 								<Tr>
 									<Th>User Name</Th>
-									<Th>Email</Th>
+									{/* <Th>Email</Th> */}
 									<Th>Added Date</Th>
 									<Th>Remarks</Th>
 								</Tr>
@@ -48,7 +48,7 @@ export const AddUserStep2 = () => {
 								{dept.users.map((user, userIndex) => (
 									<Tr key={user.key || userIndex}>
 									<Td>{user.userName}</Td>
-									<Td>{user.email}</Td>
+									{/* <Td>{user.email}</Td> */}
 									<Td>
 										{user.addDate
 										? new Date(user.addDate).toLocaleDateString()

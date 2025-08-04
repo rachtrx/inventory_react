@@ -14,7 +14,6 @@ import { UsersPage } from "./components/users/Users";
 import Stats from "./components/stats/Stats";
 import { PrivateLayout } from "./components/PrivateLayout";
 import { AuthProvider } from "./context/AuthProvider";
-import Register from "./components/Register";
 import Profile from "./components/Profile";
 import { AccessoriesPage } from "./components/accessories/Accessories";
 import { EventsPage } from "./components/events/Events";
@@ -28,7 +27,6 @@ export const App = createBrowserRouter(
 
       {/* Authentication Routes */}
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
 
       {/* Protected Routes */}
       <Route element={<PrivateLayout />}>

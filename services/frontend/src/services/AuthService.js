@@ -5,10 +5,6 @@ class AuthService {
     this.axios = api;
   }
 
-  async login(email, password) {
-    return await this.axios.post(`${API_URL}/auth/login`, { email, password })
-  }
-
   async logout() {
     return await this.axios.post(`${API_URL}/auth/logout`)
   }
@@ -29,6 +25,10 @@ class AuthService {
   //     throw error;
   //   }
   // }, []);
+
+  // async login(email, password) {
+  //   return await this.axios.post(`${API_URL}/auth/login`, { email, password })
+  // }
 }
 
 const authService = new AuthService(api);

@@ -10,7 +10,7 @@ export const createNewDept = (dept={}) => ({
 export const createNewUser = (user={}) => ({
   'key': uuidv4(),
   'userName': user.userName || '',
-  'email': user.email || '',
+  // 'email': user.email || '',
   'addDate': user.addDate || new Date(),
   'remarks': user.remarks || '',
 })

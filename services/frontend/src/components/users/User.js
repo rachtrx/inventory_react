@@ -61,10 +61,15 @@ const User = ({ user }) => {
 						p={4}
 						alignItems='center'
 					>
-						<TextEditableField
+						{/* <TextEditableField
 							label="Email"
 							name="email"
 							value={user.email}
+						/> */}
+						<TextEditableField
+							label="Display Name"
+							name="displayName"
+							value={user.displayName}
 						/>
 						<SelectEditableField 
 							label="Department"

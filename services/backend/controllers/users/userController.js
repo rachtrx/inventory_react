@@ -210,7 +210,7 @@ class UserController extends BaseController {
     
         try {
             const userDetails = await Usr.findByPk(userId, {
-                attributes: ['id', 'userName', 'email', 'bookmarked'],
+                attributes: ['id', 'userName', 'displayName', 'email', 'bookmarked'],
                 include: [
                     {
                         model: UsrTagMap,

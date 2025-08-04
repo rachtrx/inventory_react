@@ -94,7 +94,7 @@ export const AddUserStep1 = () => {
       
       const deptNameDuplicates = validateUniqueValues(values.depts, ['deptName']);
       const userNameDuplicates = validateUniqueValues(values.depts, ['users', 'userName']);
-      const emailDuplicates = validateUniqueValues(values.depts, ['users', 'email']);
+      // const emailDuplicates = validateUniqueValues(values.depts, ['users', 'email']);
 
       values.depts.forEach((dept, deptIndex) => {
         console.log(dept);
@@ -109,10 +109,10 @@ export const AddUserStep1 = () => {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'userName'], userNameError);
           }
 
-          const emailError = user['email'] && validateField(emailDuplicates, user['email'], "Email");
-          if (emailError) {
-            setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'email'], emailError);
-          }
+          // const emailError = user['email'] && validateField(emailDuplicates, user['email'], "Email");
+          // if (emailError) {
+          //   setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'email'], emailError);
+          // }
           
           if (user['addDate'] && compareDates(user['addDate'])) {
             setFieldError(errors, ['depts', deptIndex, 'users', userIdx, 'addDate'], "Date cannot be after today");
@@ -140,7 +140,11 @@ export const AddUserStep1 = () => {
             return (
               <Form>
                 <ModalBody>
-                  <ExcelFormControl loadValues={setValuesExcel} templateCols={['deptName', 'userName', 'email', 'addDate', 'remarks']}/>
+                  <ExcelFormControl 
+                    loadValues={setValuesExcel} 
+                    templateCols={['deptName', 'userName', 'addDate', 'remarks']}
+                    // templateCols={['deptName', 'userName', 'email', 'addDate', 'remarks']}
+                  />
                   <Divider borderColor="black" borderWidth="2px" my={2} />
                   <FieldArray name="depts">
                   {deptHelpers => (
