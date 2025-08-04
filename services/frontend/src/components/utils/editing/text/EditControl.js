@@ -19,7 +19,8 @@ export const EditControl = ({ isRemarks, handleUpdate, newValue, value, isFloat,
                     fontSize={fontSize}
                     onChange={e => setNewValue(e.target.value)}
                     type={isFloat ? "number": undefined}
-                    flex="1"
+                    width="100%"
+                    alignSelf="stretch"
                     autoFocus
                 />
             )}

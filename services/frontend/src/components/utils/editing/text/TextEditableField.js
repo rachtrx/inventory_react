@@ -1,4 +1,4 @@
-import { Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { useDrawer } from "../../../../context/DrawerProvider";
 import { useEffect, useState } from "react";
 import EditCancelButton from "../../../forms/utils/EditCancelButton";
@@ -38,7 +38,7 @@ const HeadingField = ({ value, newValue, setNewValue, handleUpdate, name, ...pro
 	const { editable } = useEditMode();
 
 	return (
-		<Flex gap={1}>
+		<>
 			{editKey === name && editable ? (
 				<EditControl 
 					isRemarks={false} 
@@ -49,12 +49,13 @@ const HeadingField = ({ value, newValue, setNewValue, handleUpdate, name, ...pro
 					isFloat={props?.isFloat} 
 					size="2xl"
 					mb={4}
+					flex="1"
 				/>
 			) : 
-				<Heading as="h1" mb={4} {...props}>{value}</Heading> 
+				<Heading as="h1" mb={4} whiteSpace="normal" wordBreak="break-all" {...props}>{value}</Heading> 
 			}
 			<EditCancelButton size="md" name={name}/>
-		</Flex>
+		</>
 	)
 }
 
@@ -75,10 +76,10 @@ const TextField = ({ value, newValue, setNewValue, handleUpdate, name, ...props 
 					value={value} 
 					newValue={newValue} 
 					setNewValue={setNewValue}
-					isFloat={props?.isFloat} 
+					isFloat={props?.isFloat}
 				/>
 			) : 
-				<Text fontSize="md" {...rest}>{value}</Text> 
+				<Text fontSize="md" whiteSpace="normal" wordBreak="break-all" {...rest}>{value}</Text> 
 				}
 			<EditCancelButton size="sm" name={name}/>
 		</>
