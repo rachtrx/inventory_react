@@ -3,10 +3,11 @@ import CreatableSelect from 'react-select/creatable';
 import { withSelect } from './select/withSelect';
 import { withSearch } from './select/withSearch';
 import { withCreate } from './select/withCreate';
+import WindowedSelect from 'react-windowed-select';
 
 const EnhancedSelect = withSelect(Select);
 const EnhancedCreatableSelect = withCreate(withSelect(CreatableSelect));
-const SearchSelect = withSearch(withSelect(Select));
+const SearchSelect = withSearch(withSelect(WindowedSelect));
 
 // Single Select without Search
 export const SingleSelectFormControl = (props) => {

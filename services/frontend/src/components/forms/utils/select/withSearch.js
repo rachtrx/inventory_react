@@ -1,41 +1,25 @@
 import { useCallback, useState, useEffect } from 'react';
-import { useField } from 'formik';
 import useDebounce from '../../../../hooks/useDebounce';
 import { useUI } from '../../../../context/UIProvider';
 
 export const withSearch = (Component) => ({
   name,
-  options,
+  options: initialOptions,
   searchFn,
   isMulti = false,
-  handleClick,
   ...props
 }) => {
 
-  if (!Array.isArray(options)) return <></>;
+  if (!Array.isArray(initialOptions)) return <></>;
 
   const { handleError } = useUI();
-  const [ { formikValue }, , { setTouched }] = useField(name);
-
-  const [ oldOptions, setOldOptions ] = useState(options)
-  const [ newOptions, setNewOptions ] = useState(oldOptions);
+  const [ options, setOptions ] = useState(initialOptions)
 
   useEffect(() => {
-    if (!newOptions?.length && !oldOptions.length && options.length) {
-      setOldOptions(options);
-      setNewOptions(options);
+    if (!options.length && initialOptions.length) {
+      setOptions(initialOptions);
     }
-  }, [options, formikValue, isMulti, oldOptions?.length, newOptions?.length])
-
-  const handleClickSearch = (option) => {
-    setOldOptions(newOptions);
-    handleClick(option)
-  }
-
-  const onBlur = () => {
-    setNewOptions(oldOptions);
-    setTouched(true);
-  }
+  }, [initialOptions, isMulti, options])
 
   const handleSearch = useCallback(
     async (inputValue) => {
@@ -44,12 +28,12 @@ export const withSearch = (Component) => ({
         const response = await searchFn(inputValue);
         // console.log(response.data);
 
-        setNewOptions(response.data?.slice(0, 50));
+        setOptions(response.data);
       } catch (error) {
         handleError(error);
       }
     },
-    [searchFn, handleError, setNewOptions]
+    [searchFn, handleError, setOptions]
   );
 
   const debouncedSearch = useDebounce(handleSearch, 500);
@@ -60,12 +44,11 @@ export const withSearch = (Component) => ({
 
   return (
     <Component
-      options={newOptions}
+      options={options}
+      windowThreshold={50}
       name={name}
       isMulti={isMulti}
       onInputChange={handleInputChange}
-      handleClick={handleClickSearch}
-      onBlur={onBlur}
       {...props}
     />
   );
