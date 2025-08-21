@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && process.env.DEV_ADMIN_ID) {
         req.auth={id: process.env.DEV_ADMIN_ID}
         // logger.info(`Admin ID: ${process.env.DEV_ADMIN_ID}`)
         next();
