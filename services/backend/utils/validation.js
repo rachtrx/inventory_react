@@ -17,7 +17,7 @@ const generateRefreshToken = (user) => {
 }
 
 const generatePKCE = () => {
-    const codeVerifier = crypto.randomBytes(64).toString("hex");
+    const codeVerifier = crypto.randomBytes(64).toString("base64url");
     const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
     return { codeVerifier, codeChallenge };
 };

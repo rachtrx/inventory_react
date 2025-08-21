@@ -3,6 +3,7 @@ const cors = require('cors');
 const logger = require('./utils/logging.js');
 const { expressjwt: jwt } = require('express-jwt');
 const cookieParser = require('cookie-parser');
+const session = require('express-session')
 
 const corsOptions = {
     origin: process.env.FRONTEND_URL, // Allow multiple origins, or use a function to dynamically allow origins
@@ -16,6 +17,17 @@ const corsOptions = {
 };
 
 const app = express();
+
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false, 
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "Lax"
+    }
+}))
 
 // app.use((req, res, next) => {
 //     console.log(`Full URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
@@ -31,7 +43,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && process.env.DEV_ADMIN_ID) {
         req.auth={id: process.env.DEV_ADMIN_ID}
         // logger.info(`Admin ID: ${process.env.DEV_ADMIN_ID}`)
         next();

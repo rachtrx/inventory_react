@@ -19,9 +19,7 @@ class AuthController {
     const { codeVerifier, codeChallenge } = generatePKCE();
   
     // Store codeVerifier securely in a HttpOnly cookie
-    res.cookie("code_verifier", codeVerifier, {
-      httpOnly: true, secure: true, sameSite: "Lax"
-    });
+    req.session.codeVerifier = codeVerifier;
   
     const authUrl = `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}/oauth2/v2.0/authorize?client_id=${process.env.AZURE_CLIENT_ID}&response_type=code&redirect_uri=${process.env.AZURE_CALLBACK_URL}&response_mode=query&scope=openid email profile&state=12345&code_challenge=${codeChallenge}&code_challenge_method=S256`;
   
@@ -35,7 +33,7 @@ class AuthController {
   async loginMsft(req, res) {
     
     const code = req.query.code;
-    const codeVerifier = req.cookies?.code_verifier;
+    const codeVerifier = req.session.codeVerifier;
 
     if (!code || !codeVerifier) {
       return res.status(400).send("Authorization code or code verifier missing");
@@ -89,7 +87,8 @@ class AuthController {
 
       return res.redirect(`${process.env.FRONTEND_URL}/reminders`); // Redirect user to frontend
     } catch (error) {
-      logger.error("OAuth Login Error:", error);
+      console.log(error);
+      // logger.error("OAuth Login Error:", error);
       return res.status(500).send("Authentication failed");
     }
   }
