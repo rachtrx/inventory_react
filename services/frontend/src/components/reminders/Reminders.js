@@ -14,7 +14,7 @@ export const RemindersPage = () => {
   return (
     <ItemsProvider service={reminderService} initSortField="expectedReturnDate" itemKey="loanId">
       <RecordsLayout
-        header="Reminder"
+        header="Reminders"
         Filters={ReminderFilters}
         Actions={ReminderActions}
         Cards={ReminderCards}
