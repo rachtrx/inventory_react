@@ -59,9 +59,13 @@ services:
   nginx-inventory:
     build: 
       context: ./services/nginx
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # certs folder on the host
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       - backend
       - frontend

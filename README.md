@@ -20,13 +20,21 @@ cd services/frontend
 npm install
 npm start
 ```
+_Note: It may also be possible to develop on Docker using `deploy.sh` using `Dockerfile` instead of `Dockerfile.prod` under the **Nginx configuration**, however it is **not recommended** (see how to run below)._
 
-## Deployment
-- **Set up only `.env`**
+## Deployment (not tested)
+1. **Set up only `.env`**
+2. Generate SSL Certificate
 ```bash
-docker-compose -f docker-compose.yml up --build -d
+chmod +x tools/renew_cert.sh
+./tools/renew_cert.sh
 ```
-_Note: This configuration may have issues and has not been tested in months. `docker-compose.external-db.yml` is the configuration to run if there is a already a database running on the deployment server and has been tested frequently._
+3. Deploy the application
+```bash
+chmod +x tools/deploy.sh
+./tools/deploy.sh
+```
+_Note: `docker-compose.yml` ran by `deploy.sh` may have issues and has not been tested in months. Environment variables, volumes, and filepaths may not match. This application is running on a server with a database and Nginx already configured. As such, `docker-compose.external-db.yml` is the maintained file and is tested frequently._
 
 ## Use Cases:
 1. Bulk create assets categorised by their type
