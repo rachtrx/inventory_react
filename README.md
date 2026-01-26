@@ -1,9 +1,12 @@
 # INVENTORY
 
-**A MSFT App Registration in Azure is required to start the OAuth flow**
+**A [MSFT App Registration](https://learn.microsoft.com/en-us/graph/auth-register-app-v2) in Azure is required to start the OAuth flow**
+_Note: **Client secrets expire after a maximum of 24 months.** When a secret expires, generate a new one and update the `AZURE_CLIENT_SECRET` environment variable in `services/backend/.env`._
+
+## Environment Variables
+- Set up all `.env` files in `.env`, `services/frontend/.env`, `services/backend/.env`
 
 ## Development
-- Set up all `.env` files in `.env`, `services/frontend/.env`, `services/backend/.env`
 - Have 2 terminals open
 ```bash
 
