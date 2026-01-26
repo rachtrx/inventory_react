@@ -84,6 +84,39 @@ class UserDelete {
                 ],
                 order: Sequelize.literal(`"Usr"."del_event_id" IS NOT NULL DESC`)
             })
+            query.forEach(usrRow => {
+                const toMs = (d) => {
+                    if (!d) return 0; // epoch fallback
+                    const ms = new Date(d).getTime();
+                    return Number.isFinite(ms) ? ms : 0;
+                };
+
+                let lastMs = toMs(usrRow.AddEvent?.eventDate);
+
+                for (const loan of (usrRow.Loans ?? [])) {
+                    const astReturnMs = toMs(loan.AstLoan?.ReturnEvent?.eventDate);
+                    if (astReturnMs) {
+                        lastMs = Math.max(lastMs, astReturnMs);
+                        continue;
+                    }
+                    // get max of all loan.AccLoans' return event dates
+                    for (const accLoan of (loan.AccLoans ?? [])) {
+                        const accReturnMs = toMs(accLoan.AccReturns?.ReturnEvent?.eventDate);
+                        if (accReturnMs) {
+                            lastMs = Math.max(lastMs, accReturnMs);
+                        }
+                    }
+                    if (loan.AccLoans) continue;
+                    
+
+                    const loanMs = toMs(loan.LoanEvent?.eventDate);
+                    const reserveMs = toMs(loan.ReserveEvent?.eventDate);
+                    lastMs = Math.max(lastMs, loanMs, reserveMs);
+                }
+
+                // store as ISO string (or keep ms if you prefer)
+                usrRow.dataValues.lastEventDate = new Date(lastMs).toISOString();
+            });
             return query.map(usrRow => new UserDTO(usrRow.dataValues).setOngoingLoans().setOngoingReservations());
         } catch (e) {
             throw e;

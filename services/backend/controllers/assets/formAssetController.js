@@ -288,10 +288,10 @@ class FormAssetController {
                     }
                     const asset = await Ast.findByPk(assetId, { // TODO combine with the search one?
                         include: {
-                            model: AstLoan,
+                            model: AstLoan, // If reserved is ever implemented, join on Loan and check if loan event not null.
                             attributes: ["returnEventId"],
                             required: false,
-                            where: { returnEventId: { [Op.ne]: null } }, // Fixed syntax for where condition
+                            where: { returnEventId: { [Op.eq]: null } }, // Fixed syntax for where condition
                         },
                         transaction: t
                     });

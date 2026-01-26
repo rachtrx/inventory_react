@@ -19,21 +19,7 @@ class AssetDelete {
     async run() {
         try {
             const query = await Ast.findAll({
-                attributes: ['id', 'serialNumber', 'alias',
-                    [
-                        Sequelize.literal(`
-                            GREATEST(
-                                COALESCE("AddEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan"."expected_loan_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan"."expected_return_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->ReserveEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->Loan->LoanEvent"."event_date", '1970-01-01'),
-                                COALESCE("AstLoans->ReturnEvent"."event_date", '1970-01-01')
-                            )
-                        `),
-                        "lastEventDate"
-                    ]
-                ],
+                attributes: ['id', 'serialNumber', 'alias'],
                 where: { [Op.and] : [
                     this.assetCondition.query
                 ]},
@@ -98,6 +84,30 @@ class AssetDelete {
                     END ASC`)],
                 ]
             })
+            query.forEach(astRow => {
+                const toMs = (d) => {
+                    if (!d) return 0; // epoch fallback
+                    const ms = new Date(d).getTime();
+                    return Number.isFinite(ms) ? ms : 0;
+                };
+
+                let lastMs = toMs(astRow.AddEvent?.eventDate);
+
+                for (const astLoan of (astRow.AstLoans ?? [])) {
+                    const returnMs = toMs(astLoan.ReturnEvent?.eventDate);
+                    if (returnMs) {
+                        lastMs = Math.max(lastMs, returnMs);
+                        continue;
+                    }
+
+                    const loanMs = toMs(astLoan.Loan?.LoanEvent?.eventDate);
+                    const reserveMs = toMs(astLoan.Loan?.ReserveEvent?.eventDate);
+                    lastMs = Math.max(lastMs, loanMs, reserveMs);
+                }
+
+                // store as ISO string (or keep ms if you prefer)
+                astRow.dataValues.lastEventDate = new Date(lastMs).toISOString();
+            });
             return query.map(astRow => new AssetDTO(astRow.dataValues).setOngoingLoan().setOngoingReservation());
         } catch (e) {
             throw e;
