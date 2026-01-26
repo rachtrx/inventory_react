@@ -46,19 +46,19 @@ class FormUserTagController {
 
     async loadAddUsers(req, res) {
         try {
-            const search = new UserTagSearch(req.query)
-            // console.log(req.query);
+            const search = new UserTagSearch(req.body)
+            // console.log(req.body);
             const users = await search.run(true)
 
             users.forEach(user => {
                 user.value = user.userName;
                 user.label = user.userName;
-                if (req.query.tagId) {
+                if (req.body.tagId) {
                     user.tags.sort((a, b) => {
                         return b.isMatching - a.isMatching;
                     });
                 }
-                user.isDisabled = req.query.tagId && user.tags?.some(tag => tag.isMatching)
+                user.isDisabled = req.body.tagId && user.tags?.some(tag => tag.isMatching)
             })
             // console.log(users);
             res.json(users);
@@ -70,18 +70,18 @@ class FormUserTagController {
 
     async loadDelUsers(req, res) {
         try {
-            const search = new UserTagSearch(req.query)
+            const search = new UserTagSearch(req.body)
             const users = await search.run(false)
 
             users.forEach(user => {
                 user.value = user.userName;
                 user.label = user.userName;
-                if (req.query.tagId) {
+                if (req.body.tagId) {
                     user.tags.sort((a, b) => {
                         return b.isMatching - a.isMatching;
                     });
                 }
-                user.isDisabled = req.query.tagId && !user.tags?.some(tag => tag.isMatching)
+                user.isDisabled = req.body.tagId && !user.tags?.some(tag => tag.isMatching)
             })
 
             // console.log(users);

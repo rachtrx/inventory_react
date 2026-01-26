@@ -12,16 +12,16 @@ router.get('/filters/all', userController.getAllFilters);
 router.post('/filters', userController.getFilters)
 router.get("/:id", userController.getUser);
 
-router.post('/add/dept', formUserController.createNewDept); // TODO
+router.post('/add/dept', formUserController.createNewDept);
 router.post('/add/user', formUserController.add);
 
-router.get('/del/user', formUserController.loadUsrDel);
+router.post('/del/user/lookup', formUserController.loadUsrDel); // TODO
 router.post('/del/user', formUserController.del);
 
 router.post('/add/tag', formUserTagController.createNewTag);
 
-router.get('/tag/user', formUserTagController.loadAddUsers);
-router.get('/untag/user', formUserTagController.loadDelUsers);
+router.post('/tag/user/lookup', formUserTagController.loadAddUsers); // TODO
+router.post('/untag/user/lookup', formUserTagController.loadDelUsers); // TODO
 
 router.post('/tag/user', formUserTagController.addUserTag)
 router.post('/untag/user', formUserTagController.delUserTag)

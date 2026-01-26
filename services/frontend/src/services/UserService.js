@@ -71,59 +71,51 @@ class UserService {
 
     // Only fetched through single search
     
-
+    // TODO
     fetchUserDel = async (userNames) => {
-        return await this.axios.get(`${this.URL}/del/user`, {
-            params: {
-                userNames
-            }
+        return await this.axios.post(`${this.URL}/del/user/lookup`, {
+            userNames
         });
     }
 
+    // TODO
     fetchUserDelById = async (userIds) => {
-        return await this.axios.get(`${this.URL}/del/user`, {
-            params: {
-                userIds
-            }
+        return await this.axios.post(`${this.URL}/del/user/lookup`, {
+            userIds
         });
     }
     
-
+    // TODO
     fetchTagUser = async(userNames, tagId=null) => {
-        const options = await this.axios.get(`${this.URL}/tag/user`, {
-            params: {
-                userNames,
-                tagId,
-            }
+        const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
+            userNames,
+            tagId,
         });
         return options;
     }
 
+    // TODO
     fetchTagUserById = async(userIds, tagId=null) => {
-        const options = await this.axios.get(`${this.URL}/tag/user`, {
-            params: {
-                userIds,
-                tagId,
-            }
+        const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
+            userIds,
+            tagId,
         });
         return options;
     }
 
+    // TODO
     fetchUntagUser = async (userNames, tagId=null) => {
-        return await this.axios.get(`${this.URL}/untag/user`, {
-            params: {
-                userNames,
-                tagId,
-            }
+        return await this.axios.post(`${this.URL}/untag/user/lookup`, {
+            userNames,
+            tagId,
         });
     }
 
+    // TODO
     fetchUntagUserById = async (userIds, tagId=null) => {
-        return await this.axios.get(`${this.URL}/untag/user`, {
-            params: {
-                userIds,
-                tagId,
-            }
+        return await this.axios.post(`${this.URL}/untag/user/lookup`, {
+            userIds,
+            tagId,
         });
     }
 

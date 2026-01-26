@@ -57,7 +57,7 @@ class LoanController {
 
     async loadReturn (req, res) {
         try {
-            const search = new ReturnSearch(req.query)
+            const search = new ReturnSearch(req.body)
             const loans = await search.run()
             loans.forEach(loan => {
                 loan.value = loan.loanId;

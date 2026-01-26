@@ -266,7 +266,7 @@ class FormUserController {
 
     async loadUsrDel (req, res) {
         try {
-            const search = new UserDelete(req.query)
+            const search = new UserDelete(req.body)
             const query = await search.run()
 
             const users = query.map(

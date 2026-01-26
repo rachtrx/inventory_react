@@ -22,7 +22,7 @@ class UsrLoanController {
 
     async loadUsrLoan (req, res) {
         try {
-            const search = new UserLoan(req.query)
+            const search = new UserLoan(req.body)
             const query = await search.run()
 
             const users = query.map(

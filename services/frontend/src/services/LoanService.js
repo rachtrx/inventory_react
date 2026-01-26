@@ -16,23 +16,19 @@ class LoanService {
         "bookmarked": false,
     }
 
+    // TODO
     fetchAstLoan = async (serialNumbers) => {
-        console.log(serialNumbers);
-        return await this.axios.get(`${this.URL}/loan/asset`, {
-            params: {
-                serialNumbers,
-            }
+        return this.axios.post(`${this.URL}/loan/asset/lookup`, {
+            serialNumbers,
         });
-    }
+    };
 
+    // TODO
     fetchAstLoanById = async (assetIds) => {
-        console.log(assetIds);
-        return await this.axios.get(`${this.URL}/loan/asset`, {
-            params: {
-                assetIds,
-            }
+        return this.axios.post(`${this.URL}/loan/asset/lookup`, {
+            assetIds,
         });
-    }
+    };
 
     fetchSuggestedAccessories = async (astSTypeId) => {
         return await this.axios.get(`${this.URL}/loan/asset/${astSTypeId}`, {
@@ -42,19 +38,17 @@ class LoanService {
         });
     }
 
+    // TODO
     fetchUserLoan = async (userNames) => {
-        return await this.axios.get(`${this.URL}/loan/user`, {
-            params: {
-                userNames
-            }
+        return this.axios.post(`${this.URL}/loan/user/lookup`, {
+            userNames,
         });
     }
 
+    // TODO
     fetchUserLoanById = async (userIds) => {
-        return await this.axios.get(`${this.URL}/loan/user`, {
-            params: {
-                userIds
-            }
+        return this.axios.post(`${this.URL}/loan/user/lookup`, {
+            userIds,
         });
     }
 
@@ -69,12 +63,10 @@ class LoanService {
         return await this.axios.post(`${this.URL}/loan`, formData);
     }
 
+    // TODO
     async fetchAstReturn(serialNumbers) {
-        console.log(serialNumbers);
-        return await this.axios.get(`${this.URL}/return/asset`, {
-            params: {
-                serialNumbers,
-            }
+        return this.axios.post(`${this.URL}/return/asset/lookup`, {
+            serialNumbers,
         });
     }
 
@@ -87,19 +79,17 @@ class LoanService {
     }
 
     fetchAccReturn = async (accessoryName) => {
-        return await this.axios.get(`${this.URL}/return/accessory`, {
+        return await this.axios.get(`${this.URL}/return/accessory/lookup`, {
             params: {
                 accessoryName
             }
         });
     }
 
+    // TODO
     fetchReturns = async (loanIds) => {
-        console.log(loanIds);
-        return await this.axios.get(`${this.URL}/return`, {
-            params: {
-                loanIds,
-            }
+        return this.axios.post(`${this.URL}/return/lookup`, {
+            loanIds,
         });
     }
 

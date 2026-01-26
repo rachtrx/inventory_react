@@ -45,20 +45,20 @@ class FormAssetTagController {
 
     async loadAddAssets(req, res) {
         try {
-            // console.log(req.query.tagId);
-            const search = new AssetTagSearch({...req.query, isAdd: true})
+            // console.log(req.body.tagId);
+            const search = new AssetTagSearch({...req.body, isAdd: true})
             const assets = await search.run(true)
 
             assets.forEach(asset => {
                 asset.value = asset.serialNumber;
                 asset.label = asset.serialNumber;
-                if (req.query.tagId) {
+                if (req.body.tagId) {
                     asset.tags.sort((a, b) => {
                         return b.isMatching - a.isMatching;
                     });
                 }
                 // IMPT allow deleted assets to be tagged
-                // asset.isDisabled = req.query.tagId && asset.tags?.some(tag => tag.isMatching)
+                // asset.isDisabled = req.body.tagId && asset.tags?.some(tag => tag.isMatching)
             })
             // console.log(assets);
             res.json(assets);
@@ -70,18 +70,18 @@ class FormAssetTagController {
 
     async loadDelAssets(req, res) {
         try {
-            const search = new AssetTagSearch({...req.query, isAdd: false})
+            const search = new AssetTagSearch({...req.body, isAdd: false})
             const assets = await search.run(false)
 
             assets.forEach(asset => {
                 asset.value = asset.serialNumber;
                 asset.label = asset.serialNumber;
-                if (req.query.tagId) {
+                if (req.body.tagId) {
                     asset.tags.sort((a, b) => {
                         return b.isMatching - a.isMatching;
                     });
                 }
-                asset.isDisabled = req.query.tagId && !asset.tags?.some(tag => tag.isMatching)
+                asset.isDisabled = req.body.tagId && !asset.tags?.some(tag => tag.isMatching)
             })
 
             // console.log(assets);

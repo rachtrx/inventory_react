@@ -7,7 +7,7 @@ const { AssetReturn } = require('@services/search/asset/assetReturn.js');
 class AstLoanController {
     async loadAstReturn (req, res) {
         try {
-            const search = new AssetReturn(req.query, false)
+            const search = new AssetReturn(req.body, false)
             const assets = await search.run()
 
             const loans = assets.flatMap(
@@ -53,7 +53,7 @@ class AstLoanController {
 
     async loadAstLoan (req, res) {
         try {
-            const search = new AssetLoan(req.query)
+            const search = new AssetLoan(req.body)
             const query = await search.run()
 
             const assets = query.map(

@@ -357,7 +357,7 @@ class FormAssetController {
 
     async loadAstDel (req, res) {
         try {
-            const search = new AssetDelete(req.query)
+            const search = new AssetDelete(req.body)
             const query = await search.run()
 
             const assets = query.map(
