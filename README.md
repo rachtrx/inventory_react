@@ -1,12 +1,10 @@
 # INVENTORY
 
 **A [MSFT App Registration](https://learn.microsoft.com/en-us/graph/auth-register-app-v2) in Azure is required to start the OAuth flow**
-_Note: **Client secrets expire after a maximum of 24 months.** When a secret expires, generate a new one and update the `AZURE_CLIENT_SECRET` environment variable in `services/backend/.env`._
-
-## Environment Variables
-- Set up all `.env` files in `.env`, `services/frontend/.env`, `services/backend/.env`
+_Note: **Client secrets expire after a maximum of 24 months.** When a secret expires, generate a new one and update the `AZURE_CLIENT_SECRET` environment variable in `services/backend/.env` for development and `.env` for production._
 
 ## Development
+- Set up all `.env` files in `.env`, `services/frontend/.env`, `services/backend/.env`
 - Have 2 terminals open
 ```bash
 
@@ -24,10 +22,11 @@ npm start
 ```
 
 ## Deployment
+- **Set up only `.env`**
 ```bash
 docker-compose -f docker-compose.yml up --build -d
 ```
-_Note: This configuration may have issues and has not been tested in months. `docker-compose.prod.yml` is the configuration to run if there is a already a database running on the deployment server and has been tested frequently._
+_Note: This configuration may have issues and has not been tested in months. `docker-compose.external-db.yml` is the configuration to run if there is a already a database running on the deployment server and has been tested frequently._
 
 ## Use Cases:
 1. Bulk create assets categorised by their type

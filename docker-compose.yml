@@ -1,3 +1,5 @@
+# NOT TESTED YET
+
 services:
   backend:
     build: ./services/backend
@@ -10,11 +12,19 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET}
-      - SIGNATURES_DIR=${SIGNATURES_DIR}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_HOST=db
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_CALLBACK_URL=${AZURE_CALLBACK_URL}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - SECURITY_GROUP_ID=${SECURITY_GROUP_ID}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SIGNATURES_DIR=${SIGNATURES_DIR}
     volumes:
       - ./services/backend/logs:/usr/src/app/logs
       - ./services/backend/uploads:/usr/src/app/uploads
