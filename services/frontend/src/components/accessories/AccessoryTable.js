@@ -1,53 +1,77 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import StarButton from '../buttons/StarButton';
-import { useUI } from '../../context/UIProvider';
+// AccessoryTable.jsx
+import {
+  Th,
+  Td,
+  Flex,
+  Text,
+} from '@chakra-ui/react';
 import { useItems } from '../../context/ItemsProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { AccTypeLink } from '../buttons/ItemLink';
 import { CircleText } from '../utils/CircleText';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import accessoryService from '../../services/AccessoryService';
+import { LoansPopover } from './LoansPopover';
+import { CircleAccTypeActionButton } from '../buttons/actions/AccTypeActionButton';
+import { FormType } from '../../context/FormProvider';
+import { SelectableTable } from '../utils/SelectableTable';
 
-const AccessoryTable = ({ items }) => {
-
-  const { loading, setLoading, error, setError }  = useUI();
-  const { handleUpdate } = useItems()
+const AccessoryTable = () => {
+  const { handleSort, sortField, sortOrder } = useItems();
 
   return (
-    <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
-        <Tr>
-          <Th></Th>
-          <Th>Name</Th>
-          <Th>Assets</Th>
-          <Th>Users</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {items.map((accessoryType) => (
-          <Tr 
-            key={accessoryType.accessoryTypeId} 
-            _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(peripheralType)}
-          >
-            <Td><StarButton id={accessoryType.accessoryTypeId} isBookmarked={accessoryType.bookmarked} onToggle={handleUpdate}/></Td>
-            <Td><ItemLink item={accessoryType} size={'lg'} fontWeight="bold"/></Td>
-            
-            <Td>
-              <CircleText
-                text={accessoryType.assets?.length || 0}
+    <SelectableTable
+      columns={[
+        <Th key="name" onClick={() => handleSort("accessoryName")} cursor="pointer">
+          Accessory Name {sortField === "accessoryName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="available">Available</Th>,
+        <Th key="registered">Registered</Th>,
+        <Th key="loaned">Loaned</Th>,
+        <Th key="reserved">Reserved</Th>
+      ]}
+      renderRow={(accessoryType) => {
+        return {
+          props: { _hover: { bg: 'bgGray' } },
+          cells: [
+            <Td key="name">
+              <Flex gap={1}>
+                <AccTypeLink accType={accessoryType} size="lg" fontWeight="bold" />
+                <CircleAccTypeActionButton
+                  size="sm"
+                  formType={FormType.UPDATE_ACC}
+                  accTypeIds={accessoryType.accessoryTypeId}
+                />
+              </Flex>
+            </Td>,
+            <Td key="available">
+              <CircleText text={accessoryType.stock || 0} />
+              <Text>Available</Text>
+            </Td>,
+            <Td key="registered">
+              <CircleText text={accessoryType.registeredCount || 0} />
+              <Text>Registered</Text>
+            </Td>,
+            <Td key="loaned">
+              <LoansPopover
+                accessoryType={accessoryType}
+                searchFunc={(id) => accessoryService.getLoanDetails(id)}
+                count={accessoryType.loanCount}
               />
-              <ResponsiveText>Assets</ResponsiveText>
-            </Td>
-            <Td>
-              <CircleText
-                text={accessoryType.users?.length || 0}
+              <Text>Loaned</Text>
+            </Td>,
+            <Td key="reserved">
+              <LoansPopover
+                accessoryType={accessoryType}
+                searchFunc={(id) => accessoryService.getReservationDetails(id)}
+                count={accessoryType.reserveCount}
               />
-              <ResponsiveText>Users</ResponsiveText>
+              <Text>Reserved</Text>
             </Td>
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+          ]
+        };
+      }}
+    />
   );
-}
+};
 
 export default AccessoryTable;

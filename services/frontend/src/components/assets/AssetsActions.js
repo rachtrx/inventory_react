@@ -1,29 +1,26 @@
-import React from 'react';
-import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useFormModal, actionTypes, formTypes } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
-import { buttonConfigs } from '../buttons/constants';
+import { FormType } from '../../context/FormProvider';
+import { CircleAssetActionButton } from '../buttons/actions/AssetActionButton';
+import { CircleReturnButton } from '../buttons/actions/ReturnButton';
 
 export default function AssetsActions() {
 
-  const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
-  const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });
-
   return (
-    !isMobile && (
-      <Flex justifyContent="space-around" alignItems="center" gap={4}>
-        <>
-          {[formTypes.LOAN, formTypes.RETURN, formTypes.ADD_ASSET, formTypes.DEL_ASSET].map((formType) => {
-            return (
-              <ActionButton
-                key={formType}
-                formType={formType}
-              />
-            );
-          })}
-        </>
-      </Flex>
-    )
+    <>
+      <CircleReturnButton/>
+      {[
+        FormType.LOAN, 
+        FormType.ADD_ASSET,
+        FormType.DEL_ASSET,
+        FormType.TAG_ASSET, 
+        FormType.UNTAG_ASSET,
+      ].map(
+        (formType) => (
+          <CircleAssetActionButton
+            key={formType}
+            formType={formType}
+          />
+        )
+      )}
+    </>
   );
-};
-
+}

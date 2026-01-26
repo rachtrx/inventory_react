@@ -1,15 +1,20 @@
 const AstLoanDTO = require("./astLoan.dto");
+const AssetTagMapDTO = require("./astTagMap.dto");
 const EventDTO = require("./event.dto");
+const { runInitialAstLoanCheck } = require("./utils");
 
 class AssetDTO {
 
+    #checked = false;
+
     constructor({
         id, 
-        serialNumber, 
-        assetTag,
+        serialNumber,
+        alias,
         bookmarked,
-        shared,
         value,
+        subTypeId,
+        remarks,
         Vendor,
         location,
         AstSType,
@@ -17,11 +22,23 @@ class AssetDTO {
         addEventId,
         delEventId,
         AddEvent,
-        DeleteEvent
+        DeleteEvent,
+        AstTagMaps=null,
+        lastEventDate=null
     }) {
+        if (lastEventDate) this.lastEventDate = lastEventDate;
+
+        if (subTypeId) this.subTypeId = subTypeId;
+
+        if (AstTagMaps !== undefined) {
+            this.tags = AstTagMaps && AstTagMaps.map(astTagMap => new AssetTagMapDTO(astTagMap.dataValues));
+        }
+
+        if (remarks) this.remarks = remarks;
+
         this.assetId = id;
         this.serialNumber = serialNumber;
-        this.assetTag = assetTag;
+        this.alias = alias;
         this.bookmarked = bookmarked === null ? null : bookmarked ? true : false;
 
         if (AstSType) {
@@ -35,34 +52,61 @@ class AssetDTO {
             }
         }
 
-        this.shared = shared;
-        this.value = value && String(parseFloat(this.value));
+        this.value = value;
         if (Vendor) {
             if (Vendor.vendorName) this.vendorName = Vendor.vendorName;
             if (Vendor.id) this.vendorId = Vendor.id;
         }
         this.location = location;
 
-        if (AstLoans) {
-            if (AstLoans.length === 0) this.ongoingLoan = null;
-            else {
-                this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan));
-
-                const ongoingLoans = this.astLoans.filter(astLoan =>
-                    astLoan.returnEventId == null && astLoan.returnEvent?.eventId == null && // IMPT using == instead of === to handle both null and undefined
-                    (astLoan.loan.loanEventId != null || astLoan.loan.loanEvent?.eventId != null)
-                ) || null;
-
-                if (ongoingLoans.length === 1) this.ongoingLoan = ongoingLoans[0];
-                else if (ongoingLoans.length > 1) throw new Error(`Multiple ongoing loans found for ${this.serialNumber}`);
-            }
-        }
+        if (AstLoans) this.astLoans = AstLoans.map(astLoan => new AstLoanDTO(astLoan.dataValues));
 
         if (addEventId) this.addEventId = addEventId;
-        if (addEventId || delEventId) this.delEventId = delEventId;
+        if (delEventId) this.delEventId = delEventId;
         
-        if (AddEvent) this.addEvent = new EventDTO(AddEvent);
-        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent);
+        if (AddEvent) this.addEvent = new EventDTO(AddEvent.dataValues);
+        if (DeleteEvent) this.deleteEvent = new EventDTO(DeleteEvent.dataValues);
+    }
+
+    setOngoingLoan(loanModelIsChild=true) {
+
+        if (!this.#checked) {
+            if (!this.astLoans) throw new Error("Dev error: Include AstLoans in the query")
+            if (this.astLoans.length === 0) return this;
+            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, loanModelIsChild));
+            this.#checked = true;
+        }
+
+        const ongoingAssetLoans = this.astLoans.filter(astLoan =>
+            astLoan.returnEventId === null && astLoan.loan.loanEventId !== null
+        ) || null;
+
+        if (ongoingAssetLoans.length === 1) this.loan = ongoingAssetLoans[0].loan;
+        else if (ongoingAssetLoans.length > 1) throw new Error(`Multiple ongoing loans found for ${this.serialNumber}`);
+
+        return this;
+    }
+
+    setOngoingReservation(loanModelIsChild=true) {
+
+        if (!this.#checked) {
+            if (!this.astLoans) throw new Error("Dev error: Include AstLoans in the query")
+            if (this.astLoans.length === 0) return this;
+            this.astLoans.forEach(astLoan => runInitialAstLoanCheck(astLoan, loanModelIsChild));
+            this.#checked = true;
+        }
+
+        const ongoingAssetReservations = this.astLoans.filter(astLoan => astLoan.loan.loanEventId === null)
+
+        if (ongoingAssetReservations.length === 1) this.reservation = ongoingAssetReservations[0].loan;
+        else if (ongoingAssetReservations.length > 1) throw new Error(`Multiple ongoing reservations found for ${this.serialNumber}`);
+
+        return this;
+    }
+
+    deleteLoans() {
+        delete this.astLoans;
+        return this;
     }
 }
   

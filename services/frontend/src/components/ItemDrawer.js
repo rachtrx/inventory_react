@@ -18,17 +18,22 @@ import Asset from './assets/Asset';
 import User from './users/User';
 import { useDrawer } from '../context/DrawerProvider';
 import { getDisplayValue, itemKeys } from '../config';
+import assetService from '../services/AssetService';
+import userService from '../services/UserService';
+import accessoryService from '../services/AccessoryService';
+import Accessory from './accessories/Accessory';
+import { EditModeProvider } from '../context/EditModeProvider';
 
 
 const ItemDrawer = () => {
   
-  const { itemsHistory, currentItem, handleItemClick, handleClose, isDrawerOpen } = useDrawer()
+  const { itemsHistory, currentItem, handleBreadcrumbClick, handleClose, isDrawerOpen } = useDrawer()
 
   useEffect(() => {
     console.log(currentItem);
   }, [currentItem])
 
-  return (
+  return currentItem && (
     <Drawer isOpen={isDrawerOpen} placement="right" onClose={handleClose} size="lg">
     <DrawerOverlay />
     <DrawerContent>
@@ -37,7 +42,7 @@ const ItemDrawer = () => {
         <Breadcrumb>
           {itemsHistory.map((item, index) => (
             <BreadcrumbItem key={index} isCurrentPage={item.id === (currentItem?.id)}>
-              <BreadcrumbLink onClick={() => handleItemClick(item)}>
+              <BreadcrumbLink onClick={() => handleBreadcrumbClick(item)} cursor="pointer">
                 <Text fontSize="sm">{getDisplayValue(item)}</Text>
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -45,17 +50,19 @@ const ItemDrawer = () => {
         </Breadcrumb>
       </DrawerHeader>
       <DrawerBody p={0}>
-        {currentItem && currentItem.assetTag ? (
-          <Asset asset={currentItem} />
-        ) : currentItem ? (
-          <User user={currentItem} />
-        ) : (
-          <Alert status="error" borderRadius="md" m="4">
-            <AlertIcon />
-            <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
-            <AlertDescription>There was a problem retrieving the data. Please try again later.</AlertDescription>
-          </Alert>
-        )}
+        <EditModeProvider>
+        {currentItem?.type === "asset" ? ( <Asset asset={currentItem}/> )
+          : currentItem?.type === "user" ? ( <User user={currentItem}/> )
+          : currentItem?.type === "accessory" ? ( <Accessory accType={currentItem}/> )
+          : (
+            <Alert status="error" borderRadius="md" m="4">
+              <AlertIcon />
+              <AlertTitle mr={2}>Data Retrieval Error</AlertTitle>
+              <AlertDescription>There was a problem retrieving the data. Please try again later.</AlertDescription>
+            </Alert>
+          )
+        }
+        </EditModeProvider>
       </DrawerBody>
     </DrawerContent>
   </Drawer>

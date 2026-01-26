@@ -1,7 +1,6 @@
-import { Flex, HStack, VStack } from "@chakra-ui/react";
-import React from "react";
-import DateText from "./DateText";
-import { ResponsiveText } from "../utils/ResponsiveText";
+import { Flex, HStack, Text, VStack } from "@chakra-ui/react";
+import DateText from "./utils/DateText";
+import { withEventBox } from "./utils/withEventBox";
 
 const DeleteEvent = ({ event }) => {
     return (
@@ -11,14 +10,14 @@ const DeleteEvent = ({ event }) => {
             {/* Timeline Point */}
             <Flex align="center" position="relative">
                 <HStack>
-                    <DateText colorScheme="green" date={event.eventDate}/>
-                    <ResponsiveText fontWeight="bold" size="lg" color="green.600">
-                        Condemned
-                    </ResponsiveText>
+                    <Text fontWeight="bold" fontSize="lg" color="red.600">
+                        Deleted
+                    </Text>
+                    <DateText colorScheme="red" event={event}/>
                 </HStack>
             </Flex>
         </VStack>
     );
 };
 
-export default DeleteEvent;
+export const DeleteEventBox = withEventBox(DeleteEvent)

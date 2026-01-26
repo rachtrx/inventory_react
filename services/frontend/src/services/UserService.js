@@ -1,45 +1,137 @@
+import { FormType } from '../context/FormProvider';
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 
 class UserService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
+        this.URL = `${API_URL}/users`
     }
 
     defaultFilters = {
-        dept: [],
         userName: '',
-        assetCount: [],
+        bookmarked: false,
+    }
+
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${this.URL}/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
     }
 
     async getItem(id) {
-        return await this.axios.get(`${API_URL}/users/${id}`);
+        return await this.axios.get(`${this.URL}/${id}`);
     }
 
     async getFilters(field) {
-        return await this.axios.post(`${API_URL}/users/filters`, {field});
+        return await this.axios.post(`${this.URL}/filters`, {field});
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        return await this.axios.post(`${API_URL}/users`, {filters});
+    async getAllFilters() {
+        return await this.axios.get(`${this.URL}/filters/all`);
+    }
+
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
+        console.log(filters)
+        return await this.axios.get(`${this.URL}`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
     }
     
-    async updateItem(id, field, newValue) {
-        return await this.axios.patch(`${API_URL}/users/update`, {id, field, newValue});
+    async updateItem(body) {
+        return await this.axios.patch(`${this.URL}/update`, body);
     }
 
     async searchUsers(value, formType) {
-        return await this.axios.post(`${API_URL}/users/search`, {value, formType});
+
+        const params = { value }
+
+        if (formType === FormType.LOAN) {
+            return await this.axios.get(`${this.URL}/search/loan`, {params});
+        } else if (formType === FormType.DEL_USER) {
+            return await this.axios.get(`${this.URL}/search/delete`, {params});
+        } else throw new Error("Form Type not found")
     }
 
     async addUser(data) {
-        downloadFormData(data);
-        // return await this.axios.get(`${API_URL}/users/add`, data);
+        // downloadFormData(data);
+        return await this.axios.post(`${this.URL}/add/user`, data);
     }
 
-    async removeUser(data) {
-        downloadFormData(data);
-        // return await this.axios.get(`${API_URL}/users/remove`, data);
+    async delUser(data) {
+        // downloadFormData(data);
+        return await this.axios.post(`${this.URL}/del/user`, data);
+    }
+
+    // Only fetched through single search
+    
+    fetchUserDel = async (userNames) => {
+        return await this.axios.post(`${this.URL}/del/user/lookup`, {
+            userNames
+        });
+    }
+
+    fetchUserDelById = async (userIds) => {
+        return await this.axios.post(`${this.URL}/del/user/lookup`, {
+            userIds
+        });
+    }
+    
+    fetchTagUser = async(userNames, tagId=null) => {
+        const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
+            userNames,
+            tagId,
+        });
+        return options;
+    }
+
+    fetchTagUserById = async(userIds, tagId=null) => {
+        const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
+            userIds,
+            tagId,
+        });
+        return options;
+    }
+
+    fetchUntagUser = async (userNames, tagId=null) => {
+        return await this.axios.post(`${this.URL}/untag/user/lookup`, {
+            userNames,
+            tagId,
+        });
+    }
+
+    fetchUntagUserById = async (userIds, tagId=null) => {
+        return await this.axios.post(`${this.URL}/untag/user/lookup`, {
+            userIds,
+            tagId,
+        });
+    }
+
+    async tagUser(formData) {
+        // downloadFormData(formData);
+        console.log(formData);
+        return await this.axios.post(`${this.URL}/tag/user`, formData);
+    }
+
+    async untagUser(formData) {
+        console.log(formData);
+        return await this.axios.post(`${this.URL}/untag/user`, formData);
+    }
+
+    async createNewTag(tagName) {
+        console.log(tagName);
+        return await this.axios.post(`${this.URL}/add/tag`, { tagName });
+    }
+
+    async createNewDept(deptName) {
+        console.log(deptName);
+        return await this.axios.post(`${this.URL}/add/dept`, { deptName });
     }
 }
 
@@ -55,5 +147,5 @@ const downloadFormData = (formData) => {
 };
   
 
-const userService = new UserService(axiosInstance);
+const userService = new UserService(api);
 export default userService;

@@ -19,7 +19,8 @@ module.exports = (sequelize) => {
 		},
 		subTypeName: {
 			type: DataTypes.STRING,
-			allowNull: false
+			allowNull: false,
+			unique: true
 		},
 	}, {
 		sequelize,

@@ -1,18 +1,41 @@
 import { API_URL } from '../config';
-import { axiosInstance } from '../config';
+import { api } from '../config';
 
 class AccessoryService {
-    constructor(axiosInstance) {
-        this.axios = axiosInstance;
+    constructor(api) {
+        this.axios = api;
         this.URL = `${API_URL}/accessories`
     }
 
     defaultFilters = {
-        "accessoryName": []
+        "accessoryName": ""
     }
 
-    async loadItems(filters = this.defaultFilters) {
-        return await this.axios.post(`${this.URL}`, {filters});
+    async downloadExcel({ filters = this.defaultFilters, sort }) {
+        return await this.axios.get(`${this.URL}/excel`, {
+          params: { filters, sort },
+          responseType: 'blob',
+        });
+    }
+
+    async loadItems({ filters = this.defaultFilters, sort, page, pageSize }) {
+        console.log(filters)
+        return await this.axios.get(`${this.URL}`, {
+            params: {
+                filters,
+                sort,
+                page,
+                limit: pageSize,
+            }
+        });
+    }
+
+    async getLoanDetails(id) {
+        return await this.axios.get(`${this.URL}/loans/${id}`);
+    }
+
+    async getReservationDetails(id) {
+        return await this.axios.get(`${this.URL}/reservations/${id}`);
     }
 
     async getItem(id) {
@@ -21,6 +44,9 @@ class AccessoryService {
 
     async getFilters(field) {
         return await this.axios.post(`${this.URL}/filters`, {field});
+    }
+    async getAllFilters() {
+        return this;
     }
 
     async loanAccessory(id, userId) {
@@ -33,25 +59,13 @@ class AccessoryService {
     }
 
     async addAccessories(formValues) {
-        return await this.axios.post(`${this.URL}/add`, formValues);;
+        return await this.axios.post(`${this.URL}/addTxn`, formValues);;
     }
 
-    async searchAccessories(value) {
-        return await this.axios.post(`${this.URL}/search`, { value });
-    }
-
-    async getSuggestedAccessories(id) {
-        return await this.axios.post(`${this.URL}/getSuggested`, { assetId: id });
-    }
-
-    async updateVariantSuggestion(assetId, accessoryTypeId, saved) {
-        return await this.axios.post(`${this.URL}/updateVariantSuggestion`, { assetId, accessoryTypeId, saved })
-    }
-
-    async updateAssetTypeSuggestion(assetId, accessoryTypeId, saved) {
-        return await this.axios.post(`${this.URL}/updateAssetTypeSuggestion`, { assetId, accessoryTypeId, saved })
+    async createAccessory(accessoryName) {
+        return await this.axios.post(`${this.URL}/add`, { accessoryName });;
     }
 }
 
-const accessoryService = new AccessoryService(axiosInstance);
+const accessoryService = new AccessoryService(api);
 export default accessoryService;

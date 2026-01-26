@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useField } from 'formik';
 import SignatureCanvas from 'react-signature-canvas';
-import { FormControl, FormLabel, Button, Box, Flex, IconButton, Collapse } from '@chakra-ui/react';
-import { ResponsiveText } from '../../utils/ResponsiveText';
+import { FormControl, FormLabel, Box, Flex, IconButton, Text } from '@chakra-ui/react';
 import { RepeatIcon } from '@chakra-ui/icons';
 
 export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...props }) => {
@@ -28,7 +27,7 @@ export const FormikSignatureField = ({ name, label, signatureFieldWidth, ...prop
       <Flex direction='column' alignItems="flex-start">
         {label && (
           <FormLabel htmlFor={name} display="flex" alignItems="center" justifyContent="space-between" mb={0}>
-            <ResponsiveText>{label}</ResponsiveText>
+            <Text>{label}</Text>
             
             <IconButton
               aria-label="Clear Signature"

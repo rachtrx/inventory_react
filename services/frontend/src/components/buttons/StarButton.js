@@ -2,22 +2,31 @@ import { IconButton } from '@chakra-ui/react';
 import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
 import { useItems } from '../../context/ItemsProvider';
 
-const StarButton = ({ id, isBookmarked, ...props }) => {
-  const { handleUpdate } = useItems();
-
-  const handleClick = async () => {
-    const response = await handleUpdate(id, 'bookmarked', isBookmarked ? 0 : 1);
-    console.log(response);
-  };
+export const StarButton = ({ isBookmarked, handleUpdate, ...props }) => {
 
   return (
     <IconButton
       aria-label={isBookmarked ? 'Unbookmark' : 'Bookmark'}
       icon={isBookmarked ? <AiFillStar /> : <AiOutlineStar />}
-      onClick={handleClick}
+      onClick={handleUpdate}
       {...props} // Pass any additional props if needed
     />
   );
 };
 
-export default StarButton;
+export const ItemStarButton = ({ id, isBookmarked, ...props }) => {
+  const { handleUpdate } = useItems();
+
+  const handleClick = async () => {
+    const response = await handleUpdate(id, 'bookmarked', !isBookmarked);
+    console.log(response);
+  };
+
+  return (
+    <StarButton
+      isBookmarked={isBookmarked}
+      handleUpdate={handleClick}
+      {...props}
+    />
+  );
+};

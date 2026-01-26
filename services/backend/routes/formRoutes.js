@@ -1,9 +1,11 @@
 const express = require('express');
-const formLoanReturnController = require('../controllers/formLoanReturnController.js');
-const formAssetController = require('../controllers/formAssetController.js');
-const formUserController = require('../controllers/formUserController.js');
-const multer = require('multer');
-const path = require('path');
+const loanController = require('@controllers/loans/loanController.js');
+// const multer = require('multer');
+// const path = require('path');
+
+const accLoanController = require('@controllers/loans/accLoanController.js');
+const astLoanController = require('@controllers/loans/astLoanController.js');
+const usrLoanController = require('@controllers/loans/usrLoanController.js');
 
 const router = express.Router();
 
@@ -30,16 +32,20 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 //   }
 // });
 
-router.post('/loan', formLoanReturnController.loan);
-router.get('/return', formLoanReturnController.loadReturn);
-router.post('/return', formLoanReturnController.return);
+router.post('/loan', loanController.loan);
 
-router.use('/addAsset', formAssetController.add);
-router.use('/condemnAsset', formAssetController.condemn);
+router.post('/return/asset/lookup', astLoanController.loadAstReturn);
+router.get('/return/user', usrLoanController.loadUsrReturn);
+router.get('/return/accessory', accLoanController.loadAccReturn);
 
-router.use('/addUser', formUserController.add);
-router.use('/removeUser', formUserController.remove)
+router.post('/loan/asset/lookup', astLoanController.loadAstLoan);
+router.get('/loan/asset/:astSTypeId', astLoanController.loadSuggestedAccLoan);
+router.post('/loan/user/lookup', usrLoanController.loadUsrLoan);
+router.get('/loan/accessory', accLoanController.loadAccLoan);
 
-router.post('/download', formLoanReturnController.downloadEvent);
+router.post('/return/lookup', loanController.loadReturn);
+router.post('/return', loanController.return);
+
+router.post('/download', loanController.downloadEvent);
 
 module.exports = router;

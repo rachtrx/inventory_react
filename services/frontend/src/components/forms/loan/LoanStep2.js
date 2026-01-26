@@ -1,13 +1,14 @@
-import { Box, Button, Flex, ModalBody, ModalFooter, VStack } from "@chakra-ui/react";
-import { ResponsiveText } from "../../utils/ResponsiveText";
+import { Box, Button, Flex, ModalBody, ModalFooter, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { FormikSignatureField } from "../utils/SignatureField";
-import { FieldArray, Form, Formik } from "formik";
+import { Form, Formik } from "formik";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useLoans } from "./LoansProvider";
+import { useStep } from "../../../context/StepProvider";
 
 export const LoanStep2 = () => {
 
-	const {prevStep, handleSubmit, userLoans, formData} = useLoans()
+	const {handleSubmit} = useLoans();
+	const { prevStep, formData } = useStep();
 	const parentRef = useRef(null);
     const [signatureFieldWidth, setSignatureFieldWidth] = useState('auto');
 
@@ -30,7 +31,7 @@ export const LoanStep2 = () => {
 		};
 	}, []);
 
-	return (
+	return formData?.users ? (
 		<Formik
 			initialValues={formData}
 			onSubmit={handleSubmit}
@@ -40,9 +41,9 @@ export const LoanStep2 = () => {
 		>
 			<Form>
 				<ModalBody ref={parentRef}>
-					{Object.entries(userLoans).map(([userId, userLoan]) => (
+					{formData.users.map((user, userIndex) => (
 						<Flex 
-							key={userId} 
+							key={user.userId} 
 							direction="column" 
 							border="1px solid"
 							borderColor="gray.300"
@@ -51,18 +52,48 @@ export const LoanStep2 = () => {
 							mb={4}
 							boxShadow="sm"
 						>
-							<ResponsiveText size='lg'>{userLoan.userName}</ResponsiveText>
-							{userLoan.assets.map((assetLoan) => (
-								<ResponsiveText key={assetLoan.assetTag}>
-									{assetLoan.assetTag} ({assetLoan.accessories.map(accessory => `${accessory.accessoryName} x${accessory.count}`).join(', ')}) {assetLoan.expectedReturnDate && `Due on ${assetLoan.expectedReturnDate}`}
-								</ResponsiveText>
-							))}
+							<Text fontSize='lg' fontWeight="bold">
+								{user.userName}
+							</Text>
+
+							{user.loans.length > 0 && (
+								<Box overflowX="auto" w="100%" mt={2}>
+								<Table size="sm" variant="striped" minW="650px">
+									<Thead>
+									<Tr>
+										<Th>Serial Number</Th>
+										<Th>Accessories</Th>
+										<Th>Expected Return</Th>
+									</Tr>
+									</Thead>
+									<Tbody>
+									{user.loans.map((loan, index) => (
+										<Tr key={index}>
+										<Td>{loan.asset?.serialNumber || '-'}</Td>
+										<Td>
+											{loan.accessories && loan.accessories.length > 0
+											? loan.accessories.map(acc => `${acc.accessoryName} x${acc.count}`).join(', ')
+											: '-'}
+										</Td>
+										<Td>
+											{loan.expectedReturnDate
+											? new Date(loan.expectedReturnDate).toLocaleDateString()
+											: '-'}
+										</Td>
+										</Tr>
+									))}
+									</Tbody>
+								</Table>
+								</Box>
+							)}
+
 							<FormikSignatureField
-								name={`signatures.${userId}`}
+								name={`users.${userIndex}.signature`}
 								label='Signature'
 								signatureFieldWidth={signatureFieldWidth}
 							/>
-						</Flex>
+							</Flex>
+
 					))}
 				</ModalBody>
 			
@@ -72,5 +103,5 @@ export const LoanStep2 = () => {
 				</ModalFooter>
 			</Form>
 		</Formik>
-	);
+	) : undefined;
 }

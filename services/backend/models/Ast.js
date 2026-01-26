@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
-const logger = require('../logging.js');
+const logger = require('@/utils/logging.js');
 
 module.exports = (sequelize) => {
 	class Ast extends Model {}
@@ -15,9 +15,9 @@ module.exports = (sequelize) => {
 			allowNull: false,
 			unique: true
 		},
-		assetTag: {
+		alias: {
 			type: DataTypes.STRING,
-			allowNull: false,
+			allowNull: true,
 			unique: true
 		},
 		subTypeId: {
@@ -28,26 +28,17 @@ module.exports = (sequelize) => {
 				key: 'id'
 			}
 		},
-		shared: {
-			type: DataTypes.INTEGER,
-			defaultValue: 0
-		},
 		bookmarked: {
-			type: DataTypes.INTEGER,
-			allowNull: false
-		},
-		leased: {
-			type: DataTypes.INTEGER,
-			defaultValue: 0
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
 		},
 		location: {
 			type: DataTypes.STRING
 		},
-		addedDate: {
-			type: DataTypes.DATE,
-			defaultValue: DataTypes.NOW
+		remarks: {
+			type: DataTypes.TEXT,
 		},
-		expiryDate: {
+		leaseEndDate: {
 			type: DataTypes.DATE,
 			allowNull: true,
 		},

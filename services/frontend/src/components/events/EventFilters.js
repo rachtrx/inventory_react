@@ -1,60 +1,98 @@
-import React from 'react';
-import BookmarkFilter from '../forms/utils/BookmarkFilter';
+import React, { useEffect } from 'react';
 import InputFormControl from '../forms/utils/InputFormControl';
-import SelectFormControl from '../forms/utils/SelectFormControl';
+import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
+import { Form, Formik } from 'formik';
+import { useItems } from '../../context/ItemsProvider';
+import eventService from '../../services/EventService';
+import DateInputControl from '../forms/utils/DateInputControl';
+import { FormType } from '../../context/FormProvider';
+import FilterSidebar from '../utils/FilterSidebar';
+import { CheckboxGroupField } from '../forms/utils/CheckboxGroupField';
+import CheckboxField from '../forms/utils/CheckboxField';
 
 
-const EventFilters = ({ filters }) => {
+const EventFilters = () => {
+
+    const { filters } = useItems();
 
     return (
         <>
-            <SelectFormControl
-                name="deviceType"
-                label="Device Type"
-                placeholder="All"
-                options={filters?.device_types?.map((device_type) => ({ label: device_type, value: device_type })) ?? []}
+            <CheckboxField
+                name="bookmarked"
+                label="Bookmarked"
             />
 
-            <InputFormControl
-                name="modelName"
-                label="Model Name"
-                placeholder="All"
+            <InputFormControl 
+                name="remarks"
+                placeholder="Search Remarks"
             />
 
-            <SelectFormControl
+            <DateInputControl
+                placeholder="Start Date" 
+                name={`startDate`} 
+            />
+
+            <DateInputControl 
+                placeholder="End Date" 
+                name={`endDate`} 
+            />
+
+            <CheckboxGroupField
                 name="eventType"
                 label="Event Type"
-                placeholder="All"
-                options={[
-                    { label: "Registered", value: "registered" },
-                    { label: "Loaned", value: "loaned" },
-                    { label: "Returned", value: "returned" },
-                    { label: "Condemned", value: "condemned" },
-                    { label: "Created", value: "created" },
-                    { label: "Removed", value: "removed" },
-                ]}
+                items={
+                    [
+                        {'label': 'Loan', 'value': FormType.LOAN},
+                        {'label': 'Return', 'value': FormType.RETURN},
+                        {'label': 'Reservation', 'value': FormType.RESERVE},
+                        {'label': 'Add Asset', 'value': FormType.ADD_ASSET},
+                        {'label': 'Del Asset', 'value': FormType.DEL_ASSET},
+                        {'label': 'Add User', 'value': FormType.ADD_USER},
+                        {'label': 'Del User', 'value': FormType.DEL_USER},
+                        {'label': 'Update Accessory', 'value': FormType.UPDATE_ACC},
+                        {'label': 'Tag Asset', 'value': FormType.TAG_ASSET},
+                        {'label': 'Untag Asset', 'value': FormType.UNTAG_ASSET},
+                        {'label': 'Tag User', 'value': FormType.TAG_USER},
+                        {'label': 'Untag User', 'value': FormType.UNTAG_USER},
+                    ]
+                }
             />
 
-            <InputFormControl
-                name="userName"
-                label="Username"
-                placeholder="All"
+            <CheckboxGroupField
+                items={filters.typeName}
+                label="Asset Type"
+                name="typeName"
+            />
+    
+            <CheckboxGroupField
+                items={filters.subTypeName}
+                label="Model"
+                name="subTypeName"
             />
 
-            <InputFormControl
-                name="serial-number"
-                label="Serial Number"
-                placeholder="All"
+            <CheckboxGroupField
+                items={filters.deptName}
+                label="Department"
+                name="deptName"
             />
 
-            <InputFormControl
-                name="asset-tag"
+            <CheckboxGroupField
+                items={filters.userTag}
+                label="User Tag"
+                name="userTag"
+            />
+
+            <CheckboxGroupField
+                items={filters.assetTag}
                 label="Asset Tag"
-                placeholder="All"
+                name="assetTag"
             />
 
-            <BookmarkFilter/>
-
+            <CheckboxGroupField
+                items={filters.admin}
+                label="Admin"
+                name="admin"
+            />
         </>
     )
 };

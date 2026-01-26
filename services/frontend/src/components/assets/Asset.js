@@ -1,33 +1,75 @@
-import { Box, Heading, Text, Button, Flex, IconButton, SimpleGrid, Grid, VStack, HStack } from '@chakra-ui/react';
-import { InfoOutlineIcon } from '@chakra-ui/icons';
+import { Box, Heading, Flex, Grid, VStack, Text } from '@chakra-ui/react';
 import { useDrawer } from '../../context/DrawerProvider';
-import { actionTypes, formTypes, useFormModal } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
-import Timeline from '../timeline/Timeline';
-import EditableField from '../utils/EditableField';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import { ItemLink } from '../buttons/ItemLink';
-import { AssetActionButton, UserActionButton } from '../buttons/SplitButton';
-import { AssetStatus } from '../../constants/AssetStatus';
+import { FormType } from '../../context/FormProvider';
+import { TextEditableField, HeadingEditableField } from '../utils/editing/text/TextEditableField';
+import { UserLink } from '../buttons/ItemLink';
+import { AssetStatus } from './utils/AssetStatus';
+import { AssetActionButton } from '../buttons/actions/AssetActionButton';
+import AssetTimeline from '../timeline/assets/AssetTimeline';
+import { AssetTags } from '../tags/Tags';
+import { ReturnButton } from '../buttons/actions/ReturnButton';
+import { StarButton } from '../buttons/StarButton';
+import SelectEditableField from '../utils/editing/SelectEditableField';
+import assetService from '../../services/AssetService';
+import { useEffect, useState } from 'react';
+import { useUI } from '../../context/UIProvider';
+import { EditToggleButton } from '../buttons/EditToggleButton';
+import DateText from '../timeline/utils/DateText';
 
 const Asset = ({ asset }) => {
-  const { editKey, editedValue, handleItemClick, handleEdit, handleChange } = useDrawer()
-  const { setFormType } = useFormModal()
+  const { updateItem } = useDrawer();
+  const [ subTypeOptions, setSubTypeOptions ] = useState([]);
+  const { handleError } = useUI()
 
-  const currentUsers = asset.currentUsers;
+  useEffect(() => {
+    const fetchSubTypeOptions = async () => {
+      try {
+        const response = await assetService.getSubTypeFilters([asset.typeId])
+
+        setSubTypeOptions(response?.data?.[asset.typeId]?.map(option => ({
+          ...option,
+          id: option.subTypeId
+        })) || [])
+      } catch(err) {
+        handleError(err)
+      }
+    }
+    fetchSubTypeOptions()
+  }, [])
+
+  const handleBookmarkUpdate = async (isBookmarked) => {
+    await updateItem({ name: 'bookmarked', itemId: asset.assetId, newValue: !isBookmarked });
+  }
+
   const pastUsers = asset.pastUsers;
-  const reservedUsers = asset.reservedUsers;
 
-  const status = asset.delEventId ? AssetStatus.DELETED : 
-    asset.currentUsers && asset.currentUsers.length > 0 ? AssetStatus.LOANED : 
-    asset.reservedUsers && asset.reservedUsers.length > 0 ? AssetStatus.RESERVED : 
+  const status = 
+    asset?.delEventId !== undefined ? AssetStatus.DELETED :
+    asset?.loanEventId !== undefined ? AssetStatus.LOANED :
+    asset?.reserveEventId !== undefined ? AssetStatus.RESERVED :
     AssetStatus.AVAILABLE;
+
+  const loan = asset.loanEventId ? asset.history.find(event => event.eventId === asset.loanEventId)?.loan : null
+  const reservation = asset.reserveEventId ? asset.history.find(event => event.eventId === asset.reserveEventId)?.reservation : null
 
 	return (
 		<VStack align="stretch" p={4} spacing={2}>
       <Box mb={4}>
-        <Heading as="h1" size="lg" mb={4}>{asset.assetTag}</Heading>
-				<Heading as="h2" size="md" mb="2">Status: {AssetStatus.toString(status)}</Heading>	
+        <Flex gap={2} justifyContent="center">
+          <Flex gap={1}>
+            <StarButton
+              id={asset.assetId}
+              isBookmarked={asset.bookmarked}
+              handleUpdate={() => handleBookmarkUpdate(asset.bookmarked)}
+            />
+            <EditToggleButton/>
+          </Flex>
+          <HeadingEditableField
+						name="serialNumber"
+						value={asset.serialNumber}
+					/>
+        </Flex>
+				<Heading as="h2" size="md">Status: {status}</Heading>	
 
         <Grid
 					templateColumns="auto 1fr auto"  // First column takes up as much space as possible, second column takes up as little space as necessary
@@ -36,36 +78,67 @@ const Asset = ({ asset }) => {
 					alignItems='center'
 				>
 					{/* IMPT: field key must be the same as value */}
-          <EditableField 
+          {/* <TextEditableField 
 						label="Serial Number"
-            fieldKey="serialNumber"
+            name="serialNumber"
             value={asset.serialNumber}
+					/> */}
+          <TextEditableField 
+						label="Asset Tag"
+            name="alias"
+            value={asset.alias}
 					/>
-					<EditableField 
+					<SelectEditableField 
 						label="Model"
-            fieldKey="subTypeName"
+            name="subTypeName"
+            id={asset.subTypeId}
             value={asset.subTypeName}
+            createFn={async (value) => await assetService.createNewSubType(value, asset.typeId)}
+            customOptions={subTypeOptions}
 					/>
-					<EditableField 
+					<SelectEditableField 
 						label="Asset Type"
-            fieldKey="typeName"
+            name="typeName"
+            id={asset.typeId}
             value={asset.typeName}
+            createFn={async (value) => await assetService.createNewType(value)}
+            getUpdateOptions={(newValue) => ([
+              { value: "update-delete", label: `This action RENAMES ALL records of ${asset.typeName} to ${newValue}, DELETING ${asset.typeName}` },
+              { value: "update-keep", label: `This action TRANSFERS ALL records of ${asset.typeName} to ${newValue}, KEEPING ${asset.typeName}` },
+            ])}
 					/>
-					<EditableField 
+					<SelectEditableField 
 						label="Vendor"
-            fieldKey="vendor"
+            name="vendor"
+            id={asset.vendorId}
             value={asset.vendorName}
+            createFn={async (value) => await assetService.createNewVendor(value)}
 					/>
-          <EditableField
+          <TextEditableField
             label="Value"
-            fieldKey="value"
+            name="value"
             value={asset.value}
+            isFloat={true}
           />
-          <EditableField
+          <TextEditableField
             label="Location"
-            fieldKey="location"
+            name="location"
             value={asset.location}
           />
+          {asset.addEvent ? (
+            <>
+              <Text fontSize="md">Added Date:</Text>
+              <DateText colorScheme={"green"} event={asset.addEvent}/>
+              <Box></Box>
+            </>
+          ) : undefined}
+          {asset.deleteEvent ? (
+            <>
+              <Text fontSize="md">Condemned Date:</Text>
+              <DateText colorScheme={"red"} event={asset.deleteEvent}/>
+              <Box></Box>
+            </>
+          ) : undefined}
         </Grid>
       </Box>
 
@@ -75,56 +148,61 @@ const Asset = ({ asset }) => {
           templateRows="repeat(3, 1fr)"
           gap={4}
           width="100%"
+          alignItems="center"
         >
-            <Heading as="h2" size="sm" mb="2">
-              {asset.shared ? 'Current Users: ' : 'Current User: '}
-            </Heading>
+            <Heading as="h2" size="sm">Current User</Heading>
             <Box>
-            {currentUsers?.map(user => (
+            {loan && (
               <>
-                <ItemLink key={user.userId} isCopy={false} item={user} />
-                <ActionButton key={formTypes.RETURN} formType={formTypes.RETURN} item={asset} />
+                <UserLink key={loan.user.userId} user={loan.user} isCopy={false} />
+                <ReturnButton
+                  loanId={loan.loanId}
+                />
               </>
-            ))}
+            )}
             </Box>
 
-            <Heading as="h2" size="sm" mb="2">Past Users:</Heading>
+            <Heading as="h2" size="sm">Past Users:</Heading>
             <Flex gap={1}>
               {pastUsers?.map((user, index) => (
-                <ItemLink key={index} isCopy={false} item={user} />
+                <Flex gap={1}>
+                  <UserLink key={user.userId} isCopy={false} user={user} withTooltip={true}/>
+                  {status === AssetStatus.AVAILABLE && <AssetActionButton
+                    asset={asset}
+                    formType={FormType.RELOAN}
+                    user={user}
+                  />}
+                </Flex>
               ))}
             </Flex>
 
-            <Heading as="h2" size="sm" mb="2">Reserved for:</Heading>
+            <Heading as="h2" size="sm">Reserved for:</Heading>
             <Box>
-            {reservedUsers?.map(user => (
-              <ItemLink key={user.userId} isCopy={false} item={user} />
-            ))}
+              {reservation && (
+                <UserLink key={reservation.user.userId} isCopy={false} user={reservation.user} withTooltip={true}/>
+              )}
             </Box>
+
+            <Heading as="h2" size="sm">Tags</Heading>
+            <AssetTags asset={asset} tags={asset.tags}/>
         </Grid>
       </Flex>
 
-      <Box>
-        <IconButton
-          icon={<InfoOutlineIcon />}
-          isRound
-          aria-label="Bookmark"
-          mb={4}
-        />
-        {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
-          <Flex gridGap="2">
-            <Button onClick={() => setFormType(formTypes.DEL_ASSET)} colorScheme="red">
-              CONDEMN
-            </Button>
-            <Button onClick={() => setFormType(formTypes.LOAN)} data-asset-id={asset.assetId} colorScheme="green">
-              LOAN
-            </Button>
-          </Flex>
-        )}
-      </Box>
+      {status !== AssetStatus.DELETED && status !== AssetStatus.LOANED && ( // change to deldate?
+        <Flex gridGap="2" mb={4}>
+          <AssetActionButton
+            formType={FormType.DEL_ASSET}
+            asset={asset}
+          />
+          <AssetActionButton
+            formType={FormType.LOAN}
+            asset={asset}
+          />
+        </Flex>
+      )}
 
-			{asset.history && 
-				<Timeline 
+			{asset.history && asset.history.length > 0 &&
+				<AssetTimeline 
 					events={asset.history}
 				/>
 			}

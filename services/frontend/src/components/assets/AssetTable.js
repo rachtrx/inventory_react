@@ -1,58 +1,68 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, Button, Flex } from '@chakra-ui/react';
-import { useDrawer } from '../../context/DrawerProvider';
+// AssetTable.jsx
+import {
+  Th,
+  Td,
+  Text,
+} from '@chakra-ui/react';
 import { useItems } from '../../context/ItemsProvider';
-import StarButton from '../buttons/StarButton';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import { AssetActionButton, SplitButton } from '../users/AssetList';
-import { useState } from 'react';
-import ActionButton from '../buttons/ActionButton';
-import { formTypes } from '../../context/ModalProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { ItemStarButton } from '../buttons/StarButton';
+import { AssetLink, UserLink } from '../buttons/ItemLink';
 import { CardActions } from './CardActions';
+import { Tags } from '../tags/Tags';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import { SelectableTable } from "../utils/SelectableTable";
 
-const AssetTable = ({ items }) => {
-
-  const { handleUpdate } = useItems()
+const AssetTable = () => {
+  const { handleUpdate, handleSort, sortOrder, sortField } = useItems();
 
   return (
-    <Table size="sm" variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg="gray.200">
-        <Tr>
-          <Th></Th>
-          <Th>Device Type</Th>
-          <Th>Model</Th>
-          <Th>Asset Tag</Th>
-          <Th>Options</Th>
-          <Th>Users</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {items.map((asset) => (
-          <Tr 
-            key={asset.assetId}
-            _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(asset)}
-          >
-            <Td>
-              <StarButton
+    <SelectableTable
+      columns={[
+        <Th key="star-col" />,
+        <Th key="type" onClick={() => handleSort("typeName")} cursor="pointer">
+          Device Type {sortField === "typeName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="model" onClick={() => handleSort("subTypeName")} cursor="pointer">
+          Model {sortField === "subTypeName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="serial" onClick={() => handleSort("serialNumber")} cursor="pointer">
+          S/N {sortField === "serialNumber" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="tags">Tags</Th>,
+        <Th key="options">Options</Th>,
+        <Th key="users">Users</Th>,
+      ]}
+      renderRow={(asset) => {
+        return {
+          props: {
+            _hover: { bg: "bgGray" }
+          },
+          cells: [
+            <Td key="star">
+              <ItemStarButton
                 id={asset.assetId}
                 isBookmarked={asset.bookmarked}
                 onToggle={handleUpdate}
               />
+            </Td>,
+            <Td key="type"><Text>{asset.typeName}</Text></Td>,
+            <Td key="model"><Text>{asset.subTypeName}</Text></Td>,
+            <Td key="sn">
+              <AssetLink item={asset} size="lg" fontWeight="bold" />
+            </Td>,
+            <Td key="tags">
+              <Tags tags={asset.tags} textSize="xs" />
+            </Td>,
+            <Td key="actions">
+              <CardActions asset={asset} />
+            </Td>,
+            <Td key="user">
+              {asset.loan && <UserLink item={asset.loan.user} fontWeight="bold" />}
             </Td>
-            <Td><ResponsiveText>{asset.typeName}</ResponsiveText></Td>
-            <Td><ResponsiveText>{asset.subTypeName}</ResponsiveText></Td>
-            <Td><ItemLink item={asset} fontWeight="bold"/></Td>
-            <Td>
-              <CardActions asset={asset}/>
-            </Td>
-            <Td>{asset.ongoingLoan && asset.ongoingLoan.loan.userLoans.map((userLoan) => (
-              <ItemLink item={userLoan.user} fontWeight="bold"/>
-            ))}</Td>
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+          ]
+        };
+      }}
+    />
   );
 };
 

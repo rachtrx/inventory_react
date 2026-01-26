@@ -1,51 +1,114 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
 import { useDrawer } from "../../context/DrawerProvider";
-import { ResponsiveText } from "../utils/ResponsiveText";
 import { IoCopyOutline } from "react-icons/io5";
 import { useUI } from "../../context/UIProvider";
-import { getDisplayValue } from "../../config";
+import { Tooltip } from "@chakra-ui/react";
+import { forwardRef } from "react";
 
-export const ItemLink = ({ item, isCopy=true, bg=null, ...props }) => {
-    const { handleItemClick } = useDrawer();
-    const { showToast, handleError } = useUI()
+export const AssetLink = ({ asset, withTooltip = false, ...props }) => {
+  const { handleAssetClick } = useDrawer();
 
-    const handleCopyClick = async (e) => {
-        try { 
-            await navigator.clipboard.writeText(getDisplayValue(item));
-            showToast(`${getDisplayValue(item)} copied!`, 'success', 500);
-        } catch (error) {
-            handleError(error);
-        }
-    };
+  const content = (
+    <ItemLink
+      item={asset}
+      value="serialNumber"
+      handleClick={handleAssetClick}
+      {...props}
+    />
+  );
 
-    // console.log(item);
+  return withTooltip && asset.typeName ? (
+    <Tooltip label={asset.typeName}>
+      {content}
+    </Tooltip>
+  ) : (
+    content
+  );
+};
+
+export const UserLink = ({ user, withTooltip = false, ...props }) => {
+  const { handleUserClick } = useDrawer();
+
+  const content = (
+    <ItemLink
+      item={user}
+      value="userName"
+      handleClick={handleUserClick}
+      {...props}
+    />
+  );
+
+  return withTooltip && user.deptName ? (
+    <Tooltip label={user.deptName} hasArrow>
+      {content}
+    </Tooltip>
+  ) : (
+    content
+  );
+};
+
+export const AccTypeLink = ({accType, ...props}) => {
+
+    const { handleAccTypeClick } = useDrawer();
 
     return (
-        <Flex
-            justifyContent="flex-start"
-            alignItems="center" 
-            gap={1} 
-            cursor="pointer"
-            bg={bg || 'gray.200'}
-            p={2}
-            display="inline-flex"
+        <ItemLink
+            item={accType}
+            value="accessoryName"
+            handleClick={handleAccTypeClick}
             {...props}
-        >
-            <ResponsiveText
-                onClick={(e) => {
-                    handleItemClick(item);
-                }}
-                _hover={{
-                    color: "blue.500",
-                }}
-            >
-                {getDisplayValue(item)}
-            </ResponsiveText>
-            {isCopy && <IoCopyOutline 
-                onClick={handleCopyClick}
-                cursor="pointer"
-                size="1em"
-            />}
-        </Flex>
-    );
-};
+        />
+    )
+}
+
+const ItemLink = forwardRef(({
+  item,
+  value,
+  handleClick,
+  isCopy = true,
+  bg = null,
+  textSize = "sm",
+  display = "inline-flex",
+  ...props
+}, ref) => {
+  const { showToast, handleError } = useUI();
+  const text = item[value];
+
+  const handleCopyClick = async (e) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`${text} copied!`, 'success', 500);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  return (
+    <Flex
+      ref={ref}
+      justifyContent="flex-start"
+      alignItems="center"
+      gap={1}
+      cursor="pointer"
+      bg={bg || 'bgGray'}
+      p={2}
+      display={display}
+      {...props}
+    >
+      <Text
+        fontSize={textSize}
+        onClick={() => handleClick(item)}
+        _hover={{ color: "blue.500" }}
+      >
+        {text}
+      </Text>
+      {isCopy && (
+        <IoCopyOutline
+          onClick={handleCopyClick}
+          cursor="pointer"
+          size="1em"
+        />
+      )}
+    </Flex>
+  );
+});

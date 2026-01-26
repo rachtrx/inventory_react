@@ -1,209 +1,150 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { LoanStep2 } from "./LoanStep2";
-import { LoanStep1 } from "./LoanStep1";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useUI } from "../../../context/UIProvider";
 import assetService from "../../../services/AssetService";
-import { createNewLoan } from "./Loan";
-import { Box } from "@chakra-ui/react";
-import { useFormModal } from "../../../context/ModalProvider";
-import { compareStrings, convertExcelDate } from "../utils/validation";
+import { createNewLoan, createNewUser } from "./helpers";
+import { useForm } from "../../../context/FormProvider";
+import accessoryService from "../../../services/AccessoryService";
+import { useLoading } from "../../../context/LoadingProvider";
+import loanService from "../../../services/LoanService";
+import { use } from "react";
 
 // Create a context
 const LoansContext = createContext();
 
 // Create a provider component
 export const LoansProvider = ({ children }) => {
-  const { setLoading, showToast, handleError } = useUI();
-  const { setFormType, initialValues, handleAssetSearch, handleUserSearch, handleAccessorySearch } = useFormModal();
-  const [ warnings, setWarnings ] = useState({});
+  const { showToast, handleError } = useUI();
+  const { setLoading } = useLoading();
+  const { setFormType, initialValues, triggerRefresh, reinitializeForm } = useForm();
+  const [ sTypeAccMap, setSTypeAccMap ] = useState({});
 
+  const [locationOptions, setLocationOptions] = useState([]);
   const [assetOptions, setAssetOptions] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
   const [accessoryOptions, setAccessoryOptions] = useState([]);
-  const [formData, setFormData] = useState({
-    loans: [createNewLoan()],
-    signatures: {},
-  });
-  const [userLoans, setUserLoans] = useState({});
-  const [step, setStep] = useState(1);
+  const [accessoryOptionsReady, setAccessoryOptionsReady] = useState(false);
 
   useEffect(() => {
-    if (initialValues) {
-      console.log(initialValues);
-      let asset = null;
-      if(initialValues.assetId) {
-        asset = initialValues;
-        setAssetOptions([{value: initialValues.assetTag, label: initialValues.assetTag, assetId: initialValues.assetId}])
-      }
-      
-      const users = []
-      if(initialValues.userId) {
-        users.push(initialValues)
-        setUserOptions([{value: initialValues.userName, label: initialValues.userName, userId: initialValues.userId}])
-      }
-      
-      setFormData({
-        loans: [createNewLoan(asset, users)],
-        signatures: {},
-      });
+    const fetchLocations = async () => {
+      const locationResponse = await assetService.getFilters('location');
+      const locationFilters = locationResponse.data;
+      setLocationOptions(locationFilters);
+    };
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    const fetchAccessories = async() => {
+      const response = await loanService.fetchAccLoan();
+      const options = response.data;
+      setAccessoryOptions(options);
+      setAccessoryOptionsReady(true);
     }
-  }, [initialValues, setFormData]);
+    fetchAccessories();
+  }, [])
 
-  const processAccessories = (accessoryTypesStr) => {
-    if (!accessoryTypesStr) return {};
-    return accessoryTypesStr.split(',').map(accessoryType => accessoryType.trim()).reduce((acc, accessoryType) => {
-      if (acc[accessoryType]) {
-        acc[accessoryType] += 1;
-      } else {
-        acc[accessoryType] = 1;
-      }
-      return acc;
-    }, {});
-  };
+  useEffect(() => {
+    console.log(initialValues);
+    if (
+      !initialValues?.assetIds?.length && 
+      !initialValues?.userIds?.length &&
+      !initialValues?.accTypeIds?.length
+    ) return;
 
-  const setValuesExcel = async (records) => {
-    // CANNOT SEARCH FOR ASSET HERE, MAYBE CAN TRY IN FUTURE TO GET THE UPDATED VALUE
-    try {
+    if (!accessoryOptionsReady && initialValues?.accTypeIds?.length) return;
 
-        const assetTags = new Set();
-        const userNames = new Set();
-        const accessoryNames = new Set();
+    const fetchAstLoans = async () => {
+      const assetResponse = await loanService.fetchAstLoanById(initialValues.assetIds);
+      console.log(assetResponse.data);
+      setAssetOptions(assetResponse.data);
 
-        records.forEach((record) => {
-          // Trim and add asset tags to the set
-          record.assetTag = record.assetTag?.trim();
-          if (record.assetTag) {
-              if (assetTags.has(record.assetTag)) throw new Error(`Duplicate records for assetTag: ${record.assetTag} were found`);
-              else assetTags.add(record.assetTag);
-          } else throw new Error (`Asset Tag required at line ${record.__rowNum__}`)
-          
-          // Process and add user names to the set
-          if (!record.userNames) throw new Error (`Usernames required at line ${record.__rowNum__}`)
-          record.userNames = record.userNames 
-              ? [...new Set(record.userNames.split(',').map(user => {
-                  const trimmedUser = user.trim();
-                  userNames.add(trimmedUser); // Add each user to the userNames set
-                  return trimmedUser;
-              }))]
-              : [];
+      const assetObjs = initialValues.assetIds.map(assetId => {
+        const matchedAssetOption = assetResponse.data.find(assetOption => assetOption.assetId === assetId);
+        if (!matchedAssetOption) throw new Error(`Asset with ID ${assetId} not found`)
+        else return matchedAssetOption;
+      })
       
-          // Process accessoryTypes
-          const accessoryTypes = processAccessories(record.accessoryTypes);
-          record.accessoryTypes = Object.entries(accessoryTypes).map(([name, count]) => {
-              accessoryNames.add(name);
-              return { accessoryName: name, count: count };
-          });
-          
-          if (record.expectedReturnDate) {
-            record.expectedReturnDate = convertExcelDate(record.expectedReturnDate);
-          }
+      if (initialValues.user) {
+        const userResponse = await loanService.fetchUserLoanById(initialValues.user.userId);
+        setUserOptions(userResponse.data);
+        const loans = assetObjs.map(asset => ({ asset }))
+        reinitializeForm({
+          users: [createNewUser({ ...initialValues.user, loans })]
         });
+      } else {
+        const users = assetObjs.map(asset => createNewUser({ loans: [{ asset }] }))
+        reinitializeForm({ users });
+      }
+    }
 
-        const assetResponse = await handleAssetSearch([...assetTags]);
-        const userResponse = await handleUserSearch([...userNames]);
-        const newAssetOptions = assetResponse.data;
-        const newUserOptions = userResponse.data;
+    const fetchUserLoans = async () => {
+      const userResponse = await loanService.fetchUserLoanById(initialValues.userIds);
+      setUserOptions(userResponse.data);
+      
+      const userObjs = initialValues.userIds.map(userId => {
+        const matchedUserOption = userResponse.data.find(userOption => userOption.userId === userId);
+        if (!matchedUserOption) throw new Error(`User with ID ${userId} not found`)
+        else return matchedUserOption;
+      })
+      const users = userObjs.map(user => createNewUser(user));
+      reinitializeForm({ users });
+    }
 
-        let newAccessoryoptions = [];
-        if (accessoryNames.size !== 0) {
-          const accessoryResponse = await handleAccessorySearch([...accessoryNames]);
-          newAccessoryoptions = accessoryResponse.data;
-        }
+    const fetchAccLoans = () => {
+      const accessories = initialValues.accTypeIds.map(accTypeId => {
+        console.log(accessoryOptions);
+        const matchedAccOption = accessoryOptions.find(accTypeOption => accTypeOption.accessoryTypeId === accTypeId);
+        if (!matchedAccOption) throw new Error(`Accessory with ID ${accTypeId} not found`)
+        else return matchedAccOption;
+      })
 
-        setAssetOptions(newAssetOptions);
-        setUserOptions(newUserOptions);
-        setAccessoryOptions(newAccessoryoptions);
+      const users = [createNewUser({ loans: [createNewLoan({ accessories })] })]
+      reinitializeForm({ users });
+    }
+
+    try {
+      if (initialValues.assetIds) {
+        fetchAstLoans();
+      } else if (initialValues.userIds) {
+        fetchUserLoans();
+      } else if (initialValues.accTypeIds) {
+        fetchAccLoans();
+      }
+    } catch (err) {
+      handleError(err);
+    }
     
-        // Convert grouped records into loans
-        const loans = records.map(({ assetTag, userNames, accessoryTypes, expectedReturnDate, remarks }) => {
-            // Find the asset ID based on assetTag
-            const matchedAssetOption = newAssetOptions.find(option => compareStrings(option.value, assetTag));
-            console.log(matchedAssetOption);
-            const assetObj = {
-                assetId: matchedAssetOption ? matchedAssetOption.assetId : '',
-                assetTag: matchedAssetOption?.value || assetTag // Pass assetTag regardless of whether id is found
-            };
-        
-            // Find the user IDs based on userNames (assuming userNames is an array of names)
-            const userObjs = userNames.map(userName => {
-                const matchedUserOption = newUserOptions.find(option => compareStrings(option.value, userName));
-                console.log(matchedUserOption);
-                return {
-                    userId: matchedUserOption ? matchedUserOption.userId : '',
-                    userName: matchedUserOption?.value || userName // Pass userName regardless of whether id is found
-                };
-            });
-        
-            // Find the accessoryType IDs based on accessoryType names (assuming accessoryTypes is an array of names)
-            const accessoryObjs = accessoryTypes.map(({accessoryName, count}) => {
-                const matchedAccessoryOption = newAccessoryoptions.find(option => compareStrings(option.value, accessoryName));
-                return {
-                  accessoryTypeId: matchedAccessoryOption ? matchedAccessoryOption.accessoryTypeId : '',
-                  accessoryName: matchedAccessoryOption?.value || accessoryName, // Pass accessoryName regardless of whether id is found
-                  count: count
-                };
-            });
+  }, [initialValues, handleError, reinitializeForm, accessoryOptions]);
 
-            console.log(accessoryObjs);
-        
-            // Create a new loan using the objects with both id and original values
-            return createNewLoan(
-                assetObj,    // Pass object with assetId and assetTag
-                userObjs,    // Pass array of objects with userId and userName
-                accessoryObjs, // Pass array of objects with accessoryTypeId and accessoryName
-                expectedReturnDate,
-                remarks
-            );
-        });
-    
-      console.log(loans);
-    
-      setFormData({
-        loans: loans
-      });
+  const addNewAccessory = async (accessoryName) => {
+    try {
+      setLoading(true);
+      const response = await accessoryService.createAccessory(accessoryName);
+      const newOption = { 
+        accessoryTypeId: response.data.newAccType.accessoryTypeId,
+        accessoryName: response.data.newAccType.accessoryName,
+        stock: response.data.newAccType.stock,
+        value: response.data.newAccType.accessoryName,
+        label: response.data.newAccType.accessoryName
+      }
+      setLoading(false);
+      return newOption;
     } catch (error) {
+      setLoading(false);
       handleError(error);
     }
-  };
-
-  const prevStep = () => {
-    setStep(step - 1)
-  };
-
-  const nextStep = (values, actions) => {
-    console.log('Manual Form Values:', values);
-    const userLoans = {}
-    const signatures = {};
-
-    values.loans.forEach((loan) =>
-      loan.users?.forEach((user) => {
-        if (!userLoans[user.userId]) {
-          userLoans[user.userId] = {}
-          userLoans[user.userId].assets = [loan.asset];
-          userLoans[user.userId].userName = user.userName;
-          signatures[user.userId] = ''
-          console.log(signatures);
-        } else userLoans[user.userId].assets.push(loan.asset)
-      })
-    );
-    setUserLoans(userLoans);
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values,
-      signatures: signatures,
-    }));
-    setStep(step + 1);
-  };
+  }
 
   const handleSubmit = async (values, actions) => {
     setLoading(true);
     console.log('Manual Form Values:', values);
     try {
-      await assetService.loanAsset(values);
+      await loanService.loanItems(values);
       actions.setSubmitting(false);
       setLoading(false);
       showToast('Assets successfully loaned', 'success', 500);
       setFormType(null);
+      triggerRefresh();;
     } catch (err) {
       console.error(err);
       handleError(err);
@@ -217,32 +158,20 @@ export const LoansProvider = ({ children }) => {
     assetOptions,
     userOptions,
     accessoryOptions,
-    formData,
-    userLoans,
-    step,
+    locationOptions,
+    addNewAccessory,
     setAssetOptions,
     setUserOptions,
     setAccessoryOptions,
-    setFormData,
-    setUserLoans,
-    setStep,
-    processAccessories,
-    setValuesExcel,
-    prevStep,
-    nextStep,
+    setLocationOptions,
     handleSubmit,
-    warnings,
-    setWarnings
+    sTypeAccMap,
+    setSTypeAccMap
   };
 
   return (
     <LoansContext.Provider value={value}>
-      <Box style={{ display: step === 1 ? 'block' : 'none' }}>
-        <LoanStep1/>
-      </Box>
-      <Box style={{ display: step === 2 ? 'block' : 'none' }}>
-        <LoanStep2/>
-      </Box>
+      {children}
     </LoansContext.Provider>
   )
 };

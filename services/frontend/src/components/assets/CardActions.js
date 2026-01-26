@@ -1,6 +1,7 @@
 import { Flex } from "@chakra-ui/react";
-import { formTypes } from "../../context/ModalProvider";
-import ActionButton from "../buttons/ActionButton";
+import { FormType } from "../../context/FormProvider";
+import { AssetActionButton } from "../buttons/actions/AssetActionButton";
+import { ReturnButton } from "../buttons/actions/ReturnButton";
 
 export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Reserve, Assign, 
 
@@ -8,29 +9,38 @@ export const CardActions = ({ asset, ...buttonProps }) => { // Loan, Return, Res
 
 	// console.log(asset);
 
-	if (asset.reservation) {
-		// actionSet.add(formTypes.CONFIRM);
-		// actionSet.add(formTypes.CANCEL);
-	} else if (!asset.ongoingLoan) {
-		actionSet.add(formTypes.LOAN);
-		// actionSet.add(formTypes.RESERVE);
-		// actionSet.add(formTypes.CONDEMN);
-	} else {
-		actionSet.add(formTypes.RETURN);
-		// actionSet.add(formTypes.RELOAN);
-	}
+	if (!asset.deleteEvent?.eventDate) {
+		if (asset.reservation) {
+			// actionSet.add(FormType.CONFIRM);
+			// actionSet.add(FormType.CANCEL);
+		} else if (!asset.loan) {
+			actionSet.add(FormType.LOAN);
+			// actionSet.add(FormType.RESERVE);
+			// actionSet.add(FormType.CONDEMN);
+		} else {
+			actionSet.add(FormType.RETURN);
+			// actionSet.add(FormType.RELOAN);
+		}
+	} 
 
 	return (
 		<Flex justifyContent={'stretch'} alignItems="stretch" >
-			{Array.from(actionSet).map((action) => (
-				<ActionButton 
-					key={action} 
-					formType={action} 
-					item={asset}
-					initialValues={asset}
-					{...buttonProps}
-				/>
-			))}
+			{Array.from(actionSet).map((action) => {
+				return action === FormType.RETURN ? (
+					<ReturnButton 
+						key={action} 
+						loanId={asset.loan.loanId}
+						{...buttonProps}
+					/>
+				) : (
+					<AssetActionButton 
+						key={action}
+						formType={action}
+						asset={asset}
+						{...buttonProps}
+					/>
+				)
+			})}
 		</Flex>
 	);
 };

@@ -1,55 +1,74 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { axiosInstance } from '../config';
-import { useUI } from './UIProvider';
-
-import { PublicClientApplication } from '@azure/msal-browser';
-import { MsalProvider } from '@azure/msal-react';
-import { msalConfig } from '../authConfig';
-const msalInstance = new PublicClientApplication(msalConfig);
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { api, eventBus } from '../config';
+import authService from '../services/AuthService';
+import { Footer } from '../components/Footer';
+import { Box, Flex } from '@chakra-ui/react';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = () => {
-
   console.log("Rendering Auth Provider");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [admin, setAdmin] = useState(null);
-  const { handleError } = useUI()
 
   useEffect(() => {
-    const interceptorId = axiosInstance.interceptors.response.use(
-      response => response,
-      error => {
-        if (error.config.headers['Skip-Interceptor']) {
-          console.log("From interceptor");
-          return Promise.reject(error); // Bypass interceptor processing
-        }
+    const handleLogout = () => {
+      console.log('[AuthProvider] Handling logout (passive or manual)');
+      setAdmin(null);
+      if (window.location.pathname !== '/login') navigate('/login', { replace: true });
+    };
 
-        console.log(`User in authprovider axios: ${admin}`);
-        if (error.response && error.response.status === 401 && admin) {
-          handleError("Your session has timed out, please login again");
-          setAdmin(null);
-        }
-
-        return Promise.reject(error);
-      }
-    );
+    eventBus.on('logout', handleLogout);
 
     return () => {
-      axiosInstance.interceptors.response.eject(interceptorId);
+      eventBus.off('logout', handleLogout);
     };
-  }, [admin, handleError]);
-  
+  }, [navigate]);
+
+  useEffect(() => {
+    const handleLogout = () => {
+      setAdmin(null); // Clear auth state
+    };
+
+    eventBus.on('logout', handleLogout);
+
+    return () => {
+      eventBus.off('logout', handleLogout);
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get('/auth/checkAuth');
+        const validatedAdmin = response.data;
+        if (!validatedAdmin) {
+          throw new Error("Account not found")
+        }
+        setAdmin(validatedAdmin);
+      } catch (error) {
+        // Optionally, only redirect to login if not already there.
+        console.log(error)
+        eventBus.emit('logout');
+      }
+    };
+
+    checkAuth();
+  }, [location, navigate]);
+
   return (
-    <MsalProvider instance={msalInstance}>
-      <AuthContext.Provider value={{ admin, setAdmin }}>
-        <Outlet />
-      </AuthContext.Provider>
-    </MsalProvider>
+    <AuthContext.Provider value={{ admin, setAdmin }}>
+      <Flex direction="column" minH="100vh">
+        <Flex flex="1" direction="column">
+          <Outlet /> {/* Renders child components inside AuthProvider */}
+        </Flex>
+        <Footer/>
+      </Flex>
+    </AuthContext.Provider>
   );
 };
-
-
 
 export const useAuth = () => useContext(AuthContext);

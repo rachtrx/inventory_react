@@ -1,28 +1,30 @@
 import React from 'react';
 import { Box } from '@chakra-ui/react';
 import EventFilters from './EventFilters';
-import Pagination from "../components/Pagination";
-import NoDataBox from "../components/NoDataBox";
-import CardSkeleton from '../components/CardSkeleton';
-import useFetchData from '../../hooks/useFetchData'; // Import the custom hook
-import FilterBox from '../forms/utils/FilterBox';
 import EventTable from './EventTable';
-import { loadAllEvents } from '../../redux/actions/event';
+import { ItemsProvider } from '../../context/ItemsProvider';
+import RecordsLayout from '../RecordsLayout';
+import EventCards from './EventCards';
+import eventService from '../../services/EventService';
+import EventActions from './EventActions';
+import { AddRemarks } from './bulkActions/AddRemarks';
 
-export default function Events() {
-  const { loading, error, data: events } = useFetchData(loadAllEvents, state => state.events);
-
-  if (loading) return <CardSkeleton />;
-  if (error) return <Box>Error: {error.message}</Box>;
+export const EventsPage = () => {
 
   return (
-    <>
-      <FilterBox>
-        <EventFilters filters={events.filters} />
-      </FilterBox>
-
-      {events.events.length === 0 ? <NoDataBox /> : <EventTable events={events} />}
-      <Pagination />
-    </>
+    <ItemsProvider service={eventService} initSortField="eventDate" initSortOrder="desc" itemKey="eventId">
+      <RecordsLayout
+        header="Events"
+        Filters={EventFilters}
+        Actions={EventActions}
+        Cards={EventCards}
+        Table={EventTable}
+        BulkActions={[AddRemarks]}
+        defaultSearches={[
+          { attr: "serialNumber", label: "asset"},
+          { attr: "userName", label: "user"}
+        ]}
+      />
+    </ItemsProvider>
   );
 }

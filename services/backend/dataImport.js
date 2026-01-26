@@ -1,7 +1,10 @@
-const db = require('./models');
+require('dotenv').config();
+require('module-alias/register');
+
+const db = require('@models');
 const data = require('./data_export.json');
 const fs = require('fs');
-const { generateSecureID } = require('./utils/nanoidValidation');
+const { generateSecureID } = require('@utils/validation');
 
 // console.log(Object.keys(data));
 
@@ -49,7 +52,7 @@ async function main(data) {
     const eventsArr = []
     
     const newUsers = newData.users.map(user => {
-        const { registeredDate, hasResigned, ...rest } = user;
+        const { registeredDate, hasResigned, bookmarked, ...rest } = user;
     
         let addUserEvent = null;
         let delUserEvent = null;
@@ -76,8 +79,9 @@ async function main(data) {
     
         const newUser = {
             ...rest,
+            bookmarked: bookmarked === 1 ? true : false,
             addEventId: addUserEvent.id,
-            deleteEventid: delUserEvent && delUserEvent.id || null
+            delEventId: delUserEvent && delUserEvent.id || null
         };
     
         return newUser;
@@ -86,7 +90,7 @@ async function main(data) {
     const newAssets = newData.devices
         .map(asset => {
     
-            const { registeredDate, status, userId, ...rest } = asset;
+            const { registeredDate, status, userId, bookmarked, assetTag: alias, ...rest } = asset;
     
             let addAssetEvent = null;
             let delAssetEvent = null;
@@ -96,7 +100,7 @@ async function main(data) {
             // console.log(addAssetEvents)
         
             if (addAssetEvents.length !== 1) {
-                throw new Error(`add asset event for ${asset.assetTag} is not 1`);
+                throw new Error(`add asset event for ${alias} is not 1`);
             }
         
             addAssetEvent = addAssetEvents[0]
@@ -105,24 +109,26 @@ async function main(data) {
             const delAssetEvents = newData.events.filter(event => event.eventType === 'condemned' && event.assetId === asset.id);
         
             if (delAssetEvents.length > 1) {
-                throw new Error(`More than 1 del asset event for ${asset.assetTag}`);
+                throw new Error(`More than 1 del asset event for ${alias}`);
             }
         
             if (delAssetEvents.length === 1) {
                 delAssetEvent = delAssetEvents[0]
+                console.log(delAssetEvent.id)
                 eventsArr.push(createEvent(delAssetEvent.id, delAssetEvent.eventDate))
             }
     
             const newAsset = {
                 ...rest,
+                alias,
+                bookmarked: bookmarked === 1 ? true : false,
                 addEventId: addAssetEvent.id,
-                deleteEventid: delAssetEvent && delAssetEvent.id || null
+                delEventId: delAssetEvent && delAssetEvent.id || null
             };
             return newAsset;
         });
    
     const remarksArr = []
-    const userLoansArr = []
     const assetLoansArr = []
     const loansArr = []
     
@@ -167,13 +173,7 @@ async function main(data) {
             loansArr.push({
                 id: loanId,
                 loanEventId: loanEvent.id,
-            })
-
-            const userLoanId = generateSecureID();
-
-            userLoansArr.push({
-                id: userLoanId,
-                loanId: loanId,
+                expectedReturnDate: returnEvent.eventDate,
                 userId: loanEvent.userId,
                 filepath: returnEvent.filepath && returnEvent.filepath !== '' ? returnEvent.filepath : loanEvent.filepath,
             })
@@ -199,15 +199,10 @@ async function main(data) {
         loansArr.push({
             id: loanId,
             loanEventId: loanEvent.id,
-        })
-    
-        const userLoanId = generateSecureID();
-        userLoansArr.push({
-            id: userLoanId,
-            loanId: loanId,
+            expectedReturnDate: new Date(2025, 11, 31, 23, 59, 59), 
             userId: userId,
             filepath: loanEvent.filepath,
-        })
+        });        
     
         assetLoansArr.push({
             id: generateSecureID(),
@@ -227,8 +222,14 @@ async function main(data) {
         await db.Ast.bulkCreate(newAssets);
         await db.Rmk.bulkCreate(remarksArr);
         await db.Loan.bulkCreate(loansArr);
-        await db.UsrLoan.bulkCreate(userLoansArr);
         await db.AstLoan.bulkCreate(assetLoansArr);
+        await db.Admin.create({
+            id: process.env.DEV_ADMIN_ID,
+            adminName: 'rachmielteo',
+            displayName: 'Rachmiel Teo',
+            email: 'rachmielteo@go.edu.sg',
+            preferences: { theme: 'dark' }
+        });
     }
     
     importData().then(() => {

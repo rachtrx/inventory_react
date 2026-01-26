@@ -1,87 +1,156 @@
-const logger = require("../logging");
-const EventDTO = require("./event.dto");
-
+const logger = require("@/utils/logging");
 class LoanDTO {
     
     constructor({
         id,
-        reserveEventId, 
-        cancelEventId, 
         loanEventId,
+        reserveEventId, 
+        filepath=null,
         ReserveEvent,
-        CancelEvent,
         LoanEvent,
         expectedReturnDate, 
         expectedLoanDate, 
         AstLoan,
         AccLoans,
-        UsrLoans
+        Usr,
     }) {
-        this.loanId = id;
-
-        if (reserveEventId) this.reserveEventId = reserveEventId;
-        if (cancelEventId) this.cancelEventId = cancelEventId;
-        if (loanEventId) this.loanEventId = loanEventId;
-        if (expectedReturnDate) this.expectedReturnDate = expectedReturnDate;
-        if (expectedLoanDate) this.expectedLoanDate = expectedLoanDate;
-
-        if (ReserveEvent) this.reserveEvent = new EventDTO(ReserveEvent);
-        if (CancelEvent) this.cancelEvent = new EventDTO(CancelEvent);
-        if (LoanEvent) this.loanEvent = new EventDTO(LoanEvent);
+        if (id) this.loanId = id;
         
-        if (AstLoan) {
+        if (loanEventId !== undefined) this.loanEventId = loanEventId;
+        if (reserveEventId !== undefined) this.reserveEventId = reserveEventId;
+
+        if (expectedReturnDate) {
+            const expected = new Date(expectedReturnDate);
+        
+            // Force Singapore date parts
+            const sgNow = new Date();
+            const sgParts = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Singapore",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }).formatToParts(sgNow);
+        
+            const day = sgParts.find(p => p.type === "day").value;
+            const month = sgParts.find(p => p.type === "month").value;
+            const year = sgParts.find(p => p.type === "year").value;
+        
+            // Construct new Date in Singapore timezone (local midnight)
+            const today = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
+            expected.setHours(0, 0, 0, 0);
+            const daysDiff = Math.floor((expected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+            this.daysLeft = daysDiff;
+        
+            this.expectedReturnDate = expected.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "Asia/Singapore"
+            });
+        }
+        
+
+        if (expectedLoanDate) {
+            const date = new Date(expectedLoanDate);
+            this.expectedLoanDate = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "Asia/Singapore"
+            });
+        }
+
+        const EventDTO = require("./event.dto");
+        if (ReserveEvent) this.reserveEvent = new EventDTO(ReserveEvent.dataValues);
+        if (LoanEvent) this.loanEvent = new EventDTO(LoanEvent.dataValues);
+        
+        if (AstLoan !== undefined) {
             const AstLoanDTO = require("./astLoan.dto");
-            this.astLoan = new AstLoanDTO(AstLoan);
+            this.astLoan = AstLoan && new AstLoanDTO(AstLoan.dataValues);
         }
 
         if (AccLoans) {
             const AccLoanDTO = require("./accLoan.dto");
-            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan));
-        } else {
-            this.accLoans = [];
+            this.accLoans = AccLoans.map(accLoan => new AccLoanDTO(accLoan.dataValues));
         }
 
-        if (UsrLoans) {
-            const UserLoanDTO = require("./usrLoan.dto");
-            this.userLoans = UsrLoans.map(usrLoan => new UserLoanDTO(usrLoan));
+        if (filepath) this.filepath = filepath;
+
+        if (Usr) {
+            const UserDTO = require("./usr.dto");
+            this.user = new UserDTO(Usr.dataValues);
+        }
+    }
+
+    setReturnEvents() {
+        const events = {};
+    
+        if (this.astLoan === undefined) throw new Error("Dev Error: Include AstLoan model in Loan");
+        if (this.astLoan && this.astLoan.returnEvent === undefined) throw new Error("Dev Error: Include Event model in AstLoan");
+
+        // return event can be null
+        if (this.astLoan?.returnEvent) {
+            events[this.astLoan.returnEvent.eventId] = {
+                eventId: this.astLoan.returnEvent.eventId,
+                by: this.astLoan.returnEvent.adminName,
+                eventDate: this.astLoan.returnEvent.eventDate,
+                remarks: this.astLoan.returnEvent.remarks,
+                asset: {
+                    assetId: this.astLoan.asset.assetId,
+                    serialNumber: this.astLoan.asset.serialNumber
+                },
+                accessories: []
+            };
         }
 
-        const loanedItems = [this.astLoan ?? [], ...(this.accLoans ?? [])];
-        
-        if (!loanedItems || loanedItems.length === 0) return;
-        
-        this.returnEvents = loanedItems.reduce((returns, loanItem) => {
-            if (loanItem.returnEvent) { // AstLoan 
-                if (!returns[loanItem.returnEvent.eventId]) {
-                    returns[loanItem.returnEvent.eventId] = {
-                        by: loanItem.returnEvent.returnBy,
-                        eventDate: loanItem.returnEvent.eventDate,
-                        remarks: loanItem.returnEvent.remarks,
-                        isAsset: true,
-                        accessories: []
-                    }
-                } else {
-                    returns[loanItem.returnEvent.eventId].isAsset = true;
+        if (this.accLoans === undefined) throw new Error("Dev Error: Include AccLoan model in Loan");
+    
+        if (this.accLoans?.length) {
+            this.accLoans.forEach(accLoan => {
+                if (accLoan.accReturns === undefined) {
+                    throw new Error("Dev Error: Include AccReturns model in AccLoan");
                 }
-            } else if (loanItem.accReturns && loanItem.accReturns.length > 0) {
-                loanItem.accReturns.forEach(accReturn => {
-                    if (!returns[accReturn.returnEvent.eventId]) {
-                        returns[accReturn.returnEvent.eventId] = {
-                            by: accReturn.returnEvent.returnBy,
+                if (accLoan.accType === undefined) {
+                    throw new Error("Dev Error: Include AccType model in AccLoan");
+                }
+                
+                accLoan.accReturns.forEach(accReturn => {
+                    const eventId = accReturn.returnEvent.eventId;
+                    const accessoryDetails = {
+                        ...accReturn,
+                        accessoryTypeId: accLoan.accType.accessoryTypeId,
+                        accessoryName: accLoan.accType.accessoryName,
+                        isMatching: accLoan.accType.isMatching ? true : false
+                    };
+    
+                    if (!events[eventId]) {
+                        events[eventId] = {
+                            eventId: accReturn.returnEvent.eventId,
+                            by: accReturn.returnEvent.adminName,
                             eventDate: accReturn.returnEvent.eventDate,
                             remarks: accReturn.returnEvent.remarks,
-                            isAsset: true,
-                            accessories: [{...accReturn, accessoryName: loanItem.accessoryName}]
-                        }
-                        logger.info(loanItem.accessoryName)
+                            accessories: [accessoryDetails]
+                        };
                     } else {
-                        returns[accReturn.returnEvent.eventId].accessories.push({...accReturn, accessoryName: loanItem.accessoryName});
+                        events[eventId].accessories.push(accessoryDetails);
                     }
-                })
-            }
+                });
+            });
+        }
 
-            return returns;
-        }, {})
+        this.returnEvents = Object.values(events)
+            .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+
+        return this;
+    }
+
+    hasLoan() {
+        return this.loanEventId || this.loanEvent
+    }
+
+    hasReservation() {
+        return this.reserveEventId || this.reserveEvent && !this.hasLoan()
     }
 }
 

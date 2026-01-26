@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
-const logger = require('../logging.js');
+const logger = require('@/utils/logging.js');
 
 module.exports = (sequelize) => {
 	class AccTxn extends Model { }
@@ -18,11 +18,11 @@ module.exports = (sequelize) => {
                 key: 'id',
             },
 		},
-        txn: {
+        count: { // TODO change to count
             type: DataTypes.INTEGER,
 			allowNull: false
         },
-        txnEventId: {
+        eventId: {
             type: DataTypes.STRING,
 			references: {
 			  model: 'events',

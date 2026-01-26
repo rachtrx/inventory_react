@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-const logger = require('./logging.js');
+const logger = require('./utils/logging.js');
 const { expressjwt: jwt } = require('express-jwt');
 const cookieParser = require('cookie-parser');
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost', 'http://127.0.0.1:3000', 'http://127.0.0.1'],  // Allow multiple origins, or use a function to dynamically allow origins
+    origin: process.env.FRONTEND_URL, // Allow multiple origins, or use a function to dynamically allow origins
     optionsSuccessStatus: 200,  // Some legacy browsers (IE11, various SmartTVs) choke on 204
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],  // Specify HTTP methods allowed
     allowedHeaders: ['Content-Type', 'Authorization', 'Skip-Interceptor'],  // Specify headers that can be sent with the request
@@ -17,10 +17,12 @@ const corsOptions = {
 
 const app = express();
 
-app.use((req, res, next) => {
-	console.log(req.path);
-    next();
-});
+// app.use((req, res, next) => {
+//     console.log(`Full URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
+//     console.log(`Query Params:`, req.query);
+//     console.log(`Route Params:`, req.params); // Will only contain data if the route has params
+//     next();
+// });
 
 // Cookie parser middleware
 app.use(cookieParser());
@@ -29,14 +31,21 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
-    if (!req.path.startsWith('/auth') || req.path === '/auth/checkAuth') {
-        jwt({
-            secret: process.env.JWT_SECRET,
-            algorithms: ['HS256'],
-            getToken: req => req.cookies.INVENTORY
-        })(req, res, next);
-    } else {
+    if (process.env.NODE_ENV === 'development' && process.env.DEV_ADMIN_ID) {
+        req.auth={id: process.env.DEV_ADMIN_ID}
+        // logger.info(`Admin ID: ${process.env.DEV_ADMIN_ID}`)
         next();
+    } else {
+        console.log(req.path);
+        if (!req.path.startsWith('/inventory/auth') || req.path === '/inventory/auth/checkAuth') {
+            jwt({
+                secret: process.env.JWT_SECRET,
+                algorithms: ['HS256'],
+                getToken: req => req.cookies.INVENTORY
+            })(req, res, next);
+        } else {
+            next();
+        }
     }
 });
 
@@ -50,24 +59,26 @@ const authRoutes = require('./routes/authRoutes');
 const assetRoutes = require('./routes/assetRoutes');
 const userRoutes = require('./routes/userRoutes');
 const accessoryRoutes = require('./routes/accessoryRoutes.js');
-const searchRoutes = require('./routes/searchRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
+const statRoutes = require('./routes/statRoutes');
+const eventRoutes = require('./routes/eventRoutes')
 const formRoutes = require('./routes/formRoutes');
+const reminderRoutes = require('./routes/reminderRoutes');
 
-app.use('/auth', authRoutes);
-app.use('/api/assets', assetRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/accessories', accessoryRoutes);
-app.use('/api/forms', formRoutes);
+app.use('/inventory/auth', authRoutes);
+app.use('/inventory/assets', assetRoutes);
+app.use('/inventory/users', userRoutes);
+app.use('/inventory/stats', statRoutes);
+app.use('/inventory/events', eventRoutes);
+app.use('/inventory/accessories', accessoryRoutes);
+app.use('/inventory/forms', formRoutes);
+app.use('/inventory/reminders', reminderRoutes);
 
 // Setup global error handling middleware to catch authentication errors
 
 app.use(function (err, req, res, next) {
-    console.log(req.cookies.token);
+    // console.log(req.cookies.token);
     console.log('Middleware Error: ' + err.stack);
-    logger.error('Middleware Error: ' + err.stack);
+    // logger.error('Middleware Error: ' + err.stack);
     if (err.name === 'UnauthorizedError') {
         // This error is thrown by the JWT middleware when a token is invalid
         res.status(401).json({ error: 'Invalid Token' });

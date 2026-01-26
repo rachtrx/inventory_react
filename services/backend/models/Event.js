@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
+const { Admin, Ast, AccType, Usr, AccLoan, Loan, sequelize, AstLoan, Event, AccTxn, AccReturn, AstSTypeAcc, AstTypeAcc, AstSType, AstType, Rmk } = require('./index.js');
 
 module.exports = (sequelize) => {
     class Event extends Model {}
@@ -17,10 +18,14 @@ module.exports = (sequelize) => {
         adminId: {
             type: DataTypes.STRING,
             allowNull: true
-        }
+        },
+        bookmarked: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		},
     }, {
-    sequelize,
-    modelName: 'Event'
+        sequelize,
+        modelName: 'Event'
     });
 
     return Event;

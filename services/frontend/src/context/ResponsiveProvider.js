@@ -36,8 +36,15 @@ export const ResponsiveProvider = ({ children }) => {
     xl: 'md'
   });
 
+  const xs = useBreakpointValue({
+    base: '8px',
+    md: '10px',
+    lg: '10px',
+    xl: '12px'
+  });
+
   return (
-    <ResponsiveContext.Provider value={{ isIpad, isMobile, sm, md, lg }}>
+    <ResponsiveContext.Provider value={{ isIpad, isMobile, xs, sm, md, lg }}>
       {children}
     </ResponsiveContext.Provider>
   );

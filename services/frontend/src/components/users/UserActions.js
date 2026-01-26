@@ -1,28 +1,27 @@
-import React from 'react';
-import { Flex, useBreakpointValue } from '@chakra-ui/react';
-import { useFormModal, actionTypes, formTypes } from '../../context/ModalProvider';
-import ActionButton from '../buttons/ActionButton';
+import { FormType } from '../../context/FormProvider';
+import { CircleUserActionButton } from '../buttons/actions/UserActionButton';
+import { CircleReturnButton } from '../buttons/actions/ReturnButton';
 
 export default function UserActions() {
 
-  const isIpad = useBreakpointValue({ base: false, md: true, lg: true, xl: false });
-  const isMobile = useBreakpointValue({ base: true, md: false, lg: false, xl: false });
-
   return (
-    !isMobile && (
-      <Flex justifyContent="space-around" alignItems="center" gap={4}>
         <>
-        {[formTypes.LOAN, formTypes.RETURN, formTypes.ADD_USER, formTypes.DEL_USER].map((formType) => {
+        <CircleReturnButton/>
+        {[
+          FormType.LOAN, 
+          FormType.ADD_USER, 
+          FormType.DEL_USER,
+          FormType.TAG_USER,
+          FormType.UNTAG_USER,
+        ].map((formType) => {
             return (
-              <ActionButton
+              <CircleUserActionButton
                 key={formType}
                 formType={formType}
               />
             );
           })}
         </>
-      </Flex>
     )
-  );
 };
 

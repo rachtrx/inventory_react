@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const { DataTypes, Model } = Sequelize;
-const logger = require('../logging.js');
+const logger = require('@/utils/logging.js');
 
 module.exports = (sequelize) => {
 	class Usr extends Model {}
@@ -14,7 +14,15 @@ module.exports = (sequelize) => {
 			type: DataTypes.STRING,
 			allowNull: false
 		},
+		displayName: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
 		pid: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
+		email: {
 			type: DataTypes.STRING,
 			allowNull: true
 		},
@@ -27,8 +35,11 @@ module.exports = (sequelize) => {
 			}
 		},
 		bookmarked: {
-			type: DataTypes.INTEGER,
-			allowNull: false
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		},
+		remarks: {
+			type: DataTypes.TEXT,
 		},
 		addEventId: {
 			type: DataTypes.STRING,
@@ -43,6 +54,7 @@ module.exports = (sequelize) => {
 			  model: 'events',
 			  key: 'id',
 			},
+			allowNull: true
 		},
 	}, {
 		sequelize,

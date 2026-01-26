@@ -1,85 +1,81 @@
-import { 
-    VStack,
-    Button,
-    Text,
-    Box,
-    useColorModeValue,
-    CardBody,
-    Card,
-    Flex,
+// AccessoryCards.jsx
+import {
+  VStack,
+  Text,
+  CardBody,
+  Flex,
 } from "@chakra-ui/react";
-import { FaBookmark as BookmarkFilledIcon, FaRegBookmark as BookmarkIcon } from 'react-icons/fa';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
-import Cards from '../utils/Cards';
-import { useDrawer } from "../../context/DrawerProvider";
-import ActionButton from "../buttons/ActionButton";
-import { formTypes, useFormModal } from "../../context/ModalProvider";
-import { useState } from "react";
-import StarButton from "../buttons/StarButton";
-import { useItems } from "../../context/ItemsProvider";
-import { ItemLink } from "../buttons/ItemLink";
-import { ResponsiveText } from "../utils/ResponsiveText";
+import { CircleAccTypeActionButton } from "../buttons/actions/AccTypeActionButton";
+import { FormType } from "../../context/FormProvider";
+// import { useItems } from "../../context/ItemsProvider";
 import { CircleText } from "../utils/CircleText";
+import { AccTypeLink } from "../buttons/ItemLink";
+import { LoansPopover } from "./LoansPopover";
+import accessoryService from "../../services/AccessoryService";
+import SelectableCards from "../utils/SelectableCards";
 
 function AccessoryCards({ items }) {
+  // const { handleUpdate } = useItems();
 
-  const { handleUpdate } = useItems()
+  const renderCard = (accessoryType) => {
+    return {
+      body: (
+        <CardBody>
+          <Flex>
+            <VStack align="start" flex="1">
+              <Flex gap={1}>
+                <AccTypeLink accType={accessoryType} size="lg" fontWeight="bold" />
+                <CircleAccTypeActionButton
+                  size="sm"
+                  formType={FormType.UPDATE_ACC}
+                  accTypeIds={accessoryType.accessoryTypeId}
+                />
+              </Flex>
+
+              <Flex
+                direction="column"
+                justifyContent="space-evenly"
+                alignSelf="stretch"
+                gap={1}
+              >
+                <Flex gap={1}>
+                  <CircleText text={accessoryType.stock ? accessoryType.stock : 0} />
+                  <Text>Available</Text>
+                </Flex>
+
+                <Flex gap={1}>
+                  <CircleText text={accessoryType.registeredCount ? accessoryType.registeredCount : 0} />
+                  <Text>Registered</Text>
+                </Flex>
+
+                <Flex gap={1}>
+                  <LoansPopover
+                    accessoryType={accessoryType}
+                    searchFunc={(id) => accessoryService.getLoanDetails(id)}
+                    count={accessoryType.loanCount}
+                  />
+                  <Text>Loaned</Text>
+                </Flex>
+
+                <Flex gap={1}>
+                  <LoansPopover
+                    accessoryType={accessoryType}
+                    searchFunc={(id) => accessoryService.getReservationDetails(id)}
+                    count={accessoryType.reserveCount}
+                  />
+                  <Text>Reserved</Text>
+                </Flex>
+              </Flex>
+            </VStack>
+          </Flex>
+        </CardBody>
+      ),
+    };
+  };
 
   return (
-    <Cards>
-    {items.map((accessoryType) => (
-      <Box key={accessoryType.accessoryTypeId}>
-        <Card 
-          h="100%" 
-          w="100%" 
-          _hover={{bg: 'gray.100',}}
-        >
-          <CardBody> {/*onClick={() => handleItemClick(accessoryType)}*/}
-            <Flex>
-              <VStack align="start" flex='1'>
-                <ResponsiveText fontSize="lg" fontWeight="semibold">{accessoryType.accessoryName.toUpperCase()}</ResponsiveText>
-                <ResponsiveText fontSize="md" fontWeight="semibold">
-                  Stock: {accessoryType.available}
-                </ResponsiveText>
-                <Flex justifyContent='space-evenly' alignSelf='stretch'>
-                  <Flex gap={2}>
-                    <CircleText
-                      text={accessoryType.assets ? Object.keys(accessoryType.assets).length : 0}
-                    />
-                    <ResponsiveText>Assets</ResponsiveText>
-                  </Flex>
-                  <Flex gap={2}>
-                    <CircleText
-                      text={accessoryType.users ? Object.keys(accessoryType.users).length : 0}
-                    />
-                    <ResponsiveText>Users</ResponsiveText>
-                  </Flex>
-                </Flex>
-                
-                
-              </VStack>
-              <Box alignSelf='flex-end'>
-                <ActionButton
-                  key={formTypes.ADD_PERIPHERAL}
-                  formType={formTypes.ADD_PERIPHERAL}
-                  item={accessoryType}
-                  initialValues={{accessoryName: accessoryType.accessoryName}}
-                />
-              </Box>
-            </Flex>
-          </CardBody>
-          
-          <StarButton
-            position="absolute" top={2} right={2}
-            id={accessoryType.accessoryTypeId}
-            isBookmarked={accessoryType.bookmarked}
-            onToggle={handleUpdate}
-          />
-        </Card>
-      </Box>
-      ))}
-    </Cards>
+    <SelectableCards items={items} renderCard={renderCard} />
   );
 }
 
-export default AccessoryCards
+export default AccessoryCards;

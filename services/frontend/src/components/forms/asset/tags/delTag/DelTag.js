@@ -1,0 +1,84 @@
+import { FieldArray, useFormikContext } from 'formik';
+import { SingleSelectFormControl } from "../../../utils/SelectFormControl";
+import { Box, Divider, Flex } from "@chakra-ui/react";
+import { AvailAstSelectFormControl } from "../../../options/AvailAssetOptions";
+import assetService from "../../../../../services/AssetService";
+import { useAssetTags } from "../AssetTagsProvider";
+import { AddButton, RemoveButton } from "../../../utils/ItemButtons";
+import { createNewAsset } from "../helpers";
+import RemarksFormControl from "../../../utils/RemarksFormControl";
+import { useEffect } from 'react';
+
+export const DelTag = function({ tag, tagIndex, children }) {
+
+	const { tagOptions, assetOptions } = useAssetTags();
+	const { values, setFieldValue } = useFormikContext();
+
+    useEffect(() => {
+        console.log(values);
+    }, [values])
+
+	const updateAssetFields = (assetIndex, selected) => {
+
+		if (!selected?.value) {
+			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, '');
+			setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, []);
+            return;
+		}
+		
+        // console.log(selected);
+        setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.assetId`, selected?.assetId || '');
+		setFieldValue(`tags.${tagIndex}.assets.${assetIndex}.tagIds`, selected?.tags?.map(tag => tag.tagId) || []);
+    }
+
+    const updateTagFields = (selected, tagIndex) => {
+        setFieldValue(`tags.${tagIndex}.tagId`, selected?.tagId || '');
+    }
+
+	return (
+		<>
+            <Box position='relative'>
+                <Flex direction="column" gap={2}>
+                    <SingleSelectFormControl
+                        name={`tags.${tagIndex}.tagName`}
+                        label={`Tag`}
+                        placeholder="Select Tag"
+                        handleClick={(selected) => updateTagFields(selected, tagIndex)}
+                        options={tagOptions}
+                    />
+                    <Divider borderColor="black" borderWidth="0.5px" my={4} />
+                    <FieldArray name={`tags.${tagIndex}.assets`}>
+                        {assetHelpers => (
+                            tag.assets.map((asset, assetIndex, assetArray) => (
+                                <Flex direction="column" gap={2} key={asset.key}>
+                                    <Flex key={asset.key} alignItems="center"gap={2}>
+                                        <AvailAstSelectFormControl
+                                            name={`tags.${tagIndex}.assets.${assetIndex}.serialNumber`}
+                                            searchFn={value => assetService.fetchUntagAsset(value, tag.tagId)} // TODO handle shareds
+                                            handleClick={(selected) => updateAssetFields(assetIndex, selected)}
+                                            placeholder="Serial Number"
+                                            options={assetOptions}
+                                        />
+                                        <RemoveButton
+                                            ariaLabel="Remove Asset"
+                                            handleClick={() => assetHelpers.remove(assetIndex)}
+                                        />
+                                    </Flex>
+                                    <RemarksFormControl name={`tags.${tagIndex}.assets.${assetIndex}.remarks`} label={`Tag Remarks`}/>
+                                    <Divider borderColor="black" borderWidth="0.5px" my={4} />
+                                    {assetIndex === assetArray.length - 1 && (
+                                        <AddButton
+                                            handleClick={() => assetHelpers.push(createNewAsset())}
+                                            label="Add Asset"
+                                        />
+                                    )}
+                                </Flex>
+                            ))
+                        )}
+                    </FieldArray>
+                </Flex>
+            </Box>
+            {children}
+        </>
+	)
+}

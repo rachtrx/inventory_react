@@ -1,12 +1,10 @@
-import { useToast } from '@chakra-ui/react';
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import { Alert, AlertIcon, CloseButton, Text, useToast } from '@chakra-ui/react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 const UIContext = createContext(false);
 
 export const UIProvider = ({ children }) => {
   console.log("Rendering UI Provider");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   // TODO toaster
 
   const toast = useToast();
@@ -24,51 +22,63 @@ export const UIProvider = ({ children }) => {
 
   const handleError = useCallback((error) => {
     console.log(error);  
-    let errorMessage = error?.response?.data?.error;
+    let errorMessage = 'An unexpected error occurred. Please try again later.';
 
-    if (!errorMessage) { 
-      if (error.response) {
-        const status = error.response.status;
-        switch (status) {
-          case 400:
-            errorMessage = 'There was a problem with your request. Please check your data and try again.';
-            break;
-          case 401:
-            errorMessage = 'You are not authorized. Please login and try again.';
-            break;
-          case 403:
-            errorMessage = 'Access denied. You do not have permission to perform this action.';
-            break;
-          case 404:
-            errorMessage = 'The requested resource was not found.';
-            break;
-          case 500:
-            errorMessage = 'An issue with the server has occurred. Please try again later.';
-            break;
-          default:
-            errorMessage = `Received unexpected response from the server: ${status}`;
-        }
-      } else if (error.request) {
-        errorMessage = 'No response was received from the server. Please check your network connection.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else {
-        errorMessage = 'An unexpected error occurred. Please try again later.'
+    if (typeof error === "string") errorMessage = error;
+
+    if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+    } else if (error.response) {
+      // Otherwise, use a fallback message based on the status code
+      const status = error.response.status;
+      switch (status) {
+        case 400:
+          errorMessage = 'There was a problem with your request. Please check your data and try again.';
+          break;
+        case 401:
+          errorMessage = 'You are not authorized. Please login and try again.';
+          break;
+        case 403:
+          errorMessage = 'Access denied. You do not have permission to perform this action.';
+          break;
+        case 404:
+          errorMessage = 'The requested resource was not found.';
+          break;
+        case 500:
+          errorMessage = 'An issue with the server has occurred. Please try again later.';
+          break;
+        default:
+          errorMessage = `Received unexpected response from the server: ${status}`;
       }
+    } else if (error.request) {
+      // No response received (Network issues, server down, CORS error, etc.)
+      errorMessage = 'No response was received from the server. Please check your network connection.';
+    } else if (error.message) {
+      // Generic Axios error message
+      errorMessage = error.message;
     }
 
-    setError(errorMessage);
     showToast(errorMessage, 'error');
   }, [showToast])
 
   const handleDevError = useCallback(() => {
-    handleError("This feature is under development");
-  }, [handleError])
+    showToast("This feature is under development", 'error');
+  }, [showToast])
+
+  const DismissableAlert = (text) => {
+    const [show, setShow] = useState(true);
+  
+    return show ? (
+      <Alert status="error">
+        <AlertIcon />
+        <Text>{text}</Text>
+        <CloseButton position="absolute" right="8px" top="8px" onClick={() => setShow(false)} />
+      </Alert>
+    ) : null;
+  };
 
   return (
-    <UIContext.Provider value={{ loading, setLoading, error, setError, showToast, handleError, handleDevError }}>
+    <UIContext.Provider value={{ DismissableAlert, showToast, handleError, handleDevError }}>
       {children}
     </UIContext.Provider>
   );

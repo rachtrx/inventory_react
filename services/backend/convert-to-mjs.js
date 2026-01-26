@@ -13,7 +13,7 @@ function convertMjsToJs(dir) {
             // If the file has a .mjs extension, rename it to .js
             const newFullPath = fullPath.replace(/\.mjs$/, '.js');
             fs.renameSync(fullPath, newFullPath);
-            console.log(`Renamed: ${fullPath} -> ${newFullPath}`);
+            // console.log(`Renamed: ${fullPath} -> ${newFullPath}`);
         }
     });
 }

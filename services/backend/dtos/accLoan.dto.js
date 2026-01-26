@@ -1,3 +1,4 @@
+const logger = require("@/utils/logging");
 const AccReturnDTO = require("./accReturn.dto");
 
 class AccLoanDTO {
@@ -16,32 +17,29 @@ class AccLoanDTO {
 
         if (Loan) { // aggregation
             const LoanDTO = require("./loan.dto");
-            this.loan = new LoanDTO(Loan);
+            this.loan = new LoanDTO(Loan.dataValues);
         }
 
         if (loanId) this.loanId = loanId;
-        
-        if (accessoryTypeId) this.accessoryTypeId = accessoryTypeId;
-
-        if (!this.accessoryTypeId && AccType) {
-            this.accessoryTypeId = AccType.id;
-        }
 
         if (AccType) {
-            this.accessoryName = AccType.accessoryName
+            logger.info(AccType.get({ plain: true }))
+            const AccTypeDTO = require("./accType.dto");
+            this.accType = new AccTypeDTO(AccType.dataValues);
         }
+        
+        if (accessoryTypeId) this.accessoryTypeId = accessoryTypeId;
 
         if (count) this.count = count;
 
         if (AccReturns) {
-            this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn));
-            if (count && AccReturns.every(accReturn => accReturn.count)) {
-                this.returned = AccReturns.reduce((returnCount, accReturn) => {
-                    return returnCount += accReturn.count;
-                }, 0)
+            this.accReturns = AccReturns.map(accReturn => new AccReturnDTO(accReturn.dataValues));
+
+            if (count && AccReturns.every(accReturn => Number.isFinite(accReturn.count))) {
+                this.returned = AccReturns.reduce((total, accReturn) => total += accReturn.count, 0)
                 this.unreturned = this.count - this.returned;
             }
-        }   
+        }
     }
 }
 

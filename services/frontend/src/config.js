@@ -1,27 +1,69 @@
 import chroma from "chroma-js";
 import axios from 'axios';
+import { EventEmitter } from 'events';
 
 export const TIMEOUT_SEC = 300;
 export const PREVIEW_TIMEOUT_BLUR = 100;
 export const RES_PER_PAGE = 30;
-export const AUTH_URL = 'http://localhost:3001/auth';
-export const API_URL = 'http://localhost:3001/api';
+export const API_URL = `${process.env.REACT_APP_API_BASE_URL}`;
 
-export const axiosInstance = axios.create({
+export const eventBus = new EventEmitter();
+
+export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true
 });
 
+// Response interceptor for handling token refresh.
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const originalRequest = error.config;
+
+    // Prevent interceptor loop: if the request is to an auth endpoint, reject immediately.
+    if (
+      originalRequest.url.includes('/auth/refresh')
+    ) {
+      return Promise.reject(error);
+    }
+
+    // Check if error is a 401 and that we haven't already retried the request.
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Attempt to refresh the access token.
+        await axios.post(
+          `${API_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+        // If refresh is successful, retry the original request.
+        return api(originalRequest);
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        // Emit a global logout event so subscribers (like AuthProvider) can react.
+        eventBus.emit('logout');
+
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+
 export const itemKeys = {
-  ASSET_TAG: 'assetTag',
+  SERIAL_NUMBER: 'serialNumber',
   USER_NAME: 'userName',
   ACCESSORY_NAME: 'accessoryName'
 }
 
 export const getDisplayValue = (item, raw=false) => {
   let attr;
-  if (item.hasOwnProperty(itemKeys.ASSET_TAG)) {
-    attr = itemKeys.ASSET_TAG;
+  if (item.hasOwnProperty(itemKeys.SERIAL_NUMBER)) {
+    attr = itemKeys.SERIAL_NUMBER;
   } else if (item.hasOwnProperty(itemKeys.USER_NAME)) {
     attr = itemKeys.USER_NAME;
   } else if (item.hasOwnProperty(itemKeys.ACCESSORY_NAME)) {

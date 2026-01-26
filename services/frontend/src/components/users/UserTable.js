@@ -1,54 +1,70 @@
-import { Table, Thead, Tbody, Tr, Th, Td, IconButton, useColorModeValue, VStack, Flex } from '@chakra-ui/react';
-import { AiFillStar, AiOutlineStar } from "react-icons/ai";
-import ActionButton from '../buttons/ActionButton';
-import { useDrawer } from '../../context/DrawerProvider';
-import { formTypes, useFormModal } from '../../context/ModalProvider';
-import { AssetList } from './AssetList';
-import { useResponsive } from '../../context/ResponsiveProvider';
-import { ResponsiveText } from '../utils/ResponsiveText';
-import { useState } from 'react';
-import StarButton from '../buttons/StarButton';
-import { useUI } from '../../context/UIProvider';
+// UserTable.jsx
+import {
+  Th,
+  Td,
+  Text,
+} from '@chakra-ui/react';
+import { CircleUserActionButton } from '../buttons/actions/UserActionButton';
+import { FormType } from '../../context/FormProvider';
+import { UserItemsList } from "../utils/popovers/ItemsList";
+import { ItemStarButton } from '../buttons/StarButton';
 import { useItems } from '../../context/ItemsProvider';
-import { ItemLink } from '../buttons/ItemLink';
+import { UserLink } from '../buttons/ItemLink';
+import { Tags } from '../tags/Tags';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import { SelectableTable } from "../utils/SelectableTable";
 
-const UserTable = ({ items }) => {
-
-  const { loading, setLoading, error, setError }  = useUI();
-  const { handleUpdate } = useItems()
+const UserTable = () => {
+  const { handleUpdate, handleSort, sortField, sortOrder } = useItems();
 
   return (
-    <Table size='sm' variant="simple">
-      <Thead position="sticky" top="0" zIndex="1" bg={useColorModeValue('gray.100', 'gray.700')}>
-        <Tr>
-          <Th></Th>
-          <Th>User Name</Th>
-          <Th>Department</Th>
-          <Th>Assets</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {items.map((user) => (
-          <Tr 
-            key={user.userId} 
-            _hover={{ bg: 'gray.100' }}
-            // onClick={() => handleItemClick(user)}
-          >
-            <Td><StarButton id={user.userId} isBookmarked={user.bookmarked} onToggle={handleUpdate}/></Td>
-            <Td><ItemLink item={user} size={'lg'} fontWeight="bold"/></Td>
-            <Td><ResponsiveText>{user.department.deptName}</ResponsiveText></Td><Td>
-              {user.userLoans?.length > 0 ? 
-                <AssetList user={user}/> : 
-                <Flex>
-                  <ActionButton formType={user.deleteEvent ? formTypes.RESTORE_USER : formTypes.LOAN} item={user} style={{ marginLeft: 'auto' }} />
-                </Flex>
-              }
+    <SelectableTable
+      columns={[
+        <Th key="star" />,
+        <Th key="name" onClick={() => handleSort("userName")} cursor="pointer">
+          User Name {sortField === "userName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="dept" onClick={() => handleSort("deptName")} cursor="pointer">
+          Department {sortField === "deptName" && (sortOrder === "asc" ? <TriangleUpIcon /> : <TriangleDownIcon />)}
+        </Th>,
+        <Th key="assets">Assets</Th>,
+        <Th key="tags">Tags</Th>,
+        <Th key="loan">Loan</Th>,
+      ]}
+      renderRow={(user) => {
+        return {
+          props: { _hover: { bg: 'bgGray' } },
+          cells: [
+            <Td key="star">
+              <ItemStarButton
+                id={user.userId}
+                isBookmarked={user.bookmarked}
+                onToggle={handleUpdate}
+              />
+            </Td>,
+            <Td key="name">
+              <UserLink user={user} size="lg" fontWeight="bold" />
+            </Td>,
+            <Td key="dept"><Text>{user.deptName}</Text></Td>,
+            <Td key="assets">
+              {user.loans?.length > 0 && <UserItemsList loans={user.loans} />}
+            </Td>,
+            <Td key="tags">
+              <Tags tags={user.tags} textSize="xs" />
+            </Td>,
+            <Td key="loan">
+              {!user.deleteEvent && (
+                <CircleUserActionButton
+                  formType={FormType.LOAN}
+                  user={user}
+                />
+              )}
             </Td>
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
+          ]
+        };
+      }}
+    />
   );
-}
+};
 
 export default UserTable;

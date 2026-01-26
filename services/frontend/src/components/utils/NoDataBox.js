@@ -1,21 +1,25 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, useColorModeValue } from "@chakra-ui/react";
 
-export default function NoDataBox() {
-    return (
-        <Box
-          w="100%"
-          borderWidth="1px"
-          borderRadius="lg"
-          boxShadow="md"
-          p={10}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          bg="gray.100" // Or any color you prefer
-        >
-          <Text fontSize="xl" color="gray.500">
-            No data to show
-          </Text>
-        </Box>
-    );
+export default function NoDataBox({ message = "No data found" }) {
+  const bg = useColorModeValue("gray.50", "gray.700");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const textColor = useColorModeValue("gray.500", "gray.400");
+
+  return (
+    <Box
+      w="100%"
+      borderWidth="1px"
+      borderColor={borderColor}
+      boxShadow="sm"
+      p={10}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      bg={bg}
+    >
+      <Text fontSize="lg" color={textColor}>
+        {message}
+      </Text>
+    </Box>
+  );
 }

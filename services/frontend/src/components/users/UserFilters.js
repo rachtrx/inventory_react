@@ -1,47 +1,42 @@
 import React, { useEffect } from 'react';
-import { Form, Formik } from 'formik';
+import { Field, Form, Formik } from 'formik';
 import { useContext } from 'react';
-import FilterContainer from '../utils/FilterContainer';
 import InputFormControl from '../forms/utils/InputFormControl';
 import SelectFormControl from '../forms/utils/SelectFormControl';
-import ToggleButton from '../buttons/ToggleButton';
 import { useItems } from '../../context/ItemsProvider';
 import { MultiSelectFormControl } from '../forms/utils/SelectFormControl';
 import userService from '../../services/UserService';
+import { FormControl, FormLabel, HStack, NumberInput, NumberInputField } from '@chakra-ui/react';
+import { RangeField } from '../forms/utils/RangeField';
+import FilterSidebar from '../utils/FilterSidebar';
+import CheckboxField from '../forms/utils/CheckboxField';
+import { CheckboxGroupField } from '../forms/utils/CheckboxGroupField';
 
 export default function UserFilters() { // TODO can have external filters from Dashboard
 
-	const { filters, fetchFilters, onSubmit } = useItems()
+	const { filters } = useItems()
 
-	useEffect(() => {
-        fetchFilters('department');
-        fetchFilters('assetCount');
-    }, [fetchFilters]);
-
-  return (
-    <Formik initialValues={userService.defaultFilters} onSubmit={onSubmit}>
-        <Form>
-            <FilterContainer>
-                <MultiSelectFormControl
-                    name="department"
-                    // label="Department"
-                    placeholder="Department"
-                    options={filters.department}
-                />
-                <MultiSelectFormControl
-                    name="assetCount"
-                    // label="Number of Assets"
-                    placeholder="Number of Assets"
-                    options={filters.assetCount}
-                />
-                <InputFormControl
-                    name="name"
-                    // label="User Name"
-                    placeholder="User Name"
-                />
-                <ToggleButton name="bookmarked" label="Bookmarked" />
-            </FilterContainer>
-        </Form>
-    </Formik>
-  );
+    return (
+        <>
+            <CheckboxField
+                name="bookmarked"
+                label="Bookmarked"
+            />
+            <CheckboxGroupField
+                items={filters.deptName}
+                label="Department"
+                name="deptName"
+            />
+            <RangeField 
+                label="Asset Count"
+                range={[0,...filters.assetCount?.map(option => option.value)]} 
+                name="assetCount"
+            />
+            <CheckboxGroupField
+                items={filters.userTag}
+                label="User Tag"
+                name="userTag"
+            />
+        </>
+    )
 };

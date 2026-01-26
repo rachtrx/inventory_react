@@ -9,11 +9,11 @@ class AccReturnDTO {
         returnEventId,
         ReturnEvent
     }) {
-        if (returnEventId) this.returnEventId = returnEventId;
-        if (id) this.accReturnId = id;
-        if (accLoanId) this.accLoanId = accLoanId;
+        this.returnEventId = returnEventId;
         this.count = count;
-        this.returnEvent = new EventDTO(ReturnEvent);
+        this.accReturnId = id;
+        this.accLoanId = accLoanId;
+        this.returnEvent = ReturnEvent && new EventDTO(ReturnEvent.dataValues);
     }
 } 
 

@@ -1,20 +1,25 @@
 import {
+  Box,
     Flex,
+    IconButton,
     Menu,
+    Tooltip,
+    useColorMode,
     useColorModeValue,
   } from '@chakra-ui/react';
 import NavButton from "./buttons/NavButton";
-import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdEvent } from 'react-icons/md'; // react-icons
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthProvider';
-import { useCallback } from 'react';
-import authService from '../services/AuthService';
-import { useUI } from '../context/UIProvider';
+import { MdDashboard, MdHistory, MdWork, MdPeople, MdAccountCircle, MdUsb, MdAlarm } from 'react-icons/md'; // react-icons
+import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+// import { useUI } from '../context/UIProvider';
 
+import { FaMoon, FaSun } from 'react-icons/fa';
+  
 const Nav = () => {
   const navigate = useNavigate();
+  const { colorMode, toggleColorMode } = useColorMode();
   const linkHoverColor = useColorModeValue('gray.800', 'white');
-  const {handleDevError} = useUI();
+  // const {handleDevError} = useUI();
 
   return (
     <Flex
@@ -27,8 +32,9 @@ const Nav = () => {
       bg={useColorModeValue('gray.50', 'gray.900')}
       color={linkHoverColor}
     >
+
       <Menu>
-        <NavButton next={() => navigate('/dashboard')} icon={<MdDashboard />} label="Home" />
+        <NavButton next={() => navigate('/reminders')} icon={<MdAlarm />} label="Reminders" />
       </Menu>
 
       <Menu>
@@ -47,16 +53,49 @@ const Nav = () => {
         <NavButton next={() => navigate('/users')} icon={<MdPeople />} label="Users" />
       </Menu>
 
-      <Menu>
-        <NavButton next={handleDevError} icon={<MdEvent />} label="Reservations" />
-      </Menu>
+      <Flex gap={3} align="center">
+        <Tooltip label="Stats" hasArrow>
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              as={RouterLink}
+              to="/stats"
+              icon={<MdDashboard />}
+              aria-label="Stats"
+              variant="ghost"
+            />
+          </Box>
+        </Tooltip>
 
-      <Menu>
-        <NavButton next={() => navigate('/profile')} icon={<MdAccountCircle />} label="Profile" />
-      </Menu>
+        <Tooltip label="Profile" hasArrow placement="bottom">
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              icon={<MdAccountCircle />}
+              aria-label="Profile"
+              variant="ghost"
+              onClick={() => navigate('/profile')}
+            />
+          </Box>
+        </Tooltip>
+        <Tooltip label="Theme" hasArrow placement="bottom">
+          <Box as="span" display="inline-flex" alignItems="center" justifyContent="center">
+            <IconButton
+              aria-label="Toggle color mode"
+              icon={colorMode === "light" ? <FaMoon /> : <FaSun />}
+              onClick={toggleColorMode}
+              variant="ghost"
+            />
+          </Box>
+        </Tooltip>
+      </Flex>
+
+      {/* <Menu>
+        <NavButton next={handleDevError} icon={<MdEvent />} label="Reservations" />
+      </Menu> */}
 
     </Flex>
   );
 };
 
 export default Nav;
+
+// handleDevError

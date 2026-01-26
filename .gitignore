@@ -31,3 +31,6 @@ notes.txt
 note.txt
 
 *config.json
+*.sql
+
+certs/
