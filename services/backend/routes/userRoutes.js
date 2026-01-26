@@ -15,13 +15,13 @@ router.get("/:id", userController.getUser);
 router.post('/add/dept', formUserController.createNewDept);
 router.post('/add/user', formUserController.add);
 
-router.post('/del/user/lookup', formUserController.loadUsrDel); // TODO
+router.post('/del/user/lookup', formUserController.loadUsrDel);
 router.post('/del/user', formUserController.del);
 
 router.post('/add/tag', formUserTagController.createNewTag);
 
-router.post('/tag/user/lookup', formUserTagController.loadAddUsers); // TODO
-router.post('/untag/user/lookup', formUserTagController.loadDelUsers); // TODO
+router.post('/tag/user/lookup', formUserTagController.loadAddUsers);
+router.post('/untag/user/lookup', formUserTagController.loadDelUsers);
 
 router.post('/tag/user', formUserTagController.addUserTag)
 router.post('/untag/user', formUserTagController.delUserTag)

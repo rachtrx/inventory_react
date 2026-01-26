@@ -34,16 +34,16 @@ const uploadPath = process.env.UPLOADS_FOLDER;
 
 router.post('/loan', loanController.loan);
 
-router.post('/return/asset/lookup', astLoanController.loadAstReturn); // TODO
+router.post('/return/asset/lookup', astLoanController.loadAstReturn);
 router.get('/return/user', usrLoanController.loadUsrReturn);
 router.get('/return/accessory', accLoanController.loadAccReturn);
 
-router.post('/loan/asset/lookup', astLoanController.loadAstLoan); // TODO
+router.post('/loan/asset/lookup', astLoanController.loadAstLoan);
 router.get('/loan/asset/:astSTypeId', astLoanController.loadSuggestedAccLoan);
-router.post('/loan/user/lookup', usrLoanController.loadUsrLoan); // TODO
+router.post('/loan/user/lookup', usrLoanController.loadUsrLoan);
 router.get('/loan/accessory', accLoanController.loadAccLoan);
 
-router.post('/return/lookup', loanController.loadReturn); // TODO
+router.post('/return/lookup', loanController.loadReturn);
 router.post('/return', loanController.return);
 
 router.post('/download', loanController.downloadEvent);

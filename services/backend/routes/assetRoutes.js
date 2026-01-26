@@ -20,13 +20,13 @@ router.post('/add/vendor', formAssetController.createNewVendor);
 
 router.post('/add/asset', formAssetController.add);
 
-router.post('/del/asset/lookup', formAssetController.loadAstDel); // TODO
+router.post('/del/asset/lookup', formAssetController.loadAstDel);
 router.post('/del/asset', formAssetController.del);
 
 router.post('/add/tag', formAssetTagController.createNewTag);
 
-router.post('/tag/asset/lookup', formAssetTagController.loadAddAssets) // TODO
-router.post('/untag/asset/lookup', formAssetTagController.loadDelAssets) // TODO
+router.post('/tag/asset/lookup', formAssetTagController.loadAddAssets)
+router.post('/untag/asset/lookup', formAssetTagController.loadDelAssets)
 
 router.post('/tag/asset', formAssetTagController.addAssetTag)
 router.post('/untag/asset', formAssetTagController.delAssetTag)

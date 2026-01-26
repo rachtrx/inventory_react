@@ -71,21 +71,18 @@ class UserService {
 
     // Only fetched through single search
     
-    // TODO
     fetchUserDel = async (userNames) => {
         return await this.axios.post(`${this.URL}/del/user/lookup`, {
             userNames
         });
     }
 
-    // TODO
     fetchUserDelById = async (userIds) => {
         return await this.axios.post(`${this.URL}/del/user/lookup`, {
             userIds
         });
     }
     
-    // TODO
     fetchTagUser = async(userNames, tagId=null) => {
         const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
             userNames,
@@ -94,7 +91,6 @@ class UserService {
         return options;
     }
 
-    // TODO
     fetchTagUserById = async(userIds, tagId=null) => {
         const options = await this.axios.post(`${this.URL}/tag/user/lookup`, {
             userIds,
@@ -103,7 +99,6 @@ class UserService {
         return options;
     }
 
-    // TODO
     fetchUntagUser = async (userNames, tagId=null) => {
         return await this.axios.post(`${this.URL}/untag/user/lookup`, {
             userNames,
@@ -111,7 +106,6 @@ class UserService {
         });
     }
 
-    // TODO
     fetchUntagUserById = async (userIds, tagId=null) => {
         return await this.axios.post(`${this.URL}/untag/user/lookup`, {
             userIds,

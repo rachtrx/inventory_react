@@ -77,7 +77,6 @@ class AssetService {
         return await this.axios.post(`${this.URL}/add/asset`, formData);;
     }
 
-    // TODO
     async fetchAstDel(serialNumbers) {
         console.log(serialNumbers);
         return await this.axios.post(`${this.URL}/del/asset/lookup`, {
@@ -85,7 +84,6 @@ class AssetService {
         });
     }
 
-    // TODO
     async fetchAstDelById(assetIds) {
         console.log(assetIds);
         return await this.axios.post(`${this.URL}/del/asset/lookup`, {
@@ -99,7 +97,6 @@ class AssetService {
         return await this.axios.post(`${this.URL}/del/asset`, formData);
     }
 
-    // TODO
     fetchTagAsset = async(serialNumbers, tagId=null) => {
         return await this.axios.post(`${this.URL}/tag/asset/lookup`, {
             serialNumbers,
@@ -107,7 +104,6 @@ class AssetService {
         });
     }
 
-    // TODO
     fetchTagAssetById = async(assetIds, tagId=null) => {
         return await this.axios.post(`${this.URL}/tag/asset/lookup`, {
             assetIds,
@@ -121,7 +117,6 @@ class AssetService {
         return await this.axios.post(`${this.URL}/tag/asset`, formData);
     }
 
-    // TODO
     fetchUntagAsset = async (serialNumbers, tagId=null) => {
         return await this.axios.post(`${this.URL}/untag/asset/lookup`, {
             serialNumbers,
@@ -129,7 +124,6 @@ class AssetService {
         });
     }
 
-    // TODO
     fetchUntagAssetById = async (assetIds, tagId=null) => {
         return await this.axios.post(`${this.URL}/untag/asset/lookup`, {
             assetIds,

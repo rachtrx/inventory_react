@@ -16,14 +16,12 @@ class LoanService {
         "bookmarked": false,
     }
 
-    // TODO
     fetchAstLoan = async (serialNumbers) => {
         return this.axios.post(`${this.URL}/loan/asset/lookup`, {
             serialNumbers,
         });
     };
 
-    // TODO
     fetchAstLoanById = async (assetIds) => {
         return this.axios.post(`${this.URL}/loan/asset/lookup`, {
             assetIds,
@@ -38,14 +36,12 @@ class LoanService {
         });
     }
 
-    // TODO
     fetchUserLoan = async (userNames) => {
         return this.axios.post(`${this.URL}/loan/user/lookup`, {
             userNames,
         });
     }
 
-    // TODO
     fetchUserLoanById = async (userIds) => {
         return this.axios.post(`${this.URL}/loan/user/lookup`, {
             userIds,
@@ -63,7 +59,6 @@ class LoanService {
         return await this.axios.post(`${this.URL}/loan`, formData);
     }
 
-    // TODO
     async fetchAstReturn(serialNumbers) {
         return this.axios.post(`${this.URL}/return/asset/lookup`, {
             serialNumbers,
@@ -86,7 +81,6 @@ class LoanService {
         });
     }
 
-    // TODO
     fetchReturns = async (loanIds) => {
         return this.axios.post(`${this.URL}/return/lookup`, {
             loanIds,
